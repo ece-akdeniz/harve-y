@@ -1,0 +1,14 @@
+<environment_context>
+  <cwd>/Users/sametdegirmenci/Downloads/ysamet</cwd>
+  <shell>zsh</shell>
+  <current_date>2026-10-10</current_date>
+  <timezone>Europe/Berlin</timezone>
+  <filesystem><workspace_roots><root>/Users/sametdegirmenci/Downloads/ysamet</root><root>/Users/sametdegirmenci/.codex/visualizations/2026/10/10/01a12781-3d1b-7082-a7e4-1162c9764c80</root></workspace_roots><permission_profile type="disabled"><file_system type="unrestricted" /></permission_profile></filesystem>
+</environment_context>
+
+---
+
+/goal Here, use the text and go through the codebase. The goal is 0.85 as the average mean through all the test cases. Iterate and don't stop until you have reached that goal. We're at 0.74 right now.
+
+Referenced pasted text files:
+- pasted text file: /Users/sametdegirmenci/.codex/attachments/0482d29c-18b9-4aa3-bf56-62cbcecd0d6e/pasted-text-1.txt. Read this file before continuing.
