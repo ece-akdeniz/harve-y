@@ -65,6 +65,30 @@ fallbacks and zero observed failures are measurements, not guarantees.
 - Imminent wave cap; queued close; no assumption HTTP cancellation cancels server work.
 - Sunday overlay, unknown supplier, missing index month and non-unit price_unit.
 
+## Tooling (run from the project root)
+
+| Step | Command | Notes |
+|---|---|---|
+| Quota before/after a batch | `uv run --locked python tools/quota.py --planned N` | `/v1/me` used/left plus local practice ledger; exit 1 when left <= 46 + N |
+| Baseline vs candidate | `uv run --locked python tools/compare.py --cases S01 S02 S03 -n 2` | default sim on :8030 (auto-started), HEAD vs working tree |
+| Sandbox comparison | `... compare.py --mode sandbox --cases D01 D02 --baseline <ref> --candidate WORKTREE` | hosted, no practice quota |
+| Practice comparison | `... compare.py --mode practice --practice --budget 8 --cases P01 P02 -n 1` | refuses above budget or into the reserve |
+| Run summary | `uv run --locked negotiator report <run_dir> [--json]` | per case score, terms, C, gap, rounds, decisions, guards |
+| Replay page | `uv run --locked python tools/replay_viewer.py <run_dir> [--fetch]` | static `replay.html`; `--fetch` stores `hosted-<sid>.json` (read-only GETs) |
+
+`compare.py` records commit, dirty-diff hash, env overrides and args per arm, data and lock
+hashes, and interleaves arm order (seeded). Per-arm env: `--baseline-env K=V`, extra args:
+`--candidate-args "..."`, both arms: after `--` (e.g. `-- --runner async`). Each run uses its
+own `NEGOTIATOR_LOG_DIR` under `experiments/runs/compare/<stamp>/`; a commit arm runs in a
+temporary git worktree with `data/` linked in. The markdown summary is appended to LOG.md
+(`--no-log` to skip); fill in the decision line by hand.
+
+Viewer sources: our decisions and result come from `trace.jsonl` (cited as `trace.jsonl#L<n>`),
+supplier messages and the arena cost breakdown from hosted session dumps (cited by message id
+or file). Arena "reasons" are spectator data: analysis and pitch only, never agent input.
+To show C components for every run, decisions/results should log `cost_breakdown`/`components`
+and a `session` event with the session id; the report picks them up when present.
+
 Save all runs in experiments/runs and summarize in experiments/LOG.md. Replay mining is for
 practice development runs; never feed spectator pages into the final agent. R1 is rehearsal;
 use unique names for additional experiments.

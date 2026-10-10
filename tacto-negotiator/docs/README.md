@@ -8,8 +8,8 @@ Team times are Europe/Berlin, Saturday 10 and Sunday 11 October 2026.
 ## First 15 minutes
 
 1. Assign Runtime, Evidence and Evaluation/pitch owners; Samet owns Decision/integration.
-2. Follow [root setup](../README.md). Custom play/run commands now dispatch PackageAgent v0; prep/report
-   remain placeholders. Recorded sandbox baselines are in experiments/LOG.md.
+2. Follow [root setup](../README.md). Custom prep/play/run/report commands now execute; serial remains the
+   default, async is explicit. Current hosted results are in experiments/LOG.md.
 3. Read [implementation gates](10-implementation-checklist.md) together. Agree on package,
    claim, thread-state and closing-proposal records before splitting up.
 4. Runtime + Evaluation run D01 and the D02 timing probe. Decision builds full-cost checks.
@@ -50,6 +50,18 @@ Hosted timing is measured. Then scale to multiple cases.
 - [09 — Risks](09-risks.md): failure modes and validation.
 - [10 — Implementation checklist](10-implementation-checklist.md): actual scaffold gaps and gates.
 - [11 — Pipeline and win plan](11-pipeline-and-win-plan.md): one-page order, gates and cut list.
+- [12 — Measured improvement plan](12-measured-improvement-plan.md): full hosted coverage, P04 target,
+  reproduced policy gaps and the next bounded experiment sequence.
+
+- [13 — Staged experiments](13-staged-experiments.md): current implementation, four-run screening,
+  conditional 52-session ceiling, stop gates and FAQ implications. Supersedes document 12's budget.
+
+- [14 — Measured demo](14-measured-demo.md): two defensible replay stories and their limits.
+- [12 — Experiment dashboard](12-experiment-dashboard.md): shared laptop-hosted dashboard,
+  local experiment runners, comparisons, buffering and importing previous attempts.
+
+- [13 — Agent experiment loop](13-agent-experiment-loop.md): immutable checkpoints, bounded
+  comparisons, cited findings, recovery and safe local/recommendation restore.
 
 ## Sources and evidence labels
 
@@ -67,3 +79,6 @@ Resolve conflicting official statements with the desk; public jury weighting is 
 
 Hosted sandbox observations are recorded in [the experiment log](../experiments/LOG.md).
 They do not establish generalization, final readiness or a winning probability.
+
+- [16 — Integrated runtime](16-integrated-runtime.md): implemented ingestion/economics/feedback, async lab commands and limits.
+- [17 — Shared memory handoff](17-shared-memory-handoff.md): Barış's graph contract, Uğur's ingestion boundary and Samet's interface ownership.

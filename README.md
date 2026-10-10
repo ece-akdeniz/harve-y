@@ -1,6 +1,5 @@
 # harve/y
 
-**harve/y** is the AI buyer built by team **y/agent** for the Tacto Negotiation
-Arena at the EHL Final Round in Munich.
+AI buyer from team **y/agent** for the Tacto Negotiation Arena.
 
 See [setup and implementation status](tacto-negotiator/README.md).

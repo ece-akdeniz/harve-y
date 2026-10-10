@@ -1,23 +1,41 @@
 # harve/y
 
-**harve/y**, the buyer agent from team **y/agent**, competes in the Tacto Negotiation
-Arena, EHL Grand Finale, 10–11 October 2026.
+Buyer agent from team **y/agent**.
 
-**Status: PackageAgent v0 runs through the official kit.** `play` and `run` dispatch
-negotiations; `prep` and `report` remain placeholders. The custom async runtime, persistent
-recovery and full closing guards remain unfinished. Start with [the hacking guide](docs/README.md)
-and [hosted experiment results](experiments/LOG.md).
+Buyer agent for the Tacto Negotiation Arena, EHL Grand Finale, 10–11 October 2026.
+
+**Status: integrated deterministic agent with serial and async runners.** `prep`, `play`, `run`
+and `report` execute. Shared closing checks, journalled recovery, a claim bank and opt-in
+claim delivery are implemented. Hosted P01: mechanical baseline 80.0/100; claims-only candidate
+92.8/100 in two observed runs. A hosted D02 interruption/restart completed the same session
+without timeouts. These are development measurements, not final-readiness certification.
+See [the hacking guide](docs/README.md) and [experiment results](experiments/LOG.md).
+
+## Shared experiment dashboard
+
+Run agents on each teammate's laptop and publish experiments to a password-protected dashboard
+hosted on one laptop through VS Code port forwarding. Includes code/configuration provenance,
+per-case comparisons, local buffering and read-only arena-history import.
+
+```bash
+uv run --locked negotiator lab init
+uv run --locked negotiator lab serve --secure-cookies
+uv run --locked negotiator lab run --help
+```
+
+See [the host and teammate setup guide](docs/12-experiment-dashboard.md). The lab is development
+tooling; it does not replace or complete the final negotiation runtime.
 
 ## Objective
 
 Maximize normalized case scores reliably, then demonstrate procurement judgment with an
-evidence-linked replay. Code evaluates complete packages; a bounded model interprets replies
-and explains approved moves. One coordinator closes each case. Overall jury criteria remain
+evidence-linked replay. Code evaluates complete packages and renders approved offers and claims.
+Model interpretation/writing remains an optional, unimplemented extension. One coordinator closes each case. Overall jury criteria remain
 unconfirmed; a high track score supports, but does not guarantee, an overall title.
 
 ## Setup
 
-Use Python 3.12 and [uv](https://docs.astral.sh/uv/). Run from the repository root:
+Use Python 3.12 and [uv](https://docs.astral.sh/uv/). Run from the `tacto-negotiator` directory:
 
 ```bash
 uv sync --locked
@@ -64,11 +82,12 @@ prototypes: the dossier tool reads the base SQLite, not the Sunday overlay; “j
 index output means a partial cost proxy; the sensitivity tool chooses an illustrative baseline.
 See [research limitations](docs/01-research.md).
 
-## Custom commands — partial implementation
+## Custom commands
 
 ```bash
 uv run --locked negotiator prep
-uv run --locked negotiator play case:D01 -v
+uv run --locked negotiator play case:D01 --runner serial -v
+uv run --locked negotiator play case:D02 --runner async -v
 uv run --locked negotiator run --set practice --parallel 10
 uv run --locked negotiator run --set final --parallel 10
 uv run --locked negotiator report experiments/runs/REPLACE_WITH_RUN_ID
@@ -77,34 +96,25 @@ uv run --locked negotiator report experiments/runs/REPLACE_WITH_RUN_ID
 Do not use these for final operations until the [implementation gates](docs/10-implementation-checklist.md)
 and [runbook](docs/06-final-runbook.md) pass on the final machine.
 
-## Configuration
-
-### Experimental verified index evidence
-
-`play` and `run` accept `--evidence`. This opt-in candidate adds up to two verified
-year-on-year index observations to price-increase offers, followed by a cost-breakdown
-question. The baseline pricing and term-selection policy is unchanged.
+Claims are **off by default**. Enable only for a planned experiment; currently they apply to
+single-supplier price-increase cases. Supplier estimates and payment MESOs also remain opt-in.
+For a quota-budgeted P01 claims comparison:
 
 ```bash
-uv run --locked negotiator play case:D01 --evidence --data "$ARENA_DATA" -v
+caffeinate -i uv run --locked python tools/compare.py --mode practice --practice --budget 4 \
+  --cases P01 -n 2 --baseline WORKTREE --candidate WORKTREE \
+  --baseline-env NEGOTIATOR_CLAIMS=0 NEGOTIATOR_ESTIMATES=0 NEGOTIATOR_MESO=0 \
+  --candidate-env NEGOTIATOR_CLAIMS=1 NEGOTIATOR_ESTIMATES=0 NEGOTIATOR_MESO=0
 ```
 
-The command above starts a hosted sandbox session. Local tests do not start sessions.
-Without `--data` (or `ARENA_DATA`), evidence uses only case facts. With a package,
-the official reader merges base and Sunday-release facts; case facts take precedence.
-Only index series listed in the case refs or linked to its parts by the base
-package cost-driver records are eligible. Missing, malformed,
-stale or incomplete windows produce no claim. Citations already in buyer history are
-not reused across supplier threads; decision traces record selected IDs.
+For a free hosted interruption/restart rehearsal, keep the lid open and run
+`caffeinate -i uv run --locked python tools/resume_probe.py`. This intentionally interrupts its
+own D02 child process, then resumes the persisted journal. Never use that script on the final.
 
-This is factual index context, not an estimate of the supplier's overall cost change.
-It excludes rising indices as standalone buyer arguments. Supplier statements about
-hedging or irrelevant indices, contradicted claims, and final offers suppress further
-index arguments for that thread. These conservative textual rules are hypotheses,
-not inferred supplier economics; nuanced motivation modeling remains unfinished. Keep the flag off for the baseline and compare replays
-before promoting it. Durable retry recovery and concurrent citation reservations
-remain part of the unfinished runtime. `claims.py` is still the broader claim-bank
-scaffold; the implemented index-only path is `evidence.py`.
+Use `NEGOTIATOR_JOURNAL=/absolute/path/to/journal.jsonl` with `--runner async` to resume an
+existing run; a new journal opens a new practice session. Keep experiment journals separate.
+
+## Configuration
 
 | Variable | Use |
 |---|---|
@@ -115,40 +125,35 @@ scaffold; the implemented index-only path is `evidence.py`.
 | `LLM_BASE_URL`, `LLM_API_KEY`, `ANTHROPIC_API_KEY` | Provider-specific configuration |
 | `PREP_LLM_MODEL` | Planned optional offline model |
 | `NEGOTIATOR_MOVE_BUDGET_S` | Proposed buyer-work target, default 35 seconds; not HTTP timeout |
+| `NEGOTIATOR_CLAIMS` | `1` enables checked claims; default off |
+| `NEGOTIATOR_ESTIMATES` | `1` enables dossier cost estimates; default off pending calibration |
+| `NEGOTIATOR_MESO` | `1` enables payment variants; default off after D02 regression |
+| `NEGOTIATOR_JOURNAL` | Explicit persistent journal for async resume |
 | `NEGOTIATOR_LOG_DIR` | Trace location, default `experiments/runs` |
 
 The current Settings class reads only part of the planned configuration; wiring it is a build
 task. Local settings never override the arena's per-thread or per-wave limits.
 
 
-### One-pass hosted evaluation
+## Shared session history
 
-`uv run --locked python tools/practice_sweep.py --data "$ARENA_DATA" --execute`
-starts one session per hosted practice case (currently ten), with at most three cases
-running concurrently. It consumes practice quota; it does not retry failed cases.
-The candidate uses favorable, reply-aware evidence. Raw requests, replays, outcomes,
-revision and quota are stored under ignored `experiments/runs/`. The kit still runs
-RFQ threads serially, so this is an evaluation tool, not a final-readiness claim.
+The parent repository tracks Entire settings and Codex/Cursor hooks. Install Entire locally,
+then run `entire enable` from the parent repository to install local Git hooks. Run
+`entire status` to verify capture and sync; hooks skip harmlessly when the CLI is absent.
+Checkpoint trailers link code commits to agent sessions. `entire checkpoint list` and
+`entire checkpoint explain <checkpoint-id>` retrieve context for teammates. Secrets belong
+only in ignored `.env` files; review checkpoint redaction before pushing session history.
 
-### Package policy update
+### Staged policy experiments
 
-The agent now accepts valid final offers by their actual sheet ID instead of countering
-with a mixture of supplier prices and buyer terms. All standing sheets are checked for
-must-haves before closing. Initial packages are calculated at the buyer's proposed price;
-subsequent counters start from the supplier's selected package. Up to three cost-bounded
-alternatives explore allowed payment, quality, index and duration trades. Fixed fields,
-including P11 payment, are never added to the negotiated fields.
+The default policy remains the measured baseline behavior. Opt in explicitly:
 
-With `--data`, matching supplier/part should-cost estimates (same price unit) contribute
-an internal conservative supplier-health cost at closing. This uses the upper confidence
-bound and the buyer financing rate as a proxy. Missing estimates fall back to the published
-cost without a health estimate. This is not knowledge of hidden supplier costs; initial
-price anchoring and relationship-sensitive package optimization remain limited.
+```sh
+uv run --locked negotiator play case:P04 --runner async --policy-config configs/packages.json
+uv run --locked negotiator play case:P11 --runner async --policy-config configs/packages-evidence.json
+```
 
-Target a subset with repeated `--case case:P04` arguments to `tools/practice_sweep.py`.
-
-A hosted test rejected an alternative-sheet ID with HTTP 422. `play`, non-final `run`,
-and `practice_sweep` now reconcile that error against authoritative session state and
-recheck a primary offer before accepting it. The final kit-managed wave runner does
-not yet use this adapter. The recorded P10 recovery was operator-assisted in the same
-session; the automatic recovery path has local tests but no separate hosted validation.
+These commands consume one hosted practice session each. Use the budgeted manifest runner
+in [the staged experiment contract](docs/13-staged-experiments.md) for comparisons and stop
+checks. Keep estimates and generic MESOs disabled during this cycle. Never use leaderboard
+scores, historical Cbest or diagnostic target prices as runtime inputs.
