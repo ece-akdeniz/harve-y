@@ -61,6 +61,16 @@ def best_terms(case: dict, unit_price: float, standard: dict | None = None, supp
 
 
 def payment_breakeven_pct(case: dict, from_days: int, to_days: int) -> float:
-    """Price discount (%) that makes paying faster neutral: r · Δdays / 360 · 100."""
-    r = case["buyer"]["interest_rate"]
-    return r * (from_days - to_days) / 360 * 100
+    """Exact price discount (%) offsetting the buyer's payment-timing value.
+
+    Payment timing is compared with the case reference term. This preserves the
+    complete-cost ratio when neither endpoint is itself the reference term.
+    """
+    buyer = case["buyer"]
+    r = buyer["interest_rate"]
+    reference = buyer.get("reference_payment_days", 60)
+    from_factor = 1 + r * (reference - from_days) / 360
+    to_factor = 1 + r * (reference - to_days) / 360
+    if to_factor <= 0:
+        raise ValueError("payment term produces a non-positive discount factor")
+    return (1 - from_factor / to_factor) * 100
