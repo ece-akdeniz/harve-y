@@ -70,6 +70,10 @@ Hosted timing is measured. Then scale to multiple cases.
 
 - [16 — Evidence context](16-evidence-context.md): implemented shared interface, local P01 export and hosted-run handoff checklist.
 
+- [21 — Negotiation Engine V2 plan](21-negotiation-v2-plan-2026-10-10.md): living planning package
+  with current-code assessment, proposed architecture, typed interfaces, milestone tasks,
+  capacity evaluation and a separate strategy-research backlog. V2 is not implemented yet.
+
 ## Sources and evidence labels
 
 - [17 — Independent inference setup](17-inference-setup.md): local credential placement,
@@ -94,3 +98,6 @@ Resolve conflicting official statements with the desk; public jury weighting is 
 
 Hosted sandbox observations are recorded in [the experiment log](../experiments/LOG.md).
 They do not establish generalization, final readiness or a winning probability.
+
+- [V2 executable handoff](v2/implementation-guide.md): three test suites, golden fixtures, required-prefix checks and implementation instructions.
+- [V2 first three prompts](v2/first-three-prompts.md): copy-ready small contract assignments.

@@ -1,0 +1,139 @@
+{
+  "schema_version": "negotiator-v2/1",
+  "record_id": "7a7bb5bc-c0cb-59d4-8c0b-bf553722ae68",
+  "decision_id": "9b502a05-43ec-5a88-96b1-83a25cdec64b",
+  "snapshot": {
+    "schema_version": "negotiator-v2/1",
+    "run_id": "run:fixture-p10",
+    "session_id": "session:fixture-p10",
+    "state_version": 0,
+    "context_version": "d5e1764d668515d1badc55c2ba0cb1726e2691ab7312a0c1153323a2f8a24c67",
+    "config_hash": "a3c9bae1108f75d102584f4f948f8c590a83da44d8b32698664fd9a60a029446",
+    "case_contract_hash": "ae191d3976cb56a040feffbf1dd7165e8585df440868e6aea5fdfa2349f53242"
+  },
+  "revision": 1,
+  "parent_record_hash": null,
+  "fixture_input_hash": "ae191d3976cb56a040feffbf1dd7165e8585df440868e6aea5fdfa2349f53242",
+  "config_artifact_ref": "sha256:b79606fb3afea5bd1609ed40b622142f1c98125abcfe89a76a661b0e8e343910",
+  "case_artifact_ref": "sha256:bbfcd4160a1e8674dac62292ae48be4785262ad7078f9ec11b74a254ce70fa06",
+  "evidence_artifact_ref": "sha256:ee8250fb76e094b34b471f13a73dbbe51d1ae142e9df59d7c0d31ec20f0a0a8e",
+  "assessment_artifact_refs": [
+    "sha256:89c08f7a02989db85066486407e81228ddadae03a30b293e5298cd050bd92db7"
+  ],
+  "intent_artifact_refs": [
+    "sha256:ecd1378bc9dc130008f00d58db5d26f60db55934a49b949af7e6f6a8da2a2beb"
+  ],
+  "candidate_artifact_refs": [
+    "sha256:e661f4c935e8a5a83349afb5e347695c2e972e967b50efcd618f93b0b7b4c24b"
+  ],
+  "evaluation_artifact_refs": [
+    "sha256:efe77b201dc216c0edf435a227df2b2898d3f6ea1ff16e5d4d0d4ec0cf593271"
+  ],
+  "selection_artifact_ref": "sha256:65045134064dd4d905665eceaf4153fea4f9d69d2ae22255a0b7cef4701f4886",
+  "rendered_artifact_ref": "sha256:f748f8d90516c1cecee83006e3c9de6c9117affdf9c6e42e0b450195ed88bac8",
+  "validation_artifact_ref": "sha256:98c41dcd20b86b86830ec0794559835614458ceaae0f0ec77a3ed1cd3a1f7d55",
+  "operation_artifact_ref": "sha256:9bf5a24e4aa779981ac41f1a0f8713ec758e12df95fa51866869849c06e51175",
+  "execution_artifact_refs": [
+    "sha256:a402c4336ebfd78227dea06341f394c60ab50d13d841cedf38df329afe4a304e"
+  ],
+  "feedback_artifact_refs": [
+    "sha256:59bda3f8ee98128d543572e0d29f27ad5343f0c88c36e7bf4672c4c3ab6245b4"
+  ],
+  "model_call_refs": [],
+  "model_output_hashes": [],
+  "issues": [],
+  "stages": [
+    {
+      "schema_version": "negotiator-v2/1",
+      "name": "evidence",
+      "status": "completed",
+      "artifact_refs": [
+        "sha256:ee8250fb76e094b34b471f13a73dbbe51d1ae142e9df59d7c0d31ec20f0a0a8e"
+      ],
+      "issue_codes": []
+    },
+    {
+      "schema_version": "negotiator-v2/1",
+      "name": "assessment",
+      "status": "completed",
+      "artifact_refs": [
+        "sha256:89c08f7a02989db85066486407e81228ddadae03a30b293e5298cd050bd92db7"
+      ],
+      "issue_codes": []
+    },
+    {
+      "schema_version": "negotiator-v2/1",
+      "name": "proposal",
+      "status": "completed",
+      "artifact_refs": [
+        "sha256:ecd1378bc9dc130008f00d58db5d26f60db55934a49b949af7e6f6a8da2a2beb"
+      ],
+      "issue_codes": []
+    },
+    {
+      "schema_version": "negotiator-v2/1",
+      "name": "generation",
+      "status": "completed",
+      "artifact_refs": [
+        "sha256:e661f4c935e8a5a83349afb5e347695c2e972e967b50efcd618f93b0b7b4c24b"
+      ],
+      "issue_codes": []
+    },
+    {
+      "schema_version": "negotiator-v2/1",
+      "name": "evaluation",
+      "status": "completed",
+      "artifact_refs": [
+        "sha256:efe77b201dc216c0edf435a227df2b2898d3f6ea1ff16e5d4d0d4ec0cf593271"
+      ],
+      "issue_codes": []
+    },
+    {
+      "schema_version": "negotiator-v2/1",
+      "name": "selection",
+      "status": "completed",
+      "artifact_refs": [
+        "sha256:65045134064dd4d905665eceaf4153fea4f9d69d2ae22255a0b7cef4701f4886"
+      ],
+      "issue_codes": []
+    },
+    {
+      "schema_version": "negotiator-v2/1",
+      "name": "rendering",
+      "status": "completed",
+      "artifact_refs": [
+        "sha256:f748f8d90516c1cecee83006e3c9de6c9117affdf9c6e42e0b450195ed88bac8"
+      ],
+      "issue_codes": []
+    },
+    {
+      "schema_version": "negotiator-v2/1",
+      "name": "validation",
+      "status": "completed",
+      "artifact_refs": [
+        "sha256:98c41dcd20b86b86830ec0794559835614458ceaae0f0ec77a3ed1cd3a1f7d55"
+      ],
+      "issue_codes": []
+    },
+    {
+      "schema_version": "negotiator-v2/1",
+      "name": "execution",
+      "status": "completed",
+      "artifact_refs": [
+        "sha256:a402c4336ebfd78227dea06341f394c60ab50d13d841cedf38df329afe4a304e"
+      ],
+      "issue_codes": []
+    },
+    {
+      "schema_version": "negotiator-v2/1",
+      "name": "feedback",
+      "status": "completed",
+      "artifact_refs": [
+        "sha256:59bda3f8ee98128d543572e0d29f27ad5343f0c88c36e7bf4672c4c3ab6245b4"
+      ],
+      "issue_codes": []
+    }
+  ],
+  "semantic_hash": "6a3efe188865027a391348b30be0e7be4087728da06f090957fb907f24e22f22",
+  "record_hash": "9958f72e4c22038923fc500eb8e1a9e762eeb6e03c280e841031d323a8b4f703"
+}

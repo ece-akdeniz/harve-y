@@ -1,0 +1,52 @@
+{
+  "fixture_version": "negotiator-v2-fixtures/1",
+  "development_revision": "4c905b10be1f576de9b68be9c120cf6796ae4561",
+  "development_branch": "codex-main-branch-remediation-2026-10-10",
+  "v1_revision": "3653046bce6dd7cbbeffe00ecf5dfd9c3edbc0ab",
+  "kit_revision": "1b5516bb95ef28e37f69aa446dc62168864bca53",
+  "git_tree": "52a1a17d4c15faca587dc1349968cccdb283cf7c",
+  "tracked_file_sha256": {
+    "tacto-negotiator/src/negotiator/AGENTS.md": "aea96cd96750b32333a3fdaa41307324449a9ec94ed845a1d0031edd2b8beefd",
+    "tacto-negotiator/uv.lock": "a0ec7fe14679fbe9e9c2bc75b87316a4d3026b94a2fc1a590bf20584c193cf7f",
+    "tacto-negotiator/tests/fixtures/practice_cases.json": "d9ea5348907c21bd2edc556d646fac5717324604ac603e774db74ea272aaa7ac",
+    "tacto-negotiator/configs/package-advice.json": "84725055811c5c106443ecb349ced9d12005f9edd4199e5985b1f599cf528b37",
+    "tacto-negotiator/configs/candidate.json": "ac4d4994dc6a4c4991f5faeb07f4a202c95d5f43c0c29c2c8db8bdd2bdcfe10a"
+  },
+  "configuration": {
+    "anchor": 0.12,
+    "rounds": 5,
+    "close_gap": 0.005,
+    "final_hold_s": 40,
+    "p_walk": 0.25,
+    "meso": false,
+    "claims": false,
+    "estimates": {},
+    "policy": null,
+    "conditional_exchange": true
+  },
+  "case_sha256": "ae191d3976cb56a040feffbf1dd7165e8585df440868e6aea5fdfa2349f53242",
+  "expected_first_move": {
+    "supplier_id": "sup:70410",
+    "message": {
+      "subject": "Ravensteiner cuts the seal allocation",
+      "body": "Thank you for your offer. To go ahead we propose the attached terms: unit price EUR 28.34, volume per year 23400, contract months 24, lead time days 35. We look forward to your confirmation. The proposed non-price terms are conditional on the proposed unit price as one package.",
+      "term_sheets": [
+        {
+          "terms": {
+            "unit_price": 28.34,
+            "volume_per_year": 23400,
+            "contract_months": 24,
+            "lead_time_days": 35
+          }
+        }
+      ]
+    }
+  },
+  "baseline_kind": "v1-legacy-explicit-no-estimate",
+  "method": "Archived tracked source; explicit constructor config; conditional_exchange set from pinned guidance; no environment loader or policy; no official sessions",
+  "validation": {
+    "selected_legacy_tests": 60,
+    "passed": 60,
+    "scope": "evaluator/context/package_advisor/cost_neutral_delivery/guidance/dossiers; not full suite"
+  }
+}

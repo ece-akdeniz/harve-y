@@ -1,0 +1,4801 @@
+{
+  "fixture_version": "negotiator-v2-fixtures/1",
+  "contract_version": "negotiator-v2/1",
+  "generated_from": "pytest collection and Python assertion AST; regenerate after test edits",
+  "test_count": 241,
+  "tests": [
+    {
+      "test_id": "tests/v2/acceptance/test_behavior.py::test_meaningful_preference_flip_changes_intent_direction",
+      "group": "acceptance",
+      "task": "T4.3",
+      "fixture_arguments": [
+        "p10"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "any((h.direction == 'increase' for h in long_assessment.hypotheses))",
+        "any((h.direction == 'decrease' for h in short_assessment.hypotheses))",
+        "any((i.dimension == 'contract_months' and i.direction == 'increase' for i in long_intents.intents))",
+        "any((i.dimension == 'contract_months' and i.direction == 'decrease' for i in short_intents.intents))",
+        "all((i.evidence_refs or i.observation_refs for i in long_intents.intents if i.kind == 'exchange'))"
+      ],
+      "expected_exceptions": [],
+      "source_line": 28,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/acceptance/test_behavior.py::test_irrelevant_greeting_changes_neither_strategy_nor_package",
+      "group": "acceptance",
+      "task": "T4.3",
+      "fixture_arguments": [
+        "p10"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "signature(original) == signature(greeting)",
+        "first.candidate.contents.packages == second.candidate.contents.packages",
+        "first.economic == second.economic"
+      ],
+      "expected_exceptions": [],
+      "source_line": 39,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/acceptance/test_behavior.py::test_refusal_suppresses_exchange_without_becoming_case_constraint",
+      "group": "acceptance",
+      "task": "T4.3",
+      "fixture_arguments": [
+        "p10"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "not any((i.dimension == 'contract_months' and i.direction == 'increase' for i in intents.intents))",
+        "36 in next((o for o in data.case.options if o.field == 'contract_months')).values"
+      ],
+      "expected_exceptions": [],
+      "source_line": 60,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/acceptance/test_behavior.py::test_approval_uncertainty_chooses_clarification[uncertain]",
+      "group": "acceptance",
+      "task": "T4.3",
+      "fixture_arguments": [
+        "p10",
+        "variant"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "any((i.kind == 'clarify' and i.question_id for i in batch.intents))"
+      ],
+      "expected_exceptions": [],
+      "source_line": 68,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/acceptance/test_behavior.py::test_approval_uncertainty_chooses_clarification[contradiction]",
+      "group": "acceptance",
+      "task": "T4.3",
+      "fixture_arguments": [
+        "p10",
+        "variant"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "any((i.kind == 'clarify' and i.question_id for i in batch.intents))"
+      ],
+      "expected_exceptions": [],
+      "source_line": 68,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/acceptance/test_behavior.py::test_grounded_preference_changes_selected_package_when_cost_justifies_it",
+      "group": "acceptance",
+      "task": "T4.3",
+      "fixture_arguments": [
+        "p10"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "terms_of(long.candidate.contents.packages[0])['contract_months'] == 36",
+        "terms_of(short.candidate.contents.packages[0])['contract_months'] == 24",
+        "long.economic[0].nominal_cost.amount < short.economic[0].nominal_cost.amount"
+      ],
+      "expected_exceptions": [],
+      "source_line": 74,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/acceptance/test_behavior.py::test_injection_never_creates_accept_or_disclosure_intent",
+      "group": "acceptance",
+      "task": "T4.3",
+      "fixture_arguments": [
+        "p10"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "all((i.kind in {'keep', 'clarify'} for i in intents.intents))",
+        "'reservation_cost' not in intents.model_dump_json()",
+        "'offer:foreign' not in intents.model_dump_json()"
+      ],
+      "expected_exceptions": [],
+      "source_line": 90,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/acceptance/test_behavior.py::test_expressed_preference_does_not_override_economic_ceiling",
+      "group": "acceptance",
+      "task": "T4.3",
+      "fixture_arguments": [
+        "p10"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "terms_of(selected.candidate.contents.packages[0])['contract_months'] == 24"
+      ],
+      "expected_exceptions": [],
+      "source_line": 98,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/acceptance/test_model_budget.py::test_hung_model_is_cancelled_and_falls_back_within_total_budget",
+      "group": "acceptance",
+      "task": "T3.2/T3.3",
+      "fixture_arguments": [
+        "p10"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "result.status == 'fallback'",
+        "gateway.cancelled"
+      ],
+      "expected_exceptions": [],
+      "source_line": 10,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/acceptance/test_model_budget.py::test_late_success_after_deadline_is_not_applied",
+      "group": "acceptance",
+      "task": "T3.2/T3.3",
+      "fixture_arguments": [
+        "p10"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "result.status == 'fallback'",
+        "result.snapshot == data.context.snapshot"
+      ],
+      "expected_exceptions": [],
+      "source_line": 34,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/acceptance/test_recovery.py::test_uncertain_send_stays_owned_and_restart_does_not_change_id_or_bytes",
+      "group": "acceptance",
+      "task": "T5.2/T5.3/T5.4",
+      "fixture_arguments": [
+        "p10",
+        "tmp_path"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "first.execution.kind == 'uncertain'",
+        "len(pending) == 1 and pending[0].status == 'uncertain'",
+        "first.state.runtime_status == 'recovery_required'",
+        "first.state.server.status == 'open'",
+        "{op.operation_id for op in arena.submissions} == {original.operation_id}",
+        "{op.payload_hash for op in arena.submissions} == {original.payload_hash}",
+        "len(current) == 1 and current[0].operation_id == original.operation_id",
+        "await restarted.store.get_artifact(current[0].payload_bytes_ref) == original_bytes",
+        "all((op.operation_id == original.operation_id for op in replay_arena.submissions))",
+        "all((op.payload_hash == original.payload_hash for op in replay_arena.submissions))"
+      ],
+      "expected_exceptions": [],
+      "source_line": 23,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/acceptance/test_recovery.py::test_rejected_closes_do_not_end_server_open_case",
+      "group": "acceptance",
+      "task": "T5.2/T5.3/T5.4",
+      "fixture_arguments": [
+        "p10",
+        "tmp_path"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "result.state.server.status == 'open'",
+        "result.state.runtime_status == 'recovery_required'",
+        "result.terminal is None",
+        "result.state.server.terminal is None"
+      ],
+      "expected_exceptions": [],
+      "source_line": 52,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/acceptance/test_recovery.py::test_all_close_triggers_recheck_same_economic_decision[agreed]",
+      "group": "acceptance",
+      "task": "T5.2/T5.3/T5.4",
+      "fixture_arguments": [
+        "p10",
+        "tmp_path",
+        "reason"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "result.close_decision.action.kind == 'accept'",
+        "result.close_decision.action.offer_id == 'offer:valid-standing'",
+        "result.close_decision.action.supplier_id == p10['supplier_id']",
+        "result.terminal is not None",
+        "result.state.server.status == 'ended'",
+        "result.state.runtime_status == 'ended'",
+        "len(arena.submissions) == 1"
+      ],
+      "expected_exceptions": [],
+      "source_line": 67,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/acceptance/test_recovery.py::test_all_close_triggers_recheck_same_economic_decision[final_offer]",
+      "group": "acceptance",
+      "task": "T5.2/T5.3/T5.4",
+      "fixture_arguments": [
+        "p10",
+        "tmp_path",
+        "reason"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "result.close_decision.action.kind == 'accept'",
+        "result.close_decision.action.offer_id == 'offer:valid-standing'",
+        "result.close_decision.action.supplier_id == p10['supplier_id']",
+        "result.terminal is not None",
+        "result.state.server.status == 'ended'",
+        "result.state.runtime_status == 'ended'",
+        "len(arena.submissions) == 1"
+      ],
+      "expected_exceptions": [],
+      "source_line": 67,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/acceptance/test_recovery.py::test_all_close_triggers_recheck_same_economic_decision[deadline]",
+      "group": "acceptance",
+      "task": "T5.2/T5.3/T5.4",
+      "fixture_arguments": [
+        "p10",
+        "tmp_path",
+        "reason"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "result.close_decision.action.kind == 'accept'",
+        "result.close_decision.action.offer_id == 'offer:valid-standing'",
+        "result.close_decision.action.supplier_id == p10['supplier_id']",
+        "result.terminal is not None",
+        "result.state.server.status == 'ended'",
+        "result.state.runtime_status == 'ended'",
+        "len(arena.submissions) == 1"
+      ],
+      "expected_exceptions": [],
+      "source_line": 67,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/acceptance/test_recovery.py::test_all_close_triggers_recheck_same_economic_decision[exhausted]",
+      "group": "acceptance",
+      "task": "T5.2/T5.3/T5.4",
+      "fixture_arguments": [
+        "p10",
+        "tmp_path",
+        "reason"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "result.close_decision.action.kind == 'accept'",
+        "result.close_decision.action.offer_id == 'offer:valid-standing'",
+        "result.close_decision.action.supplier_id == p10['supplier_id']",
+        "result.terminal is not None",
+        "result.state.server.status == 'ended'",
+        "result.state.runtime_status == 'ended'",
+        "len(arena.submissions) == 1"
+      ],
+      "expected_exceptions": [],
+      "source_line": 67,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/acceptance/test_recovery.py::test_all_close_triggers_recheck_same_economic_decision[restart]",
+      "group": "acceptance",
+      "task": "T5.2/T5.3/T5.4",
+      "fixture_arguments": [
+        "p10",
+        "tmp_path",
+        "reason"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "result.close_decision.action.kind == 'accept'",
+        "result.close_decision.action.offer_id == 'offer:valid-standing'",
+        "result.close_decision.action.supplier_id == p10['supplier_id']",
+        "result.terminal is not None",
+        "result.state.server.status == 'ended'",
+        "result.state.runtime_status == 'ended'",
+        "len(arena.submissions) == 1"
+      ],
+      "expected_exceptions": [],
+      "source_line": 67,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/acceptance/test_recovery.py::test_stale_pending_accept_cannot_replay_against_replaced_offer",
+      "group": "acceptance",
+      "task": "T5.2/T5.3/T5.4",
+      "fixture_arguments": [
+        "p10",
+        "tmp_path"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "result.state.runtime_status == 'recovery_required'",
+        "arena.submissions == []",
+        "result.terminal is None"
+      ],
+      "expected_exceptions": [],
+      "source_line": 84,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/acceptance/test_recovery.py::test_unknown_open_cannot_start_second_session",
+      "group": "acceptance",
+      "task": "T5.2/T5.3/T5.4",
+      "fixture_arguments": [
+        "p10",
+        "tmp_path"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "len(pending) == 1 and pending[0].kind == 'open'",
+        "pending[0].session_id is None",
+        "result.state.runtime_status == 'recovery_required'",
+        "len({op.operation_id for op in arena.submissions}) <= 1"
+      ],
+      "expected_exceptions": [],
+      "source_line": 97,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/acceptance/test_recovery.py::test_pipeline_faults_are_supervised_and_bounded[proposal_exception]",
+      "group": "acceptance",
+      "task": "T5.2/T5.3/T5.4",
+      "fixture_arguments": [
+        "p10",
+        "tmp_path",
+        "fault"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "result.state.runtime_status == 'recovery_required'",
+        "result.terminal is None",
+        "arena.submissions == []",
+        "any((stage.status == 'failed' for stage in result.record.stages))",
+        "result.record.issues"
+      ],
+      "expected_exceptions": [],
+      "source_line": 113,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/acceptance/test_recovery.py::test_pipeline_faults_are_supervised_and_bounded[parser_exception]",
+      "group": "acceptance",
+      "task": "T5.2/T5.3/T5.4",
+      "fixture_arguments": [
+        "p10",
+        "tmp_path",
+        "fault"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "result.state.runtime_status == 'recovery_required'",
+        "result.terminal is None",
+        "arena.submissions == []",
+        "any((stage.status == 'failed' for stage in result.record.stages))",
+        "result.record.issues"
+      ],
+      "expected_exceptions": [],
+      "source_line": 113,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/acceptance/test_recovery.py::test_pipeline_faults_are_supervised_and_bounded[evaluator_exception]",
+      "group": "acceptance",
+      "task": "T5.2/T5.3/T5.4",
+      "fixture_arguments": [
+        "p10",
+        "tmp_path",
+        "fault"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "result.state.runtime_status == 'recovery_required'",
+        "result.terminal is None",
+        "arena.submissions == []",
+        "any((stage.status == 'failed' for stage in result.record.stages))",
+        "result.record.issues"
+      ],
+      "expected_exceptions": [],
+      "source_line": 113,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/acceptance/test_recovery.py::test_refusal_history_survives_restart_without_optional_policy_switch",
+      "group": "acceptance",
+      "task": "T5.2/T5.3/T5.4",
+      "fixture_arguments": [
+        "p10",
+        "tmp_path"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "initial",
+        "state.strategic.refusals == initial"
+      ],
+      "expected_exceptions": [],
+      "source_line": 128,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_boundaries.py::test_boundary_checker_rejects_known_violations[core.models-import httpx]",
+      "group": "contracts",
+      "task": "T1.1b",
+      "fixture_arguments": [
+        "module",
+        "source"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "violations(source, 'negotiator.v2.' + module)"
+      ],
+      "expected_exceptions": [],
+      "source_line": 75,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_boundaries.py::test_boundary_checker_rejects_known_violations[core.models-import sqlite3]",
+      "group": "contracts",
+      "task": "T1.1b",
+      "fixture_arguments": [
+        "module",
+        "source"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "violations(source, 'negotiator.v2.' + module)"
+      ],
+      "expected_exceptions": [],
+      "source_line": 75,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_boundaries.py::test_boundary_checker_rejects_known_violations[evidence.context-from negotiator.v2.strategy.baseline import Policy]",
+      "group": "contracts",
+      "task": "T1.1b",
+      "fixture_arguments": [
+        "module",
+        "source"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "violations(source, 'negotiator.v2.' + module)"
+      ],
+      "expected_exceptions": [],
+      "source_line": 75,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_boundaries.py::test_boundary_checker_rejects_known_violations[economics.official-from negotiator.agent import PackageAgent]",
+      "group": "contracts",
+      "task": "T1.1b",
+      "fixture_arguments": [
+        "module",
+        "source"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "violations(source, 'negotiator.v2.' + module)"
+      ],
+      "expected_exceptions": [],
+      "source_line": 75,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_boundaries.py::test_boundary_checker_rejects_known_violations[economics.official-from negotiator.v2.adapters.model import Gateway]",
+      "group": "contracts",
+      "task": "T1.1b",
+      "fixture_arguments": [
+        "module",
+        "source"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "violations(source, 'negotiator.v2.' + module)"
+      ],
+      "expected_exceptions": [],
+      "source_line": 75,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_boundaries.py::test_boundary_checker_rejects_known_violations[strategy.capacity-from ..execution.executor import Executor]",
+      "group": "contracts",
+      "task": "T1.1b",
+      "fixture_arguments": [
+        "module",
+        "source"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "violations(source, 'negotiator.v2.' + module)"
+      ],
+      "expected_exceptions": [],
+      "source_line": 75,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_boundaries.py::test_boundary_checker_rejects_known_violations[strategy.capacity-from negotiator.v2.factory import build]",
+      "group": "contracts",
+      "task": "T1.1b",
+      "fixture_arguments": [
+        "module",
+        "source"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "violations(source, 'negotiator.v2.' + module)"
+      ],
+      "expected_exceptions": [],
+      "source_line": 75,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_boundaries.py::test_boundary_checker_rejects_known_violations[intelligence.interpreter-from negotiator.v2.economics.prices import solve]",
+      "group": "contracts",
+      "task": "T1.1b",
+      "fixture_arguments": [
+        "module",
+        "source"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "violations(source, 'negotiator.v2.' + module)"
+      ],
+      "expected_exceptions": [],
+      "source_line": 75,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_boundaries.py::test_boundary_checker_rejects_known_violations[execution.render-from negotiator.v2.adapters.model import Gateway]",
+      "group": "contracts",
+      "task": "T1.1b",
+      "fixture_arguments": [
+        "module",
+        "source"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "violations(source, 'negotiator.v2.' + module)"
+      ],
+      "expected_exceptions": [],
+      "source_line": 75,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_boundaries.py::test_boundary_checker_rejects_known_violations[orchestration.loop-from negotiator.v2.strategy.capacity import Policy]",
+      "group": "contracts",
+      "task": "T1.1b",
+      "fixture_arguments": [
+        "module",
+        "source"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "violations(source, 'negotiator.v2.' + module)"
+      ],
+      "expected_exceptions": [],
+      "source_line": 75,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_boundaries.py::test_boundary_checker_rejects_known_violations[strategy.capacity-import socket]",
+      "group": "contracts",
+      "task": "T1.1b",
+      "fixture_arguments": [
+        "module",
+        "source"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "violations(source, 'negotiator.v2.' + module)"
+      ],
+      "expected_exceptions": [],
+      "source_line": 75,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_boundaries.py::test_boundary_checker_rejects_known_violations[adapters.arena-from tests.v2 import fakes]",
+      "group": "contracts",
+      "task": "T1.1b",
+      "fixture_arguments": [
+        "module",
+        "source"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "violations(source, 'negotiator.v2.' + module)"
+      ],
+      "expected_exceptions": [],
+      "source_line": 75,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_boundaries.py::test_boundary_checker_rejects_known_violations[strategy.registry-__import__('arbitrary_strategy')]",
+      "group": "contracts",
+      "task": "T1.1b",
+      "fixture_arguments": [
+        "module",
+        "source"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "violations(source, 'negotiator.v2.' + module)"
+      ],
+      "expected_exceptions": [],
+      "source_line": 75,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_boundaries.py::test_boundary_checker_accepts_allowed_dependencies[core.models-from decimal import Decimal\\nfrom pydantic import BaseModel]",
+      "group": "contracts",
+      "task": "T1.1b",
+      "fixture_arguments": [
+        "module",
+        "source"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "violations(source, 'negotiator.v2.' + module) == []"
+      ],
+      "expected_exceptions": [],
+      "source_line": 86,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_boundaries.py::test_boundary_checker_accepts_allowed_dependencies[strategy.capacity-from ..core.models import StrategyIntent]",
+      "group": "contracts",
+      "task": "T1.1b",
+      "fixture_arguments": [
+        "module",
+        "source"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "violations(source, 'negotiator.v2.' + module) == []"
+      ],
+      "expected_exceptions": [],
+      "source_line": 86,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_boundaries.py::test_boundary_checker_accepts_allowed_dependencies[economics.official-from negotiator.v2.core.ports import OfficialCostOracle]",
+      "group": "contracts",
+      "task": "T1.1b",
+      "fixture_arguments": [
+        "module",
+        "source"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "violations(source, 'negotiator.v2.' + module) == []"
+      ],
+      "expected_exceptions": [],
+      "source_line": 86,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_boundaries.py::test_boundary_checker_accepts_allowed_dependencies[adapters.official-from arena_kit.cost import total_cost]",
+      "group": "contracts",
+      "task": "T1.1b",
+      "fixture_arguments": [
+        "module",
+        "source"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "violations(source, 'negotiator.v2.' + module) == []"
+      ],
+      "expected_exceptions": [],
+      "source_line": 86,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_boundaries.py::test_boundary_checker_accepts_allowed_dependencies[adapters.sqlite-import sqlite3]",
+      "group": "contracts",
+      "task": "T1.1b",
+      "fixture_arguments": [
+        "module",
+        "source"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "violations(source, 'negotiator.v2.' + module) == []"
+      ],
+      "expected_exceptions": [],
+      "source_line": 86,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_boundaries.py::test_implemented_v2_import_graph",
+      "group": "contracts",
+      "task": "T1.1b",
+      "fixture_arguments": [],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "files",
+        "violations(file.read_text(), module) == []",
+        "not ast.parse(file.read_text()).body"
+      ],
+      "expected_exceptions": [],
+      "source_line": 90,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_economics.py::test_v2_matches_frozen_official_components[0]",
+      "group": "contracts",
+      "task": "T4.1/T4.2",
+      "fixture_arguments": [
+        "p10",
+        "index"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "result.nominal_cost.amount == Decimal(str(golden['total_cost']))",
+        "{c.kind: c.amount.amount for c in result.components} == {k: Decimal(str(v)) for k, v in golden['components'].items()}",
+        "result.must_haves_ok and result.numerically_valid and result.basis_verified"
+      ],
+      "expected_exceptions": [],
+      "source_line": 16,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_economics.py::test_v2_matches_frozen_official_components[1]",
+      "group": "contracts",
+      "task": "T4.1/T4.2",
+      "fixture_arguments": [
+        "p10",
+        "index"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "result.nominal_cost.amount == Decimal(str(golden['total_cost']))",
+        "{c.kind: c.amount.amount for c in result.components} == {k: Decimal(str(v)) for k, v in golden['components'].items()}",
+        "result.must_haves_ok and result.numerically_valid and result.basis_verified"
+      ],
+      "expected_exceptions": [],
+      "source_line": 16,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_economics.py::test_v2_matches_frozen_official_components[2]",
+      "group": "contracts",
+      "task": "T4.1/T4.2",
+      "fixture_arguments": [
+        "p10",
+        "index"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "result.nominal_cost.amount == Decimal(str(golden['total_cost']))",
+        "{c.kind: c.amount.amount for c in result.components} == {k: Decimal(str(v)) for k, v in golden['components'].items()}",
+        "result.must_haves_ok and result.numerically_valid and result.basis_verified"
+      ],
+      "expected_exceptions": [],
+      "source_line": 16,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_economics.py::test_relationship_finite_ticks_retain_feasible_positive_price",
+      "group": "contracts",
+      "task": "T4.1/T4.2",
+      "fixture_arguments": [
+        "p10",
+        "relationship"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json",
+        "tests/fixtures/v2/relationship.json"
+      ],
+      "assertions": [
+        "all((v.numerically_valid for v in values))",
+        "[v.nominal_cost.amount for v in values] == [Decimal('429044.44'), Decimal('397273.61'), Decimal('401600.00'), Decimal('449600.00')]",
+        "any((v.nominal_cost.amount == Decimal(relationship['target']) for v in values))",
+        "all((terms_of(p)['unit_price'] > 0 for p in data.packages))"
+      ],
+      "expected_exceptions": [],
+      "source_line": 28,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_economics.py::test_quote_standard_overrides_master_in_supplier_value_arithmetic",
+      "group": "contracts",
+      "task": "T4.1/T4.2",
+      "fixture_arguments": [
+        "p10",
+        "relationship"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json",
+        "tests/fixtures/v2/relationship.json"
+      ],
+      "assertions": [
+        "expected != stale",
+        "result.nominal_cost.amount == Decimal(str(expected))"
+      ],
+      "expected_exceptions": [],
+      "source_line": 48,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_economics.py::test_impossible_must_haves_return_empty_generation_not_default_package",
+      "group": "contracts",
+      "task": "T4.1/T4.2",
+      "fixture_arguments": [
+        "p10"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "result.candidates == ()",
+        "'infeasible' in codes(result)"
+      ],
+      "expected_exceptions": [],
+      "source_line": 67,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_economics.py::test_generation_obeys_every_case_option_and_budget",
+      "group": "contracts",
+      "task": "T4.1/T4.2",
+      "fixture_arguments": [
+        "p10"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "0 < len(generated.candidates) <= data.budget.candidate_limit",
+        "set(terms) == set(p10['case']['negotiable'])",
+        "terms['volume_per_year'] == 23400",
+        "terms['lead_time_days'] in {35, 42, 56}",
+        "terms['contract_months'] in {12, 24, 36}",
+        "terms['unit_price'] > 0",
+        "terms['unit_price'].quantize(Decimal('0.01')) == terms['unit_price']"
+      ],
+      "expected_exceptions": [],
+      "source_line": 76,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_economics.py::test_no_executable_alternative_is_tagged_unavailable_not_infinity",
+      "group": "contracts",
+      "task": "T4.1/T4.2",
+      "fixture_arguments": [
+        "p10"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "data.context.economic.case.buyer.alternative.kind == 'unavailable'",
+        "'Infinity' not in data.context.economic.model_dump_json()"
+      ],
+      "expected_exceptions": [],
+      "source_line": 92,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_economics.py::test_wrong_basis_blocks_approval_even_when_numeric_cost_is_finite",
+      "group": "contracts",
+      "task": "T4.1/T4.2",
+      "fixture_arguments": [
+        "p10"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "batch.items[0].disposition == 'rejected'",
+        "'unknown_basis' in codes(batch.items[0])"
+      ],
+      "expected_exceptions": [],
+      "source_line": 98,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_economics.py::test_arithmetic_failure_has_no_fabricated_zero_cost[failure0]",
+      "group": "contracts",
+      "task": "T4.1/T4.2",
+      "fixture_arguments": [
+        "p10",
+        "failure"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "result.numerically_valid is False",
+        "result.nominal_cost is None",
+        "result.components == ()",
+        "'nonfinite_cost' in codes(result)"
+      ],
+      "expected_exceptions": [],
+      "source_line": 108,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_economics.py::test_arithmetic_failure_has_no_fabricated_zero_cost[failure1]",
+      "group": "contracts",
+      "task": "T4.1/T4.2",
+      "fixture_arguments": [
+        "p10",
+        "failure"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "result.numerically_valid is False",
+        "result.nominal_cost is None",
+        "result.components == ()",
+        "'nonfinite_cost' in codes(result)"
+      ],
+      "expected_exceptions": [],
+      "source_line": 108,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_evidence.py::test_layer_precedence_and_winner_provenance[removed0-case-150.00]",
+      "group": "contracts",
+      "task": "T2.1/T2.3",
+      "fixture_arguments": [
+        "p10",
+        "removed",
+        "layer",
+        "amount"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "record.payload.unit_cost.amount == Decimal(amount)",
+        "record.provenance.layer == layer",
+        "record.provenance.content_hash",
+        "record.provenance.locator",
+        "record.record_id != record.canonical_id",
+        "any((c.canonical_id == record.canonical_id and c.winning_record_id == record.record_id for c in result.conflicts))"
+      ],
+      "expected_exceptions": [],
+      "source_line": 23,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_evidence.py::test_layer_precedence_and_winner_provenance[removed1-release-140.00]",
+      "group": "contracts",
+      "task": "T2.1/T2.3",
+      "fixture_arguments": [
+        "p10",
+        "removed",
+        "layer",
+        "amount"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "record.payload.unit_cost.amount == Decimal(amount)",
+        "record.provenance.layer == layer",
+        "record.provenance.content_hash",
+        "record.provenance.locator",
+        "record.record_id != record.canonical_id",
+        "any((c.canonical_id == record.canonical_id and c.winning_record_id == record.record_id for c in result.conflicts))"
+      ],
+      "expected_exceptions": [],
+      "source_line": 23,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_evidence.py::test_layer_precedence_and_winner_provenance[removed2-base-132.64]",
+      "group": "contracts",
+      "task": "T2.1/T2.3",
+      "fixture_arguments": [
+        "p10",
+        "removed",
+        "layer",
+        "amount"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "record.payload.unit_cost.amount == Decimal(amount)",
+        "record.provenance.layer == layer",
+        "record.provenance.content_hash",
+        "record.provenance.locator",
+        "record.record_id != record.canonical_id",
+        "any((c.canonical_id == record.canonical_id and c.winning_record_id == record.record_id for c in result.conflicts))"
+      ],
+      "expected_exceptions": [],
+      "source_line": 23,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_evidence.py::test_case_override_replaces_record_without_filling_old_fields",
+      "group": "contracts",
+      "task": "T2.1/T2.3",
+      "fixture_arguments": [
+        "p10"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "record.payload.confidence_pct is None",
+        "record.payload.unit_cost.amount == Decimal('150.00')"
+      ],
+      "expected_exceptions": [],
+      "source_line": 38,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_evidence.py::test_same_priority_conflict_is_blocking",
+      "group": "contracts",
+      "task": "T2.1/T2.3",
+      "fixture_arguments": [
+        "p10"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "conflict.winning_record_id is None",
+        "len(conflict.candidate_record_ids) == 2"
+      ],
+      "expected_exceptions": [],
+      "source_line": 45,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_evidence.py::test_temporal_validity_is_explicit[published_at-2027-01-01-future]",
+      "group": "contracts",
+      "task": "T2.1/T2.3",
+      "fixture_arguments": [
+        "p10",
+        "date_field",
+        "date_value",
+        "status"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "cost_record(build(request, p10)).temporal.status == status"
+      ],
+      "expected_exceptions": [],
+      "source_line": 57,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_evidence.py::test_temporal_validity_is_explicit[valid_to-2026-09-01-stale]",
+      "group": "contracts",
+      "task": "T2.1/T2.3",
+      "fixture_arguments": [
+        "p10",
+        "date_field",
+        "date_value",
+        "status"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "cost_record(build(request, p10)).temporal.status == status"
+      ],
+      "expected_exceptions": [],
+      "source_line": 57,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_evidence.py::test_basis_is_preserved_without_dividing_arena_prices[1]",
+      "group": "contracts",
+      "task": "T2.1/T2.3",
+      "fixture_arguments": [
+        "p10",
+        "unit"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "record.payload.unit_cost.basis.price_unit == unit",
+        "record.payload.unit_cost.amount == Decimal('150.00')",
+        "record.disclosure.classification == 'internal'"
+      ],
+      "expected_exceptions": [],
+      "source_line": 63,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_evidence.py::test_basis_is_preserved_without_dividing_arena_prices[100]",
+      "group": "contracts",
+      "task": "T2.1/T2.3",
+      "fixture_arguments": [
+        "p10",
+        "unit"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "record.payload.unit_cost.basis.price_unit == unit",
+        "record.payload.unit_cost.amount == Decimal('150.00')",
+        "record.disclosure.classification == 'internal'"
+      ],
+      "expected_exceptions": [],
+      "source_line": 63,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_evidence.py::test_basis_is_preserved_without_dividing_arena_prices[1000]",
+      "group": "contracts",
+      "task": "T2.1/T2.3",
+      "fixture_arguments": [
+        "p10",
+        "unit"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "record.payload.unit_cost.basis.price_unit == unit",
+        "record.payload.unit_cost.amount == Decimal('150.00')",
+        "record.disclosure.classification == 'internal'"
+      ],
+      "expected_exceptions": [],
+      "source_line": 63,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_evidence.py::test_scope_mismatch_never_becomes_supplier_cost",
+      "group": "contracts",
+      "task": "T2.1/T2.3",
+      "fixture_arguments": [
+        "p10"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "not any((r.canonical_id == 'cost:310010' for r in context.records))",
+        "any((g.code == 'scope_mismatch' for g in context.gaps))"
+      ],
+      "expected_exceptions": [],
+      "source_line": 71,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_evidence.py::test_context_is_pure_deterministic_and_invalidates_on_fact_change",
+      "group": "contracts",
+      "task": "T2.1/T2.3",
+      "fixture_arguments": [
+        "p10"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "p10 == original",
+        "build(request, p10) == first",
+        "first.context_version != second.context_version",
+        "cost_record(first).record_id != cost_record(second).record_id"
+      ],
+      "expected_exceptions": [],
+      "source_line": 78,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_evidence.py::test_case_and_economic_projections_use_one_resolved_cost_revision",
+      "group": "contracts",
+      "task": "T2.1/T2.3",
+      "fixture_arguments": [
+        "p10"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "claim.source_refs == estimate.source_refs",
+        "claim.figure == estimate.unit_cost.amount == Decimal('150.00')",
+        "claim.disclosure.classification == 'internal'"
+      ],
+      "expected_exceptions": [],
+      "source_line": 89,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_fixture_is_actual_p10_and_origin_is_explicit",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "p10"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "p10['case'] == next((c for c in source if c['case_id'] == 'case:P10'))",
+        "'synthetic' in p10['origin']",
+        "p10['opening']['term_sheets'][0]['terms']['lead_time_days'] == 54",
+        "54 not in p10['case']['term_options']['lead_time_days']"
+      ],
+      "expected_exceptions": [],
+      "source_line": 24,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_frozen_official_cost_oracle[0]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "p10",
+        "index"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "must_haves_ok(p10['case'], golden['terms'])",
+        "total_cost(p10['case'], golden['terms']) == golden['total_cost']",
+        "cost_breakdown(p10['case'], golden['terms']) == golden['components']",
+        "round(sum(golden['components'].values()), 2) == golden['total_cost']"
+      ],
+      "expected_exceptions": [],
+      "source_line": 33,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_frozen_official_cost_oracle[1]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "p10",
+        "index"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "must_haves_ok(p10['case'], golden['terms'])",
+        "total_cost(p10['case'], golden['terms']) == golden['total_cost']",
+        "cost_breakdown(p10['case'], golden['terms']) == golden['components']",
+        "round(sum(golden['components'].values()), 2) == golden['total_cost']"
+      ],
+      "expected_exceptions": [],
+      "source_line": 33,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_frozen_official_cost_oracle[2]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "p10",
+        "index"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "must_haves_ok(p10['case'], golden['terms'])",
+        "total_cost(p10['case'], golden['terms']) == golden['total_cost']",
+        "cost_breakdown(p10['case'], golden['terms']) == golden['components']",
+        "round(sum(golden['components'].values()), 2) == golden['total_cost']"
+      ],
+      "expected_exceptions": [],
+      "source_line": 33,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_late_delivery_is_not_free",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "p10"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "late['total_cost'] - first['total_cost'] == 33600",
+        "late['components']['late_delivery'] == 33600"
+      ],
+      "expected_exceptions": [],
+      "source_line": 41,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_relationship_oracle[0]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "relationship",
+        "index"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/relationship.json"
+      ],
+      "assertions": [
+        "total_cost(relationship['case'], terms, supplier=relationship['estimate']) == point['cost']"
+      ],
+      "expected_exceptions": [],
+      "source_line": 48,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_relationship_oracle[1]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "relationship",
+        "index"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/relationship.json"
+      ],
+      "assertions": [
+        "total_cost(relationship['case'], terms, supplier=relationship['estimate']) == point['cost']"
+      ],
+      "expected_exceptions": [],
+      "source_line": 48,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_relationship_oracle[2]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "relationship",
+        "index"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/relationship.json"
+      ],
+      "assertions": [
+        "total_cost(relationship['case'], terms, supplier=relationship['estimate']) == point['cost']"
+      ],
+      "expected_exceptions": [],
+      "source_line": 48,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_relationship_oracle[3]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "relationship",
+        "index"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/relationship.json"
+      ],
+      "assertions": [
+        "total_cost(relationship['case'], terms, supplier=relationship['estimate']) == point['cost']"
+      ],
+      "expected_exceptions": [],
+      "source_line": 48,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_relationship_oracle[4]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "relationship",
+        "index"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/relationship.json"
+      ],
+      "assertions": [
+        "total_cost(relationship['case'], terms, supplier=relationship['estimate']) == point['cost']"
+      ],
+      "expected_exceptions": [],
+      "source_line": 48,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_relationship_oracle[5]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "relationship",
+        "index"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/relationship.json"
+      ],
+      "assertions": [
+        "total_cost(relationship['case'], terms, supplier=relationship['estimate']) == point['cost']"
+      ],
+      "expected_exceptions": [],
+      "source_line": 48,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_relationship_oracle[6]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "relationship",
+        "index"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/relationship.json"
+      ],
+      "assertions": [
+        "total_cost(relationship['case'], terms, supplier=relationship['estimate']) == point['cost']"
+      ],
+      "expected_exceptions": [],
+      "source_line": 48,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_relationship_curve_is_nonmonotonic_and_known_root_exists",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "relationship"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/relationship.json"
+      ],
+      "assertions": [
+        "points[20] > points[45] > points[48] < points[49] < points[55]",
+        "points[49] == float(relationship['target'])"
+      ],
+      "expected_exceptions": [],
+      "source_line": 54,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_baseline_is_pinned_and_does_not_claim_full_suite",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "p10"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json",
+        "tests/fixtures/v2/v1-baseline.json"
+      ],
+      "assertions": [
+        "baseline['v1_revision'] == '3653046bce6dd7cbbeffe00ecf5dfd9c3edbc0ab'",
+        "baseline['development_revision'] == '4c905b10be1f576de9b68be9c120cf6796ae4561'",
+        "baseline['case_sha256'] == digest(p10['case'])",
+        "baseline['configuration']['claims'] is False",
+        "baseline['configuration']['estimates'] == {}",
+        "baseline['expected_first_move']['message']['term_sheets'][0]['terms'] == {'unit_price': 28.34, 'volume_per_year': 23400, 'contract_months': 24, 'lead_time_days': 35}",
+        "'not full suite' in baseline['validation']['scope']"
+      ],
+      "expected_exceptions": [],
+      "source_line": 60,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_exact_port_signatures[Clock]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "port"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "inspect.iscoroutinefunction(function) is is_async",
+        "tuple(inspect.signature(function).parameters) == ('self', *arguments.split())",
+        "inspect.signature(function).return_annotation is not inspect.Signature.empty",
+        "str(inspect.signature(function).return_annotation) not in {'Any', 'typing.Any', 'object', 'dict'}",
+        "parameter.annotation is not inspect.Parameter.empty",
+        "str(parameter.annotation) not in {'Any', 'typing.Any', 'object', 'dict'}"
+      ],
+      "expected_exceptions": [],
+      "source_line": 74,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_exact_port_signatures[OfficialCostOracle]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "port"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "inspect.iscoroutinefunction(function) is is_async",
+        "tuple(inspect.signature(function).parameters) == ('self', *arguments.split())",
+        "inspect.signature(function).return_annotation is not inspect.Signature.empty",
+        "str(inspect.signature(function).return_annotation) not in {'Any', 'typing.Any', 'object', 'dict'}",
+        "parameter.annotation is not inspect.Parameter.empty",
+        "str(parameter.annotation) not in {'Any', 'typing.Any', 'object', 'dict'}"
+      ],
+      "expected_exceptions": [],
+      "source_line": 74,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_exact_port_signatures[CanonicalClaimOracle]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "port"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "inspect.iscoroutinefunction(function) is is_async",
+        "tuple(inspect.signature(function).parameters) == ('self', *arguments.split())",
+        "inspect.signature(function).return_annotation is not inspect.Signature.empty",
+        "str(inspect.signature(function).return_annotation) not in {'Any', 'typing.Any', 'object', 'dict'}",
+        "parameter.annotation is not inspect.Parameter.empty",
+        "str(parameter.annotation) not in {'Any', 'typing.Any', 'object', 'dict'}"
+      ],
+      "expected_exceptions": [],
+      "source_line": 74,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_exact_port_signatures[ContextBuilder]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "port"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "inspect.iscoroutinefunction(function) is is_async",
+        "tuple(inspect.signature(function).parameters) == ('self', *arguments.split())",
+        "inspect.signature(function).return_annotation is not inspect.Signature.empty",
+        "str(inspect.signature(function).return_annotation) not in {'Any', 'typing.Any', 'object', 'dict'}",
+        "parameter.annotation is not inspect.Parameter.empty",
+        "str(parameter.annotation) not in {'Any', 'typing.Any', 'object', 'dict'}"
+      ],
+      "expected_exceptions": [],
+      "source_line": 74,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_exact_port_signatures[SupplierInterpreter]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "port"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "inspect.iscoroutinefunction(function) is is_async",
+        "tuple(inspect.signature(function).parameters) == ('self', *arguments.split())",
+        "inspect.signature(function).return_annotation is not inspect.Signature.empty",
+        "str(inspect.signature(function).return_annotation) not in {'Any', 'typing.Any', 'object', 'dict'}",
+        "parameter.annotation is not inspect.Parameter.empty",
+        "str(parameter.annotation) not in {'Any', 'typing.Any', 'object', 'dict'}"
+      ],
+      "expected_exceptions": [],
+      "source_line": 74,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_exact_port_signatures[StrategyProposalPolicy]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "port"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "inspect.iscoroutinefunction(function) is is_async",
+        "tuple(inspect.signature(function).parameters) == ('self', *arguments.split())",
+        "inspect.signature(function).return_annotation is not inspect.Signature.empty",
+        "str(inspect.signature(function).return_annotation) not in {'Any', 'typing.Any', 'object', 'dict'}",
+        "parameter.annotation is not inspect.Parameter.empty",
+        "str(parameter.annotation) not in {'Any', 'typing.Any', 'object', 'dict'}"
+      ],
+      "expected_exceptions": [],
+      "source_line": 74,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_exact_port_signatures[CandidateGenerator]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "port"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "inspect.iscoroutinefunction(function) is is_async",
+        "tuple(inspect.signature(function).parameters) == ('self', *arguments.split())",
+        "inspect.signature(function).return_annotation is not inspect.Signature.empty",
+        "str(inspect.signature(function).return_annotation) not in {'Any', 'typing.Any', 'object', 'dict'}",
+        "parameter.annotation is not inspect.Parameter.empty",
+        "str(parameter.annotation) not in {'Any', 'typing.Any', 'object', 'dict'}"
+      ],
+      "expected_exceptions": [],
+      "source_line": 74,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_exact_port_signatures[EconomicEvaluator]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "port"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "inspect.iscoroutinefunction(function) is is_async",
+        "tuple(inspect.signature(function).parameters) == ('self', *arguments.split())",
+        "inspect.signature(function).return_annotation is not inspect.Signature.empty",
+        "str(inspect.signature(function).return_annotation) not in {'Any', 'typing.Any', 'object', 'dict'}",
+        "parameter.annotation is not inspect.Parameter.empty",
+        "str(parameter.annotation) not in {'Any', 'typing.Any', 'object', 'dict'}"
+      ],
+      "expected_exceptions": [],
+      "source_line": 74,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_exact_port_signatures[ActionSelectionPolicy]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "port"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "inspect.iscoroutinefunction(function) is is_async",
+        "tuple(inspect.signature(function).parameters) == ('self', *arguments.split())",
+        "inspect.signature(function).return_annotation is not inspect.Signature.empty",
+        "str(inspect.signature(function).return_annotation) not in {'Any', 'typing.Any', 'object', 'dict'}",
+        "parameter.annotation is not inspect.Parameter.empty",
+        "str(parameter.annotation) not in {'Any', 'typing.Any', 'object', 'dict'}"
+      ],
+      "expected_exceptions": [],
+      "source_line": 74,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_exact_port_signatures[CandidateResearch]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "port"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "inspect.iscoroutinefunction(function) is is_async",
+        "tuple(inspect.signature(function).parameters) == ('self', *arguments.split())",
+        "inspect.signature(function).return_annotation is not inspect.Signature.empty",
+        "str(inspect.signature(function).return_annotation) not in {'Any', 'typing.Any', 'object', 'dict'}",
+        "parameter.annotation is not inspect.Parameter.empty",
+        "str(parameter.annotation) not in {'Any', 'typing.Any', 'object', 'dict'}"
+      ],
+      "expected_exceptions": [],
+      "source_line": 74,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_exact_port_signatures[ClosingEvaluator]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "port"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "inspect.iscoroutinefunction(function) is is_async",
+        "tuple(inspect.signature(function).parameters) == ('self', *arguments.split())",
+        "inspect.signature(function).return_annotation is not inspect.Signature.empty",
+        "str(inspect.signature(function).return_annotation) not in {'Any', 'typing.Any', 'object', 'dict'}",
+        "parameter.annotation is not inspect.Parameter.empty",
+        "str(parameter.annotation) not in {'Any', 'typing.Any', 'object', 'dict'}"
+      ],
+      "expected_exceptions": [],
+      "source_line": 74,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_exact_port_signatures[ClaimVerifier]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "port"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "inspect.iscoroutinefunction(function) is is_async",
+        "tuple(inspect.signature(function).parameters) == ('self', *arguments.split())",
+        "inspect.signature(function).return_annotation is not inspect.Signature.empty",
+        "str(inspect.signature(function).return_annotation) not in {'Any', 'typing.Any', 'object', 'dict'}",
+        "parameter.annotation is not inspect.Parameter.empty",
+        "str(parameter.annotation) not in {'Any', 'typing.Any', 'object', 'dict'}"
+      ],
+      "expected_exceptions": [],
+      "source_line": 74,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_exact_port_signatures[ActionRenderer]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "port"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "inspect.iscoroutinefunction(function) is is_async",
+        "tuple(inspect.signature(function).parameters) == ('self', *arguments.split())",
+        "inspect.signature(function).return_annotation is not inspect.Signature.empty",
+        "str(inspect.signature(function).return_annotation) not in {'Any', 'typing.Any', 'object', 'dict'}",
+        "parameter.annotation is not inspect.Parameter.empty",
+        "str(parameter.annotation) not in {'Any', 'typing.Any', 'object', 'dict'}"
+      ],
+      "expected_exceptions": [],
+      "source_line": 74,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_exact_port_signatures[ActionValidator]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "port"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "inspect.iscoroutinefunction(function) is is_async",
+        "tuple(inspect.signature(function).parameters) == ('self', *arguments.split())",
+        "inspect.signature(function).return_annotation is not inspect.Signature.empty",
+        "str(inspect.signature(function).return_annotation) not in {'Any', 'typing.Any', 'object', 'dict'}",
+        "parameter.annotation is not inspect.Parameter.empty",
+        "str(parameter.annotation) not in {'Any', 'typing.Any', 'object', 'dict'}"
+      ],
+      "expected_exceptions": [],
+      "source_line": 74,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_exact_port_signatures[DecisionEngine]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "port"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "inspect.iscoroutinefunction(function) is is_async",
+        "tuple(inspect.signature(function).parameters) == ('self', *arguments.split())",
+        "inspect.signature(function).return_annotation is not inspect.Signature.empty",
+        "str(inspect.signature(function).return_annotation) not in {'Any', 'typing.Any', 'object', 'dict'}",
+        "parameter.annotation is not inspect.Parameter.empty",
+        "str(parameter.annotation) not in {'Any', 'typing.Any', 'object', 'dict'}"
+      ],
+      "expected_exceptions": [],
+      "source_line": 74,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_exact_port_signatures[FeedbackProcessor]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "port"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "inspect.iscoroutinefunction(function) is is_async",
+        "tuple(inspect.signature(function).parameters) == ('self', *arguments.split())",
+        "inspect.signature(function).return_annotation is not inspect.Signature.empty",
+        "str(inspect.signature(function).return_annotation) not in {'Any', 'typing.Any', 'object', 'dict'}",
+        "parameter.annotation is not inspect.Parameter.empty",
+        "str(parameter.annotation) not in {'Any', 'typing.Any', 'object', 'dict'}"
+      ],
+      "expected_exceptions": [],
+      "source_line": 74,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_exact_port_signatures[StateProjector]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "port"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "inspect.iscoroutinefunction(function) is is_async",
+        "tuple(inspect.signature(function).parameters) == ('self', *arguments.split())",
+        "inspect.signature(function).return_annotation is not inspect.Signature.empty",
+        "str(inspect.signature(function).return_annotation) not in {'Any', 'typing.Any', 'object', 'dict'}",
+        "parameter.annotation is not inspect.Parameter.empty",
+        "str(parameter.annotation) not in {'Any', 'typing.Any', 'object', 'dict'}"
+      ],
+      "expected_exceptions": [],
+      "source_line": 74,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_exact_port_signatures[StateStore]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "port"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "inspect.iscoroutinefunction(function) is is_async",
+        "tuple(inspect.signature(function).parameters) == ('self', *arguments.split())",
+        "inspect.signature(function).return_annotation is not inspect.Signature.empty",
+        "str(inspect.signature(function).return_annotation) not in {'Any', 'typing.Any', 'object', 'dict'}",
+        "parameter.annotation is not inspect.Parameter.empty",
+        "str(parameter.annotation) not in {'Any', 'typing.Any', 'object', 'dict'}"
+      ],
+      "expected_exceptions": [],
+      "source_line": 74,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_exact_port_signatures[ActionExecutor]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "port"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "inspect.iscoroutinefunction(function) is is_async",
+        "tuple(inspect.signature(function).parameters) == ('self', *arguments.split())",
+        "inspect.signature(function).return_annotation is not inspect.Signature.empty",
+        "str(inspect.signature(function).return_annotation) not in {'Any', 'typing.Any', 'object', 'dict'}",
+        "parameter.annotation is not inspect.Parameter.empty",
+        "str(parameter.annotation) not in {'Any', 'typing.Any', 'object', 'dict'}"
+      ],
+      "expected_exceptions": [],
+      "source_line": 74,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_exact_port_signatures[ArenaGateway]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "port"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "inspect.iscoroutinefunction(function) is is_async",
+        "tuple(inspect.signature(function).parameters) == ('self', *arguments.split())",
+        "inspect.signature(function).return_annotation is not inspect.Signature.empty",
+        "str(inspect.signature(function).return_annotation) not in {'Any', 'typing.Any', 'object', 'dict'}",
+        "parameter.annotation is not inspect.Parameter.empty",
+        "str(parameter.annotation) not in {'Any', 'typing.Any', 'object', 'dict'}"
+      ],
+      "expected_exceptions": [],
+      "source_line": 74,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_exact_port_signatures[ModelGateway]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "port"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "inspect.iscoroutinefunction(function) is is_async",
+        "tuple(inspect.signature(function).parameters) == ('self', *arguments.split())",
+        "inspect.signature(function).return_annotation is not inspect.Signature.empty",
+        "str(inspect.signature(function).return_annotation) not in {'Any', 'typing.Any', 'object', 'dict'}",
+        "parameter.annotation is not inspect.Parameter.empty",
+        "str(parameter.annotation) not in {'Any', 'typing.Any', 'object', 'dict'}"
+      ],
+      "expected_exceptions": [],
+      "source_line": 74,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_price_rejects_invalid_boundary_values[amount-0]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "field",
+        "value"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 92,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_price_rejects_invalid_boundary_values[amount--1]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "field",
+        "value"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 92,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_price_rejects_invalid_boundary_values[amount-NaN]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "field",
+        "value"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 92,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_price_rejects_invalid_boundary_values[amount-Infinity]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "field",
+        "value"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 92,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_price_rejects_invalid_boundary_values[amount-True]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "field",
+        "value"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 92,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_price_rejects_invalid_boundary_values[extra-forbidden]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "field",
+        "value"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 92,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_basis_rejects_ambiguous_units[price_unit-0]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "field",
+        "value"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 103,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_basis_rejects_ambiguous_units[price_unit--100]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "field",
+        "value"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 103,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_basis_rejects_ambiguous_units[price_unit-True]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "field",
+        "value"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 103,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_basis_rejects_ambiguous_units[part_ids-value3]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "field",
+        "value"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 103,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_basis_rejects_ambiguous_units[currency-USD]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "field",
+        "value"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 103,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_price_roundtrip_preserves_basis_and_decimal[1]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "unit"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "result.amount == Decimal('28.34')",
+        "result.basis.price_unit == unit",
+        "encoded['amount'] == '28.34'",
+        "models.Price.model_validate_json(result.model_dump_json()) == result",
+        "isinstance(result.basis.part_ids, tuple)"
+      ],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 110,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_price_roundtrip_preserves_basis_and_decimal[100]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "unit"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "result.amount == Decimal('28.34')",
+        "result.basis.price_unit == unit",
+        "encoded['amount'] == '28.34'",
+        "models.Price.model_validate_json(result.model_dump_json()) == result",
+        "isinstance(result.basis.part_ids, tuple)"
+      ],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 110,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_price_roundtrip_preserves_basis_and_decimal[1000]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "unit"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "result.amount == Decimal('28.34')",
+        "result.basis.price_unit == unit",
+        "encoded['amount'] == '28.34'",
+        "models.Price.model_validate_json(result.model_dump_json()) == result",
+        "isinstance(result.basis.part_ids, tuple)"
+      ],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 110,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_term_bindings_are_field_typed[lead_time_days-True]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "field",
+        "value"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 129,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_term_bindings_are_field_typed[contract_months-24]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "field",
+        "value"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 129,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_term_bindings_are_field_typed[payment_days-30.5]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "field",
+        "value"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 129,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_term_bindings_are_field_typed[unit_price-0]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "field",
+        "value"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 129,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_term_bindings_are_field_typed[surprise_field-1]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "field",
+        "value"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 129,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_term_bindings_are_field_typed[incoterm-UNKNOWN]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "field",
+        "value"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 129,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_canonical_serialization_is_order_independent_but_semantic",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "codec.semantic_hash(first) == codec.semantic_hash({'b': [1, 2], 'a': '28.34'})",
+        "codec.semantic_hash(first) != codec.semantic_hash({'a': '28.35', 'b': [1, 2]})"
+      ],
+      "expected_exceptions": [
+        "pytest.raises(ValueError)"
+      ],
+      "source_line": 135,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_scripted_ports_obey_signatures_and_do_not_reinterpret",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "await scripted.interpret(1, 2, None, 4) is sentinel",
+        "scripted.calls == [('assessment', (1, 2, None, 4))]",
+        "tuple(inspect.signature(getattr(ScriptedPipeline, method)).parameters) == ('self', *PORT_SIGNATURES[reference_port][method][1].split())"
+      ],
+      "expected_exceptions": [],
+      "source_line": 145,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_every_port_has_minimal_reference_double[Clock]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "port"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "inspect.iscoroutinefunction(function) is is_async",
+        "tuple(inspect.signature(function).parameters) == ('self', *arguments.split())"
+      ],
+      "expected_exceptions": [],
+      "source_line": 158,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_every_port_has_minimal_reference_double[OfficialCostOracle]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "port"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "inspect.iscoroutinefunction(function) is is_async",
+        "tuple(inspect.signature(function).parameters) == ('self', *arguments.split())"
+      ],
+      "expected_exceptions": [],
+      "source_line": 158,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_every_port_has_minimal_reference_double[CanonicalClaimOracle]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "port"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "inspect.iscoroutinefunction(function) is is_async",
+        "tuple(inspect.signature(function).parameters) == ('self', *arguments.split())"
+      ],
+      "expected_exceptions": [],
+      "source_line": 158,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_every_port_has_minimal_reference_double[ContextBuilder]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "port"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "inspect.iscoroutinefunction(function) is is_async",
+        "tuple(inspect.signature(function).parameters) == ('self', *arguments.split())"
+      ],
+      "expected_exceptions": [],
+      "source_line": 158,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_every_port_has_minimal_reference_double[SupplierInterpreter]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "port"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "inspect.iscoroutinefunction(function) is is_async",
+        "tuple(inspect.signature(function).parameters) == ('self', *arguments.split())"
+      ],
+      "expected_exceptions": [],
+      "source_line": 158,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_every_port_has_minimal_reference_double[StrategyProposalPolicy]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "port"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "inspect.iscoroutinefunction(function) is is_async",
+        "tuple(inspect.signature(function).parameters) == ('self', *arguments.split())"
+      ],
+      "expected_exceptions": [],
+      "source_line": 158,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_every_port_has_minimal_reference_double[CandidateGenerator]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "port"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "inspect.iscoroutinefunction(function) is is_async",
+        "tuple(inspect.signature(function).parameters) == ('self', *arguments.split())"
+      ],
+      "expected_exceptions": [],
+      "source_line": 158,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_every_port_has_minimal_reference_double[EconomicEvaluator]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "port"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "inspect.iscoroutinefunction(function) is is_async",
+        "tuple(inspect.signature(function).parameters) == ('self', *arguments.split())"
+      ],
+      "expected_exceptions": [],
+      "source_line": 158,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_every_port_has_minimal_reference_double[ActionSelectionPolicy]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "port"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "inspect.iscoroutinefunction(function) is is_async",
+        "tuple(inspect.signature(function).parameters) == ('self', *arguments.split())"
+      ],
+      "expected_exceptions": [],
+      "source_line": 158,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_every_port_has_minimal_reference_double[CandidateResearch]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "port"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "inspect.iscoroutinefunction(function) is is_async",
+        "tuple(inspect.signature(function).parameters) == ('self', *arguments.split())"
+      ],
+      "expected_exceptions": [],
+      "source_line": 158,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_every_port_has_minimal_reference_double[ClosingEvaluator]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "port"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "inspect.iscoroutinefunction(function) is is_async",
+        "tuple(inspect.signature(function).parameters) == ('self', *arguments.split())"
+      ],
+      "expected_exceptions": [],
+      "source_line": 158,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_every_port_has_minimal_reference_double[ClaimVerifier]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "port"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "inspect.iscoroutinefunction(function) is is_async",
+        "tuple(inspect.signature(function).parameters) == ('self', *arguments.split())"
+      ],
+      "expected_exceptions": [],
+      "source_line": 158,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_every_port_has_minimal_reference_double[ActionRenderer]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "port"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "inspect.iscoroutinefunction(function) is is_async",
+        "tuple(inspect.signature(function).parameters) == ('self', *arguments.split())"
+      ],
+      "expected_exceptions": [],
+      "source_line": 158,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_every_port_has_minimal_reference_double[ActionValidator]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "port"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "inspect.iscoroutinefunction(function) is is_async",
+        "tuple(inspect.signature(function).parameters) == ('self', *arguments.split())"
+      ],
+      "expected_exceptions": [],
+      "source_line": 158,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_every_port_has_minimal_reference_double[DecisionEngine]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "port"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "inspect.iscoroutinefunction(function) is is_async",
+        "tuple(inspect.signature(function).parameters) == ('self', *arguments.split())"
+      ],
+      "expected_exceptions": [],
+      "source_line": 158,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_every_port_has_minimal_reference_double[FeedbackProcessor]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "port"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "inspect.iscoroutinefunction(function) is is_async",
+        "tuple(inspect.signature(function).parameters) == ('self', *arguments.split())"
+      ],
+      "expected_exceptions": [],
+      "source_line": 158,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_every_port_has_minimal_reference_double[StateProjector]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "port"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "inspect.iscoroutinefunction(function) is is_async",
+        "tuple(inspect.signature(function).parameters) == ('self', *arguments.split())"
+      ],
+      "expected_exceptions": [],
+      "source_line": 158,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_every_port_has_minimal_reference_double[StateStore]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "port"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "inspect.iscoroutinefunction(function) is is_async",
+        "tuple(inspect.signature(function).parameters) == ('self', *arguments.split())"
+      ],
+      "expected_exceptions": [],
+      "source_line": 158,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_every_port_has_minimal_reference_double[ActionExecutor]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "port"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "inspect.iscoroutinefunction(function) is is_async",
+        "tuple(inspect.signature(function).parameters) == ('self', *arguments.split())"
+      ],
+      "expected_exceptions": [],
+      "source_line": 158,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_every_port_has_minimal_reference_double[ArenaGateway]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "port"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "inspect.iscoroutinefunction(function) is is_async",
+        "tuple(inspect.signature(function).parameters) == ('self', *arguments.split())"
+      ],
+      "expected_exceptions": [],
+      "source_line": 158,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_every_port_has_minimal_reference_double[ModelGateway]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [
+        "port"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "inspect.iscoroutinefunction(function) is is_async",
+        "tuple(inspect.signature(function).parameters) == ('self', *arguments.split())"
+      ],
+      "expected_exceptions": [],
+      "source_line": 158,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_foundation.py::test_fake_model_records_calls_and_propagates_scripted_failure",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b",
+      "fixture_arguments": [],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "gateway.calls == [('request', 'budget')]",
+        "(clock.utcnow() - previous).total_seconds() == 8"
+      ],
+      "expected_exceptions": [
+        "pytest.raises(TimeoutError, match='scripted')"
+      ],
+      "source_line": 170,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_guardrails.py::test_only_absent_components_can_be_expected_failures",
+      "group": "contracts",
+      "task": "T1.1c/T1.3",
+      "fixture_arguments": [
+        "monkeypatch",
+        "tmp_path"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(pytest.xfail.Exception, match='UNIMPLEMENTED')"
+      ],
+      "source_line": 20,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_guardrails.py::test_required_absent_component_is_a_failure",
+      "group": "contracts",
+      "task": "T1.1c/T1.3",
+      "fixture_arguments": [
+        "monkeypatch",
+        "tmp_path"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(pytest.fail.Exception, match='Required V2 component absent')"
+      ],
+      "source_line": 26,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_guardrails.py::test_existing_component_import_failures_are_never_hidden[error0]",
+      "group": "contracts",
+      "task": "T1.1c/T1.3",
+      "fixture_arguments": [
+        "monkeypatch",
+        "tmp_path",
+        "error"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(type(error), match=str(error))"
+      ],
+      "source_line": 33,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_guardrails.py::test_existing_component_import_failures_are_never_hidden[error1]",
+      "group": "contracts",
+      "task": "T1.1c/T1.3",
+      "fixture_arguments": [
+        "monkeypatch",
+        "tmp_path",
+        "error"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(type(error), match=str(error))"
+      ],
+      "source_line": 33,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_guardrails.py::test_normalizer_removes_answers_and_does_not_mutate_fixture",
+      "group": "contracts",
+      "task": "T1.1c/T1.3",
+      "fixture_arguments": [
+        "p10"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "'official_cost_goldens' not in normalized",
+        "'expected_evidence' not in normalized",
+        "'variants' not in normalized",
+        "'official_cost_goldens' in p10",
+        "normalized['case'] == p10['case']"
+      ],
+      "expected_exceptions": [],
+      "source_line": 47,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_guardrails.py::test_negative_fixture_labels_change_real_wire_inputs[subject_301-subject-301]",
+      "group": "contracts",
+      "task": "T1.1c/T1.3",
+      "fixture_arguments": [
+        "p10",
+        "fault",
+        "key",
+        "length"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "len(normalize_fixture(p10)['wire_message'][key]) == length"
+      ],
+      "expected_exceptions": [],
+      "source_line": 61,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_guardrails.py::test_negative_fixture_labels_change_real_wire_inputs[body_8001-body-8001]",
+      "group": "contracts",
+      "task": "T1.1c/T1.3",
+      "fixture_arguments": [
+        "p10",
+        "fault",
+        "key",
+        "length"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "len(normalize_fixture(p10)['wire_message'][key]) == length"
+      ],
+      "expected_exceptions": [],
+      "source_line": 61,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_guardrails.py::test_negative_fixture_labels_change_real_wire_inputs[four_sheets-term_sheets-4]",
+      "group": "contracts",
+      "task": "T1.1c/T1.3",
+      "fixture_arguments": [
+        "p10",
+        "fault",
+        "key",
+        "length"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "len(normalize_fixture(p10)['wire_message'][key]) == length"
+      ],
+      "expected_exceptions": [],
+      "source_line": 61,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_guardrails.py::test_negative_fixture_labels_change_real_wire_inputs[refs_21-refs-21]",
+      "group": "contracts",
+      "task": "T1.1c/T1.3",
+      "fixture_arguments": [
+        "p10",
+        "fault",
+        "key",
+        "length"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "len(normalize_fixture(p10)['wire_message'][key]) == length"
+      ],
+      "expected_exceptions": [],
+      "source_line": 61,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_guardrails.py::test_negative_fixture_labels_change_real_wire_inputs[attachments_6-attachments-6]",
+      "group": "contracts",
+      "task": "T1.1c/T1.3",
+      "fixture_arguments": [
+        "p10",
+        "fault",
+        "key",
+        "length"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "len(normalize_fixture(p10)['wire_message'][key]) == length"
+      ],
+      "expected_exceptions": [],
+      "source_line": 61,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_guardrails.py::test_effective_config_rejects_unsupported_and_hidden_values",
+      "group": "contracts",
+      "task": "T1.1c/T1.3",
+      "fixture_arguments": [
+        "p10"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValueError)",
+        "pytest.raises(ValueError)"
+      ],
+      "source_line": 66,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_guardrails.py::test_effective_config_is_ambient_environment_independent",
+      "group": "contracts",
+      "task": "T1.1c/T1.3",
+      "fixture_arguments": [
+        "p10",
+        "monkeypatch"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "before == after",
+        "before.config_hash == after.config_hash"
+      ],
+      "expected_exceptions": [],
+      "source_line": 74,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_guardrails.py::test_future_provider_identity_does_not_change_foundational_models",
+      "group": "contracts",
+      "task": "T1.1c/T1.3",
+      "fixture_arguments": [
+        "p10"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "not fields & {'llm_provider', 'llm_model', 'openai_model', 'capacity_strategy'}"
+      ],
+      "expected_exceptions": [],
+      "source_line": 85,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_guardrails.py::test_decision_record_binds_every_stage_and_rejects_orphan_selection",
+      "group": "contracts",
+      "task": "T1.1c/T1.3",
+      "fixture_arguments": [
+        "p10"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "raw['schema_version'] == 'negotiator-v2/1'",
+        "raw['revision'] >= 1",
+        "raw['snapshot'] == data.context.snapshot.model_dump(mode='json')"
+      ],
+      "expected_exceptions": [
+        "pytest.raises(ValueError)"
+      ],
+      "source_line": 91,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_guardrails.py::test_decision_record_schema_roundtrip_without_fixture_codec",
+      "group": "contracts",
+      "task": "T1.1c/T1.3",
+      "fixture_arguments": [],
+      "fixture_sources": [
+        "tests/fixtures/v2/decision-record.json"
+      ],
+      "assertions": [
+        "record.schema_version == 'negotiator-v2/1'",
+        "record.revision == 1",
+        "record.parent_record_hash is None",
+        "record.evaluation_artifact_refs",
+        "record.selection_artifact_ref",
+        "models.DecisionRecord.model_validate_json(record.model_dump_json()) == record"
+      ],
+      "expected_exceptions": [],
+      "source_line": 103,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_guardrails.py::test_record_invariants_reject_misleading_trace[orphan_selection]",
+      "group": "contracts",
+      "task": "T1.1c/T1.3",
+      "fixture_arguments": [
+        "fault"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/decision-record.json"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValueError, match=expected)"
+      ],
+      "source_line": 116,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_guardrails.py::test_record_invariants_reject_misleading_trace[reordered_stages]",
+      "group": "contracts",
+      "task": "T1.1c/T1.3",
+      "fixture_arguments": [
+        "fault"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/decision-record.json"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValueError, match=expected)"
+      ],
+      "source_line": 116,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_guardrails.py::test_record_invariants_reject_misleading_trace[failed_without_issue]",
+      "group": "contracts",
+      "task": "T1.1c/T1.3",
+      "fixture_arguments": [
+        "fault"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/decision-record.json"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValueError, match=expected)"
+      ],
+      "source_line": 116,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_guardrails.py::test_record_invariants_reject_misleading_trace[unknown_version]",
+      "group": "contracts",
+      "task": "T1.1c/T1.3",
+      "fixture_arguments": [
+        "fault"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/decision-record.json"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValueError, match=expected)"
+      ],
+      "source_line": 116,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_guardrails.py::test_assessment_draft_distinguishes_all_four_collections",
+      "group": "contracts",
+      "task": "T1.1c/T1.3",
+      "fixture_arguments": [
+        "p10"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "draft.observations[0].kind == 'conditional_offer'",
+        "draft.reported_constraints[0].authority == 'supplier_reported'",
+        "draft.hypotheses[0].direction == 'increase'",
+        "draft.hypotheses[0].numeric_effect is None",
+        "isinstance(draft.uncertainties, tuple)"
+      ],
+      "expected_exceptions": [],
+      "source_line": 136,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_guardrails.py::test_assessment_draft_rejects_boundary_authority_faults[no_citation]",
+      "group": "contracts",
+      "task": "T1.1c/T1.3",
+      "fixture_arguments": [
+        "p10",
+        "fault"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValueError)"
+      ],
+      "source_line": 148,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_guardrails.py::test_assessment_draft_rejects_boundary_authority_faults[false_authority]",
+      "group": "contracts",
+      "task": "T1.1c/T1.3",
+      "fixture_arguments": [
+        "p10",
+        "fault"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValueError)"
+      ],
+      "source_line": 148,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_guardrails.py::test_assessment_draft_rejects_boundary_authority_faults[negative_span]",
+      "group": "contracts",
+      "task": "T1.1c/T1.3",
+      "fixture_arguments": [
+        "p10",
+        "fault"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValueError)"
+      ],
+      "source_line": 148,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_guardrails.py::test_assessment_draft_rejects_boundary_authority_faults[binding_action]",
+      "group": "contracts",
+      "task": "T1.1c/T1.3",
+      "fixture_arguments": [
+        "p10",
+        "fault"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValueError)"
+      ],
+      "source_line": 148,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_interpretation.py::test_assessment_preserves_grounding_and_revision[delivery]",
+      "group": "contracts",
+      "task": "T3.2",
+      "fixture_arguments": [
+        "p10",
+        "variant_id"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "result.status == 'ok'",
+        "result.supplier_id == p10['supplier_id']",
+        "result.snapshot == data.context.snapshot",
+        "result.revision == 1",
+        "result.parent_assessment_id is None",
+        "result.observations",
+        "observation.citations",
+        "citation.session_id == p10['session_id']",
+        "citation.message_id == p10['message_id']",
+        "p10['reply'][citation.start:citation.end] == citation.quote"
+      ],
+      "expected_exceptions": [],
+      "source_line": 27,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_interpretation.py::test_assessment_preserves_grounding_and_revision[longer]",
+      "group": "contracts",
+      "task": "T3.2",
+      "fixture_arguments": [
+        "p10",
+        "variant_id"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "result.status == 'ok'",
+        "result.supplier_id == p10['supplier_id']",
+        "result.snapshot == data.context.snapshot",
+        "result.revision == 1",
+        "result.parent_assessment_id is None",
+        "result.observations",
+        "observation.citations",
+        "citation.session_id == p10['session_id']",
+        "citation.message_id == p10['message_id']",
+        "p10['reply'][citation.start:citation.end] == citation.quote"
+      ],
+      "expected_exceptions": [],
+      "source_line": 27,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_interpretation.py::test_assessment_preserves_grounding_and_revision[shorter]",
+      "group": "contracts",
+      "task": "T3.2",
+      "fixture_arguments": [
+        "p10",
+        "variant_id"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "result.status == 'ok'",
+        "result.supplier_id == p10['supplier_id']",
+        "result.snapshot == data.context.snapshot",
+        "result.revision == 1",
+        "result.parent_assessment_id is None",
+        "result.observations",
+        "observation.citations",
+        "citation.session_id == p10['session_id']",
+        "citation.message_id == p10['message_id']",
+        "p10['reply'][citation.start:citation.end] == citation.quote"
+      ],
+      "expected_exceptions": [],
+      "source_line": 27,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_interpretation.py::test_assessment_preserves_grounding_and_revision[refusal]",
+      "group": "contracts",
+      "task": "T3.2",
+      "fixture_arguments": [
+        "p10",
+        "variant_id"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "result.status == 'ok'",
+        "result.supplier_id == p10['supplier_id']",
+        "result.snapshot == data.context.snapshot",
+        "result.revision == 1",
+        "result.parent_assessment_id is None",
+        "result.observations",
+        "observation.citations",
+        "citation.session_id == p10['session_id']",
+        "citation.message_id == p10['message_id']",
+        "p10['reply'][citation.start:citation.end] == citation.quote"
+      ],
+      "expected_exceptions": [],
+      "source_line": 27,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_interpretation.py::test_assessment_preserves_grounding_and_revision[uncertain]",
+      "group": "contracts",
+      "task": "T3.2",
+      "fixture_arguments": [
+        "p10",
+        "variant_id"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "result.status == 'ok'",
+        "result.supplier_id == p10['supplier_id']",
+        "result.snapshot == data.context.snapshot",
+        "result.revision == 1",
+        "result.parent_assessment_id is None",
+        "result.observations",
+        "observation.citations",
+        "citation.session_id == p10['session_id']",
+        "citation.message_id == p10['message_id']",
+        "p10['reply'][citation.start:citation.end] == citation.quote"
+      ],
+      "expected_exceptions": [],
+      "source_line": 27,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_interpretation.py::test_assessment_preserves_grounding_and_revision[contradiction]",
+      "group": "contracts",
+      "task": "T3.2",
+      "fixture_arguments": [
+        "p10",
+        "variant_id"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "result.status == 'ok'",
+        "result.supplier_id == p10['supplier_id']",
+        "result.snapshot == data.context.snapshot",
+        "result.revision == 1",
+        "result.parent_assessment_id is None",
+        "result.observations",
+        "observation.citations",
+        "citation.session_id == p10['session_id']",
+        "citation.message_id == p10['message_id']",
+        "p10['reply'][citation.start:citation.end] == citation.quote"
+      ],
+      "expected_exceptions": [],
+      "source_line": 27,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_interpretation.py::test_conditional_constraint_stays_reported_not_case_fixed",
+      "group": "contracts",
+      "task": "T3.2",
+      "fixture_arguments": [
+        "p10"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "constraint.value == 56",
+        "constraint.authority == 'supplier_reported'",
+        "constraint.condition_observation_refs",
+        "any((o.kind == 'conditional_offer' for o in result.observations))",
+        "data.case.contract_hash == data.context.case.contract_hash",
+        "42 in next((o for o in data.case.options if o.field == 'lead_time_days')).values"
+      ],
+      "expected_exceptions": [],
+      "source_line": 45,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_interpretation.py::test_uncertainty_does_not_invent_a_discount_or_approval",
+      "group": "contracts",
+      "task": "T3.2",
+      "fixture_arguments": [
+        "p10"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "{'approval', 'discount'} <= set(result.unknowns)",
+        "any((u.kind == 'approval' and u.blocking for u in result.uncertainties))",
+        "all((h.numeric_effect is None for h in result.hypotheses))",
+        "all((h.confidence in {'low', 'unknown'} for h in result.hypotheses))"
+      ],
+      "expected_exceptions": [],
+      "source_line": 57,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_interpretation.py::test_contradiction_is_retained_not_collapsed_to_certainty",
+      "group": "contracts",
+      "task": "T3.2",
+      "fixture_arguments": [
+        "p10"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "any((u.kind == 'contradiction' and u.blocking for u in result.uncertainties))",
+        "any((o.kind == 'refusal' for o in result.observations))",
+        "'approval' in result.unknowns"
+      ],
+      "expected_exceptions": [],
+      "source_line": 66,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_interpretation.py::test_invalid_citations_fallback[unknown_message]",
+      "group": "contracts",
+      "task": "T3.2",
+      "fixture_arguments": [
+        "p10",
+        "fault"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "result.status == 'fallback'",
+        "all((h.numeric_effect is None for h in result.hypotheses))"
+      ],
+      "expected_exceptions": [],
+      "source_line": 75,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_interpretation.py::test_invalid_citations_fallback[wrong_quote]",
+      "group": "contracts",
+      "task": "T3.2",
+      "fixture_arguments": [
+        "p10",
+        "fault"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "result.status == 'fallback'",
+        "all((h.numeric_effect is None for h in result.hypotheses))"
+      ],
+      "expected_exceptions": [],
+      "source_line": 75,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_interpretation.py::test_invalid_citations_fallback[negative_offset]",
+      "group": "contracts",
+      "task": "T3.2",
+      "fixture_arguments": [
+        "p10",
+        "fault"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "result.status == 'fallback'",
+        "all((h.numeric_effect is None for h in result.hypotheses))"
+      ],
+      "expected_exceptions": [],
+      "source_line": 75,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_interpretation.py::test_invalid_citations_fallback[foreign_session]",
+      "group": "contracts",
+      "task": "T3.2",
+      "fixture_arguments": [
+        "p10",
+        "fault"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "result.status == 'fallback'",
+        "all((h.numeric_effect is None for h in result.hypotheses))"
+      ],
+      "expected_exceptions": [],
+      "source_line": 75,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_interpretation.py::test_provider_exception_is_explicit_fallback[failure0]",
+      "group": "contracts",
+      "task": "T3.2",
+      "fixture_arguments": [
+        "p10",
+        "failure"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "result.status == 'fallback'",
+        "result.model_call_id is not None",
+        "len(model.calls) == 1"
+      ],
+      "expected_exceptions": [],
+      "source_line": 92,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_interpretation.py::test_provider_exception_is_explicit_fallback[failure1]",
+      "group": "contracts",
+      "task": "T3.2",
+      "fixture_arguments": [
+        "p10",
+        "failure"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "result.status == 'fallback'",
+        "result.model_call_id is not None",
+        "len(model.calls) == 1"
+      ],
+      "expected_exceptions": [],
+      "source_line": 92,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_interpretation.py::test_prompt_injection_cannot_create_binding_action",
+      "group": "contracts",
+      "task": "T3.2",
+      "fixture_arguments": [
+        "p10"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "result.status == 'fallback'",
+        "not hasattr(result, 'action')",
+        "not hasattr(result, 'reservation_cost')"
+      ],
+      "expected_exceptions": [],
+      "source_line": 100,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_interpretation.py::test_model_projection_excludes_private_economics_and_transport_authority",
+      "group": "contracts",
+      "task": "T3.2",
+      "fixture_arguments": [
+        "p10"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "not field_names(projection) & {'buyer', 'fallback_price', 'alternative', 'fallback_risk_pct', 'relationship_eur_per_point', 'sustainable_margin_pct', 'price_bounds', 'ceiling', 'cost_policy', 'nominal_cost', 'scenario_costs'}",
+        "budget.max_calls == 1",
+        "budget.retry_limit == 0",
+        "forbidden not in serialized"
+      ],
+      "expected_exceptions": [],
+      "source_line": 108,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_preparation.py::test_prepared_artifact_roundtrip_and_warm_context_match",
+      "group": "contracts",
+      "task": "T2.2",
+      "fixture_arguments": [
+        "p10"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "restored == data.prepared",
+        "warm == cold"
+      ],
+      "expected_exceptions": [],
+      "source_line": 23,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_preparation.py::test_prepared_artifact_rejects_mismatch_instead_of_rebuilding_silently[base]",
+      "group": "contracts",
+      "task": "T2.2",
+      "fixture_arguments": [
+        "p10",
+        "fault"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValueError)"
+      ],
+      "source_line": 35,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_preparation.py::test_prepared_artifact_rejects_mismatch_instead_of_rebuilding_silently[release]",
+      "group": "contracts",
+      "task": "T2.2",
+      "fixture_arguments": [
+        "p10",
+        "fault"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValueError)"
+      ],
+      "source_line": 35,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_preparation.py::test_prepared_artifact_rejects_mismatch_instead_of_rebuilding_silently[parser]",
+      "group": "contracts",
+      "task": "T2.2",
+      "fixture_arguments": [
+        "p10",
+        "fault"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValueError)"
+      ],
+      "source_line": 35,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_preparation.py::test_prepared_artifact_rejects_mismatch_instead_of_rebuilding_silently[corrupt_json]",
+      "group": "contracts",
+      "task": "T2.2",
+      "fixture_arguments": [
+        "p10",
+        "fault"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValueError)"
+      ],
+      "source_line": 35,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_preparation.py::test_prepared_artifact_rejects_mismatch_instead_of_rebuilding_silently[changed_record]",
+      "group": "contracts",
+      "task": "T2.2",
+      "fixture_arguments": [
+        "p10",
+        "fault"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValueError)"
+      ],
+      "source_line": 35,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_selection.py::test_deterministic_selector_chooses_only_approved_batch_member",
+      "group": "contracts",
+      "task": "T4.3/T4.4",
+      "fixture_arguments": [
+        "p10"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "chosen.disposition == 'approved'",
+        "decision.evaluation_id == chosen.evaluation_id",
+        "decision.approved_batch_hash == data.evaluation_batch.batch_hash",
+        "decision.snapshot == data.context.snapshot"
+      ],
+      "expected_exceptions": [],
+      "source_line": 7,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_selection.py::test_selector_cannot_treat_question_as_zero_cost_offer",
+      "group": "contracts",
+      "task": "T4.3/T4.4",
+      "fixture_arguments": [
+        "p10"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "chosen.candidate.contents.kind == 'offer'"
+      ],
+      "expected_exceptions": [],
+      "source_line": 21,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_selection.py::test_optional_model_selector_falls_back_to_certified_member[invalid_id]",
+      "group": "contracts",
+      "task": "T4.3/T4.4",
+      "fixture_arguments": [
+        "p10",
+        "fault"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "result.fallback_code is not None",
+        "result.candidate_id in {item.candidate.candidate_id for item in data.evaluation_batch.items if item.disposition == 'approved'}",
+        "result.approved_batch_hash == data.evaluation_batch.batch_hash"
+      ],
+      "expected_exceptions": [],
+      "source_line": 34,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_selection.py::test_optional_model_selector_falls_back_to_certified_member[edited_cost]",
+      "group": "contracts",
+      "task": "T4.3/T4.4",
+      "fixture_arguments": [
+        "p10",
+        "fault"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "result.fallback_code is not None",
+        "result.candidate_id in {item.candidate.candidate_id for item in data.evaluation_batch.items if item.disposition == 'approved'}",
+        "result.approved_batch_hash == data.evaluation_batch.batch_hash"
+      ],
+      "expected_exceptions": [],
+      "source_line": 34,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_selection.py::test_optional_model_selector_falls_back_to_certified_member[malformed]",
+      "group": "contracts",
+      "task": "T4.3/T4.4",
+      "fixture_arguments": [
+        "p10",
+        "fault"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "result.fallback_code is not None",
+        "result.candidate_id in {item.candidate.candidate_id for item in data.evaluation_batch.items if item.disposition == 'approved'}",
+        "result.approved_batch_hash == data.evaluation_batch.batch_hash"
+      ],
+      "expected_exceptions": [],
+      "source_line": 34,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_selection.py::test_optional_model_selector_falls_back_to_certified_member[timeout]",
+      "group": "contracts",
+      "task": "T4.3/T4.4",
+      "fixture_arguments": [
+        "p10",
+        "fault"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "result.fallback_code is not None",
+        "result.candidate_id in {item.candidate.candidate_id for item in data.evaluation_batch.items if item.disposition == 'approved'}",
+        "result.approved_batch_hash == data.evaluation_batch.batch_hash"
+      ],
+      "expected_exceptions": [],
+      "source_line": 34,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_state.py::test_compare_and_swap_commit_is_atomic_and_prepares_exact_outbox",
+      "group": "contracts",
+      "task": "T1.4/T5.2",
+      "fixture_arguments": [
+        "p10",
+        "tmp_path"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "result.kind == 'committed'",
+        "result.new_state.version > data.state.version",
+        "result.operation.operation_id == data.commit.operation_id",
+        "pending == (result.operation,)",
+        "result.permit.payload_hash == result.operation.payload_hash",
+        "stale.kind == 'conflict'",
+        "await store.pending_operations(p10['run_id']) == pending"
+      ],
+      "expected_exceptions": [],
+      "source_line": 17,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_state.py::test_decision_records_append_immutable_revisions",
+      "group": "contracts",
+      "task": "T1.4/T5.2",
+      "fixture_arguments": [
+        "p10",
+        "tmp_path"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "records == (data.record,)",
+        "await store.decision_records(p10['run_id'], p10['case']['case_id']) == records"
+      ],
+      "expected_exceptions": [
+        "pytest.raises(ValueError, match='record')"
+      ],
+      "source_line": 35,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_state.py::test_duplicate_source_keys_do_not_consume_another_round",
+      "group": "contracts",
+      "task": "T1.4/T5.2",
+      "fixture_arguments": [
+        "p10",
+        "tmp_path"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "second.new_state.version == first.new_state.version",
+        "second.new_state.server == first.new_state.server"
+      ],
+      "expected_exceptions": [],
+      "source_line": 50,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_state.py::test_projector_rejects_terminal_event_without_authoritative_proof",
+      "group": "contracts",
+      "task": "T1.4/T5.2",
+      "fixture_arguments": [
+        "p10"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValueError, match='terminal')"
+      ],
+      "source_line": 61,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_state.py::test_historical_assessment_is_preserved_on_new_revision",
+      "group": "contracts",
+      "task": "T1.4/T5.2",
+      "fixture_arguments": [
+        "p10"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "len(two.strategic.assessments) == len(one.strategic.assessments) + 1",
+        "two.strategic.assessments[-2] == one.strategic.assessments[-1]",
+        "two.strategic.assessments[-1].parent_assessment_id == two.strategic.assessments[-2].assessment_id"
+      ],
+      "expected_exceptions": [],
+      "source_line": 68,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_validation.py::test_complete_valid_offer_gets_certificate_without_payload_changes",
+      "group": "contracts",
+      "task": "T5.1",
+      "fixture_arguments": [
+        "p10"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "result.kind == 'valid'",
+        "result.action.payload_hash",
+        "result.action.rendered.payload == data.rendered.payload"
+      ],
+      "expected_exceptions": [],
+      "source_line": 36,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_validation.py::test_invalid_offer_is_rejected_not_snapped[price_zero]",
+      "group": "contracts",
+      "task": "T5.1",
+      "fixture_arguments": [
+        "p10",
+        "name",
+        "field",
+        "value",
+        "issue"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "result.kind == 'invalid'",
+        "issue in codes(result)",
+        "original['packages'][0] == p10['packages'][0]"
+      ],
+      "expected_exceptions": [],
+      "source_line": 45,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_validation.py::test_invalid_offer_is_rejected_not_snapped[price_negative]",
+      "group": "contracts",
+      "task": "T5.1",
+      "fixture_arguments": [
+        "p10",
+        "name",
+        "field",
+        "value",
+        "issue"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "result.kind == 'invalid'",
+        "issue in codes(result)",
+        "original['packages'][0] == p10['packages'][0]"
+      ],
+      "expected_exceptions": [],
+      "source_line": 45,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_validation.py::test_invalid_offer_is_rejected_not_snapped[price_nan]",
+      "group": "contracts",
+      "task": "T5.1",
+      "fixture_arguments": [
+        "p10",
+        "name",
+        "field",
+        "value",
+        "issue"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "result.kind == 'invalid'",
+        "issue in codes(result)",
+        "original['packages'][0] == p10['packages'][0]"
+      ],
+      "expected_exceptions": [],
+      "source_line": 45,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_validation.py::test_invalid_offer_is_rejected_not_snapped[price_fractional_tick]",
+      "group": "contracts",
+      "task": "T5.1",
+      "fixture_arguments": [
+        "p10",
+        "name",
+        "field",
+        "value",
+        "issue"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "result.kind == 'invalid'",
+        "issue in codes(result)",
+        "original['packages'][0] == p10['packages'][0]"
+      ],
+      "expected_exceptions": [],
+      "source_line": 45,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_validation.py::test_invalid_offer_is_rejected_not_snapped[invalid_lead]",
+      "group": "contracts",
+      "task": "T5.1",
+      "fixture_arguments": [
+        "p10",
+        "name",
+        "field",
+        "value",
+        "issue"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "result.kind == 'invalid'",
+        "issue in codes(result)",
+        "original['packages'][0] == p10['packages'][0]"
+      ],
+      "expected_exceptions": [],
+      "source_line": 45,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_validation.py::test_invalid_offer_is_rejected_not_snapped[invalid_volume]",
+      "group": "contracts",
+      "task": "T5.1",
+      "fixture_arguments": [
+        "p10",
+        "name",
+        "field",
+        "value",
+        "issue"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "result.kind == 'invalid'",
+        "issue in codes(result)",
+        "original['packages'][0] == p10['packages'][0]"
+      ],
+      "expected_exceptions": [],
+      "source_line": 45,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_validation.py::test_invalid_offer_is_rejected_not_snapped[wrong_type]",
+      "group": "contracts",
+      "task": "T5.1",
+      "fixture_arguments": [
+        "p10",
+        "name",
+        "field",
+        "value",
+        "issue"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "result.kind == 'invalid'",
+        "issue in codes(result)",
+        "original['packages'][0] == p10['packages'][0]"
+      ],
+      "expected_exceptions": [],
+      "source_line": 45,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_validation.py::test_invalid_offer_is_rejected_not_snapped[unauthorized_fixed_term]",
+      "group": "contracts",
+      "task": "T5.1",
+      "fixture_arguments": [
+        "p10",
+        "name",
+        "field",
+        "value",
+        "issue"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "result.kind == 'invalid'",
+        "issue in codes(result)",
+        "original['packages'][0] == p10['packages'][0]"
+      ],
+      "expected_exceptions": [],
+      "source_line": 45,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_validation.py::test_invalid_offer_is_rejected_not_snapped[unknown_field]",
+      "group": "contracts",
+      "task": "T5.1",
+      "fixture_arguments": [
+        "p10",
+        "name",
+        "field",
+        "value",
+        "issue"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "result.kind == 'invalid'",
+        "issue in codes(result)",
+        "original['packages'][0] == p10['packages'][0]"
+      ],
+      "expected_exceptions": [],
+      "source_line": 45,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_validation.py::test_invalid_boundary_action_has_specific_issue[missing_field-invalid_schema]",
+      "group": "contracts",
+      "task": "T5.1",
+      "fixture_arguments": [
+        "p10",
+        "fault",
+        "issue"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "result.kind == 'invalid'",
+        "issue in codes(result)"
+      ],
+      "expected_exceptions": [],
+      "source_line": 65,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_validation.py::test_invalid_boundary_action_has_specific_issue[mixed_accept_offer-invalid_schema]",
+      "group": "contracts",
+      "task": "T5.1",
+      "fixture_arguments": [
+        "p10",
+        "fault",
+        "issue"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "result.kind == 'invalid'",
+        "issue in codes(result)"
+      ],
+      "expected_exceptions": [],
+      "source_line": 65,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_validation.py::test_invalid_boundary_action_has_specific_issue[stale_state-stale_state]",
+      "group": "contracts",
+      "task": "T5.1",
+      "fixture_arguments": [
+        "p10",
+        "fault",
+        "issue"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "result.kind == 'invalid'",
+        "issue in codes(result)"
+      ],
+      "expected_exceptions": [],
+      "source_line": 65,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_validation.py::test_invalid_boundary_action_has_specific_issue[pending_operation-operation_pending]",
+      "group": "contracts",
+      "task": "T5.1",
+      "fixture_arguments": [
+        "p10",
+        "fault",
+        "issue"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "result.kind == 'invalid'",
+        "issue in codes(result)"
+      ],
+      "expected_exceptions": [],
+      "source_line": 65,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_validation.py::test_invalid_boundary_action_has_specific_issue[expired_deadline-deadline_exhausted]",
+      "group": "contracts",
+      "task": "T5.1",
+      "fixture_arguments": [
+        "p10",
+        "fault",
+        "issue"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "result.kind == 'invalid'",
+        "issue in codes(result)"
+      ],
+      "expected_exceptions": [],
+      "source_line": 65,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_validation.py::test_invalid_boundary_action_has_specific_issue[wrong_recipient-scope_mismatch]",
+      "group": "contracts",
+      "task": "T5.1",
+      "fixture_arguments": [
+        "p10",
+        "fault",
+        "issue"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "result.kind == 'invalid'",
+        "issue in codes(result)"
+      ],
+      "expected_exceptions": [],
+      "source_line": 65,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_validation.py::test_invalid_boundary_action_has_specific_issue[nonstanding_accept-infeasible]",
+      "group": "contracts",
+      "task": "T5.1",
+      "fixture_arguments": [
+        "p10",
+        "fault",
+        "issue"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "result.kind == 'invalid'",
+        "issue in codes(result)"
+      ],
+      "expected_exceptions": [],
+      "source_line": 65,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_validation.py::test_invalid_boundary_action_has_specific_issue[accept_above_alternative-infeasible]",
+      "group": "contracts",
+      "task": "T5.1",
+      "fixture_arguments": [
+        "p10",
+        "fault",
+        "issue"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "result.kind == 'invalid'",
+        "issue in codes(result)"
+      ],
+      "expected_exceptions": [],
+      "source_line": 65,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_validation.py::test_invalid_boundary_action_has_specific_issue[private_body-private_disclosure]",
+      "group": "contracts",
+      "task": "T5.1",
+      "fixture_arguments": [
+        "p10",
+        "fault",
+        "issue"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "result.kind == 'invalid'",
+        "issue in codes(result)"
+      ],
+      "expected_exceptions": [],
+      "source_line": 65,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_validation.py::test_invalid_boundary_action_has_specific_issue[internal_claim-private_disclosure]",
+      "group": "contracts",
+      "task": "T5.1",
+      "fixture_arguments": [
+        "p10",
+        "fault",
+        "issue"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "result.kind == 'invalid'",
+        "issue in codes(result)"
+      ],
+      "expected_exceptions": [],
+      "source_line": 65,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_validation.py::test_invalid_boundary_action_has_specific_issue[hallucinated_claim-unsupported_claim]",
+      "group": "contracts",
+      "task": "T5.1",
+      "fixture_arguments": [
+        "p10",
+        "fault",
+        "issue"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "result.kind == 'invalid'",
+        "issue in codes(result)"
+      ],
+      "expected_exceptions": [],
+      "source_line": 65,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_validation.py::test_invalid_boundary_action_has_specific_issue[stale_claim-stale_source]",
+      "group": "contracts",
+      "task": "T5.1",
+      "fixture_arguments": [
+        "p10",
+        "fault",
+        "issue"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "result.kind == 'invalid'",
+        "issue in codes(result)"
+      ],
+      "expected_exceptions": [],
+      "source_line": 65,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_validation.py::test_invalid_boundary_action_has_specific_issue[subject_301-invalid_schema]",
+      "group": "contracts",
+      "task": "T5.1",
+      "fixture_arguments": [
+        "p10",
+        "fault",
+        "issue"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "result.kind == 'invalid'",
+        "issue in codes(result)"
+      ],
+      "expected_exceptions": [],
+      "source_line": 65,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_validation.py::test_invalid_boundary_action_has_specific_issue[body_8001-invalid_schema]",
+      "group": "contracts",
+      "task": "T5.1",
+      "fixture_arguments": [
+        "p10",
+        "fault",
+        "issue"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "result.kind == 'invalid'",
+        "issue in codes(result)"
+      ],
+      "expected_exceptions": [],
+      "source_line": 65,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_validation.py::test_invalid_boundary_action_has_specific_issue[four_sheets-invalid_schema]",
+      "group": "contracts",
+      "task": "T5.1",
+      "fixture_arguments": [
+        "p10",
+        "fault",
+        "issue"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "result.kind == 'invalid'",
+        "issue in codes(result)"
+      ],
+      "expected_exceptions": [],
+      "source_line": 65,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_validation.py::test_invalid_boundary_action_has_specific_issue[refs_21-invalid_schema]",
+      "group": "contracts",
+      "task": "T5.1",
+      "fixture_arguments": [
+        "p10",
+        "fault",
+        "issue"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "result.kind == 'invalid'",
+        "issue in codes(result)"
+      ],
+      "expected_exceptions": [],
+      "source_line": 65,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_validation.py::test_invalid_boundary_action_has_specific_issue[attachments_6-invalid_schema]",
+      "group": "contracts",
+      "task": "T5.1",
+      "fixture_arguments": [
+        "p10",
+        "fault",
+        "issue"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "result.kind == 'invalid'",
+        "issue in codes(result)"
+      ],
+      "expected_exceptions": [],
+      "source_line": 65,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_validation.py::test_invalid_boundary_action_has_specific_issue[claims_4-invalid_schema]",
+      "group": "contracts",
+      "task": "T5.1",
+      "fixture_arguments": [
+        "p10",
+        "fault",
+        "issue"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "result.kind == 'invalid'",
+        "issue in codes(result)"
+      ],
+      "expected_exceptions": [],
+      "source_line": 65,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_validation.py::test_official_limits_and_question_positive_cases[subject_300]",
+      "group": "contracts",
+      "task": "T5.1",
+      "fixture_arguments": [
+        "p10",
+        "boundary"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "validate(request, p10).kind == 'valid'"
+      ],
+      "expected_exceptions": [],
+      "source_line": 73,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_validation.py::test_official_limits_and_question_positive_cases[body_8000]",
+      "group": "contracts",
+      "task": "T5.1",
+      "fixture_arguments": [
+        "p10",
+        "boundary"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "validate(request, p10).kind == 'valid'"
+      ],
+      "expected_exceptions": [],
+      "source_line": 73,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_validation.py::test_official_limits_and_question_positive_cases[refs_20]",
+      "group": "contracts",
+      "task": "T5.1",
+      "fixture_arguments": [
+        "p10",
+        "boundary"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "validate(request, p10).kind == 'valid'"
+      ],
+      "expected_exceptions": [],
+      "source_line": 73,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_validation.py::test_official_limits_and_question_positive_cases[three_sheets]",
+      "group": "contracts",
+      "task": "T5.1",
+      "fixture_arguments": [
+        "p10",
+        "boundary"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "validate(request, p10).kind == 'valid'"
+      ],
+      "expected_exceptions": [],
+      "source_line": 73,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_validation.py::test_official_limits_and_question_positive_cases[question]",
+      "group": "contracts",
+      "task": "T5.1",
+      "fixture_arguments": [
+        "p10",
+        "boundary"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "validate(request, p10).kind == 'valid'"
+      ],
+      "expected_exceptions": [],
+      "source_line": 73,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/integration/test_pipeline.py::test_reference_fake_pipeline_calls_every_stage_without_network",
+      "group": "integration",
+      "task": "T1.2b/T1.4",
+      "fixture_arguments": [],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "await reference_wiring(ports, data) == (artifacts['execution'], artifacts['feedback'])",
+        "[stage for stage, _ in ports.calls] == names",
+        "by_name['intents'][1] is artifacts['assessment']",
+        "by_name['decision'][0] is artifacts['evaluations']",
+        "by_name['rendered'][0] is artifacts['decision']",
+        "by_name['validation'][0] is artifacts['rendered']",
+        "by_name['execution'][0] is artifacts['validation'].action"
+      ],
+      "expected_exceptions": [],
+      "source_line": 31,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/integration/test_pipeline.py::test_typed_complete_offline_loop_and_trace",
+      "group": "integration",
+      "task": "T1.2b/T1.4",
+      "fixture_arguments": [
+        "p10",
+        "tmp_path"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "result.outcome.kind == 'selected'",
+        "result.record.schema_version == 'negotiator-v2/1'",
+        "result.record.snapshot == built.inputs.snapshot.context.snapshot",
+        "[stage.name for stage in result.record.stages] == ['evidence', 'assessment', 'proposal', 'generation', 'evaluation', 'selection', 'rendering', 'validation', 'execution', 'feedback']",
+        "all((stage.status == 'completed' and stage.artifact_refs for stage in result.record.stages))",
+        "terms_of(result.selected.candidate.contents.packages[0]) == {'unit_price': 28.34, 'volume_per_year': 23400, 'contract_months': 24, 'lead_time_days': 42}",
+        "result.selected.economic[0].nominal_cost.amount == Decimal('1335154.08')",
+        "result.execution.kind == 'acknowledged'",
+        "len(arena.submissions) == 1",
+        "arena.submissions[0].payload_hash == result.validated.payload_hash",
+        "len(model.calls) <= 1"
+      ],
+      "expected_exceptions": [],
+      "source_line": 69,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/integration/test_pipeline.py::test_frozen_replay_has_identical_semantic_decision_and_record",
+      "group": "integration",
+      "task": "T1.2b/T1.4",
+      "fixture_arguments": [
+        "p10",
+        "tmp_path"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "first.record.semantic_hash == second.record.semantic_hash",
+        "first.validated.payload_hash == second.validated.payload_hash",
+        "first.selected.candidate.contents == second.selected.candidate.contents",
+        "first.record.config_artifact_ref == second.record.config_artifact_ref"
+      ],
+      "expected_exceptions": [],
+      "source_line": 94,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/integration/test_pipeline.py::test_model_variability_is_recorded_without_faking_determinism",
+      "group": "integration",
+      "task": "T1.2b/T1.4",
+      "fixture_arguments": [
+        "p10",
+        "tmp_path"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "a.record.model_call_refs and b.record.model_call_refs",
+        "a.record.model_output_hashes != b.record.model_output_hashes",
+        "a.record.fixture_input_hash != b.record.fixture_input_hash"
+      ],
+      "expected_exceptions": [],
+      "source_line": 110,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/integration/test_pipeline.py::test_final_record_can_be_loaded_after_restart",
+      "group": "integration",
+      "task": "T1.2b/T1.4",
+      "fixture_arguments": [
+        "p10",
+        "tmp_path"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "records[-1].record_hash == record_hash",
+        "arena.submissions == []"
+      ],
+      "expected_exceptions": [],
+      "source_line": 129,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    }
+  ]
+}

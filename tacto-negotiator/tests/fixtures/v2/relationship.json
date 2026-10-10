@@ -1,0 +1,114 @@
+{
+  "fixture_version": "negotiator-v2-fixtures/1",
+  "case": {
+    "case_id": "case:T01",
+    "type": "price_increase",
+    "title": "Housing",
+    "suppliers": [
+      "sup:F"
+    ],
+    "negotiable": [
+      "unit_price",
+      "payment_days"
+    ],
+    "fixed_terms": {
+      "lead_time_days": 35,
+      "incoterm": "FCA",
+      "contract_months": 24
+    },
+    "term_options": {
+      "payment_days": [
+        30,
+        45,
+        60
+      ]
+    },
+    "buyer": {
+      "category_goal": "stabilise",
+      "need_per_year": 4000,
+      "horizon_years": 2,
+      "current_unit_price": 48.6,
+      "fallback_unit_price": 55.0,
+      "fallback_risk_pct": 5,
+      "sustainable_margin_pct": 4,
+      "relationship_eur_per_point": 5000,
+      "interest_rate": 0.08,
+      "reference_payment_days": 60,
+      "need_lead_time_days": 35,
+      "late_cost_per_day": 0,
+      "cost_per_defect": 0,
+      "freight_eur_per_unit": {
+        "EXW": 1.9,
+        "FCA": 1.2,
+        "DAP": 0.0
+      },
+      "index_paths": {},
+      "must_haves": [],
+      "alternative": {
+        "kind": "none"
+      }
+    },
+    "round_limit": 10
+  },
+  "estimate": {
+    "standard": {
+      "payment_days": 60,
+      "incoterm": "FCA"
+    },
+    "interest_rate": 0.08,
+    "full_cost": 47.0
+  },
+  "terms": {
+    "payment_days": 60
+  },
+  "goldens": [
+    {
+      "price": 20,
+      "cost": 1534600.0
+    },
+    {
+      "price": 30,
+      "cost": 831266.67
+    },
+    {
+      "price": 40,
+      "cost": 519600.0
+    },
+    {
+      "price": 45,
+      "cost": 429044.44
+    },
+    {
+      "price": 48,
+      "cost": 397273.61
+    },
+    {
+      "price": 49,
+      "cost": 401600.0
+    },
+    {
+      "price": 55,
+      "cost": 449600.0
+    }
+  ],
+  "legal_price_ticks": [
+    "45.00",
+    "48.00",
+    "49.00",
+    "55.00"
+  ],
+  "target": "401600.00",
+  "known_feasible_price": "49.00",
+  "origin": "Existing STABILISE fixture and explicit supplier estimate; no hosted measurement; original synthetic case has no parts, so a fixture-only part basis is explicitly declared, not a P10 basis",
+  "declared_fixture_basis": {
+    "currency": "EUR",
+    "price_unit": 1,
+    "part_ids": [
+      "part:fixture-housing"
+    ],
+    "quantity_basis": "arena-case-quantity",
+    "source_refs": [
+      "fixture:STABILISE-declared-basis"
+    ]
+  }
+}
