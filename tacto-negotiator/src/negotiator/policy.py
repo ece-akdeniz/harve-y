@@ -54,6 +54,10 @@ class PolicyConfig:
     # Per case type number of buyer rounds over which the price schedule reaches the
     # supplier's price (faster convergence before a supplier's final offer); others use the agent's.
     rounds_by_type: dict[str, int] = field(default_factory=dict)
+    # Case types where a supplier whose public notes ask us to pay faster (`wants_fast_payment`)
+    # gets the shortest legal payment term in every package (instead of the quote standard), and
+    # the first offer answers that note.
+    fast_payment_types: tuple[str, ...] = ()
     # Case types where, once the supplier holds its standing price, we offer once to drop the
     # chargeback at the price that leaves the supplier's value unchanged (arena_kit supplier_value
     # with the ppm from the supplier's own quote) - only if it lowers our C.
@@ -89,6 +93,7 @@ class PolicyConfig:
             "bundle_volume_types",
             "bundle_commitment_types",
             "value_swap_types",
+            "fast_payment_types",
         ):
             v = d.get(k, [])
             if not isinstance(v, list) or any(not isinstance(x, str) or x not in TYPES for x in v):

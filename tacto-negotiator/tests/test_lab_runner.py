@@ -784,3 +784,27 @@ def test_async_run_persists_session_before_failure_and_collects_evidence(tmp_pat
         run_experiment(run, root, client, factory)
     assert final.attempts[0].session_id == "known-session"
     assert closed == [True]
+
+
+def test_cli_run_fails_loudly_without_data_package_and_exports_it(tmp_path, monkeypatch, capsys):
+    import os
+
+    import negotiator.lab.cli as lab_cli
+
+    monkeypatch.setenv("ARENA_DATA", "/wrong")  # restored after the test; the CLI overwrites it
+    monkeypatch.setattr(lab_cli, "capture_provenance", lambda *args, **kwargs: ({}, None))
+    seen = []
+
+    def factory(*args, **kwargs):
+        seen.append(os.environ.get("ARENA_DATA"))
+        raise ValueError("agent must stop here")
+
+    monkeypatch.setattr(lab_cli, "agent_factory", factory)
+    argv = ["run", "--name", "n", "--hypothesis", "h", "--agent", "naive", "--cases", "case:D01",
+            "--repetitions", "1", "--max-sessions", "1", "--environment", "sandbox", "--root", str(tmp_path)]
+    assert main([*argv, "--data", str(tmp_path / "missing")]) == 2
+    assert "data package not found" in capsys.readouterr().err and not seen
+    package = tmp_path / "package"
+    package.mkdir()
+    assert main([*argv, "--data", str(package)]) == 2
+    assert seen == [str(package.resolve())]

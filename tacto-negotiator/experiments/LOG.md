@@ -1802,3 +1802,17 @@ Cleanup merge validation on current main: 686 passed, 2 skipped in90.38s; Ruff p
 No new hosted sessions were consumed for cleanup. All seven owned sessions were confirmed
 ended through the owned-session API. The retained fix restores supported feature composition;
 it is not a new score improvement or a fresh full-suite evaluation.
+
+## 2026-10-10 score-push-v3 (integration, 0 practice sessions)
+
+- Config `configs/score-push-v3.json` = v2 minus quality `lower_chargeback` preference, plus
+  `fast_payment_types: [price_increase]` (P01 .9702 x2, ported from `codex/score-push-small` f882d18 —
+  fast-payment code only; `multi_year_tenor_types` and `evidence_after_advice` not ported) and
+  `value_swap_types: [quality]`, holds 1, split 0.5 (P11 .8771 x2, `codex/score-push-behavior` a0b6665+2e40805;
+  committee escalation f1e7e3d not ported).
+- Offline replay v2 vs v3 on the v2-confirm transcripts of all ten cases plus the winning runs: decisions differ
+  only on P01 (payment 30→14) and P11 (value swap); v3 reproduces the P01 and P11 winning transcripts with
+  0 diffs; P03/P04 (and the P04 v3-l1b regression run) are unchanged by dropping `lower_chargeback`.
+- `negotiator lab run` now fails loudly when `--data` is not a directory and exports it as `ARENA_DATA`.
+- `tools/compare_breakdown.py` merged from `codex/score-push-fullcost-rel` (offline diagnostic).
+- Projected mean .7619 from per-case validated scores; not a fresh ten-case run.

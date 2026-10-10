@@ -272,6 +272,10 @@ def main(argv=None) -> int:
                 provenance=provenance,
                 baseline_id=args.baseline_id,
             )
+            # Agents read the public package from ARENA_DATA; a missing package silently drops evidence.
+            if not args.data or not Path(args.data).is_dir():
+                raise ValueError("data package not found (pass --data or set ARENA_DATA)")
+            os.environ["ARENA_DATA"] = str(Path(args.data).resolve())
             factory = agent_factory(args.agent, config)
             publisher = _publisher()
             from .transport import JournaledArena
@@ -318,6 +322,7 @@ def main(argv=None) -> int:
             "agent must",
             "dashboard password",
             "simulator",
+            "data package not found",
         )
         print("lab: " + (message if message.startswith(allowed) else "invalid input"), file=sys.stderr)
     except KeyboardInterrupt:
