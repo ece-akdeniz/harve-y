@@ -36,7 +36,7 @@ def test_all_nineteen_claim_banks(cases):
     for c in cases.values():
         bank = build_bank(c, p)
         assert bank
-        assert all(verify(x, p.facts | (c.get("facts") or {})) for x in bank)
+        assert all(verify(x, p.facts | (c.get("facts") or {}), p, c) for x in bank)
     assert any(x.kind == "scorecard_ppm" for x in build_bank(cases["case:P11"], p))
     assert not any(x.kind == "notice" for x in build_bank(cases["case:P04"], p))
 

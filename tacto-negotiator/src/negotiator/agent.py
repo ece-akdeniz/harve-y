@@ -292,7 +292,16 @@ class PackageAgent:
                     count += 1
             self.final_counters[supplier_id] = count
         move = self._propose(case, threads, supplier_id)
-        return self.evidence.enrich(case, threads, supplier_id, move) if self.evidence else move
+        if self.evidence and self.evidence.eligible(case, move):
+            from .context import DATA_ERRORS
+
+            try:
+                context = self.evidence.context_for(case)
+            except DATA_ERRORS as exc:
+                self.evidence.fallback(case, exc)
+                return move
+            return self.evidence.enrich(case, threads, supplier_id, move, context=context)
+        return move
 
     def _propose(self, case, threads, supplier_id):
         """The proposal for one thread given the whole snapshot: an offer move
