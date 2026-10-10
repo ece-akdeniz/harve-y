@@ -3,8 +3,16 @@
   "checkpoint_id": "01M4KNXQENK8ZG43V53R1ZW2DZ",
   "strategy": "manual-commit",
   "branch": "codex/score-push-fullcost",
-  "checkpoints_count": 10,
-  "files_touched": null,
+  "checkpoints_count": 11,
+  "files_touched": [
+    "tacto-negotiator/configs/p08-longer-tenor.json",
+    "tacto-negotiator/configs/p18-clause-variants.json",
+    "tacto-negotiator/experiments/LOG.md",
+    "tacto-negotiator/src/negotiator/agent.py",
+    "tacto-negotiator/src/negotiator/policy.py",
+    "tacto-negotiator/src/negotiator/trades.py",
+    "tacto-negotiator/tests/test_score_push_p18p08.py"
+  ],
   "sessions": [
     {
       "metadata": "/0/metadata.json",
@@ -12,6 +20,13 @@
       "compact_transcript": "/0/transcript.jsonl",
       "content_hash": "/0/content_hash.txt",
       "prompt": "/0/prompt.txt"
+    },
+    {
+      "metadata": "/1/metadata.json",
+      "transcript": "/1/full.jsonl",
+      "compact_transcript": "/1/transcript.jsonl",
+      "content_hash": "/1/content_hash.txt",
+      "prompt": ""
     }
   ],
   "token_usage": {
