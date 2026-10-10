@@ -55,3 +55,10 @@ def test_p01_standard_payment_opening_uses_quote_standard():
     assert terms["configs/candidate.json"]["payment_days"] == 90
     assert terms["configs/p01-standard-payment.json"]["payment_days"] == 30
     assert terms["configs/candidate.json"]["unit_price"] == terms["configs/p01-standard-payment.json"]["unit_price"]
+
+
+def test_p07_evidence_config_only_adds_bundling():
+    base = json.loads(Path("configs/candidate.json").read_text())
+    cfg = json.loads(Path("configs/p07-evidence.json").read_text())
+    assert cfg == {**base, "evidence_types": base["evidence_types"] + ["bundling"]}
+    assert "bundling" in PolicyConfig.load("configs/p07-evidence.json").evidence_types
