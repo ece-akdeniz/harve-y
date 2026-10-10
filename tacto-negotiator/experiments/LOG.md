@@ -630,3 +630,46 @@ it is not hosted performance evidence or a proposed production strategy change.
 - Final validation: 300 tests passed in 47.44 seconds; Ruff and diff whitespace checks passed.
   The final cross-run graph evidence-link check also passed all four graph tests. Feedback and graph
   exports regenerated successfully against the local imported database. Shared host remains unchanged.
+
+## 2026-10-10 — Shared lab payment-response campaign (INCOMPLETE: transport failures)
+
+- Followed current main's AGENTS.md, LAB_PLAYBOOK.md and docs/13-agent-experiment-loop.md.
+  Tooling 7b35a43; restored the actual shared recommendation into an isolated detached worktree.
+  No main merge and no extra development branch: source is published under the lab checkpoint ref.
+- Baseline e1d931e4fcce49fb8fd341c40052953a (f325fcb), generation 1. Candidate
+  7d6d2f27cfd4407a8ae63cb8b8b52914 (92d0460), published to ece-akdeniz/harve-y.
+  This candidate starts from the recommendation, not the integrated-runtime branch.
+- One hypothesis: after two explicit primary counteroffers repeat a faster payment term,
+  respond with that payment term at a deterministically compensated price that does not increase
+  total buyer cost. Expect improvement on D02 without material D01 regression. No case-ID rules.
+- Config identical in both arms: serial, anchor .12, rounds 5, close_gap .005, final_hold_s 40,
+  p_walk .25, claims false, meso false, estimates {}, empty data manifest.
+- Candidate local validation: 260 tests passed, Ruff clean. Initial timing-only failures in
+  two runtime tests passed on isolated and full reruns; retained in candidate checkpoint log.
+- Family/campaign: ece-payment-response-20261010-01. Budget reserved: 12 sandbox sessions;
+  three repeats of D01/D02 in each arm. No practice allowance and no practice sessions started.
+- Only first D01 pair completed: baseline ef57e1cffe2f7ff9 and candidate 9593bb969e3563b5
+  both 91.9231%, must-haves true, zero timeouts, explicit original ended outcomes. Ten cells pending.
+  No D02 result; no strategy improvement claim; no automatic promotion or recommendation change.
+- Lab tunnel repeatedly timed out on metadata, start acknowledgements and result uploads.
+  Coordinator-only adapter used fresh HTTP connections and bounded retries of reads and identical
+  start/result payloads after confirming backend idempotency. Worker source/configuration and gates
+  stayed unchanged. This did not establish a reliable transport fix.
+- Final sync stored both original outcomes, cleared unacknowledged requests that the server still
+  marked pending, and reported no blocking attempts. No worker is left running. Resume only the same
+  campaign once the host is healthy; retain the existing family ceiling and never rerun ended cells.
+- All gates inspected: checkpoint compatibility passes. Complete sample, must-have evidence across
+  all candidate cells, timeout evidence/comparison, overall gain, case regression and repeat wins
+  remain unsatisfied because ten cells are pending. Missing evidence is not a measured violation.
+- Cited finding stored: ece-payment-response-20261010-01-incomplete. References the baseline
+  attempt and candidate sup:DEMO-F1 message 5 (60-day payment); disposition proposed, confidence .2.
+- History import completed and verified against the shared lab: all 116 prior owned sessions are
+  represented, with session deduplication into 103 shared run records at verification time. Both
+  original tracked sweeps are present; P10 retains failed/null original score plus separate recovery.
+  An initial upload pass reported 50 acknowledged / 50 failed; missing records were retried and
+  session-level readback confirmed zero uncovered historical sessions.
+- Local evidence/control directory:
+  ../harve-y-lab-tooling/tacto-negotiator/experiments/loop/ece-payment-response-20261010-01
+  (relative to the workspace's harve-y-integration root, not an artifact committed to Git).
+- Decision: keep the recommendation unchanged; comparison is incomplete due to external transport.
+  Team is considering a persistent Azure host. Migrate the existing database and leases, not a blank lab.
