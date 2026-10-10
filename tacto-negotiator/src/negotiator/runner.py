@@ -480,7 +480,11 @@ class CaseRunner:
             if self.st.ended:
                 return
             self.closing = True
-            if wait:
+            pending_only = not any(
+                not t.closed and not t.in_flight and latest(t.events).get("status") not in ENDED
+                for t in self.st.threads.values()
+            )
+            if wait or pending_only:
                 now = self.clock.time()
                 until = now + CLOSE_WAIT_S
                 waiting = [
@@ -491,14 +495,20 @@ class CaseRunner:
                 if waiting:
                     until = min(until, min(waiting) - CLOSE_BUDGET_S)
                 if (cap := self._cap()) is not None:
-                    until = min(until, cap - self._cap_margin())
+                    # A cap-triggered close with every reply pending needs one current
+                    # sheet; use the reserved closing window rather than stale offers.
+                    margin = CLOSE_BUDGET_S if pending_only else self._cap_margin()
+                    until = min(until, cap - margin)
                 await self._wait_in_flight(until)
             for _attempt in range(MAX_CLOSE_ATTEMPTS):
                 if self.st.ended:
                     return
                 async with self.lock:
                     snap = self._live_snapshot()
-                    live = {s: ev for s, ev in snap.items() if latest(ev).get("status") not in ENDED}
+                    # A pending POST may already have superseded its last visible offer.
+                    # After the bounded wait, close only on independently available sheets.
+                    live = {s: ev for s, ev in snap.items()
+                            if latest(ev).get("status") not in ENDED and not self.st.threads[s].in_flight}
                     if not live:
                         break
                     estimates = self.estimates

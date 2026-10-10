@@ -20,6 +20,8 @@ class PolicyConfig:
     preferences: dict[str, str] = field(default_factory=dict)
     cost_neutral_lead_time: bool = False
     package_advice_types: tuple[str, ...] = ()
+    rfq_nonleading_hold: bool = False
+    rfq_final_guard: bool = False
 
     @classmethod
     def load(cls, path):
@@ -37,8 +39,9 @@ class PolicyConfig:
             if not isinstance(v, list) or any(not isinstance(x, str) or x not in TYPES for x in v):
                 raise ValueError(f"invalid {k}")
             d[k] = tuple(sorted(set(v)))
-        if type(d.get("cost_neutral_lead_time", False)) is not bool:
-            raise ValueError("cost_neutral_lead_time must be boolean")
+        for k in ("cost_neutral_lead_time", "rfq_nonleading_hold", "rfq_final_guard"):
+            if type(d.get(k, False)) is not bool:
+                raise ValueError(f"{k} must be boolean")
         if d.get("final_offer_risk", "legacy") not in ("legacy", "opening_proxy"):
             raise ValueError("invalid final_offer_risk")
         if d.get("preference", "default") not in ("default", "standard_payment", "longer_tenor", "lower_chargeback"):
