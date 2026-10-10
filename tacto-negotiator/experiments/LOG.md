@@ -845,3 +845,37 @@ in the preceding entry; the same failure reproduces with the unchanged current
 - Verdict: **P02 0.2934 → 0.5993 (n=3, deterministic)**. Merge candidate. Next lever (not screened):
   the supplier accepted the opening without countering, so a lower opening (e.g. ~361, the min-C
   price under lower-fc scenarios) may still be accepted. Risk: it raises relationship cost if fc is high.
+
+### Follow-up: P10 attempt 2 root cause (session 29c667f997fb006e) — no session used
+- Evidence: the tracer stops at 17:04:44 UTC, right after the round-1 `offer` decision and before the
+  `package_advice` log (the LLM call is wall-clock bounded to 8 s by `bounded_call`). No serial `intent`
+  follows, and `run.json` is left at `running` with no `error`. The stderr log `/tmp/p10p02/p10.log` is empty.
+  A Python exception would have printed a traceback and the runner's `except`/`finally` would have marked
+  the attempt `failed`. That cannot have happened, so an external signal killed the process.
+- Cause: the crashed coordinator started the run as a detached `( uv run … lab run … & ) ; sleep 8`
+  inside one tool call. The process died about 1 s after that call returned, about 11 s after start, so the
+  harness tore down the tool call's process group. Attempt 1 happened to finish inside the window.
+  P10 does not reach the `cost_target` path, so the missing-`payment_days` bug is not involved.
+  The same code completed P10 in c6daa8dd and d612dda9.
+- Verdict: an operator/harness issue, not a code bug. No code change and no confirm session.
+  Rule: run tracked `lab run` in the foreground of a long-blocking tool call (or via `nohup`/`setsid`).
+  Never use a detached subshell that the tool call can reap.
+
+### Follow-up: P02 lower-opening (anchor) hypothesis — computed locally, NOT screened
+- Same CU 5 % / 90 d package, public expected-C (uniform 41-point grid on fc 356.20–393.70), target 366.23:
+  | opening/final | ΔE[C] vs target | ≈ score-equiv |
+  |---|---|---|
+  | 366.23 (target) | 0 | 0 |
+  | 357.44 (−1 schedule step, 2.4 %) | +10,278 | −0.22 |
+  | 348.65 (−2 steps) | +37,504 | −0.79 |
+  | 351.26 (min-C at low-end fc 356.20) | +28,112 | −0.59 |
+- The supplier accepted 366.23 at once, so any anchor-then-concede path with a 366.23 cap closes at or below
+  366.23. Under the public model every price below the target raises expected C: the relationship penalty
+  is quadratic, then linear, in the margin gap, and it outweighs the spend saving. Expected gain < risk, so
+  no screen. (A diagnostic using a back-solved fc, not available at runtime, shows −1 step slightly up
+  and −2 steps collapsing to ~0.06. That asymmetry is exactly the risk.)
+- Verdict: keep 366.23 / 0.5993.
+
+### Lab sync
+- `negotiator lab sync` retried at 21:10: uploaded 0, failed 4. The `LAB_URL` dev tunnel times out (curl 000 after 15 s).
+  Local run snapshots and reconciliations are intact; rerun sync when the host is back.
