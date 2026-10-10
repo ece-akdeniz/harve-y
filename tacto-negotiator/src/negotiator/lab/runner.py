@@ -185,6 +185,20 @@ def assert_simulator_is_local(environment: str, arena_url: str) -> None:
         raise ValueError("simulator runs require a loopback ARENA_URL (localhost, 127.0.0.1 or ::1)")
 
 
+RUNNERS = ("serial", "async", "auto")
+# `auto` routes each attempt by hosted case type: multi-supplier RFQ cases need the async
+# runner (concurrent supplier windows, measured P05 `rfq_nonleading_hold`); every other case
+# keeps the serial runner, where the serial-only levers (package advice, expected-C target) live.
+ASYNC_CASE_TYPES = frozenset({"rfq"})
+
+
+def attempt_runner(run, case_type):
+    runner = run.config.get("_lab_runner", "serial")
+    if runner == "auto":
+        return "async" if case_type in ASYNC_CASE_TYPES else "serial"
+    return runner
+
+
 def plan_run(
     *,
     name,
@@ -212,7 +226,7 @@ def plan_run(
         or len(cases) * repetitions > max_sessions
     ):
         raise ValueError("case/repetition plan exceeds the explicit session ceiling")
-    if runner not in {"serial", "async"}:
+    if runner not in RUNNERS:
         raise ValueError("unsupported runner")
     if runner == "async" and len(cases) * repetitions != 1:
         raise ValueError("async standalone runs require exactly one attempt")
@@ -423,7 +437,9 @@ def run_experiment(
     try:
         assert_simulator_is_local(run.environment, run.arena_url)
         set_ = "practice" if run.environment == "simulator" else run.environment
-        allowed = {c["case_id"] for c in hosted(client.cases(set_))}
+        hosted_cases = hosted(client.cases(set_))
+        allowed = {c["case_id"] for c in hosted_cases}
+        case_types = {c["case_id"]: c.get("type") for c in hosted_cases}
         if not set(run.cases) <= allowed:
             raise ValueError("requested case is not hosted in this environment")
         run.quota = quota_snapshot(client)
@@ -436,9 +452,16 @@ def run_experiment(
             table = RecordingTable(client, attempt, session_created)
             started = time.monotonic()
             agent = None
+            mode = "serial"
             try:
                 agent = create_agent()
-                if run.config.get("_lab_runner", "serial") == "async":
+                mode = attempt_runner(run, case_types.get(attempt.case_id))
+                if mode == "async":
+                    policy = getattr(agent, "policy", None)
+                    if (getattr(agent, "package_advisor", None) is not None and policy is not None
+                            and case_types.get(attempt.case_id) not in policy.package_advice_types):
+                        agent.package_advisor = None  # inert for this case type; async rejects it
+                if mode == "async":
                     result = play_async_attempt(run, attempt, root, agent, persist)
                 else:
                     result = play(table, attempt.case_id, agent)
@@ -470,7 +493,7 @@ def run_experiment(
                     except Exception:
                         attempt.result["agent_metrics"] = {"unavailable": True}
                 attempt.elapsed_s = min(604800.0, time.monotonic() - started)
-                if run.config.get("_lab_runner", "serial") == "serial":
+                if mode == "serial":
                     attempt.rounds = table.rounds
                     attempt.threads = sanitize(table.seen_threads, budget=budget)
                 # Persist the outcome immediately before ancillary read calls.

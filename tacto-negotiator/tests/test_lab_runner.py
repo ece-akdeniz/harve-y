@@ -725,6 +725,19 @@ def test_async_runner_metadata_and_single_attempt_plan(tmp_path):
     assert args.runner == "async"
 
 
+def test_auto_runner_routes_rfq_cases_async_and_allows_multi_case_plans(tmp_path):
+    from negotiator.lab.runner import attempt_runner
+
+    run = planned(tmp_path, runner="auto", config={"policy_config": {"version": 1}},
+                  repetitions=2, max_sessions=2)
+    assert run.config["_lab_runner"] == "auto"
+    assert attempt_runner(run, "rfq") == "async"
+    assert [attempt_runner(run, t) for t in ("capacity", "price_increase", "raw_material", None)] == ["serial"] * 4
+    assert attempt_runner(planned(tmp_path, runner="serial"), "rfq") == "serial"
+    assert parse_args(["run", "--name", "a", "--hypothesis", "h", "--runner", "auto", "--cases", "case:D01",
+                       "--repetitions", "1", "--max-sessions", "1", "--environment", "sandbox"]).runner == "auto"
+
+
 @pytest.mark.parametrize("fail_after_open", [False, True])
 def test_async_run_persists_session_before_failure_and_collects_evidence(tmp_path, monkeypatch, fail_after_open):
     root = tmp_path / "runs"

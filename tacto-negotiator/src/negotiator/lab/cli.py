@@ -73,7 +73,7 @@ def parser():
     run.add_argument("--hypothesis", required=True)
     run.add_argument("--author")
     run.add_argument("--agent", default="package")
-    run.add_argument("--runner", choices=["serial", "async"], default="serial")
+    run.add_argument("--runner", choices=["serial", "async", "auto"], default="serial")
     run.add_argument("--config", default="{}", help="JSON object passed as factory keyword arguments")
     run.add_argument("--cases", nargs="+", required=True)
     run.add_argument("--repetitions", type=int, required=True)
