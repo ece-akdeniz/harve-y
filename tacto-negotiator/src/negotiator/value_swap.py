@@ -58,9 +58,12 @@ def value_price(case, terms, target_value, supplier):
     return math.ceil(round(price * 100, 6)) / 100
 
 
-def swap(case, events, standing_terms, standard, buyer_supplier=None):
+def swap(case, events, standing_terms, standard, buyer_supplier=None, last_price=None, split=1.0):
     """(terms, trace) of the cheapest-by-C package that lowers the chargeback of the standing
-    sheet at the supplier's value-equivalent price, else (None, trace)."""
+    sheet at the supplier's value-equivalent price, else (None, trace). The value-equivalent price
+    is a ceiling; with `last_price` (our previous ask) and `split` < 1 the offer goes only that
+    fraction of the way from our last price up to it. ppm is the buyer's cheapest legal option
+    (the supplier's value does not price the ppm commitment)."""
     options = case.get("term_options") or {}
     field = "chargeback_eur_per_complaint"
     if field not in case.get("negotiable", []) or not options.get(field):
@@ -73,21 +76,29 @@ def swap(case, events, standing_terms, standard, buyer_supplier=None):
     target_v = supplier_value(case, base, seller)
     base_c = total_cost(case, base, standard, buyer_supplier)
     best = None
+    ppms = [base.get("ppm_commitment")]
+    if "ppm_commitment" in base and options.get("ppm_commitment"):
+        ppms = sorted(options["ppm_commitment"])
     for cb in options[field]:
         if cb >= (base.get(field) or 0):
             continue
-        # Only the chargeback moves: supplier_value does not price the ppm commitment itself.
-        trial = {**base, field: cb}
-        price = value_price(case, trial, target_v, seller)
-        if price is None or price <= 0:
-            continue
-        trial["unit_price"] = price
-        if not must_haves_ok(case, trial, standard):
-            continue
-        c = total_cost(case, trial, standard, buyer_supplier)
-        if c < base_c - 1e-6 and (best is None or c < best[0]):
-            best = (c, trial)
+        for ppm_opt in ppms:
+            trial = {**base, field: cb}
+            if "ppm_commitment" in base:
+                trial["ppm_commitment"] = ppm_opt
+            ceiling = value_price(case, trial, target_v, seller)
+            if ceiling is None or ceiling <= 0:
+                continue
+            price = ceiling
+            if last_price is not None and split < 1 and last_price < ceiling:
+                price = math.ceil(round((last_price + split * (ceiling - last_price)) * 100, 6)) / 100
+            trial["unit_price"] = price
+            if not must_haves_ok(case, trial, standard):
+                continue
+            c = total_cost(case, trial, standard, buyer_supplier)
+            if c < base_c - 1e-6 and (best is None or c < best[0]):
+                best = (c, trial, ceiling)
     trace = {"quoted_ppm": ppm, "standing": base, "standing_c": base_c, "supplier_value": target_v}
     if best is None:
         return None, {**trace, "skip": "no cheaper value-equivalent package"}
-    return best[1], {**trace, "selected": best[1], "selected_c": best[0]}
+    return best[1], {**trace, "selected": best[1], "selected_c": best[0], "ceiling": best[2]}
