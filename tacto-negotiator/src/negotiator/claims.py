@@ -120,15 +120,16 @@ def latest_window(values: dict[str, float], months: int = WINDOW_MONTHS) -> tupl
     return (start, end) if start in values else None
 
 
-def best_buyer_window(values: dict[str, float]) -> tuple[str, str] | None:
-    """The allowed window (≤ 12 months, ending within the last 12 months) with the largest fall."""
+def best_buyer_window(values: dict[str, float], latest_end: bool = False) -> tuple[str, str] | None:
+    """The allowed window (≤ 12 months, ending within the last 12 months) with the largest fall;
+    `latest_end`: only windows ending at the series' latest month (the most recent fall)."""
     if not values:
         return None
     last = _months(max(values))
     best, best_pct = None, 0.0
     for end in values:
         e = _months(end)
-        if e < last - (WINDOW_MONTHS - 1):
+        if e < last - (WINDOW_MONTHS - 1) or (latest_end and e != last):
             continue
         for k in range(1, WINDOW_MONTHS + 1):
             start = _month(e - k)
@@ -272,10 +273,14 @@ def build_bank(case: dict, package=None, verify_claims=True) -> list[Claim]:
             continue
         c = _index_claim(sid, values, w, part, drivers.get(sid), refs, "latest 12 months", names)
         bank.append(c)
-        if not c.supports_buyer and (bw := best_buyer_window(values)):
-            alt = _index_claim(sid, values, bw, part, drivers.get(sid), refs, "best buyer window", names, cherry=True)
-            if alt.figure is not None and alt.figure <= -BEST_WINDOW_MIN_PP:
-                bank.append(alt)
+        if not c.supports_buyer:
+            for label, bw in (("best buyer window", best_buyer_window(values)),
+                              ("recent buyer window", best_buyer_window(values, latest_end=True))):
+                if not bw or any(x.window == bw and x.subject == sid for x in bank):
+                    continue
+                alt = _index_claim(sid, values, bw, part, drivers.get(sid), refs, label, names, cherry=True)
+                if alt.figure is not None and alt.figure <= -BEST_WINDOW_MIN_PP:
+                    bank.append(alt)
 
     quotes = {r for r in refs if r.startswith("quote:")}
     alt = (case.get("buyer") or {}).get("alternative") or {}

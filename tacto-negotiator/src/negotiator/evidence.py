@@ -24,11 +24,14 @@ from .dossiers import load_package
 
 
 class EvidencePolicy:
-    def __init__(self, package=None, tracer=None, case_types=None, rival_quote_types=()):
+    def __init__(self, package=None, tracer=None, case_types=None, rival_quote_types=(), index_window_types=()):
         self.case_types = set(case_types if case_types is not None else ["price_increase"])
         # Opt-in: disclose a documented, still-valid public rival quote for the case part when its
         # complete cost (case cost model) beats the supplier's standing sheet.
         self.rival_quote_types = set(rival_quote_types or ())
+        # Opt-in: allow the verified buyer-favourable index window (<= 12 months, ending in the last 12)
+        # for listed cost drivers whose latest 12-month change supports the supplier.
+        self.index_window_types = set(index_window_types or ())
         self.package = package
         self.tracer = tracer
         self.banks = {}
@@ -109,6 +112,8 @@ class EvidencePolicy:
             used.update(existing)
             bank = [c for c in context.candidates if verify(c, facts, self.package, case)]
             disclosures = DEFAULT_DISCLOSURE
+            if case["type"] in self.index_window_types:  # only the most recent fall, never a stale window
+                bank = [c for c in bank if not c.cherry_picked or c.note.startswith("recent buyer window")]
             rivals = self.cheaper_rivals(case, threads.get(sid, []), sid)
             if rivals:
                 bank = [c for c in bank if c.kind != "rival_quote"] + rivals
@@ -120,6 +125,7 @@ class EvidencePolicy:
                 bank, used, max_claims=budget, supplier_id=sid,
                 case_type="renewal_trade" if case["type"] == "renewal" else case["type"],
                 index_priorities=priorities, disclosures=disclosures,
+                allow_cherry_pick=case["type"] in self.index_window_types,
             )
         except DATA_ERRORS as exc:
             self.fallback(case, exc)

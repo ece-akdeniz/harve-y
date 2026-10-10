@@ -60,3 +60,14 @@ def test_off_by_default(pkg):
     ev = EvidencePolicy(package=pkg, case_types=["raw_material"])
     dear = {"unit_price": 5.60, "payment_days": 90, "index_clause": CLAUSE, "contract_months": 24}
     assert ev.cheaper_rivals(CASES["case:P18"], thread(dear), "sup:70740") == []
+
+
+def test_recent_index_window_only_when_opted_in(pkg):
+    from negotiator.claims import build_bank
+
+    bank = build_bank(CASES["case:P18"], pkg)
+    recent = [c for c in bank if c.note.startswith("recent buyer window")]
+    assert {(c.subject, c.window) for c in recent} >= {("AS-14404", ("2026-06", "2026-09"))}
+    assert all(c.cherry_picked and c.supports_buyer for c in recent)
+    assert PolicyConfig.from_dict({"version": 1, "index_window_types": ["raw_material"]}).index_window_types == (
+        "raw_material",)

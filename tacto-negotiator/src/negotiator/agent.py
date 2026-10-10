@@ -115,7 +115,8 @@ class PackageAgent:
             from .evidence import EvidencePolicy
 
             self.evidence = EvidencePolicy(tracer=tracer, case_types=policy.evidence_types if policy else None,
-                                           rival_quote_types=policy.rival_quote_types if policy else ())
+                                           rival_quote_types=policy.rival_quote_types if policy else (),
+                                           index_window_types=policy.index_window_types if policy else ())
         self.prev = {}  # supplier -> non-price terms of our last offer
         self.final_counters = {}  # supplier -> counters sent to its final offers (at most one)
         self.beat_asked = {}  # rival supplier -> final-offer sheet id we asked it to beat
