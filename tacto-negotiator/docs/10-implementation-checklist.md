@@ -5,11 +5,17 @@ backlog, not a claim the agent works. Update boxes only with test/run evidence.
 
 ## Current implementation
 
-PackageAgent v0 and custom play/run commands execute through the official kit. Deterministic
-non-price optimization, concession scheduling and basic closing checks exist. The kit runner
-still services one RFQ thread at a time. Async runtime, persistent recovery, full relationship
-cost integration, claim verification and prep/report remain unfinished. See the dated
-[experiment log](../experiments/LOG.md) for actual hosted results, including interrupted runs.
+PackageAgent v0.2 uses one closing evaluator through both serial and async orchestration.
+The async runner journals requests, reconciles and resumes; one hosted D02 crash/restart
+completed the same session with zero timeouts. Prep, reporting and the replay viewer execute.
+Verified claims are integrated behind NEGOTIATOR_CLAIMS=1, limited to single-supplier
+price-increase cases. P01 improved from 80.0 to 92.8 in a two-repeat comparison. Estimates,
+MESOs and claims remain off by default; model interpretation/writing is not implemented.
+Full final-machine, wave-cap, concurrent-load and Sunday-release rehearsal remains outstanding.
+See the [experiment log](../experiments/LOG.md) for exact scopes and limitations.
+
+Only a supplier's standing (first) sheet is directly acceptable on the hosted API. Other
+valid sheets are candidate counteroffer packages, not IDs the agent may accept directly.
 
 ## Gate A — setup and measured baseline (Runtime + Evaluation)
 
@@ -28,18 +34,18 @@ cost integration, claim verification and prep/report remain unfinished. See the 
   payment comparison, compute both complete costs; x/(1+x) assumes starting at reference terms
   and no other price-linked effects.
 - [ ] Margin reference uses cost/(1-m), not cost*(1+m); optimize soft penalty rather than hard floor.
-- [ ] Coordinator is sole owner of accept AND walk-away; validate agreed and fallback paths alike.
+- [x] Shared evaluator handles accept and walk-away, including deadline closure.
 - [ ] Reconcile stale/in-flight offers and compare all eligible RFQ packages before closing.
 
 ## Gate C — runtime (Runtime)
 
 - [ ] Async client, bounded workers, key-wide limiter, no state locks across awaits.
-- [ ] Persist logical request ID + exact payload before send; retry idempotently.
+- [x] Async runner persists logical request ID + exact payload and retries idempotently.
 - [ ] Restart reconstructs UTC/server deadlines; does not reuse old monotonic timestamps.
 - [ ] Reconcile pending operations, existing sessions and server-counted rounds after errors.
 - [ ] End-to-end buyer deadline includes model/parsing/limiter time; bounded fallback.
 - [ ] Wave watchdog accounts for queuing; no unvalidated use of kit closing_move.
-- [ ] CLI actually dispatches prep/play/run/report and returns useful exit codes.
+- [x] CLI dispatches prep/play/run/report. Failure exit-code consistency still needs review.
 
 ## Gate D — evidence and model (Evidence + Evaluation)
 
@@ -63,8 +69,8 @@ cost integration, claim verification and prep/report remain unfinished. See the 
 
 ## Scaffold mismatches to fix while implementing
 
-- runner.py docstring reserves only accept and references kit closing_move: update to coordinator
-  ownership of both closing actions and our full evaluator.
+- Shared closing evaluator is now required; obsolete runner fallback removed. Async closing
+  uses the same case estimates as the decision policy (explicit runner overrides take precedence).
 - guards.check docstring enforces monotonicity and strips IDs: replace with corrected policy.
 - claims.build_bank includes weighted decomposition: keep internal unless supported as a checked claim.
 - optimizer.payment_breakeven_pct and test currently assert approximation; change together.

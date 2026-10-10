@@ -8,8 +8,8 @@ Team times are Europe/Berlin, Saturday 10 and Sunday 11 October 2026.
 ## First 15 minutes
 
 1. Assign Runtime, Evidence and Evaluation/pitch owners; Samet owns Decision/integration.
-2. Follow [root setup](../README.md). Custom play/run commands now dispatch PackageAgent v0; prep/report
-   remain placeholders. Recorded sandbox baselines are in experiments/LOG.md.
+2. Follow [root setup](../README.md). Custom prep/play/run/report commands now execute; serial remains the
+   default, async is explicit. Current hosted results are in experiments/LOG.md.
 3. Read [implementation gates](10-implementation-checklist.md) together. Agree on package,
    claim, thread-state and closing-proposal records before splitting up.
 4. Runtime + Evaluation run D01 and the D02 timing probe. Decision builds full-cost checks.

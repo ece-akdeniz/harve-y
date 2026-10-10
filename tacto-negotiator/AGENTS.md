@@ -1,7 +1,7 @@
 # Agent guide: tacto-negotiator
 
-Read `docs/README.md`, then `docs/10-implementation-checklist.md`. PackageAgent v0 runs via the
-official kit, but the final runtime is unfinished. Do not report target behavior as implemented.
+Read `docs/README.md`, then `docs/10-implementation-checklist.md`. PackageAgent uses shared closing
+checks, custom serial/async runners and opt-in claims. Final rehearsal remains outstanding. Do not report target behavior as implemented.
 
 ## Invariants
 

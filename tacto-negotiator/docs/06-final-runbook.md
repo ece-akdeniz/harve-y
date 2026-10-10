@@ -1,13 +1,14 @@
 # Final runbook
 
 Sunday 11 October 2026, Europe/Berlin. These are target operations. The custom play/run CLI
-now dispatches, but runtime and recovery gates remain unfinished.
+executes, including async recovery. Full final-machine and wave rehearsal remain unfinished.
 
 ## Before Sunday
 
 - [ ] Implementation gates in 10 pass; record exact tested revision, lockfile and config.
 - [ ] Hosted D02 clock/queue behavior and acceptance near the cap measured.
-- [ ] Restart/reconcile tested without opening a duplicate final-style session.
+- [x] Hosted D02 interruption/restart used the same session and ended with zero timeouts.
+  Final-wave recovery permission and full-load rehearsal remain separate gates.
 - [ ] Confirm organizer answers on jury criteria, units and permitted crash recovery.
 - [ ] Designate one final operator; everyone else observes.
 
@@ -42,10 +43,12 @@ uv run --locked arena data --out data
 
 ```bash
 mkdir -p experiments/runs
-caffeinate -dimsu uv run --locked negotiator run --set final --parallel 10 > experiments/runs/final.log 2>&1
+NEGOTIATOR_JOURNAL="$PWD/experiments/runs/final-journal.jsonl" \
+caffeinate -dimsu uv run --locked negotiator run --set final --runner async --parallel 10 > experiments/runs/final.log 2>&1
 ```
 
-This is the intended macOS foreground launch after implementation. In another terminal:
+This is the candidate macOS foreground launch after async promotion and full rehearsal.
+Reuse the same journal only for an organizer-permitted restart of that final run. In another terminal:
 
 ```bash
 tail -f experiments/runs/final.log

@@ -186,3 +186,106 @@ Decision:
 - Decision: runtime gate "no timeouts on repeated D02" met for async. Keep serial default until
   Decision reviews the counter-to-final walk risk (2/9 async v0.2 runs) and an RFQ with slow
   replies is compared.
+
+## 2026-10-10 14:10 - compare D02 v0.2 final-risk rule: meso off vs on (MEASURED HOSTED SANDBOX)
+
+- Baseline: `WORKTREE` @ a794b3ea dirty diff 8b26a25950df
+- Candidate: `WORKTREE` @ a794b3ea dirty diff 8b26a25950df, env {'NEGOTIATOR_MESO': '1'}
+- Cases × repeats: case:D02 × 2 (`negotiator play <case>`), arm order interleaved, seed 0; arena https://arena.tacto.ai; data 4d8c89674035, uv.lock a0ec7fe14679
+
+| Case | Baseline runs | Base mean | Candidate runs | Cand mean | Δ |
+|---|---|---:|---|---:|---:|
+| case:D02 | 46.1 46.1 | 46.1 | 42.8 42.8 | 42.8 | -3.3 |
+- Baseline: mean 46.1 over 2 scored runs, worst case case:D02 46.1, min run 46.1, failures 0, timeouts 0
+- Candidate: mean 42.8 over 2 scored runs, worst case case:D02 42.8, min run 42.8, failures 0, timeouts 0
+- Raw: `experiments/runs/compare/20261010-141019-sandbox-D02 v0.2 final-risk rule: meso off vs on/summary.json`
+- Decision: (fill in)
+
+## 2026-10-10 14:20 - compare claims-only-p01 (MEASURED HOSTED PRACTICE)
+
+- Baseline: `WORKTREE` @ 4dfc2935 dirty diff 67cd032f463f, env {'NEGOTIATOR_CLAIMS': '0', 'NEGOTIATOR_ESTIMATES': '0', 'NEGOTIATOR_MESO': '0'}
+- Candidate: `WORKTREE` @ 4dfc2935 dirty diff 67cd032f463f, env {'NEGOTIATOR_CLAIMS': '1', 'NEGOTIATOR_ESTIMATES': '0', 'NEGOTIATOR_MESO': '0'}
+- Cases × repeats: case:P01 × 2 (`negotiator play <case>`), arm order interleaved, seed 0; arena https://arena.tacto.ai; data 4d8c89674035, uv.lock a0ec7fe14679
+
+| Case | Baseline runs | Base mean | Candidate runs | Cand mean | Δ |
+|---|---|---:|---|---:|---:|
+| case:P01 | 80.0 80.0 | 80.0 | 92.8 92.8 | 92.8 | +12.8 |
+- Baseline: mean 80.0 over 2 scored runs, worst case case:P01 80.0, min run 80.0, failures 0, timeouts 0
+- Candidate: mean 92.8 over 2 scored runs, worst case case:P01 92.8, min run 92.8, failures 0, timeouts 0
+- Practice quota before/after: {'before': {'used': 5, 'left': 195, 'limit': 200, 'resets_at': '2026-10-11T11:39:03.056071+00:00'}, 'after': {'used': 9, 'left': 191, 'limit': 200, 'resets_at': '2026-10-11T11:39:03.056071+00:00'}}
+- Raw: `experiments/runs/compare/20261010-142041-practice-claims-only-p01/summary.json`
+- Decision: (fill in)
+
+## Handoff reconciliation and claims experiment — 10 October 2026, 14:24 Berlin
+
+- The three pre-handoff mechanical P01 baseline runs at `8225d16` all scored 80.03/100:
+  `63390aa61e6e2687`, `1ac8f6e23bbc8383`, `4499d35e0c2ed088`. Claims/estimates/MESO off,
+  serial runner; accepted EUR 137.30, 30 days, effective 2027-04-01. These results existed
+  before this continuation and were reconciled from local traces and the authenticated API.
+- The estimates-on session `be346505d3153626` ended at zero by timeout. Its last local action
+  tried to accept `offer:70110-1-a`. The later standing-offer fix is essential; this failed run
+  is not evidence that supplier cost estimates are economically inferior.
+- Correction to the early advice: alternative sheets can be evaluated as counteroffer packages,
+  but the hosted API accepts only the current standing offer ID. Do not directly accept an
+  alternative ID; send its complete terms and obtain a standing offer first.
+- New integration at `4dfc293`: optional `NEGOTIATOR_CLAIMS=1` adds verified evidence only to
+  single-supplier price-increase offers. Terms, anchor, concession policy and closing evaluator
+  remain unchanged. No model calls, cherry-picked windows, private should-cost disclosure,
+  rival-quote disclosure or weighted "fair price" assertion. Claim IDs reconstructed on resume
+  and reserved on proposal; maximum three checked claims, which may use more than three IDs.
+- Controlled P01 comparison: same code/data/serial runner, estimates and MESO off. Baseline
+  `be5861930b4426bf`, `b892b7b404698403`: 80.03/100 each. Claims candidate
+  `851c4c42585b8575`, `d8cad506359ee966`: 92.79/100 each, an observed +12.76 score points.
+  Candidate accepted EUR 136.20, 90 days, effective 2027-04-01. Each candidate response
+  verified all three claims (notice, electricity index, OTD); no contradictions or duplicates.
+- Evidence saved under `runs/compare/20261010-142041-practice-claims-only-p01/`. Both arms
+  recorded the same source/config snapshot and facts hash; only the claims flag changed.
+  Later repeats completed much faster with identical outcomes, so do not treat repeats as
+  proof of independent supplier randomness or a statistically established effect.
+- Decision: promising on P01; keep the global default off pending broader evidence. Use the
+  explicit claims flag for price-increase experiments. Practice quota 195 -> 191 (four sessions).
+- Runtime review found a separate persistence bug: a torn final journal line was ignored on
+  load but not removed before append, which could hide all later records after another restart.
+  `11d74e1` preserves the damaged tail and repairs the boundary; mid-file corruption fails closed.
+
+- P01 cost diagnostic: claims candidate C=EUR 1,100,921.13 versus baseline EUR 1,108,192.02
+  (EUR 7,270.89 lower). Candidate relationship penalty is EUR 13,608.40 versus baseline
+  EUR 1,222.38: improved terms still lower total C, but payment/supplier-health tradeoffs matter.
+  Remaining aggregate gap to reported C_best is EUR 4,105.35; this is not a component-level
+  optimal-cost decomposition. Calibrate supplier estimates before enabling them globally.
+
+## Hosted restart rehearsal and local regression — 10 October 2026, 14:23 Berlin
+
+- At `11d74e1`, `tools/resume_probe.py` interrupted its D02 child after a persisted send intent,
+  restarted with the same journal, and completed session `cee30b71402e03c8`: 46.09/100,
+  must-haves passed, zero server-reported timeouts, one open intent/one session, no pending
+  journal requests. Raw: `runs/20261010T122302Z-resume-D02-d32f32/`.
+- This is one hosted recovery observation, not proof of all disconnect/queue scenarios or
+  permission to restart during the final. Practice quota unchanged at 191.
+- Integrated local regression against `3c69dec`: S01 82.90, S02 86.09, S03 88.56 in both arms;
+  mean 85.85/100. Raw: `runs/compare/20261010-142304-sim-integrated-regression/`.
+
+
+## Hosted mini-sweep and closing consistency — 10 October 2026
+
+- Frozen runtime source `11d74e1`, claims/estimates/MESO explicitly off; five planned practice
+  sessions, quota 191 -> 186. Changes during the sweep were documentation/tests only.
+- P03 serial `c0d525e3d5026b65`: 89.98/100, 147.5 seconds, zero server timeouts.
+- P05 serial `7b86fd5e5d9a7794`: 36.04/100, 212.2 seconds, TWO server timeouts
+  (one each on sup:70210 and sup:70250).
+- P05 async `499d117f5572cc78`: 36.04/100, 58.0 seconds, zero server timeouts.
+- P07 serial `d1b5e17f1072c6e1`: 74.30/100, 57.0 seconds, zero server timeouts.
+- P10 serial `2323becf5b0aeba2`: 45.32/100, 50.0 seconds, zero server timeouts.
+- All five returned a deal with must-haves satisfied. Actual timeout counts were fetched from
+  authenticated session/thread APIs afterward: the comparison summary's default zero is not
+  sufficient evidence of absence. Saved `runs/mini-sweep-20261010-142332/server-evidence.json`.
+- P05 observed async avoided idle-thread timeouts; same deal/score. One pair cannot establish
+  a latency distribution, especially with possible hosted caching. Promote further RFQ tests
+  to async; full multi-case/wave rehearsal remains required before the final.
+- Next priority: inspect P05 and P10 replay/economics, then budget a controlled policy comparison;
+  expand claims tests across other price-increase cases. P01 success is not broad competitiveness.
+- Fixed after the frozen sweep: async coordinator now uses the agent's case estimates when no
+  explicit runner override is supplied. Removed obsolete fallback closing policy that could
+  accept an alternative-sheet ID and omit relationship economics. Regression covers inherited
+  estimates and explicit overrides including empty dict. Estimates remain opt-in: relationship
+  penalties can make total cost non-monotonic in price, so inverse-price assumptions need review.

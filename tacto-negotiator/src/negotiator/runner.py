@@ -17,8 +17,7 @@ import logging
 import time
 
 from arena_kit.client import ArenaError
-from arena_kit.cost import must_haves_ok, total_cost
-from arena_kit.docs import read_document, standard_terms
+from arena_kit.docs import read_document
 from arena_kit.play import CLOSE_BEFORE_CAP_S, ENDED, MOVE_LIMIT_S, ROUND_MARGIN_S, RUNNING, hosted, latest, moves_left
 
 from .client import UncertainOutcome
@@ -51,34 +50,10 @@ def quota_used_up(error) -> bool:
 
 
 def resolve_close_fn():
-    """The shared evaluator's close_decision, imported lazily; a conservative fallback until it lands."""
-    try:
-        from .evaluator import close_decision
-    except ImportError:
-        log.warning("negotiator.evaluator.close_decision missing; using runner fallback close")
-        return fallback_close
+    """Use the required shared evaluator; never substitute a weaker closing policy."""
+    from .evaluator import close_decision
+
     return close_decision
-
-
-def fallback_close(case, threads, estimates=None, reason=""):
-    """Accept the cheapest valid sheet (any sheet of any live thread's latest message) that keeps
-    must-haves and beats the alternative; else walk away. Stand-in for evaluator.close_decision."""
-    alt = case["buyer"].get("alternative") or {}
-    c_alt = total_cost(case, alt["terms"]) if alt.get("terms", {}).get("unit_price") else float("inf")
-    live = [sid for sid, ev in threads.items() if latest(ev).get("status") not in ENDED]
-    best = None
-    for sid in live:
-        std = standard_terms(threads[sid])
-        for sheet in latest(threads[sid]).get("term_sheets") or []:
-            terms = sheet.get("terms") or {}
-            if terms.get("unit_price") is None or not must_haves_ok(case, terms, std):
-                continue
-            c = total_cost(case, terms, std)
-            if c < c_alt and (best is None or c < best[0]):
-                best = (c, sid, sheet["term_sheet_id"])
-    if best is None:
-        return {"supplier_id": (live or list(threads))[0], "message": {"action": {"type": "walk_away"}}}
-    return {"supplier_id": best[1], "message": {"action": {"type": "accept", "term_sheet_id": best[2]}}}
 
 
 def _arity(fn) -> int:
@@ -495,7 +470,12 @@ class CaseRunner:
                     live = {s: ev for s, ev in snap.items() if latest(ev).get("status") not in ENDED}
                     if not live:
                         break
-                    d = self.close_fn(self.st.case, live, self.estimates, reason)
+                    estimates = self.estimates
+                    if estimates is None:
+                        estimates_for = getattr(self.agent, "estimates_for", None)
+                        estimates = (estimates_for(self.st.case) if estimates_for is not None
+                                     else getattr(self.agent, "estimates", None))
+                    d = self.close_fn(self.st.case, live, estimates, reason)
                     sid, msg = d["supplier_id"], d["message"]
                     intent = self.journal.intent(self.case_id, self.st.session_id, sid, "close", msg, reason=reason)
                 self._trace("close", supplier=sid, action=msg.get("action"), reason=reason)
