@@ -691,3 +691,15 @@ it is not hosted performance evidence or a proposed production strategy change.
 - Decision: ready for local/team review; hosted persuasion and scores remain **unmeasured**.
   Prices, term sheets, closing decisions, rival disclosure and cost-pressure integration remain
   outside this batch. The existing paused hosted comparison remains paused.
+
+## 2026-10-10 — Lab hosting: Azure VM deployment path
+
+- Hypothesis: one always-on Azure VM with SQLite on its managed disk removes the developer-tunnel
+  timeout and latency problems while preserving the existing laptop workflow.
+- Change: environment-backed server defaults, a versioned service startup file, and an operator
+  runbook for HTTPS, secrets, locked deployment, database migration, verification and rollback.
+- Configuration/cases/quota: infrastructure only; no negotiator configuration or recommendation
+  changed, no Arena case opened, and no sandbox or practice quota consumed.
+- Decision: do not use App Service's network-mounted filesystem because Microsoft documents that it
+  cannot support SQLite exclusive locks. Deploy one offer-eligible Linux VM and keep SQLite on its
+  managed disk. Cut over only after history, loop state, authentication and upload verification.

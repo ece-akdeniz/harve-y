@@ -56,6 +56,9 @@ Hosted timing is measured. Then scale to multiple cases.
 
 - [14 — Measured demo](14-measured-demo.md): two defensible replay stories and their limits.
 
+- [15 — Azure lab hosting](15-azure-lab-hosting.md): stable App Service deployment, database
+  migration, validation, team cutover, backup and cleanup.
+
 - [12 — Experiment dashboard](12-experiment-dashboard.md): shared laptop-hosted dashboard,
   local experiment runners, comparisons, buffering and importing previous attempts.
 
