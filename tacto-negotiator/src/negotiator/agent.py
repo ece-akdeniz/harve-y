@@ -379,13 +379,20 @@ class PackageAgent:
 
         try:
             package = load_package()
-            p = bundle_volume.plan(case, package, sid, build_one(package, sid))
+            dossier = build_one(package, sid)
+            p = bundle_volume.plan(case, package, sid, dossier)
         except DATA_ERRORS:
-            p = None
+            p = dossier = None
         if not p:
             return move
         if self._ours(threads[sid]):
-            text, ids = bundle_volume.reminder(p), []
+            if case["type"] in self.policy.bundle_commitment_types:
+                sheet = (msg.get("term_sheets") or [{}])[0]
+                text = bundle_volume.commitment(p, case, sheet.get("terms") or sheet,
+                                                bundle_volume.committee_threshold(dossier))
+            else:
+                text = bundle_volume.reminder(p)
+            ids = []
         else:
             text, ids = bundle_volume.first_paragraph(p)
         body = msg["body"] + "\n\n" + text

@@ -71,3 +71,29 @@ def test_rounds_by_type_used_only_for_listed_type():
     agent = PackageAgent(policy=PolicyConfig.from_dict({"version": 1, "rounds_by_type": {"bundling": 3}}))
     assert agent._rounds({"type": "bundling"}) == 3
     assert agent._rounds({"type": "renewal"}) == agent.rounds
+
+
+@pytest.mark.skipif(not (DATA / "facts.json").is_file(), reason="data package not present")
+def test_p07_commitment_answer_only_changes_later_body(monkeypatch):
+    monkeypatch.setenv("ARENA_DATA", str(DATA))
+    c = case("case:P07")
+    sid = c["suppliers"][0]
+    m0 = {"from": "sales", "status": "open", "attachments": [], "body": "",
+          "term_sheets": [{"term_sheet_id": "offer:0",
+                           "terms": {"unit_price": 5.74, "payment_days": 30, "contract_months": 12}}]}
+    ours = {"from": "buyer", "body": "", "term_sheets": [{"terms": {"unit_price": 5.05, "payment_days": 90,
+                                                                      "contract_months": 24}}]}
+    m1 = {"from": "sales", "status": "open", "attachments": [], "body": "Which volume can you commit to?",
+          "term_sheets": [{"term_sheet_id": "offer:1",
+                           "terms": {"unit_price": 5.59, "payment_days": 90, "contract_months": 24}}]}
+    base = json.loads(Path("configs/p07-bundle-volume.json").read_text())
+    moves = {}
+    for name, extra in (("volume", {}), ("commit", {"bundle_commitment_types": ["bundling"]})):
+        agent = PackageAgent(policy=PolicyConfig.from_dict({**base, **extra}), claims=False)
+        agent.propose(c, {sid: [m0]}, sid)
+        moves[name] = agent.propose(c, {sid: [m0, ours, m1]}, sid)["message"]
+    assert moves["volume"]["term_sheets"] == moves["commit"]["term_sheets"]
+    body = moves["commit"]["body"]
+    assert "commit bindingly to 30000 kits a year for the full 24 months" in body
+    assert "pricing committee" in body
+    assert not moves["commit"].get("refs")

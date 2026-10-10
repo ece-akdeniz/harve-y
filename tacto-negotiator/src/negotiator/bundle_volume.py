@@ -92,3 +92,34 @@ def first_paragraph(p: dict) -> tuple[str, list[str]]:
 def reminder(p: dict) -> str:
     return (f"Our proposal moves {p['new']} pieces a year that other suppliers deliver today to you; "
             "please price that volume.")
+
+
+_COMMITTEE = re.compile(r"price changes above (\d+(?:\.\d+)?) % need the approval of their pricing committee")
+
+
+def committee_threshold(dossier) -> float | None:
+    """The approval threshold (%) from the supplier's own note, when its dossier has the trait."""
+    if dossier is None or "pricing_committee" not in (dossier.traits or set()):
+        return None
+    for n in dossier.notes:
+        m = _COMMITTEE.search(traits_mod._note_text(n, dossier.name))
+        if m:
+            return float(m.group(1))
+    return None
+
+
+def commitment(p: dict, case, terms, threshold=None) -> str:
+    """Answer 'which volume can you commit to?' with the case's fixed volume over the offered term
+    (never more than the need), plus the approval path when the supplier has a pricing committee."""
+    volume = (case.get("fixed_terms") or {}).get("volume_per_year") or terms.get("volume_per_year")
+    months = terms.get("contract_months")
+    if not volume or not months:
+        return reminder(p)
+    kits = int(volume) * int(months) // 12
+    text = (f"On your question about volume: with this package we commit bindingly to {int(volume)} kits a year "
+            f"for the full {int(months)} months, {kits} kits in total, all {p['total']} pieces a year from one "
+            f"supplier, {p['new']} of them moved from other suppliers. That is our full need; please price it.")
+    if threshold is not None:
+        text += (f" As changes above {threshold:g} % need your pricing committee, please put this package "
+                 "to the committee so your answer carries its approval.")
+    return text

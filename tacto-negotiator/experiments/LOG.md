@@ -911,3 +911,21 @@ in the preceding entry; the same failure reproduces with the unchanged current
   + 0.11, it lands ≈5.32-5.34 (needed for ~0.78-0.80). Supplier still finals at r5; after that we
   keep the existing final-accept check (no new closing logic). No hidden outcome is used.
 - Risk: the supplier holds 5.40+ and we accept the same final (≈0.75), or it walks (p_walk guard unchanged).
+- Screen 3 `5a3a827d` / session `920807c3a03c6ed2`: **0.7145** (5.46; ours 5.05/5.11/5.15/5.19, theirs
+  5.59/5.54/5.50/5.46 final; 0 timeouts). Slower is as bad as faster: both supplier step and final
+  depend on our steps. Default rounds=5 stays. Schedule axis closed (3, 5, 10 tested).
+
+## 2026-10-10 — P07 answer the volume question + committee path (hypothesis, before screen 4)
+
+- Observation (screen 1): every supplier reply asks "Which volume can you commit to? A binding higher
+  volume would help us and can improve the price." We never answered; our reminder repeats volume
+  it says it "already factored in". Supplier dossier also has `pricing_committee` (doc M1: changes
+  above 2 % need committee approval); 5.59→5.40 is 3.4 %, never addressed. Neither was tested by
+  anyone (main LOG, teammate branch, this branch).
+- Difference: opt-in `bundle_commitment_types` (bundling). From round 2 the reminder is replaced by
+  a direct answer: binding commitment to the case's fixed volume (30000 kits/yr, no more than the
+  need; volume is not negotiable) over the offered term (24 m = 60000 kits), all 2.07 M pcs/yr from
+  one supplier, 1.308 M moved; plus, from the supplier's own note, a request to put the package to
+  its pricing committee. No new IDs, terms, prices or closing logic (unit test). No hidden outcome.
+- Why it could work: the supplier's script names a binding volume as its price lever, and the
+  committee note names its approval limit; both answer its stated conditions. Pass: > 0.7535.

@@ -31,6 +31,9 @@ class PolicyConfig:
     # Case types whose offers state, from public facts, the volume a kit moves to the supplier
     # (kit memo quantities x need, current sourcing quota, forecast IDs, capacity note).
     bundle_volume_types: tuple[str, ...] = ()
+    # Subset of bundle_volume_types whose later offers answer the supplier's volume question with the
+    # case's fixed volume over the offered term and, if it has a pricing committee, the approval path.
+    bundle_commitment_types: tuple[str, ...] = ()
     # Per case type number of buyer rounds over which the price schedule reaches the
     # supplier's price (faster convergence before a supplier's final offer); others use the agent's.
     rounds_by_type: dict[str, int] = field(default_factory=dict)
@@ -47,7 +50,7 @@ class PolicyConfig:
         if type(d.get("version")) is not int or d["version"] != 1:
             raise ValueError("policy version must be 1")
         for k in ("package_types", "evidence_types", "package_advice_types", "longer_tenor_types",
-                  "standard_payment_types", "bundle_volume_types"):
+                  "standard_payment_types", "bundle_volume_types", "bundle_commitment_types"):
             v = d.get(k, [])
             if not isinstance(v, list) or any(not isinstance(x, str) or x not in TYPES for x in v):
                 raise ValueError(f"invalid {k}")
