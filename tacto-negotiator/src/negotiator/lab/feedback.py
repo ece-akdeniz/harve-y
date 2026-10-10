@@ -5,9 +5,10 @@ from ..ingestion import fingerprint
 
 
 class FeedbackAgent:
-    def review(self, run, cases=None):
+    def review(self, run, cases=None, memory=None, data_sha256=None):
         body = run.model_dump() if hasattr(run, "model_dump") else run
-        findings = []
+        findings, memory_context = [], []
+        data_matches = bool(data_sha256 and data_sha256 == (body.get("provenance") or {}).get("data_sha256"))
 
         def add(attempt, category, observation, next_test, supplier=None, message=None):
             ref = {"run_id": body["run_id"], "attempt_id": attempt["attempt_id"]}
@@ -42,8 +43,20 @@ class FeedbackAgent:
             if isinstance(uncovered, (int, float)) and uncovered > 0:
                 add(attempt, "test", f"Uncovered demand cost EUR {uncovered:.2f} in the result.",
                     "Compare feasible tenors/volumes over the same horizon; longer is not automatically better.")
-            case = (cases or {}).get(attempt["case_id"])
+            case = (cases or {}).get(attempt["case_id"]) if data_matches else None
             for sid, thread in (attempt.get("threads") or {}).items():
+                if memory is not None:
+                    prior = memory.supplier_history(body, sid, purpose="feedback")
+                    memory_context.append({"supplier_id": sid, "attempt_id": attempt["attempt_id"],
+                                           "prior_attempt_ids": [n["id"] for n in prior],
+                                           "evidence": [n["provenance"] for n in prior],
+                                           "limitation": "Prior observations; not causal proof or current facts."})
+                    failed = [n for n in prior if n["data"]["status"] == "failed"]
+                    if failed:
+                        add(attempt, "test", f"Shared memory contains {len(failed)} earlier failed attempts "
+                            f"with {sid} in the same data version.",
+                            "Compare failure causes before attributing repeated failures to supplier behavior.", sid)
+                        findings[-1]["evidence"].extend(n["provenance"] for n in failed)
                 messages = thread if isinstance(thread, list) else thread.get("messages", [])
                 standing, standards = None, {}
                 from arena_kit.docs import standard_terms
@@ -66,29 +79,35 @@ class FeedbackAgent:
                             try:
                                 evaluate(case, sheet.get("terms") or {}, standards)
                             except InfeasiblePackage as exc:
-                                add(attempt, "change", f"Invalid proposed package: {exc}.",
-                                    "Validate the complete rounded payload before transmission.", sid, index)
+                                add(attempt, "test", f"Offer fails the matched public package check: {exc}.",
+                                    "Check session overrides, then validate the complete rounded payload.", sid, index)
         if body.get("source") == "imported":
             limitation = "Historical import: source/config may be unknown; not an eligible checkpoint comparison."
         else:
             limitation = "Descriptive feedback only. Test hypotheses in a paired campaign before promotion."
         return {"schema_version": 1, "run_id": body["run_id"], "source_sha256": fingerprint(body),
                 "findings": findings, "limitation": limitation,
-                "policy_changed": False, "model_calls": 0}
+                "policy_changed": False, "model_calls": 0, "memory_context": memory_context,
+                "package_validation": "matched public data; session overrides unknown" if data_matches else
+                "skipped: no matching historical data fingerprint"}
 
 
-def review_store(store, cases=None):
+def review_store(store, cases=None, data_sha256=None):
     """Persist audits separately from immutable original attempts; safe to rerun after imports."""
+    from .knowledge import SnapshotMemory, export_graph
+
     agent, reports = FeedbackAgent(), []
-    for run in store.all():
-        report = agent.review(run, cases)
+    runs = store.all()
+    memory = SnapshotMemory(export_graph(runs))
+    for run in runs:
+        report = agent.review(run, cases, memory, data_sha256)
         reports.append(report)
     import json
 
     with store._connect() as db:
         db.execute("CREATE TABLE IF NOT EXISTS feedback (source_sha256 TEXT PRIMARY KEY, run_id TEXT, body TEXT)")
         for report in reports:
-            db.execute("INSERT OR IGNORE INTO feedback VALUES (?, ?, ?)",
+            db.execute("INSERT OR REPLACE INTO feedback VALUES (?, ?, ?)",
                        (report["source_sha256"], report["run_id"], json.dumps(report, allow_nan=False)))
     recurring = {}
     for report in reports:

@@ -608,3 +608,25 @@ it is not hosted performance evidence or a proposed production strategy change.
 - Rehearsal evidence: temporary tacto-loop-rehearsal-6w0y_73q, summary.json and cli-results.json.
   An initial harness argument-name collision failed before any session; corrected and rerun.
 - Runtime estimated costs remain opt-in; no live personality model or self-modifying policies.
+
+## 2026-10-10 — Hosted recovery and shared-memory handoff
+
+- Hypothesis: the integrated async runner resumes the original sessions after abrupt termination.
+  Source fedd609; configs/candidate.json; free D01/D02 only; injected kill after first journalled send.
+- D01 99e5175b6c5630be: 91.9231%; D02 2da225d3421b1101: 46.0898%. Both valid deals,
+  must-haves true, zero timeouts. Exactly two original sessions; no replacements, no reported problems.
+- Practice quota unchanged: used 60, left 140, limit 200. Local evidence directory:
+  experiments/runs/integrated-free-recovery-fedd609 (journal, trace, owned state/threads, rehearsal.json).
+- Decision: retain recovery fixes; scores are not a paired strategy comparison or final-wave gate.
+- Added bounded option enumeration and authoritative observation-time deadline accounting after
+  the hosted run. The full local suite with these guards passed 295 tests before graph additions.
+- Per team ownership: retain simple ingestion for Uğur's comparison; Barış owns graph service;
+  Samet owns interface. Added portable graph export and reference reader used by feedback.
+  No graph service deployment, live lesson promotion or further interface changes.
+- Graph hypothesis: typed, scoped provenance prevents unknown versions and later outcomes from
+  contaminating earlier supplier analysis. Regression checks cover stable identities, release/time
+  isolation, original failure preservation, shared feedback and refusal of raw history for live play.
+  Initial local export: 100 runs / 113 attempts, 4,356 nodes / 6,268 edges; no quota used.
+- Final validation: 300 tests passed in 47.44 seconds; Ruff and diff whitespace checks passed.
+  The final cross-run graph evidence-link check also passed all four graph tests. Feedback and graph
+  exports regenerated successfully against the local imported database. Shared host remains unchanged.

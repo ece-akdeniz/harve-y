@@ -91,6 +91,17 @@ def test_api_authentication_and_cookie_is_read_only(dashboard):
     assert client.get("/api/runs").status_code == 401
 
 
+def test_feedback_requires_auth_and_preserves_original_record(dashboard):
+    client, store = dashboard
+    assert client.get("/api/feedback/run-one").status_code == 401
+    client.headers["Authorization"] = "Bearer test-token"
+    client.put("/api/runs/run-one", json=snapshot())
+    before = store.get("run-one")
+    report = client.get("/api/feedback/run-one").json()
+    assert report["run_id"] == "run-one" and report["policy_changed"] is False
+    assert store.get("run-one") == before
+
+
 def test_snapshot_revisions_and_sqlite_persistence(dashboard):
     client, store = dashboard
     client.headers["Authorization"] = "Bearer test-token"

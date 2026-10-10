@@ -1,6 +1,5 @@
 """Bounded, schema-driven trades. History is authoritative across restarts."""
 
-import itertools
 import math
 import time
 
@@ -9,7 +8,7 @@ from arena_kit.play import moves_left
 
 from .dossiers import build_one, for_case, load_package
 from .evaluator import eligible_sheets, nonprice, price_for_cost
-from .optimizer import best_terms
+from .optimizer import best_terms, option_combinations
 from .replies import interpret
 
 
@@ -17,7 +16,7 @@ def packages(case, price, standard, supplier=None):
     fields = [f for f in case["negotiable"] if f != "unit_price" and case.get("term_options", {}).get(f)]
     base = complete_offer(case, {"unit_price": price})
     out = []
-    for values in itertools.product(*(case["term_options"][f] for f in fields)):
+    for values in option_combinations(case.get("term_options") or {}, fields):
         t = {**base, **dict(zip(fields, values, strict=True))}
         if must_haves_ok(case, t, standard):
             out.append((total_cost(case, t, standard, supplier), t))

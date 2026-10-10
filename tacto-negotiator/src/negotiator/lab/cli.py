@@ -82,6 +82,9 @@ def parser():
     feedback.add_argument("--db", type=Path, default=Path("experiments/dashboard.sqlite3"))
     feedback.add_argument("--out", type=Path, default=Path("experiments/feedback.json"))
     feedback.add_argument("--data", type=Path, help="public package for recomputing historical offer validity")
+    graph = sub.add_parser("graph-export", help="export a versioned evaluation graph for the shared lab")
+    graph.add_argument("--db", type=Path, default=Path("experiments/dashboard.sqlite3"))
+    graph.add_argument("--out", type=Path, default=Path("experiments/knowledge-graph.json"))
     history.add_argument(
         "--db",
         type=Path,
@@ -117,8 +120,22 @@ def main(argv=None) -> int:
     load_env()
     args = parser().parse_args(argv)
     try:
+        if args.command == "graph-export":
+            from .feedback import review_store
+            from .knowledge import export_graph
+
+            if not args.db.is_file():
+                raise ValueError("graph database does not exist")
+            store = Store(args.db)
+            graph = export_graph(store.all(), review_store(store)["reports"])
+            args.out.parent.mkdir(parents=True, exist_ok=True)
+            args.out.write_text(json.dumps(graph, indent=2, allow_nan=False))
+            print(json.dumps({"nodes": len(graph["nodes"]), "edges": len(graph["edges"]),
+                              "graph": str(args.out), "live_lessons_enabled": False}))
+            return 0
         if args.command == "feedback":
             from .feedback import review_store
+            from .runner import fingerprint_data
 
             if not args.db.is_file():
                 raise ValueError("feedback database does not exist")
@@ -128,7 +145,13 @@ def main(argv=None) -> int:
 
                 package = load_package(args.data)
             try:
-                result = review_store(Store(args.db), package.cases if package else None)
+                data_hash = fingerprint_data(package.root) if package else None
+                if package and package.release:
+                    import hashlib
+
+                    overlay_hash = fingerprint_data(package.release)
+                    data_hash = hashlib.sha256(f"base:{data_hash}\nrelease:{overlay_hash}".encode()).hexdigest()
+                result = review_store(Store(args.db), package.cases if package else None, data_hash)
             finally:
                 if package and package.db:
                     package.db.close()

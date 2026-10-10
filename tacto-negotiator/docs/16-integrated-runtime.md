@@ -24,7 +24,8 @@ The original development checkout and its local credentials remain separate.
   can execute the same package policy as the normal CLI. Workers retain decision traces.
 - `FeedbackAgent` audits original outcomes and conversations and emits referenced keep/change/test
   findings. Recovered scores remain separate, unknown timeouts stay unknown, and uncovered demand
-  triggers a contract comparison recommendation. Optional public case data enables offer validation.
+  triggers a contract comparison recommendation. Matching versioned public data enables qualified
+  offer checks; unknown historical versions are skipped rather than checked against today's data.
   Cross-run observations are retained as observations, never auto-approved runtime policy.
 - Feedback is available from the authenticated `/api/feedback/<run_id>` read endpoint and in each
   dashboard experiment's Decision feedback disclosure. CLI audits are stored separately from
@@ -68,6 +69,21 @@ original author. P10's operator-assisted recovery preserves its original failed 
 This is a local database. It has not replaced Barış's running shared database or deployed the UI.
 Use the existing lab sync workflow with the team's configured destination when publishing records.
 Keep credentials and the local derived feedback JSON out of Git.
+
+## Hosted recovery verification
+
+The planned free sandbox crash/restart at source `fedd609` completed D01 and D02 on their original
+sessions after killing the first process immediately after its first journalled send. D01 scored
+91.92% (session `99e5175b6c5630be`); D02 scored 46.09% (`2da225d3421b1101`). Both deals satisfied
+must-haves and recorded zero timeouts. No replacement sessions were opened. Practice quota stayed
+at 60 used / 140 left. Evidence is in the local ignored
+`experiments/runs/integrated-free-recovery-fedd609/` directory. These are recovery observations,
+not a paired comparison or proof of final-wave readiness.
+
+Final local guards additionally cap contract option enumeration and charge document-fetch time
+against recovered deadlines. They are covered by regression tests; the hosted run above precedes
+those guards. The shared graph contract and module ownership are in
+[the handoff](17-shared-memory-handoff.md).
 
 ## Limits
 

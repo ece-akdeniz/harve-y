@@ -242,9 +242,14 @@ class Handler(BaseHTTPRequestHandler):
                 self._json(200, self.server.store.listing())
             elif path.startswith("/api/feedback/"):
                 from .feedback import FeedbackAgent
+                from .knowledge import SnapshotMemory, export_graph
 
                 body = self.server.store.get(unquote(path[len("/api/feedback/"):]))
-                self._json(200, FeedbackAgent().review(body)) if body else self._error(404, "run not found")
+                if body:
+                    memory = SnapshotMemory(export_graph(self.server.store.all()))
+                    self._json(200, FeedbackAgent().review(body, memory=memory))
+                else:
+                    self._error(404, "run not found")
             elif path.startswith("/api/runs/"):
                 body = self.server.store.get(unquote(path[len("/api/runs/") :]))
                 self._json(200, body) if body else self._error(404, "run not found")

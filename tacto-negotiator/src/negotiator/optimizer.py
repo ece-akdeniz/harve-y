@@ -4,9 +4,20 @@ All values are C in EUR from `arena_kit.cost.total_cost(case, terms, standard, s
 """
 
 import itertools
+import math
 from dataclasses import dataclass, field
 
 from arena_kit.cost import complete_offer, must_haves_ok, total_cost
+
+from .economics import InfeasiblePackage
+
+MAX_PACKAGE_COMBINATIONS = 4096
+
+
+def option_combinations(options, fields):
+    if math.prod(len(options[field]) for field in fields) > MAX_PACKAGE_COMBINATIONS:
+        raise InfeasiblePackage("option space exceeds bounded search; retain checked standing offers")
+    return itertools.product(*(options[field] for field in fields))
 
 
 @dataclass
@@ -45,7 +56,7 @@ def best_terms(case: dict, unit_price: float, standard: dict | None = None, supp
     options = case.get("term_options") or {}
     fields = [f for f in case["negotiable"] if f != "unit_price" and options.get(f)]
     best, best_c = base, float("inf")
-    for combo in itertools.product(*(options[f] for f in fields)):
+    for combo in option_combinations(options, fields):
         terms = {**base, **dict(zip(fields, combo, strict=True))}
         if not must_haves_ok(case, terms, standard):
             continue

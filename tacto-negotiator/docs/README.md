@@ -78,3 +78,4 @@ Hosted sandbox observations are recorded in [the experiment log](../experiments/
 They do not establish generalization, final readiness or a winning probability.
 
 - [16 — Integrated runtime](16-integrated-runtime.md): implemented ingestion/economics/feedback, async lab commands and limits.
+- [17 — Shared memory handoff](17-shared-memory-handoff.md): Barış's graph contract, Uğur's ingestion boundary and Samet's interface ownership.

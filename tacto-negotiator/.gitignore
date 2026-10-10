@@ -19,3 +19,4 @@ experiments/loop/
 
 # Local derived feedback contains historical run evidence.
 experiments/feedback*.json
+experiments/knowledge-graph*.json

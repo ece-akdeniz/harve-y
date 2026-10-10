@@ -63,3 +63,24 @@ async def test_unresolved_post_retains_pending_identity(tmp_path):
         await runner._settle_pending(intent)
     assert journal.pending(session_id=runner.st.session_id)[0]["move_id"] == intent["move_id"]
     assert journal.finished("case:S01") is None
+
+
+async def test_recovered_window_includes_time_spent_fetching_threads(tmp_path):
+    class SlowRead(SimArena):
+        slow = False
+
+        async def thread(self, session_id, supplier_id):
+            if self.slow:
+                await self.clock.sleep(15)
+            return await super().thread(session_id, supplier_id)
+
+    clock = ScaledClock(scale=0.02)
+    arena = SlowRead(clock)
+    runner = CaseRunner(arena, "case:S01", PackageAgent(), Journal(tmp_path / "j.jsonl"), clock=clock)
+    await runner._open()
+    sid = next(iter(runner.st.threads))
+    state = await arena.session(runner.st.session_id)
+    observed = clock.time()
+    arena.slow = True
+    await runner._refresh_all(state)
+    assert runner.st.threads[sid].deadline_utc <= observed + state["threads"][sid]["seconds_left"] + 1

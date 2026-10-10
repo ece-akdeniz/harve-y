@@ -258,15 +258,17 @@ class CaseRunner:
     # -- reconciliation ------------------------------------------------------------------------
     async def _refresh_all(self, state: dict | None = None):
         state = state or await self.arena.session(self.st.session_id)
+        observed_at = self.clock.time()
         if state.get("status") == "ended":
             self._end(state.get("result") or {"deal": False, "end_reason": state.get("end_reason")}, "server ended")
             return state
         for sid in self.st.threads:
-            await self._refresh_thread(sid, state)
+            await self._refresh_thread(sid, state, observed_at=observed_at)
         return state
 
-    async def _refresh_thread(self, sid: str, state: dict):
+    async def _refresh_thread(self, sid: str, state: dict, observed_at=None):
         """Authoritative thread from the server: messages, closed flag, remaining window."""
+        observed_at = self.clock.time() if observed_at is None else observed_at
         t = self.st.threads[sid]
         info = (state.get("threads") or {}).get(sid) or {}
         remote = await self.arena.thread(self.st.session_id, sid)
@@ -285,7 +287,7 @@ class CaseRunner:
             )
         t.events = events
         if info.get("seconds_left") is not None:
-            t.deadline_utc = self.clock.time() + float(info["seconds_left"])
+            t.deadline_utc = observed_at + float(info["seconds_left"])
 
     async def _settle_pending(self, intent: dict):
         """A journalled POST without outcome (crash or uncertain transport): decide from server

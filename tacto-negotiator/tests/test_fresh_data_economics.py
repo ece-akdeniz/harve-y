@@ -9,6 +9,12 @@ from negotiator.claims import series_values
 from negotiator.dossiers import build_one, for_case, load_package
 from negotiator.economics import InfeasiblePackage, evaluate, price_for_budget
 from negotiator.ingestion import VersionedPackage, context_manifest
+from negotiator.optimizer import option_combinations
+
+
+def test_unseen_large_option_space_is_bounded():
+    with pytest.raises(InfeasiblePackage):
+        option_combinations({"x": list(range(100)), "y": list(range(100))}, ["x", "y"])
 
 
 def test_facts_only_unseen_supplier_and_contact_update(tmp_path):
