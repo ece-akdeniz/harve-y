@@ -266,6 +266,21 @@ class Handler(BaseHTTPRequestHandler):
                     self._error(404, "loop resource not found")
                 else:
                     self._json(200, body)
+            elif path == "/api/workspace" or path.startswith("/api/workspace/suppliers/"):
+                from .workspace import detail, directory, records
+
+                params = parse_qs(parts.query)
+                environment = params.get("environment", ["practice"])[0]
+                if environment not in {"practice", "sandbox", "simulator"}:
+                    self._error(400, "invalid environment")
+                    return
+                saved = records(self.server.store, self.server.loop_store)
+                if path == "/api/workspace":
+                    self._json(200, directory(saved, environment))
+                else:
+                    body = detail(self.server.store, saved, path.rsplit("/", 1)[-1],
+                                  params.get("negotiation", [None])[0])
+                    self._json(200, body) if body else self._error(404, "supplier or negotiation not found")
             elif path == "/api/score-history":
                 loop = self.server.loop_store
                 self._json(200, score_history(
@@ -346,6 +361,9 @@ class Handler(BaseHTTPRequestHandler):
                 self._error(404, "route not found")
             return
         assets = {
+            "/workspace": ("workspace.html", "text/html"),
+            "/workspace.js": ("workspace.js", "application/javascript"),
+            "/workspace.css": ("workspace.css", "text/css"),
             "/": ("index.html", "text/html"),
             "/index.html": ("index.html", "text/html"),
             "/app.js": ("app.js", "application/javascript"),

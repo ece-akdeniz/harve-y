@@ -1816,3 +1816,24 @@ it is not a new score improvement or a fresh full-suite evaluation.
 - `negotiator lab run` now fails loudly when `--data` is not a directory and exports it as `ARENA_DATA`.
 - `tools/compare_breakdown.py` merged from `codex/score-push-fullcost-rel` (offline diagnostic).
 - Projected mean .7619 from per-case validated scores; not a fresh ten-case run.
+
+## 2026-10-11 — Supplier workspace (interface only)
+
+- Intent: make saved negotiation evidence accessible by supplier, with attributable
+  simulation savings and visible policy/memory provenance.
+- Isolated branch: `codex/supplier-workspace-20261011`, based on main `a655f3d`.
+- Added `/workspace` and authenticated read-only projections over existing saved runs
+  and campaigns; no negotiation policy/config changes and no hosted sessions or model calls.
+- Seven new workspace API/metric regressions passed. Automated desktop/mobile browser
+  checks passed on a separate local copy of saved project data; no JavaScript errors.
+- Savings and record boundaries, remaining controls and full verification procedure:
+  [Supplier workspace](../docs/22-supplier-workspace.md).
+- Full local suite: **709 passed**, full Ruff passed, 22 existing frontend checks passed.
+  The first full run had one async simulator timing failure (708 passed); its isolated
+  rerun and the second full run passed. Validated all 15 supplier pages against a local
+  copy of the VM backup (384 deduplicated sessions).
+- Browser checks additionally cover environment switching and supplier deep-link reload.
+  Current runners primarily upload conversation evidence at completion; per-message
+  streaming and policy editing remain follow-up work. No score gain claimed.
+- VM backup passed integrity check before deployment; rollout result is recorded in
+  the shared project handoff and local deployment evidence.
