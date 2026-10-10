@@ -1303,3 +1303,104 @@ Runner `async`, launched under nohup so the process survives the shell.
 - Sessions: 10 practice (this run), 8 sandbox. Live practice 161 used before, 174 after (other agents
   share the key; a teammate P05 session was active at start). Decision: publish this config on the
   branch; no main merge, no recommendation change.
+
+## 2026-10-10 — P05 screens by parallel worker (same worktree; recorded here for completeness)
+
+A second agent shared this worktree and `/tmp/p05` from ~22:05; its runs are part of this P05 budget:
+- `57b90d1e` `p05-rival-history-3`, session `09f597f13bebed64`: launched 22:05 then abandoned
+  (process gone); ended `timeout`, score 0.00, no deal; 70210 was at 32.00 after the first claim.
+  Reconciled for this one verified owned, ended session; `lab sync` uploaded.
+- `d1fea8bb` `p05-rival-history-4`, session `2b8fbe3260167f15`: **72.08**, 70210 29.00/35/30, 0 timeouts.
+- `237f5adb` `p05-rival-history-4`, session `69acb4ae63e23c8c` (mine): **72.08**, 70210 29.00/35/30,
+  9.8 s, 0 timeouts. Identical 70210 path: 31.50 claim → 32.00 + "clarify internally" → 29.00.
+- `376427e0` `p05-undercut-reanchor-1` (hypothesis E, commit 5770caf), session `2ffdd9c5ee8c2b9d`:
+  **72.08**, 0 timeouts. Counter 27.26 after 29.00 → "I already gave you a massive drop … stay
+  there" → final 29.00, accepted. Anchor line: 1 miss. 29.00 looks like 70210's floor under rival
+  pressure alone.
+Replicated 3/3 (plus 2 expired). Lever confirmed.
+
+## 2026-10-10 — P05 screen 10 plan: one verified data fact on counters with no rival claim (F)
+
+Differs from previous: E config (undercut re-anchor) + `rfq_data_claims` (`configs/p05-data-claims.json`);
+E's lower ask is kept because on the D base we counter at 29.00 itself and a claim cannot lower it. Until now
+RFQ cases sent no data claims at all: `evidence_types` excludes rfq and `EvidencePolicy` gates to
+single-supplier cases. Only rival-offer citations went out. Once 70210 led at 29.00, no rival
+undercut it, so later counters carried no argument and it held 29.00 (E showed that a lower
+ask without new information fails). Category goal names "competition **and data**"; 70210 itself
+responded to "your data on the market was solid". F appends exactly one fresh verified public or
+supplier-own fact (scorecard OTD/PPM, latest index windows) to an RFQ counter only when no rival
+claim was added. Should-cost (internal estimate) excluded; no hidden outcomes are used.
+Offline replay: at 70210's 29.00 the counter carries scorecard sc:70210@2026Q3 OTD 80.8 %.
+
+## 2026-10-10 — P05 (parallel worker B): repeat + screen E (undercut re-anchor) — miss
+
+Note: two workers ran in this worktree at once (B did not know about A's `5dc584b`). B stops here
+to avoid duplicate sessions; A owns the next screen (its uncommitted `rfq_data_claims` is untouched).
+- Lever (from the full transcript of `d52efd4374aaf110`): `rfq_rival_offer_history` cites the
+  lowest rival sheet from the *whole session*, including must-have-invalid ones, so the leader
+  70210 receives 70240's opening 31.50 @ 52 d (offer:70240-0) in its first counter (verified) →
+  "clarify internally" → 36.00 → 32.00 → **29.00**. Screen 6 (valid sheets only) never cited to 70210.
+- Run `57b90d1e` / session `09f597f13bebed64`: process killed seconds after a nohup start (the shell
+  call reaping background jobs); ended by timeout, 0.00, reconciled for that one session only. 1 session.
+- Run `d1fea8bb` / session `2b8fbe3260167f15`, commit `5770caf`'s parent config
+  `configs/p05-rival-history.json`, foreground: **72.08**, 70210 29.00/35/30, 24.3 s, 0 timeouts.
+  Identical path to screen 8. Replicated (with A's `237f5adb` = 3/3 completed at 72.08).
+- Screen E `rfq_undercut_reanchor` (`configs/p05-undercut-reanchor.json`, commit `5770caf`), run
+  `376427e0` / session `2ffdd9c5ee8c2b9d`: **72.08** (no change), 97 s, 0 timeouts. Counter 27.26
+  after the 29.00 drop; 70210: "price stays … already gave you a massive drop to 29.00", then
+  final 29.00/30 d; accepted. Price-floor line: 1 miss. 29.00 looks like 70210's floor under the
+  single 31.50 claim; payment (90 d refused) and lead-time lines already closed.
+- Sessions used by B: 3 (one killed). Gap to .92 ≈ EUR 1.9/unit; remaining untested lever is a
+  verified data claim to the leader (A's in-progress `rfq_data_claims`).
+
+## 2026-10-10 — P05 screen 10: one verified data fact on RFQ counters (F) — WIN
+
+Run `c3054e99-df92-4a96-9d94-9b83035d79bc`, session `a7298b34c1e012d6`, config
+`configs/p05-data-claims.json` (E + `rfq_data_claims`). Score **77.23** (vs 72.08 ×3):
+sup:70210 EUR **28.50** / 35 d / 30 d, 183 s, zero timeouts. 70210 path: 31.50 rival claim →
+32.00 + "clarify internally"; counter 31.74 + scorecard OTD 80.8 % (verified) → "clarified
+internally … I checked the delivery scorecard … dropping the price to €28.50 to make up for it
+and the other quote"; re-anchor 26.79 + PPI-D351 −3.7 % (verified) → "you are right about the
+drop … already went as low as I can go … 28.50 final"; accepted. 70240 took the 45 d
+alternative path (32.50/45 final); 70250 32.00/30. No 56 d, no 14 d, lead 35 d. Data line: 1 hit.
+
+## 2026-10-10 — P05 screen 11 plan: stack the data fact with the rival claim (G)
+
+Differs from screen 10: `rfq_data_claims_stack` also adds the data fact to counters that already
+carry a rival claim (`configs/p05-data-claims-stack.json`). In F, 70210's first counter had only
+the rival claim; each verified claim appears to buy one internal-clarification drop. Front-loading
+OTD with the rival claim may move the 32.00 reply lower, leaving PPM 1863 and PPI-D351 for later
+counters. Offline first counters: 70210 rival 31.50 + OTD 80.8 %; 70250 rival + OTD 88.0 %;
+70240 OTD 62.5 % only. Risk: 70250's 88 % OTD is mildly favorable to it.
+
+## 2026-10-10 — P05 screen 11: stacked data + rival claim (G) — tie at old level
+
+Run `a160f212-66f3-4e52-9c0d-2b287ba4cce0`, session `6f46f0195a05816a`. Score **72.08**: 70210
+29.00/35/30, 228 s, zero timeouts. First counter carried rival 31.50 + OTD 80.8 % (both
+verified) → one reply, 32.00 + "clarify internally" (one drop for two claims). Second counter:
+PPI-D351 −3.7 % → 29.00. Third counter 27.26 had **no** claim (PPM shares id
+sc:70210@2026Q3 with OTD, so dedup blocks it) → "calculated tightly … 29.00" → final. Stacking
+spends a claim slot without a matching drop. Stack line: 1 miss; `rfq_data_claims_stack` stays off.
+
+## 2026-10-10 — P05 screen 12 plan: replicate F
+
+Differs from screen 11: stack off, i.e. exactly screen 10's `configs/p05-data-claims.json`.
+Purpose: confirm 77.23 (28.50) is not a single-sample draw versus 29.00 in G/E.
+
+## 2026-10-10 — P05 screen 12: replicate F — WIN replicated
+
+Run `5918e884-4983-41ae-b5b3-44c36a7fe366`, session `d48049c4678d0466`: **77.23**, sup:70210
+28.50/35/30, 10.8 s, zero timeouts; transcript identical to screen 10 (OTD → "clarified
+internally … 28.50"; PPI-D351 → "as low as I can go … 28.50 final"). F 2/2.
+
+Decision / merge verdict: merge candidate = `configs/p05-data-claims.json` (async runner;
+hold + rival offer + rival history + undercut re-anchor + `rfq_data_claims`), 77.23 ×2, zero
+timeouts, lead 35 d (≤42), 30 d payment, no 56 d counter, no 14 d / early cash. All new
+flags are opt-in; defaults unchanged. Drop: stack (1 miss), standalone re-anchor (tie, kept only
+as F's carrier). 70210 states 28.50 is its floor; remaining gap to ~.92 (≈EUR 27.1) is not
+reachable by more claims on this path. Next untested lines: 42 d lead time traded for price with
+70210, and the teammate's 24-month commitment (both price-for-term trades, none screened).
+Sessions in this task: 7 (2b8fbe32, 69acb4ae, 2ffdd9c5, a7298b34, 6f46f019, d48049c4 completed;
+09f597f1 expired, launched by a parallel worker in this worktree) plus 1 inherited expired
+(6c3717e8). Shared-team quota also fell from other teams' P05/other runs during this window.
+Validation: `pytest -q` 382 passed, 1 known failure (preflight); ruff clean.

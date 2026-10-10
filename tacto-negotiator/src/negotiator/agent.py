@@ -150,6 +150,7 @@ class PackageAgent:
         self.prev = {}  # supplier -> non-price terms of our last offer
         self.final_counters = {}  # supplier -> counters sent to its final offers (at most one)
         self.beat_asked = {}  # rival supplier -> final-offer sheet id we asked it to beat
+        self.reanchored = set()  # rfq suppliers re-anchored after undercutting our own ask
         self.final_seen = {}  # final-offer sheet id -> monotonic time first seen
         if estimates is None and os.environ.get("NEGOTIATOR_ESTIMATES") != "1":
             estimates = {}  # dossier estimates are opt-in until calibrated (docs: experiments/LOG.md)
@@ -628,7 +629,19 @@ class PackageAgent:
             self.final_counters[supplier_id] = count
         move = self._propose(case, threads, supplier_id)
         if self.policy and self.policy.rfq_rival_offer and case["type"] == "rfq":
+            before = move
             move = self._rival_offer_claim(case, threads, supplier_id, move)
+            stack = self.policy.rfq_data_claims_stack
+            if (self.policy.rfq_data_claims or stack) and self.evidence and (move is before or stack):
+                # No rival undercuts this supplier: back the counter with one fresh verified fact.
+                from .context import DATA_ERRORS
+
+                try:
+                    context = self.evidence.context_for(case)
+                except DATA_ERRORS as exc:
+                    self.evidence.fallback(case, exc)
+                    return move
+                return self.evidence.enrich(case, threads, supplier_id, move, context=context, rfq_claims=1)
         if self.evidence and self.evidence.eligible(case, move):
             from .context import DATA_ERRORS
 
@@ -839,6 +852,22 @@ class PackageAgent:
         last_p = price_for_cost(case, {**n, "unit_price": p}, last_c, std, sup) if last_c is not None else None
 
         if last_p is not None and p - last_p <= p * self.close_gap and cap_c is None:
+            if (
+                self.policy
+                and self.policy.rfq_undercut_reanchor
+                and case["type"] == "rfq"
+                and sid not in self.reanchored
+                and latest(events).get("status") == "open"
+                and moves_left(case, events) > 2
+                and p < last_p * (1 - self.anchor / 2)
+            ):
+                # The supplier jumped well below our own ask: its floor is lower than our schedule
+                # assumed, so counter once more below its new price instead of matching it.
+                self.reanchored.add(sid)
+                price = math.floor(p * (1 - self.anchor / 2) * 100) / 100
+                self._log(case, "undercut_reanchor", sid, their=p, ours_last=last_p, counter=price)
+                terms = complete_offer(case, {**n, "unit_price": price})
+                return self._offer(case, sid, terms, std, sup, c_alt, "undercut our ask: re-anchor")
             match = {**n, "unit_price": p}
             if total_cost(case, match, std, sup) < ref_c - 1e-6 and ours[-1] != match:
                 return self._offer(case, sid, match, std, sup, c_alt, "gap closed: their price, our terms")

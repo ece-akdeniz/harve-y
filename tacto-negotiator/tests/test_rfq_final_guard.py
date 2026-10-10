@@ -105,3 +105,47 @@ def test_rfq_supplier_payment_adopts_stated_term_but_never_below_30_days():
         terms = agent.propose(case, threads, a)['message']['term_sheets'][0]['terms']
         assert terms['payment_days'] == expected
 
+
+
+def test_rfq_undercut_reanchor_counters_once_below_a_price_under_our_ask():
+    case = next(c for c in json.loads((Path(__file__).parent / 'fixtures/practice_cases.json').read_text())
+                if c['case_id'] == 'case:P05')
+    a, b = case['suppliers'][:2]
+    ask = {'unit_price': 31.74, 'payment_days': 90, 'lead_time_days': 35}
+    sup = {'payment_days': 30, 'lead_time_days': 35}
+
+    def threads():
+        return {a: [msg('open', ('offer:a-1', {**sup, 'unit_price': 32.0})), ours(ask),
+                    msg('open', ('offer:a-2', {**sup, 'unit_price': 29.0}))],
+                b: [msg('open', ('offer:b-1', {**sup, 'unit_price': 34.0}))]}
+
+    off = PackageAgent(policy=PolicyConfig()).propose(case, threads(), a)['message']['term_sheets'][0]['terms']
+    assert off['unit_price'] == 29.0
+    agent = PackageAgent(policy=PolicyConfig(rfq_undercut_reanchor=True))
+    t = threads()
+    move = agent.propose(case, t, a)['message']
+    price = move['term_sheets'][0]['terms']['unit_price']
+    assert price < 29.0 and move['term_sheets'][0]['terms']['lead_time_days'] <= 42
+    # Only once: a repeat at 29.00 no longer re-anchors.
+    t[a] += [{**move, 'from': 'buyer'}, msg('open', ('offer:a-3', {**sup, 'unit_price': 29.0}))]
+    nxt = agent.propose(case, t, a)
+    assert agent.reanchored == {a}
+    assert nxt.get('close') or nxt['message']['term_sheets'][0]['terms']['unit_price'] >= price  # no backtracking
+
+
+def test_rfq_data_claims_adds_one_fresh_fact_only_without_rival_claim():
+    case = next(c for c in json.loads((Path(__file__).parent / 'fixtures/practice_cases.json').read_text())
+                if c['case_id'] == 'case:P05')
+    a, b = case['suppliers'][:2]
+    terms = {'payment_days': 30, 'lead_time_days': 35}
+    threads = {a: [msg('open', ('offer:a-1', {**terms, 'unit_price': 32.0}))],
+               b: [msg('open', ('offer:b-1', {**terms, 'unit_price': 34.0}))]}
+    cfg = dict(rfq_rival_offer=True, rfq_data_claims=True, evidence_types=('price_increase',))
+    agent = PackageAgent(policy=PolicyConfig(**cfg))
+    rival = agent.propose(case, threads, b)['message']
+    assert rival['refs'] == ['offer:a-1']  # rival claim present: no extra data claim
+    leader = agent.propose(case, threads, a)['message']
+    refs = leader.get('refs') or []
+    assert len(refs) <= 2 and not any(r.startswith('cost:') for r in refs)
+    off = PackageAgent(policy=PolicyConfig(rfq_rival_offer=True, evidence_types=('price_increase',)))
+    assert not off.propose(case, threads, a)['message'].get('refs')
