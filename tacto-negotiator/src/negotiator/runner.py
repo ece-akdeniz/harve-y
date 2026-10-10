@@ -35,6 +35,10 @@ HOLD_RECHECK_S = 2.0  # a holding worker asks again after this long, or sooner w
 SEND_RESERVE_S = 25.0  # stop waiting for the session's send slot this long before the thread's deadline
 
 
+class IncompleteSession(RuntimeError):
+    """The server has not confirmed completion; retain the journal for resume."""
+
+
 class Clock:
     """Wall clock + sleep. Tests swap in a compressed clock; server deadlines are wall-clock."""
 
@@ -294,7 +298,6 @@ class CaseRunner:
                 await self._refresh_all(state)
                 return
             info = state["threads"].get(sid) or {}
-            t = self.st.threads[sid]
             if info.get("closed"):
                 self.journal.outcome(mid, "abandoned", why="thread closed")
                 await self._refresh_thread(sid, state)
@@ -329,10 +332,10 @@ class CaseRunner:
                 self._end(reply["result"], "settled pending")
                 return
             await self._refresh_thread(sid, await self.arena.session(self.st.session_id))
-            t.deadline_utc = self.clock.time() + self.move_limit_s
             return
-        self.journal.outcome(mid, "abandoned", why="unresolved after retries")
         await self._refresh_all()
+        if not self.st.ended:
+            raise UncertainOutcome(mid, RuntimeError("reconciliation exhausted; move remains pending"))
 
     # -- workers -------------------------------------------------------------------------------
     async def _worker(self, sid: str):
@@ -528,8 +531,10 @@ class CaseRunner:
                 return
             if not self.st.ended:
                 state = await self.arena.session(self.st.session_id)
-                fallback = {"deal": False, "end_reason": state.get("end_reason")}
-                self._end(state.get("result") or fallback, "close fallback")
+                if state.get("status") == "ended":
+                    await self._refresh_all(state)
+                else:
+                    raise IncompleteSession(f"{self.st.session_id}: close unresolved; resume existing session")
 
     async def _watchdog(self):
         while not self.st.ended:
@@ -555,13 +560,22 @@ class CaseRunner:
         if not self.st.ended:
             workers = [asyncio.create_task(self._worker(sid)) for sid in self.st.threads]
             watchdog = asyncio.create_task(self._watchdog())
-            await watchdog
-            if not self.st.ended:
-                await self._close("watchdog exit", wait=False)
-            for w in workers:
-                if not w.done():
-                    w.cancel()
-            await asyncio.gather(*workers, return_exceptions=True)
+            tasks = [watchdog, *workers]
+            try:
+                # Propagate worker failures too; waiting only on the watchdog can hang forever.
+                pending = set(tasks)
+                while not watchdog.done():
+                    done, pending = await asyncio.wait(pending, return_when=asyncio.FIRST_COMPLETED)
+                    for task in done:
+                        task.result()
+                watchdog.result()
+                if not self.st.ended:
+                    await self._close("watchdog exit", wait=False)
+            finally:
+                for task in tasks:
+                    if not task.done():
+                        task.cancel()
+                await asyncio.gather(*tasks, return_exceptions=True)
         if self.st.ended:
             for p in self.journal.pending(session_id=self.st.session_id):
                 self.journal.outcome(p["move_id"], "abandoned", why="case ended")
