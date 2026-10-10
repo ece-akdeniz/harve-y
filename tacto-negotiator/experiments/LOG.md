@@ -1849,3 +1849,17 @@ it is not a new score improvement or a fresh full-suite evaluation.
   synthetic suppliers are not searched online. Runtime memory/policy is unchanged.
 - Focused graph/workspace/learning tests and local Chrome desktop/mobile checks passed;
   full regression validation and VM rollout recorded in the deployment evidence.
+
+### 2026-10-11 — Supplier brief and readability (interface only)
+
+- Added source-linked supplier history briefs, structured-offer recaps, remembered facts,
+  suggested approaches and next steps. Analysis is isolated per dataset and arena.
+- Reworked chat history with session search, outcome/role filters, expandable messages,
+  offer changes and direct links from report evidence to original messages.
+- Simplified the default view and hierarchy using official Impeccable guidance; retained
+  the existing orange design. No new framework, model calls or hosted sessions.
+- New reports are deterministic projections, not runtime policy changes or measured
+  negotiation improvements. Full suite, browser checks and VM deployment evidence are
+  recorded in the project handoff and supplier workspace documentation.
+- Validation before publish: **722 tests passed**, full Ruff passed and **22 frontend
+  checks passed**. Local desktop/mobile browser checks passed with zero JS errors.

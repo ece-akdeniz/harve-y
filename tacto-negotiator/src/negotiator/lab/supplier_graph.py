@@ -9,6 +9,7 @@ from collections import Counter
 from datetime import UTC, datetime
 
 from .memory import MemoryStore
+from .supplier_report import build_report
 from .workspace import identity, messages, suppliers_for
 
 GROUPS = {"parts": "Parts", "contracts": "Contracts", "performance": "Performance",
@@ -235,6 +236,7 @@ def graph(store, records_, *, supplier, dataset="latest", environment="practice"
                           "checked_at": (package or {}).get("checked_at", (package or {}).get("ingested_at")),
                           "release": (package or {}).get("release_label"), "as_of": datetime.now(UTC).isoformat(),
                           "external_news_connected": False},
+            "report": build_report(matched, supplier, list(nodes.values())),
             "boundary": "Shared human evidence view, not an automatic runtime policy. Dataset and unknown-source "
             "partitions stay separate. Repeated supplier IDs across datasets do not establish the same legal identity. "
             "Ingestion time is not the age of the source; dated, expired, future and conflicting records "

@@ -385,6 +385,7 @@ class Handler(BaseHTTPRequestHandler):
             "/workspace": ("workspace.html", "text/html"),
             "/workspace.js": ("workspace.js", "application/javascript"),
             "/knowledge.js": ("knowledge.js", "application/javascript"),
+            "/supplier-brief.js": ("supplier-brief.js", "application/javascript"),
             "/workspace.css": ("workspace.css", "text/css"),
             "/": ("index.html", "text/html"),
             "/index.html": ("index.html", "text/html"),

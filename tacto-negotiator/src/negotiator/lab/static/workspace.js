@@ -87,23 +87,13 @@ globalThis.HarveyWorkspace = (() => {
     return box;
   }
   function conversation(d) {
-    const layout=el('div',null,'negotiation-layout'),feed=el('div',null,'conversation-feed'),aside=el('aside',null,'decision-aside');
-    feed.append(el('p',`Saved conversation · ${d.messages.length} messages · ${d.negotiation.status==='running'?'polling for uploads':'historical session'}. Message order is preserved; timestamps appear only when recorded.`,'table-note'));
-    if(d.evidence_truncated)feed.append(el('p','Conversation evidence was truncated by the original upload.','notice'));
-    if(!d.messages.length)feed.append(el('p','Messages were not included in this saved snapshot.','notice'));
-    d.messages.forEach((m,i)=>{
-      const card=el('article',null,m.from==='buyer'?'buyer':'supplier');const head=el('header');
-      head.append(el('strong',m.from==='buyer'?'Harvey · buyer':m.from_name || 'Supplier'),el('span',`Message ${i+1}${m.timestamp?` · ${date(m.timestamp)}`:''}`));card.append(head);
-      if(m.subject)card.append(el('h3',m.subject));if(m.body)card.append(el('p',m.body));
-      if(m.action)card.append(el('p',`Action: ${label(typeof m.action==='string'?m.action:m.action.type)}${m.action.term_sheet_id?` · ${m.action.term_sheet_id}`:''}`));
-      for(const [j,sheet] of (Array.isArray(m.term_sheets)?m.term_sheets:[]).entries())if(sheet && typeof sheet==='object')card.append(disclosure(`Offer ${j+1}${sheet.term_sheet_id?` · ${sheet.term_sheet_id}`:''}`,fields(sheet.terms),`offer-${i}-${j}`));
-      if(m.status)card.append(el('p',`Recorded state: ${label(m.status)}`,'status-note'));
-      if(Array.isArray(m.missing_fields) && m.missing_fields.length)card.append(el('p',`Missing terms: ${m.missing_fields.map(label).join(', ')}`,'error'));
-      feed.append(card);
-    });
+    const layout=el('div',null,'negotiation-layout'),main=el('div'),aside=el('aside',null,'decision-aside');
+    const digest=el('section',null,'workspace-panel conversation-digest');digest.append(el('p','CONVERSATION AT A GLANCE','eyebrow'));
+    (d.digest?.summary || []).forEach(item=>digest.append(el('p',item.text)));
+    main.append(digest,HarveyConversations.render(d));
     const outcome=panel('Current recorded position');outcome.append(fields({session_status:status(d.negotiation),supplier_thread:d.thread_status,selected_supplier:d.negotiation.selected,must_haves_satisfied:d.negotiation.must_haves_ok}));
     if(d.negotiation.savings)outcome.append(el('p',`${money(d.negotiation.savings.change_eur)} simulated reduction from case opening full cost.`));
-    aside.append(outcome,nextSteps(d));layout.append(feed,aside);return layout;
+    aside.append(outcome,nextSteps(d));layout.append(main,aside);return layout;
   }
   function offers(d) {
     const root=el('div'),sheets=d.messages.filter(m=>m.from!=='buyer').flatMap(m=>Array.isArray(m.term_sheets)?m.term_sheets:[]).filter(s=>s?.terms);
@@ -168,8 +158,8 @@ globalThis.HarveyWorkspace = (() => {
     const r=route(),view=r.view==='supplier'?'supplier':r.view==='suppliers'?'suppliers':r.view==='knowledge'?'knowledge':'overview';
     for(const v of ['overview','suppliers','supplier','knowledge'])$(v+'-view').hidden=v!==view;
     $('breadcrumb').textContent=view==='overview'?'Overview':view==='knowledge'?'Shared knowledge':'Suppliers';
-    $('page-title').textContent=view==='overview'?'Every negotiation. In view.':view==='suppliers'?'Know who you’re buying from.':view==='knowledge'?'Every source. A clearer picture.':'Inside the negotiation.';
-    $('page-subtitle').textContent=view==='overview'?'See the value, understand the tradeoffs, follow the next move.':view==='suppliers'?'A shared record for every supplier, with evidence one click away.':view==='knowledge'?'Connect supplier facts, agent observations and updates across your work.':'The conversation, the terms and the evidence behind them.';
+    $('page-title').textContent=view==='overview'?'Your negotiation overview':view==='suppliers'?'Your suppliers':view==='knowledge'?'Supplier intelligence':'Supplier workspace';
+    $('page-subtitle').textContent=view==='overview'?'Track Harvey’s AI negotiations, review results and spot what needs attention.':view==='suppliers'?'Choose a supplier to review conversations, offers and results.':view==='knowledge'?'Choose a supplier. Read the brief. Prepare your next negotiation.':'Review the latest exchange or open Shared knowledge for the full relationship.';
     for(const v of ['overview','suppliers','knowledge']){$('nav-'+v).classList.toggle('active',v===(view==='supplier'?'suppliers':view));$('nav-'+v).setAttribute('aria-current',v===(view==='supplier'?'suppliers':view)?'page':'false');}
   }
   async function refresh() {

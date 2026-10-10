@@ -109,3 +109,35 @@ environment isolation, dated/conflicting records, discovered-release fingerprint
 recheck ordering and authenticated routes. They run in the deployment workflow with
 existing workspace/server/learning regressions. Browser checks cover groups, citations,
 history scope, source concept, tab switching, desktop/mobile and clearing on logout.
+
+## Supplier brief and conversation reader (2026-10-11)
+
+Shared knowledge now opens with a short relationship brief: saved history, attributable
+results, remembered facts, a suggested approach and one prominent next step. Conversation
+recaps compare the opening and latest structured offers with the saved outcome. The
+brief combines matching saved runs and contributing agents within one dataset/arena
+partition. Supplied-only suppliers receive a clear empty-history state.
+
+These are deterministic, source-linked summaries, not model-generated interpretations
+of the whole discussion. Topic excerpts preserve the original wording and negation;
+mentions do not establish preferences. Historical offer ranges are labeled as observations.
+Suggested approaches and next steps are untested human review guidance. Latest recorded
+configuration does not establish the active or best policy. Savings use only the latest
+case record, without multiplying repeated experiments or falling back after failure.
+
+Conversations have a searchable session list, outcome filters, a short recap, message
+search, role/offer filters and expandable full text. Structured terms highlight changes
+against the same speaker's previous offer. Source links open the original message.
+Unknown timestamps and missing fields are not invented. The same reader is used on
+supplier pages; logout clears its evidence and invalidates late responses.
+
+The orange/neutral design remains, with larger readable text, plain-language orientation
+and a short default view. Extra ideas, quotes, methodology and saved configuration are
+collapsed. Graphs and source ingestion stay in separate tabs. We applied the official
+[Impeccable](https://github.com/pbakaus/impeccable) simplification and clear-copy guidance
+to the existing frontend; no Impeccable CLI, hooks or UI dependency was installed.
+
+Six report regressions cover citations, outcome attribution, latest-case accounting,
+version/environment isolation, preserved negation and malformed optional fields. Browser
+checks cover the new report, partition selection, search, evidence navigation, retained
+graph/source concept, supplier-page integration, logout and mobile overflow.

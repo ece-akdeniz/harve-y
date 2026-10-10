@@ -173,7 +173,10 @@ def detail(store, records_, key, negotiation=None):
                 findings = [f for f in json.loads(row[0])["findings"] if any(
                     e.get("attempt_id") == a["attempt_id"] and e.get("supplier") in (None, supplier)
                     for e in f["evidence"])]
-    return {"supplier_id": supplier, "key": key, "negotiation": summary(record, supplier),
+    from .supplier_report import session_brief
+
+    return {"digest": session_brief(record, supplier), "supplier_id": supplier, "key": key,
+            "negotiation": summary(record, supplier),
             "negotiations": [summary(r, supplier) for r in matches],
             "messages": msgs, "thread_status": thread.get("status") if isinstance(thread, dict) else None,
             "evidence_truncated": bool((a.get("threads") or {}).get("evidence_truncated")),

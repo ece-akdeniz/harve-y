@@ -26,7 +26,7 @@ jobs:
       - name: Verify lab source
         working-directory: tacto-negotiator
         run: |
-          uv run --locked pytest -q tests/test_lab_server.py tests/test_lab_workspace.py tests/test_supplier_graph.py tests/test_lab_learning.py
+          uv run --locked pytest -q tests/test_lab_server.py tests/test_lab_workspace.py tests/test_supplier_graph.py tests/test_supplier_report.py tests/test_lab_learning.py
           uv run --locked ruff check .
       - name: Package tracked lab source
         run: git archive --format=tar.gz --prefix=tacto-negotiator/ -o "$RUNNER_TEMP/lab.tar.gz" HEAD:tacto-negotiator
