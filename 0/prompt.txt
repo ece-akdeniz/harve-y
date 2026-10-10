@@ -1,0 +1,69 @@
+Here's what he's also doing right now: Claude Opus 5.5 Bedrock (US) 300K
+
+Claude Opus 5.5 Bedrock (US) 300K
+
+P18 has a new best: **0.5200**, up from 0.4531. It's one run so far, and the **alternatives worker** used one session for it.
+
+- **The lever:** the first counter cites two verified, public recent falls in the supplier's own cost indices: AS-14404 down 5.5% and PPI-C2431 down 2.3%.
+- **How the supplier responded:** it acknowledged the decreases and settled at €5.30, against €5.40 before. Same clause, payment and tenor.
+- **Fits the rules:**
+  - Only public facts, and the claims are verified.
+  - It switches on from public facts (index data and no hedge), not the case ID.
+  - It's off by default, in `configs/p18-recent-index-window.json`.
+
+Next steps:
+
+- **Repeat:** the alternatives worker reruns P18 once to confirm.
+- **Other cases:** it checks offline which other cases have a supplier cost index that recently fell with no hedge. P02's copper clause is the likely next candidate. P08 doesn't qualify, because its supplier is hedged until March 2027.
+- **Avoiding overlap:** the **P08/P18 worker** knows the new 0.52 baseline and won't repeat this lever on P18. It's building only on top of it, and keeps working on P08.
+
+If the repeat holds, P18 goes into the combined config, and the historical best-per-case mean is about 0.75–0.76.
+
+Three new results:
+
+- **P02: 0.7115, up from 0.5993.** This is the new opt-in in-session supplier-cost update from the **deep-rethink worker**, with zero timeouts. It's one run; the worker should repeat it.
+- **P08: 0.5819.** The 16-step lower anchor from the **P08/P18 worker** is below the 0.5930 best, so it's rejected.
+- **P07: 0.7145.** The slow-bundle variant from the **P07 worker** is below the 0.7430 best, so it's rejected.
+
+If P02 holds on repeat, the historical best-per-case mean rises to about **0.77**.
+
+P08 is still the hardest gap, at 0.59 against 0.92 on the board.
+
+Claude Opus 5.5 Bedrock (US) 300K
+
+**This combined configuration achieved a mean of 0.7275 on these ten practice cases.** It's one published config, `configs/score-push.json` at commit `ed1474c`, run fresh with no regressions and no failures. All ten cases reached deals with zero timeouts, and each matched its verified best, so the fresh mean equals the historical best-per-case mean. Generalization to unseen cases is unproven.
+
+| **Case** | **Fresh run** |
+| :------- | :------------ |
+| P01      | .9602         |
+| P02      | .5993         |
+| P03      | .8998         |
+| P04      | .8604         |
+| P05      | .7208         |
+| P07      | .7430         |
+| P08      | .5930         |
+| P10      | .6551         |
+| P11      | .7902         |
+| P18      | .4531         |
+
+- **Runner:** one launch path, `--runner auto`. P05, the multi-supplier quote (RFQ) case, runs async and everything else runs serial.
+- **Sandbox check:** D01 is unchanged at .9192, and D02 improved from .4609 to .5239.
+- **P02 indexed-vs-unindexed comparison:** I tried it and reverted it. Our local cost model is about €45k off the server's figure for that deal, so it isn't accurate enough to make that choice. The index-clause restriction stays.
+- **Risks:**
+  - The suppliers reply identically every time, so this shows the bests reproduce, not that they hold up statistically.
+  - Several levers rest on a single practice case: P01 payment, P02 cost target, the P05 rival flags and P10 advice.
+
+Next, the **integration worker** will:
+
+1. Total our practice sessions across all workers.
+2. Merge the validated config into current main after tests and replay checks. The commit message will state "achieved .7275 on the practice cases; generalization unproven".
+3. Build v2, which adds two new wins:
+   - P18 index-fall evidence, 0.5200 twice.
+   - The P02 supplier-cost update, 0.7115 once. It goes in only after its repeat confirms.
+4. Check v2 for cross-case interference (P08 must not trigger the index evidence), run the sandbox check, then a fresh ten-case run.
+
+If both wins hold, v2 should land around **0.745**.
+
+
+
+Multitask
