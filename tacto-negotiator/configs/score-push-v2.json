@@ -31,7 +31,18 @@
   "rfq_undercut_reanchor": true,
   "rfq_data_claims": true,
   "recent_index_window_types": [
-    "raw_material"
+    "bundling",
+    "capacity",
+    "price_increase",
+    "quality",
+    "raw_material",
+    "renewal"
   ],
-  "cost_target_posterior": 0.15
+  "cost_target_posterior": 0.15,
+  "bundle_volume_types": [
+    "bundling"
+  ],
+  "bundle_commitment_types": [
+    "bundling"
+  ]
 }

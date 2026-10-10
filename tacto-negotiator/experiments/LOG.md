@@ -1624,3 +1624,121 @@ Results (source `1cae3b0`, `configured_agent` + `configs/p02-cost-posterior.json
 - Sessions: 2 practice (quota 174 → 176 used/600 at start/end of this block; other agents share it).
 Decision: P02 opt-in `configs/p02-cost-posterior.json` is a replicated win (.5993 → .7115). Defaults unchanged.
 P10: no session (see the offline note above).
+
+## 2026-10-10 — P07/P11/P01 score push (branch codex/score-push-p07p11)
+
+- Code: opt-in `longer_tenor_types` (cost-equal longer `contract_months` tie-break + no free
+  tenor concession) and `standard_payment_types` (adopt quote-standard `payment_days` if legal;
+  protect it in free concessions/package switch). Configs: `p07-longer-tenor`, `p07-standard-payment`,
+  `p01-standard-payment`, `p11-chargeback-zero`. Tests: `tests/test_tenor_payment_policy.py`.
+- Practice runs (configured_agent, 0 timeouts each):
+  - P07 longer-tenor `8daf33e5` / `064283abb3864b33`: 0.7405 (5.42, 90d, 36m; final at r5). Drop
+    (worse than 0.7430; also the rejected 36m-without-gain pattern).
+  - P01 standard-payment `b8875ca5` / `dff8db6b184aa534`: **0.9602** (133.70, 30d, eff 2027-04-01;
+    relationship 9.4k vs ~larger at 90d). Repeat `0171c5d9` / `8ff60c359f65cef7`: **0.9602** identical.
+    Winner (+0.032 vs 0.9279).
+  - P11 chargeback-zero `9cc1cbb5` / `294733b34a3e8667`: 0.7099 (45.50, 300ppm, cb 0) = best. Supplier
+    floor 45.50 at r4; holds through r7, only faster payment (fixed term) moves it. Drop.
+  - P07 standard-payment `b9c3510b` / `511eafb58b9545bf`: 0.7430 (5.38, 60d, 24m) = baseline; flag
+    no-op (no quote standard parsed); supplier declares final at r5. Drop P07.
+- Sessions consumed: 6/12. Verdict: merge `p01-standard-payment` (`standard_payment_types:
+  ["price_increase"]`); note it also affects P02 (owned elsewhere) if adopted globally — scope to
+  P01 owners' review or verify P02 before promoting.
+
+## 2026-10-10 — P07/P11/P01 line stopped (reconcile only, no new sessions)
+
+- Line stopped on request (overlap with another team agent). No new sessions started by this worker.
+- Reconciled run `2406aa57` (P07 deep anchor `anchor_by_type bundling 0.2`, session
+  `1a25cd75923030db`): it was left `running` after its attempt completed. Session verified owned and
+  ended; collected thread detail (0 timeouts), marked completed, `lab sync` ok. Score **0.7015**
+  (5.48, 90d, 24m). The supplier declared final at r3 after a 4.59 opening. Drop deep anchor.
+- Unlogged earlier run `c6416c3b` (P07 bundling OTD-scorecard evidence, session `8b8354f07cd83a87`):
+  **0.7470** (5.41, 90d, 24m, final at r5, 0 timeouts). That is +0.004 vs 0.7430 at n=1, within noise; not repeated.
+- Previous worker total: 8 practice sessions. Branch is behind origin/main (memory/model_assist), so
+  rebase before any merge. Merge candidate: `p01-standard-payment` only (0.9602 x2).
+
+## 2026-10-10 22:xx — P07 bundle-volume argument (hypothesis, before screen 1)
+
+- Prior P07 work reviewed (read-only): main `LOG.md`/runs (imports `af00461c` 0.7340, `d1b5e17f`
+  0.7430), `origin/codex/benchmark-goal-20261010` (no P07 entries), this branch (anchor 0.7015,
+  tenor 0.7405, std-pay 0.7430, OTD evidence 0.7470). Teammate MESO/estimates/evidence not repeated.
+- Diagnosis: every run concedes ~0.04-0.08/round from 5.59-5.60 to a round-5 final at 5.38-5.43,
+  whatever the terms. Our messages never mention the bundle itself; the only cited fact (OTD) was
+  "verified, does not change our calculation". Post-hoc only (never used at runtime): 0.81 implies
+  a final ≈EUR 0.10/unit lower (≈5.31 at 90d/24m).
+- Difference: new opt-in `bundle_volume_types` adds a cited, deterministic volume argument from
+  public data only: kit memo quantities x need (2.07 M pcs/yr), supplier's current `sourcing` quota
+  -> 1.308 M pcs/yr moved from other suppliers, latest `fc:` forecasts for the two parts moving most,
+  and the supplier's own `idle_capacity` note (doc M3). Terms/prices/closing unchanged (unit test).
+- Why it could work: a volume/capacity reason is the bundling lever (playbook; trait idle_capacity
+  "volume fills capacity -> price"); the supplier responds to verified data it values, OTD is not it.
+- Config `configs/p07-bundle-volume.json` = candidate + `bundle_volume_types: ["bundling"]`.
+  Pass: > 0.7470 with 0 contradicted claims, 0 timeouts. Budget: 10 sessions for this line.
+- Screen 1 `2320ed30` / session `00e07274bb4eaa48` (+1 run `31272ed7` failed pre-open, HTTP 401
+  from missing env, no session opened): **0.7535** (5.40, 90d, 24m, final r5, 0 timeouts). Supplier
+  "checked the volume change data; it holds" (no contradiction) but "already taken into account";
+  concessions 5.59→5.50→5.44→5.40. Best P07 so far (+0.0105 vs 0.7430, +0.0065 vs OTD), n=1.
+
+## 2026-10-10 — P07 concession speed (hypothesis, before screen 2)
+
+- Pattern over all 5 P07 traces: supplier step ≈0.8× our previous step (0.11→0.09, 0.07→0.06,
+  0.05→0.04), and it declares final at r5 (r2-r3 after a deep anchor). Our linear schedule
+  `k/rounds` with rounds=5 still has ~0.12 of its own room left when the supplier's final arrives,
+  so the supplier's reciprocal moves are cut off. Never tested: anchor depth was tested (0.2 → early
+  final, worse), the schedule length never was.
+- Difference: new opt-in `rounds_by_type` (bundling: 3); same 5.05 opening, larger early steps,
+  so the supplier gives more reciprocal room before its final round. Bundle volume stays on.
+  Prices still come only from our C schedule of quoted terms; no hidden outcome is used.
+- Risk: under a pure time-based supplier schedule we only pay more. Pass: > 0.7535.
+- Screen 2 `01cf4cef` / session `8dc700cdef9319e6`: **0.7145** (5.46, 90d, 24m; supplier "agreed"
+  at our r4 5.46; 0 timeouts). Ours 5.05/5.23/5.36/5.46 vs theirs 5.59/5.52/5.46/5.46. Drop
+  rounds=3. Lesson: the supplier's end point tracks our last offer (slow schedules: final ≈ our
+  r4 + 0.11-0.12), not a fixed floor reached by reciprocity.
+
+## 2026-10-10 — P07 slower schedule (hypothesis, before screen 3)
+
+- Difference: `rounds_by_type: {"bundling": 10}` (rounds 5 → 10; steps ≈0.054 instead of 0.108),
+  with bundle volume on. Our r4 is ≈5.21 instead of 5.28. If the supplier's final stays ≈ our r4
+  + 0.11, it lands ≈5.32-5.34 (needed for ~0.78-0.80). Supplier still finals at r5; after that we
+  keep the existing final-accept check (no new closing logic). No hidden outcome is used.
+- Risk: the supplier holds 5.40+ and we accept the same final (≈0.75), or it walks (p_walk guard unchanged).
+- Screen 3 `5a3a827d` / session `920807c3a03c6ed2`: **0.7145** (5.46; ours 5.05/5.11/5.15/5.19, theirs
+  5.59/5.54/5.50/5.46 final; 0 timeouts). Slower is as bad as faster: both supplier step and final
+  depend on our steps. Default rounds=5 stays. Schedule axis closed (3, 5, 10 tested).
+
+## 2026-10-10 — P07 answer the volume question + committee path (hypothesis, before screen 4)
+
+- Observation (screen 1): every supplier reply asks "Which volume can you commit to? A binding higher
+  volume would help us and can improve the price." We never answered; our reminder repeats volume
+  it says it "already factored in". Supplier dossier also has `pricing_committee` (doc M1: changes
+  above 2 % need committee approval); 5.59→5.40 is 3.4 %, never addressed. Neither was tested by
+  anyone (main LOG, teammate branch, this branch).
+- Difference: opt-in `bundle_commitment_types` (bundling). From round 2 the reminder is replaced by
+  a direct answer: binding commitment to the case's fixed volume (30000 kits/yr, no more than the
+  need; volume is not negotiable) over the offered term (24 m = 60000 kits), all 2.07 M pcs/yr from
+  one supplier, 1.308 M moved; plus, from the supplier's own note, a request to put the package to
+  its pricing committee. No new IDs, terms, prices or closing logic (unit test). No hidden outcome.
+- Why it could work: the supplier's script names a binding volume as its price lever, and the
+  committee note names its approval limit; both answer its stated conditions. Pass: > 0.7535.
+- Screen 4 `db8102bc` / session `0a624e505af85d00`: **0.7600** (5.39, 90d, 24m, final r5, 0 timeouts).
+  Supplier acknowledged both ("appreciate the binding commitment to 30,000 kits", "presented your
+  package to our pricing committee") but steps were unchanged (5.59/5.49/5.42/5.39 vs 5.59/5.50/5.44/5.40).
+  +0.0065 vs screen 1 is within n=1 noise (seven P07 runs span 5.38-5.48 with similar schedules).
+- Checked and not screened (no lever in public data): PPI-C2594 +1.7 % and LCI-C +2.7 % y/y (rising);
+  kit at today's PO prices ≈ EUR 5.95, so 5.39 is already below piece prices; no should-cost for
+  these parts; 30d alternative (5.52) ≈ 90d at 5.59 in our C (8 %/yr). No local run in any worktree
+  beats 0.76.
+
+## 2026-10-10 — P07 repeat of bundle-commit (before screen 5)
+
+- Same config/commit as screen 4 (`configs/p07-bundle-commit.json`). Purpose: separate signal from noise
+  before proposing a merge; no behavior change. Pass to keep: ≥ 0.7535 again.
+- Screen 5 `97f6d4cc` / session `c3383857201b8946`: **0.7600** again (identical path 5.59/5.49/5.42/5.39,
+  0 timeouts). Reproducible: +0.017 vs 0.7430 baseline, +0.013 vs OTD evidence.
+- Line total: 5 practice sessions opened (screens 1-5) + 1 failed run `31272ed7` (HTTP 401 before
+  open, no session). Budget 10 → 5 used, 5 left.
+- Verdict: merge candidate `configs/p07-bundle-commit.json` (`bundle_volume_types` +
+  `bundle_commitment_types` = ["bundling"]); bundling cases P07 and P15 are affected; P15 is unscreened, so verify it (or its owner) before promoting globally.
+  Drop `rounds_by_type` (3 and 10 both 0.7145). 0.81 not reached: the supplier's ladder (≈0.20 total
+  after its first reply, final at reply 4) did not respond to volume, commitment, committee, or
+  schedule changes; the remaining ≈0.08/unit needs a lever not found in public data.

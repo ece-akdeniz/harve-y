@@ -352,6 +352,8 @@ class PackageAgent:
 
     def _anchor_for(self, case):
         """Freeze the scope to the case roster; changing live thread status cannot change the schedule."""
+        if self.policy and case["type"] in self.policy.anchor_by_type:
+            return self.policy.anchor_by_type[case["type"]]
         if self.multi_supplier_anchor is not None and len(set(case.get("suppliers") or ())) > 1:
             return self.multi_supplier_anchor
         return self.anchor
@@ -372,6 +374,7 @@ class PackageAgent:
             n = nonprice(case, best_terms(
                 case, ref_terms["unit_price"], std, sup,
                 prefer_longer_lead=bool(self.policy and self.policy.cost_neutral_lead_time),
+                prefer_longer_tenor=self._longer_tenor(case),
             ))
             pay_options = (case.get("term_options") or {}).get("payment_days") or []
             if (self._standard_payment(case) and "payment_days" in n and std.get("payment_days") in pay_options
@@ -443,6 +446,17 @@ class PackageAgent:
                   new=out["lead_time_days"])
         return out
 
+    def _anchor(self, case):
+        return self._anchor_for(case)
+
+    def _rounds(self, case):
+        if self.policy and case["type"] in self.policy.rounds_by_type:
+            return self.policy.rounds_by_type[case["type"]]
+        return self.rounds
+
+    def _longer_tenor(self, case):
+        return bool(self.policy and case["type"] in self.policy.longer_tenor_types)
+
     def _free_concessions(self, case, n, theirs, std, sup):
         price = theirs["unit_price"]
         for f, v in theirs.items():
@@ -455,6 +469,8 @@ class PackageAgent:
             previous_c = total_cost(case, {**n, "unit_price": price}, std, sup)
             if (self.policy and case['type'] in self.policy.package_advice_types and f == "contract_months"
                     and v < n[f] and trial_c == previous_c):
+                continue
+            if f == "contract_months" and self._longer_tenor(case) and v < n[f] and trial_c >= previous_c - 1e-6:
                 continue
             if f == "payment_days" and self._standard_payment(case) and n[f] == std.get("payment_days"):
                 continue
@@ -684,6 +700,7 @@ class PackageAgent:
                     count += 1
             self.final_counters[supplier_id] = count
         move = self._propose(case, threads, supplier_id)
+        move = self._bundle_volume(case, threads, supplier_id, move)
         if self.policy and self.policy.rfq_rival_offer and case["type"] == "rfq":
             before = move
             move = self._rival_offer_claim(case, threads, supplier_id, move)
@@ -746,6 +763,41 @@ class PackageAgent:
         self._log(case, "rival_offer_claim", sid, offer_id=best[1], figure=best[0], rival=best[2])
         return {**move, "message": {**message, "body": message.get("body", "") + "\n\n" + claim.sentence,
                                      "refs": refs}}
+
+    def _bundle_volume(self, case, threads, sid, move):
+        """Opt-in: add the kit's volume facts (cited once, in the first offer; a reminder later)."""
+        if not (self.policy and case["type"] in self.policy.bundle_volume_types):
+            return move
+        msg = move.get("message")
+        if not msg or msg.get("action") or not msg.get("term_sheets"):
+            return move
+        from . import bundle_volume
+        from .context import DATA_ERRORS
+        from .dossiers import build_one, load_package
+
+        try:
+            package = load_package()
+            dossier = build_one(package, sid)
+            p = bundle_volume.plan(case, package, sid, dossier)
+        except DATA_ERRORS:
+            p = dossier = None
+        if not p:
+            return move
+        if self._ours(threads[sid]):
+            if case["type"] in self.policy.bundle_commitment_types:
+                sheet = (msg.get("term_sheets") or [{}])[0]
+                text = bundle_volume.commitment(p, case, sheet.get("terms") or sheet,
+                                                bundle_volume.committee_threshold(dossier))
+            else:
+                text = bundle_volume.reminder(p)
+            ids = []
+        else:
+            text, ids = bundle_volume.first_paragraph(p)
+        body = msg["body"] + "\n\n" + text
+        assert not leaks(body), "body would leak internal information"
+        refs = list(dict.fromkeys([*(msg.get("refs") or []), *ids]))
+        self._log(case, "bundle_volume", sid, new=p["new"], total=p["total"], refs=ids)
+        return {**move, "message": {**msg, "body": body, **({"refs": refs} if refs else {})}}
 
     def _propose(self, case, threads, supplier_id):
         """The proposal for one thread given the whole snapshot: an offer move
@@ -942,7 +994,7 @@ class PackageAgent:
             return {"close": True, "reason": "gap closed"}
 
         floor = p_open * (1 - self._anchor_for(case))
-        price = floor + (p - floor) * min(1.0, k / self.rounds)
+        price = floor + (p - floor) * min(1.0, k / self._rounds(case))
         if last_p is not None:
             price = max(price, _ceil2(last_p))  # no backtracking on our own concessions (by C)
         price = min(price, p)

@@ -40,6 +40,20 @@ class PolicyConfig:
     rival_quote_types: tuple[str, ...] = ()
     index_window_types: tuple[str, ...] = ()
     cost_target_posterior: float = 0.0  # s_max of the in-session supplier-cost posterior; 0 = off
+    # Case types whose opening takes the longest contract term among options of equal buyer C
+    # (e.g. a commitment beyond the cost horizon) and keeps it against equal-cost shortening.
+    longer_tenor_types: tuple[str, ...] = ()
+    # Per case type opening anchor (fraction below the supplier's price); others use the agent's.
+    anchor_by_type: dict[str, float] = field(default_factory=dict)
+    # Case types whose offers state, from public facts, the volume a kit moves to the supplier
+    # (kit memo quantities x need, current sourcing quota, forecast IDs, capacity note).
+    bundle_volume_types: tuple[str, ...] = ()
+    # Subset of bundle_volume_types whose later offers answer the supplier's volume question with the
+    # case's fixed volume over the offered term and, if it has a pricing committee, the approval path.
+    bundle_commitment_types: tuple[str, ...] = ()
+    # Per case type number of buyer rounds over which the price schedule reaches the
+    # supplier's price (faster convergence before a supplier's final offer); others use the agent's.
+    rounds_by_type: dict[str, int] = field(default_factory=dict)
 
     @classmethod
     def load(cls, path):
@@ -62,6 +76,9 @@ class PolicyConfig:
             "recent_index_window_types",
             "rival_quote_types",
             "index_window_types",
+            "longer_tenor_types",
+            "bundle_volume_types",
+            "bundle_commitment_types",
         ):
             v = d.get(k, [])
             if not isinstance(v, list) or any(not isinstance(x, str) or x not in TYPES for x in v):
@@ -89,6 +106,18 @@ class PolicyConfig:
             k not in TYPES or not isinstance(v, str) or v not in allowed for k, v in preferences.items()
         ):
             raise ValueError("invalid case-type preferences")
+        anchors = d.get("anchor_by_type", {})
+        if not isinstance(anchors, dict) or any(
+            k not in TYPES or type(v) not in (int, float) or not 0 <= v <= 0.4 for k, v in anchors.items()
+        ):
+            raise ValueError("invalid anchor_by_type")
+        d["anchor_by_type"] = {k: float(v) for k, v in anchors.items()}
+        rounds = d.get("rounds_by_type", {})
+        if not isinstance(rounds, dict) or any(
+            k not in TYPES or type(v) is not int or not 1 <= v <= 12 for k, v in rounds.items()
+        ):
+            raise ValueError("invalid rounds_by_type")
+        d["rounds_by_type"] = dict(rounds)
         return cls(**d)
 
     def record(self):
