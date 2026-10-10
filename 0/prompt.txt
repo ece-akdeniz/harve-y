@@ -1,0 +1,136 @@
+You're joining a hackathon team mid-flight. We're building an AI buyer agent for the Tacto Negotiation Arena: https://arena.tacto.ai/ (EHL Grand Finale 2026).
+
+GOAL
+- Explain why we're stuck at ~0.76 practice mean when the best team (Noldea) is at 0.87, then close that gap with strategies that TRANSFER.
+- The Live Final (Sun 12:00, after code freeze) runs against suppliers nobody has met. A practice-only trick that doesn't generalise is worth little.
+- Bring a genuinely fresh perspective. Consider completely different architectures or strategies if the evidence supports them. Push back on anything, including this prompt, that you think is wrong.
+
+CURRENT STATE (verify, don't trust blindly)
+- Repo: /Users/sametdegirmenci/Downloads/ysamet/tacto-negotiator.
+- Read: README, LAB_PLAYBOOK.md, experiments/LOG.md, configs/, src/negotiator/, the arena kit, brief/api.md and the data package.
+- Also read the arena brief, FAQ and API docs: github.com/tacto-ai/negotiation-arena-kit and arena.tacto.ai/faq.
+- main = a655f3d, config configs/score-push-v3.json. Projected mean .7619, built from per-case validated scores, not a fresh ten-case run.
+- Per-case scores, ours vs best team:
+
+| Case | Ours | Best |
+|---|---|---|
+| P01 | .9702 | 1.00 |
+| P02 | .7115 | .85 |
+| P03 | .8998 | .97 |
+| P04 | .8604 | .87 |
+| P05 | .7723 (.8136 unconfirmed, n=1, tag archive/codex/score-push-p05) | .96 |
+| P07 | .7600 | .82 |
+| P08 | .5930 | .92 |
+| P10 | .6551 | .74 |
+| P11 | .8771 | .89 |
+| P18 | .5200 | .73 |
+
+- Biggest gaps: P08 (.33), P18 (.21), P05 (.19), P02 (.14), P10 (.08).
+- Past run logs: ../ysamet-run-archive, experiments/runs and the lab (lab sync). Unmerged experiments are kept under archive/* git tags.
+
+WHAT WE ALREADY KNOW (read the transcripts before re-testing any of these)
+- Suppliers are deterministic: identical inputs give identical transcripts. Diffing near-identical runs reveals causal triggers.
+- Pushing back on a supplier's "final offer" led to a walk-away 3 out of 3 times (P05, P10, P18).
+- Wording, anchor depth, concession pacing, contract length (tenor) and no-index-clause trades failed to move the floors:
+  - P07 floors at about 5.39.
+  - P08 floors at about 5.31 (index clause, 0% deadband).
+  - P18 floors at about 5.30.
+  - P03's price is frozen until Dec 2027.
+- What worked was giving the supplier something IT values in exchange for price:
+  - P01/P05: 14-day payment.
+  - P11: dropping the chargeback, priced from the supplier's own quoted ppm.
+  - P02: a cost target that avoids relationship penalties.
+  - P05: verified rival quotes and public data claims.
+  - Reciprocity is the pattern. P05's supplier said: "without movement from your side we cannot move either".
+- Our cost model matches the server scorer to the cent. P02's remaining gap is the hidden supplier full cost, about 2% below the public should-cost. Don't tune to it.
+
+PAST MISTAKES TO AVOID
+- Missing ARENA_DATA silently dropped evidence and wasted several sessions. `lab run` now exports it and fails without it, but still check that your claims actually appear in the transcripts.
+- 14-day payment is NOT forbidden. Don't treat it as off-limits.
+- Don't trust stale baselines; use the table above.
+- Never mutate the main checkout. Use your own git worktree and branch (codex/fresh-*). Other agents and teammates share this repo.
+- Background shells die when the parent tool call ends. Run hosted lab runs in the foreground or tool-managed.
+- Before spending each session, state what differs from previous attempts and why it could work.
+
+HARD RULES
+- LLMs only interpret supplier replies and choose among code-priced, legal packages. Arithmetic, terms, constraints and closing decisions stay in code.
+- Every claim must be recomputed from public facts. Never leak internal estimates, reservations or targets.
+- The agent must never read /v1/events, /screen, /leaderboard or /results. Never use hidden c_best or back-solved score breakdowns at runtime.
+- Prefer behaviour driven by constraints and computed costs over case-type flags. A flag that fires on only one practice case is overfitting.
+- New features are opt-in config fields with tests, and ruff must be clean.
+- Merge to main only measured wins repeated twice (n=2), and state sample-size limits.
+
+BUDGET
+- Hard cap: 30 practice sessions. Report spending centrally.
+- Keep about 20 sessions in reserve for Sunday: a fresh ten-case confirmation, plus a re-check after the 08:00 market-data release.
+- Use the free sandbox (D01/D02) and offline transcript replay first.
+
+PROCESS
+1. Phase 1, offline, 0 sessions:
+   - Read everything above.
+   - Analyse every turn of the weak cases.
+   - Answer: what fundamentally separates 0.77 from 0.87? Candidates to examine:
+     - multi-option offers (MESOs) priced in code
+     - systematically finding and trading what each supplier values
+     - the new Sunday 08:00 market data and supplier letters
+     - LLM interpretation quality (model, effort)
+     - opening strategy
+     - concession timing
+     - RFQ competition dynamics
+2. Produce a ranked list of hypotheses. For each, give:
+   - expected gain
+   - evidence
+   - generality: would it help unseen suppliers?
+3. Show me the plan and wait for approval before spending sessions. Then parallelise by case or lever with subagents. Each subagent gets its own worktree, branch and session cap. No duplicated experiments.
+4. Read the full transcript after every run. Drop losers immediately; repeat winners once.
+5. Final report:
+   - per-case before/after
+   - exact config and commit
+   - sessions used
+   - an honest view on whether 0.87 is reachable and what transfers to the Live Final
+
+Push back where you disagree. Let's go.
+
+---
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+---
+
+Keep building, but instead of doing it solely, parallelize it to make it faster.
+
+---
+
+Keep building, but instead of doing it solely, parallelize it to make it faster. Push back if you don't think it makes sense
+
+---
+
+Approved, with these changes:
+1. Use c_best only for diagnosis. Never use it to tune constants.
+2. Add a no-deal guard: by round N-2, converge, or accept a standing offer if it's acceptable.
+3. Test H2 alone first on P18, then add H1.
+4. The payment trade must use only public rates.
+5. The fresh ten-case run is mandatory before merge.
+
+For speed:
+- Implement H1–H3 once, on one branch.
+- Then run the P18, P08 and P05 screens in parallel subagents, each in its own worktree with its own cap.
+- Start repeats immediately after a win.
+- Check mechanics in the D01/D02 sandbox first.
+- Cap: 9 sessions tonight.
+
+---
+
+So how far are the agents right now?
+
+---
+
+Hard requirement from the brief (Live Final): each wave has an 8-minute hard cap. Threads still open at the cap end with no deal (wave_cap). Limits per message: 60 seconds, plus supplier replies of up to about 1 minute, and 10 messages per thread.
+
+Before anything is merged:
+1. Add a wall-clock guard. Using state.deadline / runner.py, once the time remaining in the wave falls below a safe margin (about 2 rounds of time), stop extending the negotiation. Accept the best standing offer that is acceptable under our cost check (cheaper than the alternative, all must-haves kept), or converge to the best legal offer.
+2. Log the time used per round and per thread.
+3. Any extra rounds (slower schedule) or LLM calls must fit inside this budget. LLM calls must fall back to the deterministic path after about 8 seconds.
+4. Rehearse the final the way the brief asks: all hosted cases in parallel, timed, with the worst-case thread duration reported.
