@@ -1774,3 +1774,31 @@ P10: no session (see the offline note above).
   P04 .8604, P05 .7723, P07 .7600, P08 .5930, P10 .6551, P11 .7902, P18 .5200. Mean .7522 = best-per-case mean.
 - Risks: bundle commitment untested on P15 (bundling, not practice); every v2 lever validated on one case;
   supplier side appears deterministic so repeats test reproducibility, not robustness.
+
+## 2026-10-10 score-push-small: P10 / P01 / P04 gap closing (branch codex/score-push-small)
+
+Targets (public leaderboard, not used at runtime): P10 .70, P01 1.00, P04 .87. Baseline v2 (6b162c54).
+
+Offline findings:
+- P01 (70110): price only lever left at 90d; public note doc:20260902-70110-M2 says 70110 trades a lower
+  price for fast payment. Untested before. 14d costs buyer ~0.08*76/365 of price in capital but the
+  supplier discount outweighed it in arena_kit total_cost.
+- P04 (70620): supplier states 4.94 is "absolute limit" at 90d/24m; multi_year_only trait suggested 36m.
+- P10 (70410, capacity): final 31.80/56d/24m after 2 rounds. Countering its final once walked away
+  (prior run); counter-to-final walk risk 2/9 elsewhere, and P10 has no fallback, so not screened.
+  Unused public claim: scorecard sc:70410@2026Q3 OTD 79.5%.
+
+New opt-in fields (default off, tests in tests/test_score_push_small.py): `fast_payment_types`,
+`multi_year_tenor_types`, `evidence_after_advice`.
+
+Screens (practice, 1 session each):
+- f8c3bebb small-p04-multi-year-tenor: invalid, no data package attached (.env ARENA_DATA path stale).
+- 141865a6 P04 36m tenor: .8604 (=baseline). Supplier held 4.94 "absolute limit"; tenor bought nothing. Drop.
+- 35af55e6 P01 fast payment 14d citing doc:20260902-70110-M2: .9702 (+.0100). 133.70 -> 132.90 final. WIN.
+- de8f9dce P10 capacity advice + OTD 79.5% evidence: .6551 (=baseline). Supplier: "it holds, but it does
+  not change our calculation"; 31.80/56d/24m. Drop.
+- 3950fe99 P01 fast payment repeat: .9702, identical path (final 132.90/14d). Validated.
+
+Validated config: configs/p01-fast-payment.json (v2 + fast_payment_types=["price_increase"]).
+Sessions used: 5 of 6. P10/P04 gaps remain open; next idea for P10 is a single same-package
+code-priced counter to final, gated on having a fallback (not available on P10).
