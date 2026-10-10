@@ -27,8 +27,10 @@ from .replies import evidence_constraints
 
 class EvidencePolicy:
     def __init__(self, package=None, tracer=None, case_types=None, interpretation=None, recent_window_types=(),
-                 rival_quote_types=(), index_window_types=()):
+                 rival_quote_types=(), index_window_types=(), specific_hedge_types=()):
         self.recent_window_types = set(recent_window_types)
+        # Opt-in: a generic hedge remark defers to the supplier's own hedge sentences naming series.
+        self.specific_hedge_types = set(specific_hedge_types or ())
         self.default_types = set(case_types if case_types is not None else ["price_increase"])
         self.case_types = self.default_types | self.recent_window_types
         # Opt-in: disclose a documented, still-valid public rival quote for the case part when its
@@ -146,7 +148,8 @@ class EvidencePolicy:
             if case["type"] in self.recent_window_types:
                 # Public facts decide: material drivers falling at the latest month and not documented as
                 # hedged by the supplier. Otherwise behave exactly as without the option.
-                fresh = usable(recent_index_claims(case, self.package, facts))
+                fresh = usable(recent_index_claims(
+                    case, self.package, facts, specific_hedge=case["type"] in self.specific_hedge_types))
                 if fresh:
                     bank, recent = fresh, True
                 elif case["type"] not in self.default_types:

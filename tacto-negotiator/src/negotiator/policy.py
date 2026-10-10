@@ -54,6 +54,9 @@ class PolicyConfig:
     # Single-part types whose offers answer "which volume can you commit to?": the binding fixed
     # volume over the offered term, the latest shared forecast (cited once) and the committee path.
     volume_answer_types: tuple[str, ...] = ()
+    # Types whose recent-window claims treat a generic hedge remark ("Material covered until ...") as
+    # covering only the series the supplier's own hedge sentences name (all when none names one).
+    specific_hedge_types: tuple[str, ...] = ()
     # Per case type number of buyer rounds over which the price schedule reaches the
     # supplier's price (faster convergence before a supplier's final offer); others use the agent's.
     rounds_by_type: dict[str, int] = field(default_factory=dict)
@@ -83,6 +86,7 @@ class PolicyConfig:
             "bundle_volume_types",
             "bundle_commitment_types",
             "volume_answer_types",
+            "specific_hedge_types",
         ):
             v = d.get(k, [])
             if not isinstance(v, list) or any(not isinstance(x, str) or x not in TYPES for x in v):

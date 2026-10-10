@@ -169,11 +169,12 @@ def _stems(text: str) -> set[str]:
     return {w[:5] for w in re.findall(r"[a-z]{4,}", text.lower()) if w not in _NAME_STOP}
 
 
-def hedged_series(case: dict, package, series: list[str]) -> set[str]:
+def hedged_series(case: dict, package, series: list[str], specific: bool = False) -> set[str]:
     """Series whose cost the case suppliers say is fixed for now, from their own letters/quote remarks.
 
     A hedge sentence naming a series (ID or name word, e.g. "alloys" ~ "Alloy surcharge") hedges that
-    series; one naming no known series hedges all of them (fail closed)."""
+    series; one naming no known series hedges all of them (fail closed). With `specific`, a generic
+    sentence defers to the supplier's own sentences that name series (still all when none names one)."""
     if package is None or getattr(package, "db", None) is None:
         return set(series)
     sups = set(case.get("suppliers") or [])
@@ -189,24 +190,27 @@ def hedged_series(case: dict, package, series: list[str]) -> set[str]:
             "SELECT supplier_id, remarks FROM quotes WHERE part_id = ?", (part,), limit=10_000)
             if r["supplier_id"] in sups]
     names = _series_names(package)
-    out = set()
+    named, generic = set(), False
     for text in texts:
         for m in _HEDGE.finditer(text or ""):
             sentence = m.group(0)
             hit = {s for s in series if s in sentence
                    or _stems(names.get(s, "").split(" (")[0]) & _stems(sentence)}
-            out |= hit or set(series)
-    return out
+            named |= hit
+            generic = generic or not hit
+    if generic and not (specific and named):
+        return set(series)
+    return named
 
 
-def recent_index_claims(case: dict, package, facts: dict) -> list["Claim"]:
+def recent_index_claims(case: dict, package, facts: dict, specific_hedge: bool = False) -> list["Claim"]:
     """Public claims for material cost drivers falling at the latest month and not documented as hedged
     by the supplier (opt-in, not in the bank)."""
     parts = case.get("parts") or []
     part = parts[0] if parts else None
     refs = set(case.get("refs") or [])
     drivers = {s: w for s, w in _drivers(package, part).items() if w >= MIN_DRIVER_WEIGHT}
-    hedged = hedged_series(case, package, list(drivers))
+    hedged = hedged_series(case, package, list(drivers), specific=specific_hedge)
     names = _series_names(package)
     series = series_values(facts)
     out = []
