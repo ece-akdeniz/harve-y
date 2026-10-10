@@ -251,7 +251,7 @@ class PackageAgent:
                     self._log(case, "model_fallback", sid, kind="traits", reason="prefetch still running")
             else:
                 self._log(case, "model_fallback", sid, kind="traits", skipped=budget.skipped[-1:])
-        return self.trait_reader.traits(sid)
+        return self.trait_reader.lever_traits(sid)
 
     # -- estimates ----------------------------------------------------------------------------
     def estimates_for(self, case):

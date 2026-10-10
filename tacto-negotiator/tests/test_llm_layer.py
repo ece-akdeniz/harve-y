@@ -125,25 +125,38 @@ def test_reader_caches_per_supplier_and_prefetches_in_parallel():
 
 # -- agent integration ----------------------------------------------------------------------------
 @needs_data
-def test_model_only_fast_payment_trait_activates_the_lever_with_a_quoted_source(monkeypatch):
+def test_model_only_fast_payment_needs_the_suppliers_own_words(monkeypatch):
+    """A model-inferred `wants_fast_payment` arms the lever only when its quote comes from a
+    supplier-authored e-mail/letter/reply, never from our own meeting or call notes about it."""
     monkeypatch.setenv("ARENA_DATA", str(DATA))
     c = case("case:P02")  # supplier 70510 has no fast-payment note: regex trait absent
     sid = c["suppliers"][0]
     from negotiator.dossiers import build_one, load_package
 
-    note = build_one(load_package(), sid).notes[0]
-    answer = {"traits": [{"trait": "wants_fast_payment", "quote": note["text"][:60], "source": note["id"]}]}
+    notes = build_one(load_package(), sid).notes
+    meeting = next(n for n in notes if n["kind"] == "meeting_note")
+    letter = next(n for n in notes if n["kind"] == "letter")
     policy = PolicyConfig.from_dict({"version": 1, "fast_payment_types": ["price_increase"],
                                      "model_traits": ["price_increase"]})
-    agent = PackageAgent(policy=policy, claims=False, llm=stub(answer))
+    m0 = msg("open", ("offer:0", {"unit_price": 380.0, "payment_days": 30}))
+    options = c["term_options"]["payment_days"]
     off = PackageAgent(policy=PolicyConfig.from_dict({"version": 1, "fast_payment_types": ["price_increase"]}),
                        claims=False)
-    m0 = msg("open", ("offer:0", {"unit_price": 380.0, "payment_days": 30}))
-    terms_on = agent.propose(c, {sid: [m0]}, sid)["message"]["term_sheets"][0]["terms"]
     terms_off = off.propose(c, {sid: [m0]}, sid)["message"]["term_sheets"][0]["terms"]
-    options = c["term_options"]["payment_days"]
-    assert terms_off["payment_days"] != min(options) and terms_on["payment_days"] == min(options)
-    assert agent.trait_reader.evidence(sid, "wants_fast_payment") == [note["id"]]
+    assert terms_off["payment_days"] != min(options)
+
+    from_note = {"traits": [{"trait": "wants_fast_payment", "quote": meeting["text"][:60], "source": meeting["id"]}]}
+    agent = PackageAgent(policy=policy, claims=False, llm=stub(from_note))
+    terms = agent.propose(c, {sid: [m0]}, sid)["message"]["term_sheets"][0]["terms"]
+    assert terms["payment_days"] == terms_off["payment_days"]  # note-only evidence: lever stays off
+    assert agent.trait_reader.traits(sid) == {"wants_fast_payment"}  # still visible in the trace
+    assert agent.trait_reader.lever_traits(sid) == set()
+
+    from_letter = {"traits": [{"trait": "wants_fast_payment", "quote": letter["text"][:60], "source": letter["id"]}]}
+    agent = PackageAgent(policy=policy, claims=False, llm=stub(from_letter))
+    terms = agent.propose(c, {sid: [m0]}, sid)["message"]["term_sheets"][0]["terms"]
+    assert terms["payment_days"] == min(options)
+    assert agent.trait_reader.evidence(sid, "wants_fast_payment") == [letter["id"]]
     assert agent.llm.metrics()["calls"] == 1
 
 
@@ -156,7 +169,7 @@ def test_model_only_trait_never_raises_cost_above_schedule_or_alternative(monkey
     sid = c["suppliers"][0]
     from negotiator.dossiers import build_one, load_package
 
-    note = build_one(load_package(), sid).notes[0]
+    note = next(n for n in build_one(load_package(), sid).notes if n["kind"] == "letter")
     m0 = msg("open", ("offer:0", {"unit_price": 380.0, "payment_days": 30}))
     std = {"payment_days": 30, "incoterm": "FCA"}
     base_policy = {"version": 1, "fast_payment_types": ["price_increase"], "package_types": ["price_increase"]}

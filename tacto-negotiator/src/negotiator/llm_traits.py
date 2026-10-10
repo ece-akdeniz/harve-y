@@ -94,8 +94,15 @@ def validate(raw, sources):
         if key in seen:
             continue
         seen.add(key)
-        out.append({"trait": trait, "quote": quote.strip()[:MAX_QUOTE], "source": hit})
+        kind = next((s.get("kind", "") for s in sources if s["id"] == hit), "")
+        out.append({"trait": trait, "quote": quote.strip()[:MAX_QUOTE], "source": hit, "kind": kind})
     return out
+
+
+SUPPLIER_AUTHORED = {"email", "letter", "reply"}
+# Traits that arm a lever (not just interpretation) need the supplier's own words: an e-mail, a
+# letter or a reply, not our meeting/call notes about it.
+LEVER_TRAITS_NEED_SUPPLIER_WORDS = {"wants_fast_payment"}
 
 
 def sources_for(dossier, replies=()):
@@ -103,10 +110,10 @@ def sources_for(dossier, replies=()):
     out = []
     for n in (dossier.notes if dossier else [])[:MAX_SOURCES]:
         if isinstance(n, dict) and isinstance(n.get("id"), str) and n.get("text"):
-            out.append({"id": n["id"], "text": str(n["text"])[:MAX_SOURCE_CHARS]})
+            out.append({"id": n["id"], "text": str(n["text"])[:MAX_SOURCE_CHARS], "kind": str(n.get("kind") or "")})
     for i, body in enumerate(replies):
         if body:
-            out.append({"id": f"reply:{i}", "text": str(body)[:MAX_SOURCE_CHARS]})
+            out.append({"id": f"reply:{i}", "text": str(body)[:MAX_SOURCE_CHARS], "kind": "reply"})
     return out[:MAX_SOURCES]
 
 
@@ -118,7 +125,7 @@ def extract(client, sources, timeout_s=None):
     """Validated [{trait, quote, source}] or [] on any failure (timeout, bad JSON, unavailable)."""
     if not sources:
         return []
-    payload = {"vocabulary": TRAITS, "texts": sources}
+    payload = {"vocabulary": TRAITS, "texts": [{"id": s["id"], "text": s["text"]} for s in sources]}
     try:
         raw = client.call("traits", SYSTEM, payload, SCHEMA, name="supplier_traits", timeout_s=timeout_s)
     except Exception:
@@ -177,6 +184,12 @@ class TraitReader:
 
     def traits(self, sid):
         return set(self.cache.get(sid, {}).get("traits", set()))
+
+    def lever_traits(self, sid):
+        """Traits safe to feed the levers: lever-arming traits only with a supplier-authored quote."""
+        items = self.cache.get(sid, {}).get("items", [])
+        return {x["trait"] for x in items
+                if x["trait"] not in LEVER_TRAITS_NEED_SUPPLIER_WORDS or x.get("kind") in SUPPLIER_AUTHORED}
 
     def evidence(self, sid, trait):
         """Source ids (doc ids or reply:N) whose verbatim quote supports `trait`."""
