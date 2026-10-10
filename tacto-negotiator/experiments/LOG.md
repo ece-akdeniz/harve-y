@@ -833,3 +833,68 @@ in the preceding entry; the same failure reproduces with the unchanged current
   4. P18: early equal-cost index_clause deadband variants, adopt supplier-revealed spread. Est.
      +0.03-0.06, weak-medium.
   P11 "faster payment" ask is not executable (payment_days not negotiable). Decision: implement 1-2 first.
+## P10 package-advice replication + P02 expected-C clause target (branch codex/score-push-p10p02, 2026-10-10)
+
+### P10 replication — run 3b0588df-1f6d-4558-aa1b-176bd028fd8d (`configs/package-advice.json` via configured_agent, aa5fb3c)
+- Attempt 1, session c6daa8ddecf71416: **0.6551**, EUR 31.80 / 56 d / 24 mo / 23,400 pcs, 0 timeouts, 3 rounds.
+  Exactly reproduces d612dda9 (0.6551).
+- Attempt 2, session 29c667f997fb006e: **0.0**. The agent process crashed (platform error), so no buyer
+  message was sent. The supplier issued a final offer and then walked away (`end_reason: timeout`).
+  Infrastructure loss, not policy evidence. Verified owned (session ID recorded by the runner) and ended;
+  the outcome was reconciled into `reconciliation.json` and the original attempt evidence was preserved.
+- Verdict: P10 0.6551 replicates (n=2 clean, incl. d612dda9). No change.
+
+### P02 expected-C target — new opt-in `cost_target_types` + `cost_target_index_clause` (`configs/p02-cost-target.json`)
+- Triage: price-only bargaining at 90 d with no clause hits the supplier floor (~373.6); below a 0.5 %
+  supplier margin the kit adds a relationship cost of up to ~EUR 140k (see 5eccc847: 349.37 → 0.087).
+  The supplier accepts a lower price for the CU clause.
+- Change: for single-supplier relationship cases with a public dossier full-cost estimate, value each
+  permitted package by expected C over a uniform 41-point grid on the public `full_cost_range`
+  (356.20–393.70). Target = the expected-C-minimising package, restricted to clause packages when the
+  flag is set. The longest payment term wins near-ties. Offers never go below the target price; the agent
+  accepts when the standing sheet on our package meets our offer by expected C. There is one counter to a
+  final offer. Uses no hidden c_best or historical scores. Target: **366.23 / 90 d / CU 5 % deadband**.
+- Tests: `tests/test_cost_target.py` (8). Full suite 375 passed + 1 known preflight failure; Ruff clean.
+- Screen 1, run eb38bb1b, session 9d8f14858aa93c6d: agent KeyError before the first move. Hosted quote
+  standard terms lack `payment_days`. Fixed by merging them with the dossier standard terms (commit 2).
+  Session later timed out at **0.0** (no deal, no buyer move). Reconciled as owned + ended. Wasted session.
+- Screen 1b, run 609f2b93, session 49fe810f2e30a206: **0.5993**. The supplier agreed to 366.23 / 90 d /
+  CU 5 % immediately. c_deal 2,254,487 (relationship 12,647, index risk 17,901, payment −14,918). 0 timeouts, 2 rounds.
+- Repeat, run 3e377fb3, sessions e1d31ee67f3036aa / 4dead4329811769a: **0.5993 / 0.5993**, identical terms.
+- Verdict: **P02 0.2934 → 0.5993 (n=3, deterministic)**. Merge candidate. Next lever (not screened):
+  the supplier accepted the opening without countering, so a lower opening (e.g. ~361, the min-C
+  price under lower-fc scenarios) may still be accepted. Risk: it raises relationship cost if fc is high.
+
+### Follow-up: P10 attempt 2 root cause (session 29c667f997fb006e) — no session used
+- Evidence: the tracer stops at 17:04:44 UTC, right after the round-1 `offer` decision and before the
+  `package_advice` log (the LLM call is wall-clock bounded to 8 s by `bounded_call`). No serial `intent`
+  follows, and `run.json` is left at `running` with no `error`. The stderr log `/tmp/p10p02/p10.log` is empty.
+  A Python exception would have printed a traceback and the runner's `except`/`finally` would have marked
+  the attempt `failed`. That cannot have happened, so an external signal killed the process.
+- Cause: the crashed coordinator started the run as a detached `( uv run … lab run … & ) ; sleep 8`
+  inside one tool call. The process died about 1 s after that call returned, about 11 s after start, so the
+  harness tore down the tool call's process group. Attempt 1 happened to finish inside the window.
+  P10 does not reach the `cost_target` path, so the missing-`payment_days` bug is not involved.
+  The same code completed P10 in c6daa8dd and d612dda9.
+- Verdict: an operator/harness issue, not a code bug. No code change and no confirm session.
+  Rule: run tracked `lab run` in the foreground of a long-blocking tool call (or via `nohup`/`setsid`).
+  Never use a detached subshell that the tool call can reap.
+
+### Follow-up: P02 lower-opening (anchor) hypothesis — computed locally, NOT screened
+- Same CU 5 % / 90 d package, public expected-C (uniform 41-point grid on fc 356.20–393.70), target 366.23:
+  | opening/final | ΔE[C] vs target | ≈ score-equiv |
+  |---|---|---|
+  | 366.23 (target) | 0 | 0 |
+  | 357.44 (−1 schedule step, 2.4 %) | +10,278 | −0.22 |
+  | 348.65 (−2 steps) | +37,504 | −0.79 |
+  | 351.26 (min-C at low-end fc 356.20) | +28,112 | −0.59 |
+- The supplier accepted 366.23 at once, so any anchor-then-concede path with a 366.23 cap closes at or below
+  366.23. Under the public model every price below the target raises expected C: the relationship penalty
+  is quadratic, then linear, in the margin gap, and it outweighs the spend saving. Expected gain < risk, so
+  no screen. (A diagnostic using a back-solved fc, not available at runtime, shows −1 step slightly up
+  and −2 steps collapsing to ~0.06. That asymmetry is exactly the risk.)
+- Verdict: keep 366.23 / 0.5993.
+
+### Lab sync
+- `negotiator lab sync` retried at 21:10: uploaded 0, failed 4. The `LAB_URL` dev tunnel times out (curl 000 after 15 s).
+  Local run snapshots and reconciliations are intact; rerun sync when the host is back.

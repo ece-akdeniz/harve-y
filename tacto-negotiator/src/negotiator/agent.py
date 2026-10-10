@@ -122,6 +122,7 @@ class PackageAgent:
         if estimates is None and os.environ.get("NEGOTIATOR_ESTIMATES") != "1":
             estimates = {}  # dossier estimates are opt-in until calibrated (docs: experiments/LOG.md)
         self._estimates, self._est_case, self._est_cache = estimates, None, {}
+        self._target_cache = {}
 
     # -- estimates ----------------------------------------------------------------------------
     def estimates_for(self, case):
@@ -269,6 +270,106 @@ class PackageAgent:
         equal_c = price_for_cost(case, {**n, "unit_price": nominal}, cands[0][0], std, sup)
         return round(min(nominal, equal_c), 2)
 
+    # -- expected-cost target (opt-in: policy.cost_target_types) --------------------------------
+    def _target_supplier(self, case, sid, std):
+        """Public dossier estimate for the relationship term, standard terms from the quote."""
+        key = (case["case_id"], sid)
+        if key not in self._target_cache:
+            try:
+                from .dossiers import supplier_estimate
+
+                est = supplier_estimate(case, sid)
+            except Exception:
+                log.exception("cost target estimate for %s failed; flag inactive", sid)
+                est = None
+            self._target_cache[key] = est
+        est = self._target_cache[key]
+        return {**est, "standard": {**(est.get("standard") or {}), **(std or {})}} if est else None
+
+    def _cost_target_move(self, case, threads):
+        """Single-supplier relationship cases only; None falls back to the default policy."""
+        from . import cost_target as ct
+
+        live = live_threads(threads)
+        if len(case.get("suppliers", [])) != 1 or len(live) != 1:
+            return None
+        sid = live[0]
+        events = threads[sid]
+        msg = latest(events)
+        status = msg.get("status")
+        if status not in ("open", "final_offer"):
+            return None
+        std = standard_terms(events)
+        sup = self._target_supplier(case, sid, std)
+        if not ct.active(case, sup):
+            return None
+        key = ("target", case["case_id"], sid)
+        if key not in self._target_cache:
+            self._target_cache[key] = ct.target(case, std, sup, index_clause=self.policy.cost_target_index_clause)
+        tgt = self._target_cache[key]
+        if tgt is None:
+            return None
+        tc, tterms = tgt
+        grid = ct.scenarios(sup)
+
+        def ec(t):
+            return ct.expected_cost(case, t, std, sup, grid)
+
+        sheets = [
+            (ec(s["terms"]), s["term_sheet_id"], s["terms"])
+            for s in msg.get("term_sheets") or []
+            if s.get("term_sheet_id") and (s.get("terms") or {}).get("unit_price") is not None
+            and must_haves_ok(case, s["terms"], std)
+        ]
+        if not sheets:
+            return None
+        c_alt = alternative_cost(case)
+        ours = self._ours(events)
+        left = moves_left(case, events)
+        standing_c, standing_id, standing_terms = sheets[0]
+        mark = min(tc, ec(ours[-1])) if ours else tc
+        accept = {"supplier_id": sid, "message": {"action": {"type": "accept", "term_sheet_id": standing_id}}}
+        walk = {"supplier_id": sid, "message": {"action": {"type": "walk_away"}}}
+
+        def close(reason):
+            self._log(case, "cost_target_close", sid, c=standing_c, target_c=tc, c_alt=c_alt, reason=reason)
+            return accept if standing_c < c_alt else walk
+
+        on_ours = same_package(case, standing_terms, ours[-1] if ours else tterms, std)
+        if on_ours and standing_c <= mark + 1.0:
+            return close("standing sheet meets our offer by expected C")
+        if status == "final_offer" or left <= 1:
+            countered, seen_final = 0, False
+            for e in events:
+                seen_final = seen_final or (e.get("from") != "buyer" and e.get("status") == "final_offer")
+                countered += bool(seen_final and e.get("from") == "buyer" and e.get("term_sheets"))
+            if status == "final_offer" and left > 1 and countered < 1:
+                return self._target_offer(case, sid, tterms, std, sup, c_alt, tc, "final offer: one counter at target")
+            return close("final offer or last move")
+        on_target = [t["unit_price"] for _, _, t in sheets if same_package(case, {**tterms, "unit_price": 0}, t, std)]
+        ask = min(on_target) if on_target else None
+        tp = tterms["unit_price"]
+        if ask is None or ask <= tp:
+            return self._target_offer(case, sid, tterms, std, sup, c_alt, tc, "expected-C target package")
+        price = tp + (ask - tp) * min(1.0, len(ours) / self.rounds)
+        if ours and same_package(case, ours[-1], tterms, std):
+            price = max(price, ours[-1]["unit_price"])
+        cap = ct.ceiling(case, tterms, min(standing_c, c_alt), std, sup)
+        if cap is not None:
+            price = min(price, cap)
+        terms = {**tterms, "unit_price": round(min(price, ask), 2)}
+        return self._target_offer(case, sid, terms, std, sup, c_alt, ec(terms), "expected-C concession")
+
+    def _target_offer(self, case, sid, terms, std, sup, c_alt, expected_c, reason):
+        self._log(case, "cost_target", sid, terms=terms, expected_c=expected_c, reason=reason)
+        move = self._offer(case, sid, complete_offer(case, terms), std, sup, c_alt, reason)
+        if terms.get("index_clause"):
+            move["message"]["body"] += (
+                " We propose this risk-sharing package, including the index clause,"
+                " in exchange for the attached unit price."
+            )
+        return move
+
     # -- policy -------------------------------------------------------------------------------
     def _workable(self, case, threads):
         live = live_threads(threads)
@@ -279,6 +380,10 @@ class PackageAgent:
     def decide(self, case, threads):
         """Serial wrapper: final-offer threads first, then the least-worked open thread; the first
         proposal that is not a hold is sent, and a close request is resolved by the evaluator."""
+        if self.policy and case["type"] in self.policy.cost_target_types:
+            move = self._cost_target_move(case, threads)
+            if move is not None:
+                return move
         status, workable = self._workable(case, threads)
         order = sorted(workable, key=lambda s: (status[s] != "final_offer", self._key(case, threads, s)))
         reason = "no moves left"

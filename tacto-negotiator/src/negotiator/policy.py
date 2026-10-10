@@ -20,6 +20,8 @@ class PolicyConfig:
     preferences: dict[str, str] = field(default_factory=dict)
     cost_neutral_lead_time: bool = False
     package_advice_types: tuple[str, ...] = ()
+    cost_target_types: tuple[str, ...] = ()
+    cost_target_index_clause: bool = False
 
     @classmethod
     def load(cls, path):
@@ -32,11 +34,13 @@ class PolicyConfig:
             raise ValueError("unknown policy fields")
         if type(d.get("version")) is not int or d["version"] != 1:
             raise ValueError("policy version must be 1")
-        for k in ("package_types", "evidence_types", "package_advice_types"):
+        for k in ("package_types", "evidence_types", "package_advice_types", "cost_target_types"):
             v = d.get(k, [])
             if not isinstance(v, list) or any(not isinstance(x, str) or x not in TYPES for x in v):
                 raise ValueError(f"invalid {k}")
             d[k] = tuple(sorted(set(v)))
+        if type(d.get("cost_target_index_clause", False)) is not bool:
+            raise ValueError("cost_target_index_clause must be boolean")
         if type(d.get("cost_neutral_lead_time", False)) is not bool:
             raise ValueError("cost_neutral_lead_time must be boolean")
         if d.get("final_offer_risk", "legacy") not in ("legacy", "opening_proxy"):
