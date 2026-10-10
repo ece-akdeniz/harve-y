@@ -149,3 +149,19 @@ def test_rfq_data_claims_adds_one_fresh_fact_only_without_rival_claim():
     assert len(refs) <= 2 and not any(r.startswith('cost:') for r in refs)
     off = PackageAgent(policy=PolicyConfig(rfq_rival_offer=True, evidence_types=('price_increase',)))
     assert not off.propose(case, threads, a)['message'].get('refs')
+
+
+def test_rfq_lead_trade_offers_42_never_56_and_reverts_when_not_cheaper():
+    case = next(c for c in json.loads((Path(__file__).parent / 'fixtures/practice_cases.json').read_text())
+                if c['case_id'] == 'case:P05')
+    a, b = case['suppliers'][:2]
+    t35 = {'payment_days': 30, 'lead_time_days': 35}
+    base = [msg('open', ('offer:a-1', {**t35, 'unit_price': 32.0})), ours({**t35, 'unit_price': 31.74, 'payment_days': 90}),
+            msg('open', ('offer:a-2', {**t35, 'unit_price': 29.0}))]
+    threads = {a: base, b: [msg('open', ('offer:b-1', {**t35, 'unit_price': 34.0}))]}
+    agent = PackageAgent(policy=PolicyConfig(rfq_undercut_reanchor=True, rfq_lead_trade=True))
+    sheet = agent.propose(case, threads, a)['message']['term_sheets'][0]['terms']
+    assert sheet['lead_time_days'] == 42 and sheet['unit_price'] < 29.0
+    threads[a] = base + [ours(sheet), msg('open', ('offer:a-3', {**t35, 'unit_price': 29.0, 'lead_time_days': 42}))]
+    again = agent.propose(case, threads, a)['message']['term_sheets'][0]['terms']
+    assert again['lead_time_days'] == 35  # 29.00 at 42 d costs more than 29.00 at 35 d

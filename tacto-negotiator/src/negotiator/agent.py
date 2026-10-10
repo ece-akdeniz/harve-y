@@ -119,6 +119,7 @@ class PackageAgent:
         self.final_counters = {}  # supplier -> counters sent to its final offers (at most one)
         self.beat_asked = {}  # rival supplier -> final-offer sheet id we asked it to beat
         self.reanchored = set()  # rfq suppliers re-anchored after undercutting our own ask
+        self.lead_traded = {}  # rfq supplier -> (non-price terms before the lead trade, its C then)
         self.final_seen = {}  # final-offer sheet id -> monotonic time first seen
         if estimates is None and os.environ.get("NEGOTIATOR_ESTIMATES") != "1":
             estimates = {}  # dossier estimates are opt-in until calibrated (docs: experiments/LOG.md)
@@ -564,6 +565,15 @@ class PackageAgent:
 
     def decide_thread(self, case, threads, sid, c_alt, cap_c=None, why=None):
         events = threads[sid]
+        if sid in self.lead_traded:
+            before, c_before = self.lead_traded[sid]
+            sup0 = self._sup(case, threads, sid)
+            now_c = [c for c, _, _ in eligible_sheets(case, events, sup0)[:1]]
+            if now_c and now_c[0] >= c_before - 1e-6:
+                # The longer lead time bought no cheaper package: return to the earlier terms.
+                self.prev[sid] = before
+                del self.lead_traded[sid]
+                self._log(case, "lead_trade_revert", sid, c_now=now_c[0], c_before=c_before)
         std, sup = standard_terms(events), self._sup(case, threads, sid)
         cands = eligible_sheets(case, events, sup, alternatives=True)
         eligible = bool(cands)
@@ -604,7 +614,19 @@ class PackageAgent:
                 # assumed, so counter once more below its new price instead of matching it.
                 self.reanchored.add(sid)
                 price = math.floor(p * (1 - self.anchor / 2) * 100) / 100
-                self._log(case, "undercut_reanchor", sid, their=p, ours_last=last_p, counter=price)
+                if self.policy.rfq_lead_trade:
+                    # Concede lead time instead of price: the longest legal option (never above the
+                    # lead-time must-have, so never 56 when the cap is 42) at the same ask.
+                    cap = min((m["value"] for m in case["buyer"].get("must_haves", [])
+                               if m.get("field") == "lead_time_days" and m.get("op") == "<="), default=None)
+                    legal = [d for d in case.get("term_options", {}).get("lead_time_days", [])
+                             if cap is not None and d <= cap]
+                    if legal and max(legal) > (n.get("lead_time_days") or 0):
+                        self.lead_traded[sid] = (dict(n), ref_c)
+                        n = {**n, "lead_time_days": max(legal)}
+                        self.prev[sid] = n
+                self._log(case, "undercut_reanchor", sid, their=p, ours_last=last_p, counter=price,
+                          lead_time_days=n.get("lead_time_days"))
                 terms = complete_offer(case, {**n, "unit_price": price})
                 return self._offer(case, sid, terms, std, sup, c_alt, "undercut our ask: re-anchor")
             match = {**n, "unit_price": p}

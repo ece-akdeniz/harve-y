@@ -1080,3 +1080,26 @@ Sessions in this task: 7 (2b8fbe32, 69acb4ae, 2ffdd9c5, a7298b34, 6f46f019, d480
 09f597f1 expired, launched by a parallel worker in this worktree) plus 1 inherited expired
 (6c3717e8). Shared-team quota also fell from other teams' P05/other runs during this window.
 Validation: `pytest -q` 382 passed, 1 known failure (preflight); ruff clean.
+
+## 2026-10-10 — P05 offline: lead-time trade and award choice (no session)
+
+Kit C with quote-PDF standards (70210: 30 d/28 d/1200 ppm; 70240: 45 d/1400 ppm; 70250:
+30 d/28 d/600 ppm; quality = 8,400 × ppm/1e6 × EUR 112; late = EUR 200/day beyond 35 d).
+Current deal 70210 28.50/30/35: C 242,124.96 (price 239,400; payment 1,596; quality 1,129) = .7723.
+- **42 vs 35 d** costs a flat EUR 1,400 (7 d × 200) = **EUR 0.167/unit**. Cost-neutral 70210
+  price at 42 d: 28.334 (30 d pay), 28.429 (45), 28.523 (60), 28.715 (90). So 42 d is net-positive
+  only at ≤ 28.33 on 30 d (e.g. 28.00/42/30 → +0.034). .92 needs ≈26.90 at 42/30 or 27.07 at 35/30.
+- **Award choice:** neutral prices vs current deal — 70240 28.48 @35/30 (1400 ppm costs +0.02/unit),
+  70250 28.57 @35/30 (600 ppm saves 0.07/unit). Best observed: 70250 31.00/30/35 (.5217),
+  70240 32.50/45/35 (.3692), 31.50/90/52 (illegal). Rivals stopped 2.5–4 EUR above the
+  neutral price, and 70250's quality edge is only EUR 0.07. **No screen**: award line closed offline.
+
+## 2026-10-10 — P05 screen 13 plan: lead-time-for-price trade at re-anchor (H)
+
+Differs from F: `rfq_lead_trade` (`configs/p05-lead-trade.json`). At F's one-time re-anchor after
+70210's undercut (28.50), the counter goes at 42 d (longest legal ≤ the 42 d must-have; 56 is never
+offered) with the same price, 26.79 + PPI-D351 claim. 70210 itself said 35 d is fine and its standard
+lead time is 28 d; 70240 priced fast lead time as overtime, so slack may be worth price. If the next
+reply's standing sheet isn't cheaper than the pre-trade sheet by kit C (e.g. 28.50 @42 d costs
++1,400), we revert to 35 d, so the downside is one counter. Offline: 28.00@42 → keep 42; 28.50@42 or
+28.40@42 → back to 35 d.
