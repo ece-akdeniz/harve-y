@@ -425,3 +425,28 @@ Decision:
   all ten candidate cases concurrently, then the other five baseline cases. This alternates
   baseline/candidate order by case while exercising candidate concurrency with one limiter.
 - Local suite: 111 tests passed, ruff clean. Final comparison has not started or spent quota.
+
+### P02 clause/payment investigation after unchanged claims scores
+
+At the observed EUR 373.65 / 90-day package, local complete cost is EUR 2,268,972.94.
+A copper clause at the same price raises cost; equal-cost prices are approximately EUR
+367.00 (zero deadband), 369.19 (3% deadband), and 370.66 (5% deadband). Paying in 30 days
+requires about EUR 368.70 to be cost-neutral. These figures are human diagnostic calculations
+from published terms and rates, never runtime targets. No hosted clause benefit established;
+keep that unmeasured policy out of the combined candidate.
+
+## Broader development — twelve sessions, source 807aebb vs 1551125
+
+- P08: baseline **15.62**, candidate **59.30**, both repeated. Enable raw-material package policy.
+- P02: baseline and claims candidate **29.34**, repeated. No incremental claim benefit here.
+  Price-increase evidence remains a combined candidate hypothesis because prior controlled P01
+  runs improved to 92.79 and P02 did not regress; final regression must verify both.
+- P05: baseline and supplier-standard payment candidate **36.04**, repeated. Omit the extra
+  RFQ package policy from the combined candidate. Rival claims remain disabled.
+- All twelve: valid deals, zero actual timeouts, no contradicted claims or unresolved requests.
+- Shared quota 157 ->140 (five additional external sessions); cycle total 24.
+- Freeze `configs/candidate.json`: packages for renewal/quality/raw-material; evidence for
+  price-increase/quality; quality starts two permitted chargeback steps down. Risk remains legacy.
+  No runtime leaderboard, historical Cbest or case-specific target prices.
+- Before promotion: free D01/D02 crash/recovery rehearsal, then the budgeted twenty-session
+  paired ten-case regression. Stop on safety failures. Maximum cycle remains 52; planned use44.
