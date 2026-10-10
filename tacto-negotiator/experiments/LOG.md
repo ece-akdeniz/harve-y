@@ -1863,3 +1863,25 @@ it is not a new score improvement or a fresh full-suite evaluation.
   recorded in the project handoff and supplier workspace documentation.
 - Validation before publish: **722 tests passed**, full Ruff passed and **22 frontend
   checks passed**. Local desktop/mobile browser checks passed with zero JS errors.
+
+## 2026-10-11 — codex/fresh-llm: opt-in model layer, step 1 `model_traits` (0 sessions)
+
+- Worktree `../ysamet-llm` from origin/main `ddf0bb2` (negotiator source identical to `a655f3d`). Commits
+  `e45039c`, `5da3428`. Env check: LLM_PROVIDER/LLM_MODEL/LLM_EFFORT/LLM_BASE_URL/LLM_API_KEY load from `.env`;
+  strict-JSON probe 3.4–4.4 s per call, so the per-call timeout is 8 s and the per-decision model budget 8 s
+  (`llm.TurnBudget`; calls are skipped when the thread/wave window is under 25 s).
+- `model_traits` (case-type list): the model lists traits from a fixed vocabulary (all regex traits plus
+  `cash_short`, `multi_year_preference`) with verbatim quotes from the supplier's notes/letters; quotes not found
+  verbatim in the source are dropped; result is unioned with the regex traits. Extraction runs once per
+  supplier, in parallel at case start, cached. Interpretation only. Safeguard: a model-only
+  `wants_fast_payment` arms the fast-payment lever only when the quote comes from a supplier-authored
+  e-mail/letter/reply (not our meeting notes).
+- Offline replay (`tools/llm_replay.py`, run `6b162c54`, quote PDFs re-read from the owned sessions):
+  v3 vs fresh-llm **identical terms and bodies on all ten cases at this stage**. Model-only traits found:
+  P04 `multi_year_preference` ("standard items are not discounted; only multi-year volume agreements…"),
+  P10 `multi_year_preference` ("We will prioritise customers with firm, long-term commitments."),
+  P11 `cash_short` ("he asked twice whether we could pay earlier…"); none is read by an active lever
+  (estimates off). P02 model traits = regex traits (`pricing_committee`), so no payment flip.
+- Tests: `tests/test_llm_layer.py` (10) incl. "an LLM-only trait never raises C above the plain schedule or the
+  alternative" over the whole vocabulary. Full suite 732 passed; `test_model_assist::test_async_case_completes…`
+  failed once under `-x` and passes alone and in the full rerun (known async-simulator timing flake).
