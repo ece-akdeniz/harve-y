@@ -1048,3 +1048,17 @@ the rival claim; each verified claim appears to buy one internal-clarification d
 OTD with the rival claim may move the 32.00 reply lower, leaving PPM 1863 and PPI-D351 for later
 counters. Offline first counters: 70210 rival 31.50 + OTD 80.8 %; 70250 rival + OTD 88.0 %;
 70240 OTD 62.5 % only. Risk: 70250's 88 % OTD is mildly favorable to it.
+
+## 2026-10-10 — P05 screen 11: stacked data + rival claim (G) — tie at old level
+
+Run `a160f212-66f3-4e52-9c0d-2b287ba4cce0`, session `6f46f0195a05816a`. Score **72.08**: 70210
+29.00/35/30, 228 s, zero timeouts. First counter carried rival 31.50 + OTD 80.8 % (both
+verified) → one reply, 32.00 + "clarify internally" (one drop for two claims). Second counter:
+PPI-D351 −3.7 % → 29.00. Third counter 27.26 had **no** claim (PPM shares id
+sc:70210@2026Q3 with OTD, so dedup blocks it) → "calculated tightly … 29.00" → final. Stacking
+spends a claim slot without a matching drop. Stack line: 1 miss; `rfq_data_claims_stack` stays off.
+
+## 2026-10-10 — P05 screen 12 plan: replicate F
+
+Differs from screen 11: stack off, i.e. exactly screen 10's `configs/p05-data-claims.json`.
+Purpose: confirm 77.23 (28.50) is not a single-sample draw versus 29.00 in G/E.
