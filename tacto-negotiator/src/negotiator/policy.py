@@ -37,6 +37,9 @@ class PolicyConfig:
     rfq_data_claims_stack: bool = False
     # Case types whose evidence uses only public index windows ending at the latest month.
     recent_index_window_types: tuple[str, ...] = ()
+    rival_quote_types: tuple[str, ...] = ()
+    index_window_types: tuple[str, ...] = ()
+    cost_target_posterior: float = 0.0  # s_max of the in-session supplier-cost posterior; 0 = off
 
     @classmethod
     def load(cls, path):
@@ -57,6 +60,8 @@ class PolicyConfig:
             "clause_variant_types",
             "standard_payment_types",
             "recent_index_window_types",
+            "rival_quote_types",
+            "index_window_types",
         ):
             v = d.get(k, [])
             if not isinstance(v, list) or any(not isinstance(x, str) or x not in TYPES for x in v):
@@ -67,6 +72,10 @@ class PolicyConfig:
                   "rfq_undercut_reanchor", "rfq_data_claims", "rfq_data_claims_stack"):
             if type(d.get(k, False)) is not bool:
                 raise ValueError(f"{k} must be boolean")
+        post = d.get("cost_target_posterior", 0.0)
+        if isinstance(post, bool) or not isinstance(post, (int, float)) or not 0 <= post <= 1:
+            raise ValueError("cost_target_posterior must be a number in [0, 1]")
+        d["cost_target_posterior"] = float(post)
         if d.get("final_offer_risk", "legacy") not in ("legacy", "opening_proxy"):
             raise ValueError("invalid final_offer_risk")
         if d.get("preference", "default") not in ("default", "standard_payment", "longer_tenor", "lower_chargeback"):

@@ -937,6 +937,7 @@ in the preceding entry; the same failure reproduces with the unchanged current
   4. P18: early equal-cost index_clause deadband variants, adopt supplier-revealed spread. Est.
      +0.03-0.06, weak-medium.
   P11 "faster payment" ask is not executable (payment_days not negotiable). Decision: implement 1-2 first.
+
 ## P10 package-advice replication + P02 expected-C clause target (branch codex/score-push-p10p02, 2026-10-10)
 
 ### P10 replication — run 3b0588df-1f6d-4558-aa1b-176bd028fd8d (`configs/package-advice.json` via configured_agent, aa5fb3c)
@@ -1002,6 +1003,57 @@ in the preceding entry; the same failure reproduces with the unchanged current
 ### Lab sync
 - `negotiator lab sync` retried at 21:10: uploaded 0, failed 4. The `LAB_URL` dev tunnel times out (curl 000 after 15 s).
   Local run snapshots and reconciliations are intact; rerun sync when the host is back.
+
+
+### Cost-target generalisation (branch codex/score-push-costgen) — offline only, 0 sessions
+- Tool: `tools/expected_cost_report.py` (+ `tests/test_expected_cost_report.py`, 2). Feature-gated exactly like
+  `cost_target.active` (relationship goal + `relationship_eur_per_point` + `sustainable_margin_pct` + dossier fc);
+  public fixture + dossier only, no c_best / revealed breakdowns.
+- Structural finding: the non-monotone term (relationship) exists only for `stabilise`/`secure_supply` goals.
+  P18, P08 (raw_material), P11 (quality), P05 (rfq) are `leverage`/`quality_first`: relationship = 0, C is
+  monotone in price, so the expected-C target degenerates to "lowest price" — the insight cannot raise them.
+  | case | closed (best) | E[C]/notes | expected-optimal | predicted gain |
+  |---|---|---|---|---|
+  | P18 .4196 | 5.45 / db0 / 90d / 24m, C 264,745 | no relationship term; equal-C: db5 5.572, db3 5.523, none 5.623 | lowest legal price (db0 cheapest per € price) | 0 from this lever (supplier rejects db5 ≤5.46, LOG H18c) |
+  | P08 .5930 | 5.31 / db0 / 90d / 24m, C 1,031,778 | no relationship term; equal-C: db5 5.429, db3 5.381 | same as P18 | 0 from this lever |
+  | P10 .6551 | 31.80 / 56d / 24m, C 1,537,097, rel 0 | margin at 31.80 ≈ +23 % ≫ 10 % sustainable; penalty only below ≈27 | 26.36 / 35d / 24m (E[C] 1,274,360) | not reachable: supplier final 31.80; target is a price floor, not a structural package — 0 |
+  | P11 .7099 | 45.50 / ppm300 / cb0 | quality_first: no relationship term | n/a | 0 |
+  | P05 .4119 (.7208 on p05 branch) | 32.00 → 29.00 | leverage rfq: no relationship term | n/a | 0 |
+  | P02 .5993 | 366.23 / 90d / CU db5 | E[C] 2,320,234 (= target) | clause pkg 366.23 already optimal | 0 |
+- Other relationship-goal cases (not in scope; candidates for later): P03 closed 433.08 vs E[C]-target 423.79
+  (ΔE[C] −14k, relationship already ~0 → pure price gap), P01 133.70 vs 132.57/14d (−5k). No runs for P06/P09/P14/P17.
+- P02 reconciliation (teammate's 361.33 / −6,443): reproduced exactly as a POINT estimate at fc = 366.73.
+  That fc is back-solved from the hosted breakdown (relationship 12,647 at 366.23) = hidden-model leakage,
+  not the public estimate. Public point fc 374.95 → min-C price 369.17; public expected (uniform 356.20–393.70)
+  → 366.23. E[C](361.33) − E[C](366.23) = +3,231 (worse). Per-fc ΔC(361.33 vs 366.23): −29k @356.2, −11k @365,
+  +1.8k @370, +13k @374.95, +17k @393.7 — penalty side is long. Same penalty formula; the difference is the fc
+  assumption (revealed vs public). Verdict: no screen; 361.33 would be a hidden-data-tuned target.
+- P02 no-clause 366.41 has lower E[C] (2,301,137, no index risk) but price-only bargaining floors at 373.65
+  (6 sessions); the clause is what buys the lower price. Not screened.
+- Overfitting guard: no flags/configs added; nothing keyed by case ID. `cost_target_types` remains validated on
+  one case only (P02, n=3+1). Suite: 376 passed + known preflight failure + 1 timing flake
+  (`test_two_thread_rfq_slow_replies_no_timeouts[1]`, passes on rerun). Ruff clean.
+- Sessions used: 0 / 8. Merge verdict: merge tool + tests (harmless); no policy change.
+
+## 2026-10-10 — Score push Phase 1: factory port + offline triage (no sessions)
+
+- Branch `codex/score-push-20261010` from origin/main `3653046` (no teammate commits since).
+- Ported `negotiator.agent:configured_agent` + `PolicyConfig.from_dict` (no default policy change),
+  tests in `tests/test_configured_agent.py`. Full suite 367 passed, 1 known preflight failure; ruff clean.
+- Quota read-only: practice 79/200 used, 121 left, 0 active sessions. Hosted best P05 is 0.4168
+  (`fc0baf478c14eebb`, no local transcript).
+- Offline triage of all saved runs (no quota). Ranked hypotheses for Phase 2:
+  1. P02: once supplier accepts the CU 5%-deadband clause package (run 5eccc847), counter at the
+     relationship-cost argmin (~361, calibrated from the supplier's own no-index alternative sheet),
+     not the lowest price. Local kit fit reproduces server C within 2 EUR; est. 0.29 -> ~0.70. Medium.
+  2. P05 (`rfq`): a non-leading thread's "gap closed" must hold, not close the case (0.3604 runs
+     closed on sup:70250 and accepted 70210 at 32.50; best run continued to 32.00). Pair with
+     `rfq_close_guard` (d8a0b0b). Est. +0.05. Medium-high.
+  3. P08: cost-neutral 36-month tie-break for raw_material (`longer_tenor` outside multi_year_only).
+     Est. +0.05, weak-moderate.
+  4. P18: early equal-cost index_clause deadband variants, adopt supplier-revealed spread. Est.
+     +0.03-0.06, weak-medium.
+  P11 "faster payment" ask is not executable (payment_days not negotiable). Decision: implement 1-2 first.
 
 ## 2026-10-10 — Score push P18/P08 screens (branch `codex/score-push-p18p08`)
 
@@ -1472,3 +1524,56 @@ match the recovered historical thread exactly; likely deterministic/cache reuse.
 Retain this policy over the0.4195698792 clause-variant config. Delta+0.0334913728
 on P18, equivalent+0.0033491373 on ten-case mean. No new historical-best claim.
 Own budget24/30;6 remain. Result uploaded to lab automatically.
+
+
+## 2026-10-10 — P02 in-session supplier-cost posterior (branch `codex/score-push-fullcost-rel`)
+
+Hypothesis (coordinator): the instant accept of 366.23 / 90 d / CU db5 is runtime evidence that the
+supplier's cost sits below the public prior midpoint 374.95, so the cost target should adapt.
+
+Offline (no session; `/tmp/fc2/p02_post.py`, public dossier prior fc ~ U[356.20, 393.70]):
+- Likelihood: the supplier accepts an offer worth v to it (`supplier_value`) iff v >= fc·(1−s),
+  s ~ U[0, s_max] (how far below full cost it will sell). 366.23/90d is worth 361.35 to it.
+- Posterior after an accept at 366.23, and the E[C]-optimal price on the same package:
+  s_max .10 → E[fc] 370.3, opt 362.10; .125 → 371.6, 363.05; **.15 → 372.3, 363.65**; .20 → 373.1,
+  364.35; .30 → 373.8, 365.00. The accept is weak evidence. The supplier also sold the same package
+  at 349.37 in 5eccc847 (worth 344.71 to it), so acceptance alone does not bound fc from below.
+  It only says s is large (≥ 6 % at fc 366.7).
+- Score range at fc points (local model; hosted was ~.026 below local at 366.23). Price 363.37 vs 366.23:
+  fc 356 +1.25/+0.89, fc 362 +1.10/+0.86, fc 366.7 **+0.74/+0.63**, fc 375 −0.47/−0.34,
+  fc 385 −2.36/−2.17. Wrong-posterior risk: each EUR 1 below the relationship optimum costs ~.04
+  score at fc ≈ 375 and ~.05 at fc ≈ 385. A refusal-driven posterior would also over-concede: one
+  counter at 363.37 lifts E[fc] to 382 and the optimum to 375. So refusals may only bring us back to
+  the prior optimum, never above it.
+- The clause db5 package caps the score at ≈ .76 local even at the best price (~361). **.85 is not
+  reachable on this package**. No-clause 90 d is floored by the supplier at 373.65 (.29).
+- P10: not applicable. The margin at 31.80 is ≈ 23 % ≫ 10 % sustainable, so the relationship term
+  (and hence fc) does not bind above ≈ 27. Whether 31.80 is a bluff is a reservation-price question,
+  not a cost-posterior one. Countering a final offer has caused `walked_away` before (D02, line ~264).
+  No P10 session.
+
+What differs from previous P02 attempts (5eccc847 cost-driver, p02-cost-target 366.23 → .5993):
+opt-in `cost_target_posterior` (s_max 0.15, `configs/p02-cost-posterior.json`). Same package
+(90 d / CU db5). It opens at the self-consistent price p = argmin E[C | refusals, p accepted]
+(**363.37**) instead of the prior optimum 366.23. If the supplier refuses, it rises toward the prior
+optimum, never above it. It accepts a supplier sheet on our package at or below that price.
+Expected: accept → hosted ≈ .70 (+.10). Refuse → back to 366.23 (≈ .60).
+Plan: 1 P02 screen, repeat once if ≥ .62. Max 2 practice sessions.
+
+Results (source `1cae3b0`, `configured_agent` + `configs/p02-cost-posterior.json`, estimates/MESO off, serial):
+
+| run | session | score | terms | rounds | timeouts |
+|---|---|---|---|---|---|
+| c18148c9 | 936622ab15fb9214 | **0.7115** | 363.37 / 90 d / CU db5 / 12 m | 1 (instant accept) | 0 |
+| 887281c9 | 7874cdcfaa174eb6 | **0.7115** | identical | 1 (instant accept) | 0 |
+
+- Hosted breakdown: price 2,220,190.70, payment −14,801, index_risk 17,762, quality 1,191,
+  relationship 24,834 (was 12,647 at 366.23). +.1121 vs the .5993 best, n=2 identical.
+- Full transcript read: the supplier agreed in round 1 with "Our price reflects our costs". No refusal,
+  so the posterior was never updated after the opening. The instant accept at 363.37 is a second accept.
+  Under the same model it lowers E[fc] further, but this agent stops after an accept (close).
+- Not reached: .85. This package is capped near .76 local. A deeper next step (lower s_max → ~361) is
+  worth about +.02–.04 if fc ≈ 366.7, and loses ~.04/EUR if fc ≥ 375. Not screened.
+- Sessions: 2 practice (quota 174 → 176 used/600 at start/end of this block; other agents share it).
+Decision: P02 opt-in `configs/p02-cost-posterior.json` is a replicated win (.5993 → .7115). Defaults unchanged.
+P10: no session (see the offline note above).

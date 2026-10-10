@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "package_types": [
+    "renewal",
+    "quality",
+    "raw_material"
+  ],
+  "evidence_types": [
+    "price_increase",
+    "quality",
+    "raw_material"
+  ],
+  "final_offer_risk": "legacy",
+  "preferences": {
+    "quality": "lower_chargeback"
+  },
+  "chargeback_steps": 2,
+  "cost_neutral_lead_time": true,
+  "package_advice_types": [
+    "capacity"
+  ],
+  "clause_variant_types": [
+    "raw_material"
+  ],
+  "index_window_types": [
+    "raw_material"
+  ]
+}

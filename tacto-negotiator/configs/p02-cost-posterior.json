@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "package_types": [
+    "renewal",
+    "quality",
+    "raw_material"
+  ],
+  "evidence_types": [
+    "price_increase",
+    "quality"
+  ],
+  "final_offer_risk": "legacy",
+  "preferences": {
+    "quality": "lower_chargeback"
+  },
+  "chargeback_steps": 2,
+  "cost_target_types": [
+    "price_increase"
+  ],
+  "cost_target_index_clause": true,
+  "cost_target_posterior": 0.15
+}
