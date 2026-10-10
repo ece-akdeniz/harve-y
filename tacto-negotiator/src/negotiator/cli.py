@@ -11,6 +11,7 @@ from pathlib import Path
 
 from arena_kit.cli import load_env, summary
 from arena_kit.client import ArenaClient, ArenaError
+from arena_kit.data import DataPackage
 from arena_kit.play import RemoteTable, hosted, play, play_all, play_waves
 
 from .agent import PackageAgent
@@ -35,6 +36,9 @@ def main(argv=None) -> int:
     r.add_argument("--parallel", type=int, default=8)
     r.add_argument("--waves", type=int, default=5)
     r.add_argument("-v", "--verbose", action="store_true")
+    for command in (p, r):
+        command.add_argument("--evidence", action="store_true", help="use verified case-relevant index evidence")
+        command.add_argument("--data", default=os.environ.get("ARENA_DATA"), help="optional unpacked data package")
     rep = sub.add_parser("report", help="summarise a run directory")
     rep.add_argument("run_dir")
     args = ap.parse_args(argv)
@@ -49,10 +53,17 @@ def main(argv=None) -> int:
     run_dir = _run_dir()
     tracer = Tracer(run_dir)
     tracer.log("run", cmd=args.cmd, arena=os.environ.get("ARENA_URL"), agent="PackageAgent-v0")
+    facts = {}
+    if args.evidence and args.data:
+        package = DataPackage(args.data)
+        facts = dict(package.facts)
+        if package.db is not None:
+            package.db.close()
+    tracer.log("evidence_config", enabled=args.evidence, fact_count=len(facts))
     client = ArenaClient()
 
     def new_agent():
-        return PackageAgent(tracer=tracer)
+        return PackageAgent(tracer=tracer, evidence=args.evidence, facts=facts)
 
     if args.cmd == "play":
         table = RemoteTable(client)

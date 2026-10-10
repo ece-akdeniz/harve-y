@@ -2,6 +2,27 @@
 
 Format and decision rule: `docs/04-experiments.md`. Newest on top. One entry per change.
 
+## 2026-10-10 — Verified index evidence candidate (MEASURED LOCAL)
+
+- Configuration: branch `codex/verified-negotiation-evidence`, opt-in `--evidence`;
+  official kit remains pinned to `1b5516b`. Baseline remains the default.
+- Hypothesis: case-relevant index observations plus a cost-breakdown question improve
+  price-increase negotiations without changing the numerical offer policy.
+- Implementation: derive exact calendar-year changes from finite positive values;
+  require matching ID/series/month metadata and a recent window; recompute before
+  rendering; select at most two observations; exclude prior buyer citations case-wide.
+  Base/release facts come through DataPackage, with case facts overriding them.
+- Validation: 27 local tests pass, including malformed data, tampering, relevance,
+  staleness, overlay precedence, cross-thread duplicate suppression, deterministic
+  retry proposals, and unchanged offer terms with evidence enabled. Ruff passes.
+- Cases/quota: synthetic evidence fixtures and kit S01 decision tests only; no hosted
+  sessions, no quota consumed, no model calls. No new negotiation scores measured.
+- Limitations: no supplier hedge/motivation interpretation, no full claim bank,
+  no persistent retry journal or concurrent citation reservation. True positive index
+  changes can support the supplier; persuasion is unproven.
+- Decision: retain as an opt-in candidate pending a planned baseline/evidence comparison
+  on sandbox and diverse price-increase cases. Do not infer final readiness.
+
 ## 2026-10-10 13:37 — Hosted sandbox baseline and RFQ probe (MEASURED HOSTED)
 
 - Revision: `e543b5d5d14fff699019bdffb38688c3bee882b7`, kit `1b5516b`; added diagnostic

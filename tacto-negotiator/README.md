@@ -78,6 +78,30 @@ and [runbook](docs/06-final-runbook.md) pass on the final machine.
 
 ## Configuration
 
+### Experimental verified index evidence
+
+`play` and `run` accept `--evidence`. This opt-in candidate adds up to two verified
+year-on-year index observations to price-increase offers, followed by a cost-breakdown
+question. The baseline pricing and term-selection policy is unchanged.
+
+```bash
+uv run --locked negotiator play case:D01 --evidence --data "$ARENA_DATA" -v
+```
+
+The command above starts a hosted sandbox session. Local tests do not start sessions.
+Without `--data` (or `ARENA_DATA`), evidence uses only case facts. With a package,
+the official reader merges base and Sunday-release facts; case facts take precedence.
+Only index series explicitly listed in the case refs are eligible. Missing, malformed,
+stale or incomplete windows produce no claim. Citations already in buyer history are
+not reused across supplier threads; decision traces record selected IDs.
+
+This is factual index context, not an estimate of the supplier's overall cost change.
+It does not yet infer hedges, supplier motivations or whether positive index movements
+support the supplier's ask. Keep the flag off for the baseline and compare replays
+before promoting it. Durable retry recovery and concurrent citation reservations
+remain part of the unfinished runtime. `claims.py` is still the broader claim-bank
+scaffold; the implemented index-only path is `evidence.py`.
+
 | Variable | Use |
 |---|---|
 | `ARENA_URL`, `ARENA_API_KEY` | Hosted base URL and team key, shared by the team |

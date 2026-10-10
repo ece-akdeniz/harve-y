@@ -5,6 +5,12 @@ backlog, not a claim the agent works. Update boxes only with test/run evidence.
 
 ## Current implementation
 
+Branch candidate: `evidence.py` implements opt-in, case-referenced index claims with
+exact year-on-year windows, value validation, deterministic rendering, and citation
+deduplication from buyer history. CLI `--evidence` / `--data` connect it to PackageAgent.
+This does not complete Gate D: broad claims, supplier interpretation, durable claim
+reservations and hosted effectiveness remain unverified.
+
 PackageAgent v0 and custom play/run commands execute through the official kit. Deterministic
 non-price optimization, concession scheduling and basic closing checks exist. The kit runner
 still services one RFQ thread at a time. Async runtime, persistent recovery, full relationship

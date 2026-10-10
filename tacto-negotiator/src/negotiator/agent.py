@@ -2,13 +2,14 @@
 
 Plugs into `arena_kit.play.play` (one decision per call; the call is the case coordinator).
 Every accept goes through `_acceptable`: must-haves, standard terms resolved, C below the
-alternative. No claims and no model yet.
+alternative. Optional verified index evidence; no model calls.
 """
 
 from arena_kit.cost import must_haves_ok, total_cost
 from arena_kit.docs import standard_terms
 from arena_kit.play import latest, live_threads, moves_left
 
+from .evidence import evidence_for_offer
 from .guards import leaks
 from .optimizer import alternative_cost, best_terms
 
@@ -26,8 +27,9 @@ def standing(case, events):
 
 
 class PackageAgent:
-    def __init__(self, anchor=0.12, rounds=5, close_gap=0.005, tracer=None):
+    def __init__(self, anchor=0.12, rounds=5, close_gap=0.005, tracer=None, evidence=False, facts=None):
         self.anchor, self.rounds, self.close_gap, self.tracer = anchor, rounds, close_gap, tracer
+        self.evidence, self.facts = evidence, dict(facts or {})
         self.locked = {}  # supplier -> non-price terms of our first offer; kept stable after that
 
     def _package(self, case, sid, price, std):
@@ -75,19 +77,25 @@ class PackageAgent:
         self._log(case, "walk_away", sid, c_alt=c_alt, reason=reason)
         return {"supplier_id": sid, "message": {"action": {"type": "walk_away"}}}
 
-    def _offer(self, case, sid, terms, std, c_alt, reason):
+    def _offer(self, case, sid, terms, std, c_alt, reason, threads):
         body = (
             f"Thank you for your offer. To go ahead we propose the attached terms: "
             f"unit price EUR {terms['unit_price']:.2f}"
             + "".join(f", {k.replace('_', ' ')} {v}" for k, v in terms.items() if k != "unit_price")
             + ". We look forward to your confirmation."
         )
+        claims = evidence_for_offer(case, self.facts, threads) if self.evidence else []
+        refs = [ref for claim, _ in claims for ref in claim.refs]
+        if claims:
+            body += "\n" + "\n".join(sentence for _, sentence in claims)
+            body += "\nCould you share a cost breakdown explaining how these movements affect your requested increase?"
         assert not leaks(body), "body would leak internal information"
         c = total_cost(case, terms, std)
-        self._log(case, "offer", sid, terms=terms, c=c, c_alt=c_alt, reason=reason)
+        self._log(case, "offer", sid, terms=terms, c=c, c_alt=c_alt, reason=reason, evidence_refs=refs)
         return {
             "supplier_id": sid,
-            "message": {"subject": case["title"], "body": body, "term_sheets": [{"terms": terms}]},
+            "message": {"subject": case["title"], "body": body, "term_sheets": [{"terms": terms}],
+                        **({"refs": refs} if refs else {})},
         }
 
     # -- policy -------------------------------------------------------------------------------
@@ -125,7 +133,7 @@ class PackageAgent:
 
         if status[sid] == "final_offer":
             if c_match < c_theirs - 1e-6 and not (ours and ours[-1] == match):
-                return self._offer(case, sid, match, std, c_alt, "final offer: same price, our terms")
+                return self._offer(case, sid, match, std, c_alt, "final offer: same price, our terms", threads)
             if all(status[s] == "final_offer" for s in workable):
                 return self._close(case, threads, c_alt, "all final offers")
             others = [s for s in workable if status[s] != "final_offer"]
@@ -147,7 +155,7 @@ class PackageAgent:
         if last is not None and p - last <= p * self.close_gap:
             match = self._package(case, sid, p, std)
             if total_cost(case, match, std) < total_cost(case, theirs, std) - 1e-6:
-                return self._offer(case, sid, match, std, c_alt, "gap closed: their price, our terms")
+                return self._offer(case, sid, match, std, c_alt, "gap closed: their price, our terms", threads)
             return self._close(case, threads, c_alt, "gap closed")
 
         floor = p_open * (1 - self.anchor)
@@ -155,4 +163,6 @@ class PackageAgent:
         if last is not None:
             price = max(price, last)  # no backtracking on our own concessions
         price = round(min(price, p), 2)
-        return self._offer(case, sid, self._package(case, sid, price, std), std, c_alt, f"round {k + 1} schedule")
+        return self._offer(
+            case, sid, self._package(case, sid, price, std), std, c_alt, f"round {k + 1} schedule", threads
+        )
