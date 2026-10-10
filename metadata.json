@@ -1,0 +1,19 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4KRCC8QMWQJFC0VDXZB9ATD",
+  "strategy": "manual-commit",
+  "branch": "codex/score-push-fullcost-rel",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "tacto-negotiator/experiments/LOG.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": ""
+    }
+  ]
+}
