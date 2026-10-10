@@ -340,3 +340,15 @@ Decision:
   no deal scores the alternative (zero without one), and every case has a fixed Cbest.
   Cooperative wording and verified evidence are supported by the FAQ example, not proof
   that our candidate improves. Jury prize weighting remains unspecified.
+
+### Screening preflight follow-ups (outside frozen candidate source)
+
+- Batch A is frozen at `120558215629388579130703778ad60e6ac5dd84` in isolated checkouts.
+  Current working-tree follow-ups do not alter its runtime policy or source mid-batch.
+- Fixed the batch reporter to count the hosted API's timeout event lists (including empty
+  lists) instead of marking them unknown; added stop-gate tests for contradicted claims and
+  unresolved requests. Original results also contain explicit per-thread timeout counts.
+- Hardened generic multi-year trades to preserve the quoted annual volume when volume is
+  negotiable, and wording to describe the actual volume when it is a negotiated field.
+  This does not affect P04, whose annual volume is fixed, or P11, which has no contract field.
+- Added malformed-notice preservation coverage and the current staged contract in document 13.

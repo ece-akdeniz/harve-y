@@ -47,7 +47,7 @@ class TradePolicy:
             except (OSError, ValueError, KeyError, TypeError):
                 self.traits[sid] = set()
 
-    def initial(self, case, sid, price, anchor, standard, supplier):
+    def initial(self, case, sid, price, anchor, standard, supplier, reference=None):
         self.prepare(case)
         candidates = packages(case, price * (1 - anchor), standard, supplier)
         # Record both price surfaces; do not confuse buyer value with supplier willingness.
@@ -60,6 +60,8 @@ class TradePolicy:
             tenors = [m for m in options.get("contract_months", []) if m >= 12 * case["buyer"]["horizon_years"]]
             if tenors:
                 t["contract_months"] = max(tenors) if self.config.preference == "longer_tenor" else min(tenors)
+            if "volume_per_year" in t and (reference or {}).get("volume_per_year") is not None:
+                t["volume_per_year"] = reference["volume_per_year"]
         if "ppm_commitment" in t:
             # Relax only if the buyer's formula values the package equally and the must-have holds.
             for ppm in sorted(options.get("ppm_commitment", []), reverse=True):

@@ -132,3 +132,30 @@ def test_cli_fails_incomplete_result(monkeypatch, tmp_path):
     monkeypatch.setattr(cli, "run_async", lambda *a: {"case:X": RuntimeError("broken")})
     monkeypatch.setenv("ARENA_URL", "http://localhost:1")
     assert cli.main(["play", "case:X", "--runner", "async"]) == 1
+
+
+def test_notice_corruption_preserves_other_claims(cases):
+    package = load_package()
+    case = cases['case:P01']
+    for value in (None, 'not-a-number'):
+        damaged = copy.copy(package)
+        damaged.facts = copy.deepcopy(package.facts)
+        changed = copy.deepcopy(case)
+        for facts in (damaged.facts, changed.get('facts', {})):
+            for ref, row in facts.items():
+                if ref.startswith('doc:') and isinstance(row, dict) and 'days' in row:
+                    row['days'] = value
+        bank = build_bank(changed, damaged)
+        assert any(c.kind == 'index_change' for c in bank)
+        assert not any(c.kind == 'notice' for c in bank)
+
+
+def test_multiyear_keeps_quoted_annual_volume(cases):
+    case = cases['case:P03']
+    sid = case['suppliers'][0]
+    trade = TradePolicy(PolicyConfig(package_types=('renewal',)), lambda *a, **kw: None)
+    trade.traits[sid] = {'multi_year_only'}
+    volume = case['term_options']['volume_per_year'][0]
+    result = trade.initial(case, sid, 200, 0.12, {}, None, reference={'volume_per_year': volume})
+    assert result['volume_per_year'] == volume
+    assert result['contract_months'] >= 12 * case['buyer']['horizon_years']

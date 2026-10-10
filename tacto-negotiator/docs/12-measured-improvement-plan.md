@@ -1,5 +1,8 @@
 # Improvement plan after full hosted coverage
 
+> Superseded for execution by [the staged experiment contract](13-staged-experiments.md).
+> The observations below remain historical evidence.
+
 Planning snapshot: 10 October 2026, 14:40 Europe/Berlin. No policy changes implemented by
 this plan. Evidence: [machine-readable measurements](../experiments/coverage-20261010.json),
 [experiment log](../experiments/LOG.md), and the session IDs below.

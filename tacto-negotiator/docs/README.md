@@ -50,6 +50,9 @@ Hosted timing is measured. Then scale to multiple cases.
 - [12 — Measured improvement plan](12-measured-improvement-plan.md): full hosted coverage, P04 target,
   reproduced policy gaps and the next bounded experiment sequence.
 
+- [13 — Staged experiments](13-staged-experiments.md): current implementation, four-run screening,
+  conditional 52-session ceiling, stop gates and FAQ implications. Supersedes document 12's budget.
+
 ## Sources and evidence labels
 
 Audited kit and current lockfile: `1b5516bb95ef28e37f69aa446dc62168864bca53`.

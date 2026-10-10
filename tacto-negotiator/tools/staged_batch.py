@@ -29,7 +29,8 @@ def inspect_run(client, run, directory):
         evidence[cid] = {'state': state, 'threads': threads}
         if state.get('status') != 'ended':
             failures.append(f'{cid}: session not ended')
-        counts = [t.get('timeouts') for t in threads.values()]
+        counts = [len(t['timeouts']) if isinstance(t.get('timeouts'), list) else t.get('timeouts')
+                  for t in threads.values()]
         row['timeouts'] = sum(counts) if counts and all(isinstance(x, int) for x in counts) else None
         def walk(obj, cid=cid):
             if isinstance(obj, dict):

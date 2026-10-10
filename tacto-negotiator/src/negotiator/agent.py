@@ -162,8 +162,13 @@ class PackageAgent:
         if self.trades and case["type"] in self.policy.package_types:
             if "contract_months" in terms:
                 body += (
-                    f" We offer a {terms['contract_months']}-month commitment at unchanged annual volume;"
-                    " please reflect that commitment in your price, with payment priced as part of the package."
+                    f" We offer a {terms['contract_months']}-month commitment"
+                    + (
+                        f" at annual volume {terms['volume_per_year']};"
+                        if "volume_per_year" in terms
+                        else " at unchanged annual volume;"
+                    )
+                    + " please reflect that commitment in your price, with payment priced as part of the package."
                 )
             if "ppm_commitment" in terms:
                 body += (
@@ -214,7 +219,7 @@ class PackageAgent:
         if self.trades and case["type"] in self.policy.package_types:
             if prev is not None:
                 return prev
-            return self.trades.initial(case, sid, ref_terms["unit_price"], self.anchor, std, sup)
+            return self.trades.initial(case, sid, ref_terms["unit_price"], self.anchor, std, sup, reference=ref_terms)
         if prev is None:
             n = nonprice(case, best_terms(case, ref_terms["unit_price"], std, sup))
         elif not eligible:

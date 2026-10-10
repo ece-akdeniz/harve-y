@@ -126,3 +126,17 @@ then run `entire enable` from the parent repository to install local Git hooks. 
 Checkpoint trailers link code commits to agent sessions. `entire checkpoint list` and
 `entire checkpoint explain <checkpoint-id>` retrieve context for teammates. Secrets belong
 only in ignored `.env` files; review checkpoint redaction before pushing session history.
+
+### Staged policy experiments
+
+The default policy remains the measured baseline behavior. Opt in explicitly:
+
+```sh
+uv run --locked negotiator play case:P04 --runner async --policy-config configs/packages.json
+uv run --locked negotiator play case:P11 --runner async --policy-config configs/packages-evidence.json
+```
+
+These commands consume one hosted practice session each. Use the budgeted manifest runner
+in [the staged experiment contract](docs/13-staged-experiments.md) for comparisons and stop
+checks. Keep estimates and generic MESOs disabled during this cycle. Never use leaderboard
+scores, historical Cbest or diagnostic target prices as runtime inputs.
