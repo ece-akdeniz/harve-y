@@ -91,7 +91,8 @@ uv run --locked negotiator play case:D01 --evidence --data "$ARENA_DATA" -v
 The command above starts a hosted sandbox session. Local tests do not start sessions.
 Without `--data` (or `ARENA_DATA`), evidence uses only case facts. With a package,
 the official reader merges base and Sunday-release facts; case facts take precedence.
-Only index series explicitly listed in the case refs are eligible. Missing, malformed,
+Only index series listed in the case refs or linked to its parts by the base
+package cost-driver records are eligible. Missing, malformed,
 stale or incomplete windows produce no claim. Citations already in buyer history are
 not reused across supplier threads; decision traces record selected IDs.
 

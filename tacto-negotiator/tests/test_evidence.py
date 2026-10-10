@@ -88,3 +88,14 @@ def test_agent_evidence_is_opt_in_and_does_not_change_terms():
     assert candidate["refs"] == evidence_case["refs"]
     threads[sid].extend([{"from": "buyer", **candidate}, threads[sid][0]])
     assert "refs" not in agent.decide(case, threads)["message"]
+
+
+def test_hosted_case_uses_only_its_own_cost_driver_series():
+    case, facts = fixture()
+    case.update(refs=[], parts=["part:ours"])
+    links = {"part:other": {"ENERGY"}}
+    assert evidence_for_offer(case, facts, {}, series_by_part=links) == []
+    links["part:ours"] = {"ENERGY"}
+    selected = evidence_for_offer(case, facts, {}, series_by_part=links)
+    assert len(selected) == 1
+    assert "-3.70%" in selected[0][1]

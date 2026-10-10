@@ -1,6 +1,6 @@
 """Conservative index evidence candidate; no supplier-cost or personality inference.
 
-Only series explicitly referenced by the case are eligible. Exact calendar-year
+Only series referenced by the case or its parts' cost-driver records are eligible. Exact calendar-year
 windows avoid treating thirteen sparse observations as twelve months.
 """
 
@@ -51,11 +51,23 @@ class IndexClaim:
                 f"({self.refs[0]}, {self.refs[1]}).")
 
 
-def index_claims(case, facts):
+def cost_driver_series(package):
+    """Base-package part/series links; weights are not external cost assertions."""
+    if package.db is None:
+        return {}
+    links = {}
+    for row in package.query("SELECT DISTINCT part_id, series_id FROM cost_drivers", limit=100000):
+        links.setdefault(row["part_id"], set()).add(row["series_id"])
+    return links
+
+
+def index_claims(case, facts, series_by_part=None):
     """One recent year-on-year observation per case-referenced series, lowest first."""
     if case.get("type") != "price_increase":
         return []
     allowed = {m.group(1) for ref in case.get("refs", []) if (m := INDEX_ID.fullmatch(ref))}
+    for part in case.get("parts", []):
+        allowed.update((series_by_part or {}).get(part, ()))
     rows = {ref: row for ref, fact in facts.items() if (row := _index(ref, fact))}
     if not rows:
         return []
@@ -77,7 +89,7 @@ def index_claims(case, facts):
     return sorted(claims, key=lambda claim: (claim.change_pct, claim.refs))
 
 
-def evidence_for_offer(case, package_facts, threads, limit=2):
+def evidence_for_offer(case, package_facts, threads, limit=2, series_by_part=None):
     """Select unused citations across the case from confirmed buyer history.
 
     Repeated decisions on unchanged history produce the same message. Actual retry
@@ -93,7 +105,7 @@ def evidence_for_offer(case, package_facts, threads, limit=2):
             used.update(m.group(0) for m in re.finditer(
                 r"idx:[A-Za-z0-9_-]+@\d{4}-\d{2}", message.get("body") or ""))
     selected = []
-    for claim in index_claims(case, facts):
+    for claim in index_claims(case, facts, series_by_part):
         if used.intersection(claim.refs):
             continue
         if len(selected) >= min(2, max(0, limit)):

@@ -2,6 +2,33 @@
 
 Format and decision rule: `docs/04-experiments.md`. Newest on top. One entry per change.
 
+## 2026-10-10 14:46 — Hosted evidence comparison (MEASURED HOSTED)
+
+- Baseline revision: `9181aaa`; candidate is this entry's commit on
+  `codex/verified-negotiation-evidence`. No model calls; same numerical policy.
+- Hosted P01 refs omit index IDs. The initial evidence candidate would send no claims.
+  Fixed relevance lookup to include base-package cost-driver series for case parts;
+  added a regression test excluding unrelated parts. 28 tests and Ruff pass.
+- D01 baseline smoke: **91.92/100**, C=EUR 411,869.83, 71.26s,
+  session `bfc28153ceb2ab7b`. D01 lacks index refs/eligible part mappings, so an
+  evidence comparison there would not exercise the feature.
+- P01 baseline: **77.60/100**, C=EUR 1,109,578.24, 50.10s,
+  session `a75ba2622c5509e7`.
+- P01 evidence: **70.62/100**, C=EUR 1,113,553.62, 95.46s,
+  session `7c56746f591c3513`. Opening observations: electricity -3.72%, wages +2.66%;
+  a further metal-price observation was sent on round two. The supplier verified the
+  opening claims but explicitly noted that the rising driver supports its position.
+- All three closed with must-haves satisfied and zero recorded thread timeouts.
+  Evidence scored 6.98 points lower and cost EUR 3,975.38 more in this single pair.
+  No repeats or statistical/causal claim: supplier outputs are variable.
+- Quota: one sandbox plus two practice sessions; practice usage moved 19 -> 21,
+  leaving 179. The original no-evidence candidate was skipped before opening a session.
+- Decision: keep evidence opt-in. Next test supplier-aware argument selection;
+  verified arithmetic alone does not imply persuasive value. Do not promote to final.
+- Raw ignored evidence: `runs/evidence-comparison/20261010T124227Z/` (baseline)
+  and `runs/evidence-comparison/20261010T124446Z/` (candidate); each includes request
+  records, final state, threads and decision traces. Machine kept awake with caffeinate.
+
 ## 2026-10-10 — Verified index evidence candidate (MEASURED LOCAL)
 
 - Configuration: branch `codex/verified-negotiation-evidence`, opt-in `--evidence`;

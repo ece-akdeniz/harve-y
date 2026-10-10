@@ -5,7 +5,7 @@ backlog, not a claim the agent works. Update boxes only with test/run evidence.
 
 ## Current implementation
 
-Branch candidate: `evidence.py` implements opt-in, case-referenced index claims with
+Branch candidate: `evidence.py` implements opt-in, case/part-relevant index claims with
 exact year-on-year windows, value validation, deterministic rendering, and citation
 deduplication from buyer history. CLI `--evidence` / `--data` connect it to PackageAgent.
 This does not complete Gate D: broad claims, supplier interpretation, durable claim

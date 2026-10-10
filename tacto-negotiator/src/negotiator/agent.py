@@ -27,8 +27,11 @@ def standing(case, events):
 
 
 class PackageAgent:
-    def __init__(self, anchor=0.12, rounds=5, close_gap=0.005, tracer=None, evidence=False, facts=None):
+    def __init__(
+        self, anchor=0.12, rounds=5, close_gap=0.005, tracer=None, evidence=False, facts=None, series_by_part=None
+    ):
         self.anchor, self.rounds, self.close_gap, self.tracer = anchor, rounds, close_gap, tracer
+        self.series_by_part = series_by_part or {}
         self.evidence, self.facts = evidence, dict(facts or {})
         self.locked = {}  # supplier -> non-price terms of our first offer; kept stable after that
 
@@ -84,7 +87,8 @@ class PackageAgent:
             + "".join(f", {k.replace('_', ' ')} {v}" for k, v in terms.items() if k != "unit_price")
             + ". We look forward to your confirmation."
         )
-        claims = evidence_for_offer(case, self.facts, threads) if self.evidence else []
+        claims = (evidence_for_offer(case, self.facts, threads, series_by_part=self.series_by_part)
+                  if self.evidence else [])
         refs = [ref for claim, _ in claims for ref in claim.refs]
         if claims:
             body += "\n" + "\n".join(sentence for _, sentence in claims)
