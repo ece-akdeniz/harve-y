@@ -1,0 +1,30 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4KQP6241GX339FKHYDJJX7T",
+  "strategy": "manual-commit",
+  "branch": "codex/score-push-integrate",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "tacto-negotiator/configs/p01-standard-payment.json",
+    "tacto-negotiator/configs/p05-rival-history.json",
+    "tacto-negotiator/configs/p05-rival-offer.json",
+    "tacto-negotiator/configs/p05-supplier-lead.json",
+    "tacto-negotiator/configs/p05-supplier-payment.json",
+    "tacto-negotiator/configs/retained-package-policy.json",
+    "tacto-negotiator/configs/score-push.json",
+    "tacto-negotiator/experiments/LOG.md",
+    "tacto-negotiator/src/negotiator/agent.py",
+    "tacto-negotiator/src/negotiator/policy.py",
+    "tacto-negotiator/tests/test_rfq_final_guard.py",
+    "tacto-negotiator/tests/test_score_push_config.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": ""
+    }
+  ]
+}
