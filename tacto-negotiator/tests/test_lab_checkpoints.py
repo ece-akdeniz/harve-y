@@ -186,6 +186,41 @@ def test_clean_submodule_and_ssh_transport(repo, tmp_path):
     assert cp['remote'] == 'git@example.com:team/repo.git'
 
 
+def test_nested_project_publishes_and_restores_sibling_submodule(repo, tmp_path, monkeypatch):
+    project = repo / 'apps' / 'negotiator'
+    project.mkdir(parents=True)
+    (project / 'uv.lock').write_text('nested project lock')
+    (project / 'agent.py').write_text('nested agent')
+    child = tmp_path / 'kit'
+    child.mkdir()
+    git(child, 'init')
+    git(child, 'config', 'user.email', 'test@example.com')
+    git(child, 'config', 'user.name', 'Test')
+    (child / 'runtime.py').write_text('kit runtime')
+    git(child, 'add', '.')
+    git(child, 'commit', '-m', 'kit')
+    monkeypatch.setenv('GIT_ALLOW_PROTOCOL', 'file')
+    git(repo, 'submodule', 'add', str(child), 'sibling-kit')
+    git(repo, 'add', '.')
+    git(repo, 'commit', '-m', 'nested project and sibling submodule')
+    remote = tmp_path / 'remote.git'
+    git(repo, 'init', '--bare', str(remote))
+    git(repo, 'remote', 'add', 'origin', str(remote))
+    git(repo, 'push', 'origin', 'HEAD:refs/heads/main')
+    second = tmp_path / 'second'
+    git(repo, 'clone', '-b', 'main', str(remote), str(second))
+    before = git(repo, 'status', '--porcelain')
+    cp = make(project)
+    published = publish_checkpoint(project, cp)
+    restored = restore_checkpoint(second / 'apps' / 'negotiator', published, tmp_path / 'restored')
+    assert restored == tmp_path / 'restored' / 'apps' / 'negotiator'
+    assert (restored / 'uv.lock').read_text() == 'nested project lock'
+    assert (restored / 'agent.py').read_text() == 'nested agent'
+    assert (tmp_path / 'restored' / 'sibling-kit' / 'runtime.py').read_text() == 'kit runtime'
+    assert not (tmp_path / 'restored' / '.env').exists()
+    assert git(repo, 'status', '--porcelain') == before
+
+
 @pytest.mark.parametrize('name', ['.lab-secrets.env', 'credentials.json', 'secrets.json', 'access-token.txt'])
 def test_private_filename_excluded_without_environment_value(repo, name):
     (repo / name).write_text('unregistered-secret-value')

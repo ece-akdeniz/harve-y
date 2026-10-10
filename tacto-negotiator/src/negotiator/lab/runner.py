@@ -392,8 +392,10 @@ def run_experiment(
             persist()
             table = RecordingTable(client, attempt, session_created)
             started = time.monotonic()
+            agent = None
             try:
-                result = play(table, attempt.case_id, create_agent())
+                agent = create_agent()
+                result = play(table, attempt.case_id, agent)
                 score = result.get("score")
                 if score is not None and (
                     isinstance(score, bool)
@@ -415,6 +417,12 @@ def run_experiment(
                     run.status = "failed"
                     break
             finally:
+                metrics = getattr(agent, "experiment_metrics", None)
+                if callable(metrics):
+                    try:
+                        attempt.result["agent_metrics"] = sanitize(metrics(), budget=10000)
+                    except Exception:
+                        attempt.result["agent_metrics"] = {"unavailable": True}
                 attempt.elapsed_s = min(604800.0, time.monotonic() - started)
                 attempt.rounds = table.rounds
                 attempt.threads = sanitize(table.seen_threads, budget=budget)

@@ -273,7 +273,7 @@ def create_checkpoint(project, *, config, agent='package', runner='serial', auth
 
 def _verify_tree(project, body):
     tree_submodules = {}
-    for record in _git(project, 'ls-tree', '-r', '-z', body['commit'], raw=True).decode().split('\0'):
+    for record in _git(project, 'ls-tree', '--full-tree', '-r', '-z', body['commit'], raw=True).decode().split('\0'):
         if not record:
             continue
         metadata, path = record.split('\t', 1)

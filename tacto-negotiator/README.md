@@ -25,6 +25,8 @@ uv run --locked negotiator lab run --help
 
 See [the host and teammate setup guide](docs/12-experiment-dashboard.md). The lab is development
 tooling; it does not replace or complete the final negotiation runtime.
+Coding agents should start with [LAB_PLAYBOOK.md](LAB_PLAYBOOK.md) for the required tracked
+experiment workflow and a copyable teammate prompt.
 
 ## Objective
 
@@ -83,6 +85,15 @@ index output means a partial cost proxy; the sensitivity tool chooses an illustr
 See [research limitations](docs/01-research.md).
 
 ## Custom commands
+
+The custom `negotiator play/run` commands load the packaged
+[runtime AGENTS.md](src/negotiator/AGENTS.md) before opening sessions, for both serial
+and async runners and every set including final. Its structured settings drive the
+price heuristics and conditional package wording. Prose supplies research rationale;
+it is not automatically interpreted by an LLM. Each run trace records the file hash
+and effective settings. Invalid or missing guidance stops launch. Explicit
+`--policy-config` remains the way to enable experimental package/evidence policies.
+The starter `arena --agent llm` does not load this custom agent or its guidance.
 
 ```bash
 uv run --locked negotiator prep

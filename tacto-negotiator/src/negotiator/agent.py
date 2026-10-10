@@ -14,7 +14,6 @@ from arena_kit.cost import closing_terms, complete_offer, must_haves_ok, total_c
 from arena_kit.docs import standard_terms
 from arena_kit.play import latest, live_threads, moves_left
 
-from .economics import InfeasiblePackage, evaluate
 from .evaluator import (
     best_close,
     close_decision,
@@ -101,6 +100,12 @@ class PackageAgent:
 
             policy = PolicyConfig.from_dict(policy)
         self.policy = policy
+        self.package_advisor, self.package_notes = None, {}
+        if policy and policy.package_advice_types:
+            from .package_advisor import PackageAdvisor
+
+            self.package_advisor = PackageAdvisor()
+        self.conditional_exchange = False
         self.trades = None
         if policy:
             from .trades import TradePolicy
@@ -138,7 +143,7 @@ class PackageAgent:
         self._estimates, self._est_case, self._est_cache = estimates, None, {}
 
     def prepare_email(self, case, threads, sid):
-        """Call the model at most once per supplier message; async runner calls outside its lock."""
+        """Read each supplier message once; the async runner calls this outside its lock."""
         if self.model_assist is None:
             return
         events = threads.get(sid, [])
@@ -222,12 +227,15 @@ class PackageAgent:
             body += (
                 " This is a conditional exchange: we can commit to this package in return for the proposed unit price."
             )
+        elif self.conditional_exchange and any(k != "unit_price" for k in terms):
+            body += " The proposed non-price terms are conditional on the proposed unit price as one package."
         context = self.model_context.get(sid, {})
         signals = [x for x in context.get("signals", [])
                    if x.get("message_index") == self.model_seen.get(sid, (-1,))[0]]
         latest_signal = next(
             (x for x in reversed(signals) if x.get("kind") in
-             {"payment_trade", "quality_objection", "delivery_constraint", "capacity_constraint"}), None
+             {"payment_trade", "quality_objection", "delivery_constraint", "capacity_constraint"}),
+            None,
         )
         if latest_signal:
             body += {
@@ -240,8 +248,6 @@ class PackageAgent:
         self.prev[sid] = {k: v for k, v in terms.items() if k != "unit_price"}
         c = total_cost(case, terms, std, sup)
         sheets = [{"terms": t} for t in [terms, *variants][:3]]
-        for sheet in sheets:
-            evaluate(case, sheet["terms"], std, sup)
         self._log(case, "offer", sid, terms=terms, c=c, c_alt=c_alt, reason=reason, variants=list(variants) or None)
         return {
             "supplier_id": sid,
@@ -260,10 +266,7 @@ class PackageAgent:
             if pay is None or pay == terms["payment_days"] or pay in [v["payment_days"] for v in out]:
                 continue
             v = {**terms, "payment_days": pay}
-            try:
-                v["unit_price"] = price_for_cost(case, v, c_main, std, sup)
-            except InfeasiblePackage:
-                continue
+            v["unit_price"] = math.floor(price_for_cost(case, v, c_main, std, sup) * 100) / 100
             if must_haves_ok(case, v, std):
                 out.append(complete_offer(case, v))
         return out
@@ -284,7 +287,10 @@ class PackageAgent:
                 return prev
             return self.trades.initial(case, sid, ref_terms["unit_price"], self.anchor, std, sup, reference=ref_terms)
         if prev is None:
-            n = nonprice(case, best_terms(case, ref_terms["unit_price"], std, sup))
+            n = nonprice(case, best_terms(
+                case, ref_terms["unit_price"], std, sup,
+                prefer_longer_lead=bool(self.policy and self.policy.cost_neutral_lead_time),
+            ))
         elif not eligible:
             return prev
         else:
@@ -303,10 +309,12 @@ class PackageAgent:
             trial = {**n, f: v}
             if not must_haves_ok(case, {**trial, "unit_price": price}, std):
                 continue
-            if (
-                total_cost(case, {**trial, "unit_price": price}, std, sup)
-                <= total_cost(case, {**n, "unit_price": price}, std, sup) + 1e-6
-            ):
+            trial_c = total_cost(case, {**trial, "unit_price": price}, std, sup)
+            previous_c = total_cost(case, {**n, "unit_price": price}, std, sup)
+            if (self.policy and case['type'] in self.policy.package_advice_types and f == "contract_months"
+                    and v < n[f] and trial_c == previous_c):
+                continue
+            if trial_c <= previous_c + 1e-6:
                 n = trial
         return n
 
@@ -337,6 +345,25 @@ class PackageAgent:
             if move.get("close"):
                 return self._close(case, threads, move.get("reason", ""))
             if not move.get("hold"):
+                if self.package_advisor and case['type'] in self.policy.package_advice_types:
+                    from .context import DATA_ERRORS
+                    from .dossiers import build_one, load_package
+
+                    if sid not in self.package_notes:
+                        try:
+                            dossier = build_one(load_package(), sid)
+                            self.package_notes[sid] = list(reversed(dossier.notes))[:12] if dossier else []
+                        except DATA_ERRORS:
+                            self.package_notes[sid] = []
+                    remaining = self.trades.deadlines.get(sid, 0) - time.time()
+                    original = move['message']['term_sheets'][0]['terms']
+                    move, advice = self.package_advisor.select(
+                        case, threads, move, supplier=self._sup(case, threads, sid),
+                        public_notes=self.package_notes[sid], remaining_s=remaining,
+                    )
+                    selected = move['message']['term_sheets'][0]['terms']
+                    self.prev[sid] = nonprice(case, selected)
+                    self._log(case, 'package_advice', sid, **advice, original=original, selected=selected)
                 return move
             reason = move.get("reason", reason)
         return self._close(case, threads, reason)
@@ -356,12 +383,17 @@ class PackageAgent:
                 if saw_final and event.get("from") == "buyer" and event.get("term_sheets"):
                     count += 1
             self.final_counters[supplier_id] = count
-        try:
-            move = self._propose(case, threads, supplier_id)
-        except InfeasiblePackage as exc:
-            self._log(case, "infeasible_package", supplier_id, reason=str(exc))
-            move = {"close": True, "reason": "no valid package within cost budget"}
-        return self.evidence.enrich(case, threads, supplier_id, move) if self.evidence else move
+        move = self._propose(case, threads, supplier_id)
+        if self.evidence and self.evidence.eligible(case, move):
+            from .context import DATA_ERRORS
+
+            try:
+                context = self.evidence.context_for(case)
+            except DATA_ERRORS as exc:
+                self.evidence.fallback(case, exc)
+                return move
+            return self.evidence.enrich(case, threads, supplier_id, move, context=context)
+        return move
 
     def _propose(self, case, threads, supplier_id):
         """The proposal for one thread given the whole snapshot: an offer move
@@ -543,9 +575,10 @@ class PackageAgent:
         if self.trades and case["type"] in self.policy.package_types:
             terms, trade_reason = self.trades.switch(case, sid, events, terms, std, sup)
             why = trade_reason or why
-        model_payment = any(
-            s.get("kind") == "payment_trade" and s.get("message_index") == self.model_seen.get(sid, (-1,))[0]
-            for s in self.model_context.get(sid, {}).get("signals", [])
+        payment_requested = any(
+            signal.get("kind") == "payment_trade"
+            and signal.get("message_index") == self.model_seen.get(sid, (-1,))[0]
+            for signal in self.model_context.get(sid, {}).get("signals", [])
         )
-        variants = self._payment_variants(case, terms, cands[0][2], std, sup) if self.meso or model_payment else []
+        variants = self._payment_variants(case, terms, cands[0][2], std, sup) if self.meso or payment_requested else []
         return self._offer(case, sid, terms, std, sup, c_alt, why or f"round {k + 1} schedule", variants)

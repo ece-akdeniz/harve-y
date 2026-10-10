@@ -2,23 +2,43 @@
 
 Format and decision rule: `docs/04-experiments.md`. Newest on top. One entry per change.
 
-## 2026-10-10 — Bounded model email reading and approved memory (LOCAL CANDIDATE)
+## Combined latest-updates branch — local integration, 10 October 2026
 
-- Hypothesis: verbatim-cited model interpretation will catch supplier objections missed by
-  regex rules, letting the verified claim selector avoid weak arguments without changing prices
-  or contract validity. Exact-scope approved lessons may improve relevance on repeated suppliers.
-- Candidate: `codex/bounded-model-memory` from `0fb3989`; `--model-assist` opt-in. Provider/model
-  are explicit in a resolved lab checkpoint. Memory requires approved, cited, version-matched,
-  time-bounded lessons. No raw shared graph records enter live policy.
-- Local evidence: a mocked supplier objection absent from regex suppresses the index claim,
-  selects a verified scorecard claim, and leaves the offer sheet unchanged. An async kit-simulator
-  S01 case with the model path enabled completes with zero recorded thread timeouts. A cited
-  payment request adds a deterministic, no-more-expensive payment variant. Malformed,
-  unsupported and uncited model outputs fall back or are discarded. Full suite: 309 passed;
-  Ruff clean.
-- Quota/provider: zero hosted sessions, zero real provider calls, zero practice sessions. No
-  score-gain or latency conclusion. Decision: candidate only; compare in a separate bounded
-  D01/D02 lab campaign after the shared lab endpoint and provider configuration are healthy.
+- Hypothesis: the verified evidence branch can retain its standalone index evidence while
+  adopting the newer async runtime, bounded model interpretation, lab feedback, and
+  `main`'s context/claim checks and measured opt-in policies without breaking contracts.
+- Config/source: `codex/combined-latest-updates`; merged
+  `codex/verified-negotiation-evidence`, `codex/bounded-model-memory`, and `origin/main`
+  at `3653046`. Historical evidence tests expecting acceptance of non-standing sheet IDs
+  were archived in `experiments/legacy-package-regressions.py.txt`; the current hosted
+  standing-only contract is tested by `test_evaluator.py` and `test_runner.py`.
+- Cases: local fixture and simulator tests only. Validation: 419 pytest tests passed,
+  Ruff clean, including local lab HTTP tests. The pinned kit data path was supplied
+  explicitly. No Arena sessions, model-provider calls, or practice quota were used.
+- Result: merge and local regression checks passed. No deal-score estimate or promotion
+  claim; model assistance and package advice remain opt-in. A hosted paired comparison,
+  model latency/cost check, and final-machine rehearsal are still required.
+
+## Packaged runtime negotiation guidance — local integration, 10 October 2026
+
+- Hypothesis: explicit conditional package wording communicates the exchange more clearly
+  while preserving validated terms; score benefit remains unmeasured.
+- Config/source: working tree, packaged `src/negotiator/AGENTS.md`, runtime-settings v1.
+  Custom CLI serial/async play/run (including final) now load the guidance and record
+  its SHA-256 and effective settings. Missing/invalid guidance stops launch.
+- Existing numerical heuristics remain baseline values. Default CLI wording now makes
+  multi-issue offers conditional on the proposed price. Explicit experiment policies,
+  estimates and generic MESO activation retain existing controls; no candidate promotion.
+- Direct `PackageAgent` construction used by comparison tools retains its previous defaults.
+  Starter `arena --agent llm` is a separate implementation and does not load this guidance.
+- Cases: local synthetic RFQ decision comparison and both final CLI dispatch paths.
+  Integration tests verify changed guidance affects prices, conditional wording preserves
+  term sheets, arbitrary-cwd loading, trace provenance and launch failure on invalid guidance.
+- Validation: negotiation-only branch: 115 tests passed; combined checkout: 166 tests
+  passed; ruff clean. Wheel built offline, contains the guidance, and loads successfully
+  after extraction outside the source checkout.
+- Hosted sessions/quota: 0. Scores: unmeasured. Full final readiness remains outstanding.
+- Decision: runtime integration implemented; no claim of improved negotiation outcomes.
 
 ## 2026-10-10 — Readable experiment reports (UI VALIDATION)
 
@@ -553,6 +573,7 @@ keep that unmeasured policy out of the combined candidate.
 
 - User subsequently chose **stop after the free check and preserve quota**. No more practice
   sessions started. Final comparison is explicitly deferred until the user asks to resume.
+
 ## 2026-10-10 — MEASURED LOCAL: immutable full-project experiment loop rehearsal
 
 Hypothesis: normal anchored rounds improve kit simulator S01/S02 score over a deliberately
@@ -597,97 +618,215 @@ it is not hosted performance evidence or a proposed production strategy change.
   Initial shared recommendation remains explicitly unseeded; no real checkpoint publication or hosted
   campaign was launched. Browser crash prevents visual layout QA.
 
-## 2026-10-10 — Integrated runtime and lab, local verification
+## 2026-10-10 — Lab setup: nested-project checkpoint verification
 
-- Source base: Samet dc3a109; lab: Barış 08274aa; runtime fixes: 16b207f.
-- Hypothesis: preserve unresolved sessions and authoritative clocks across recovery.
-- Persistent 422 close remains open/resumable; cached reply retains remaining deadline;
-  exhausted uncertain POST stays pending with its original ID. Worker errors propagate.
-- Focused simulator/fault tests: 29 passed. No hosted quota or score claim.
-- Integrated the lab without replacing main's newer package/evidence policies.
+- Hypothesis: checkpoint publication and restoration must verify the entire repository when the
+  negotiator lives below its root and the arena kit is a sibling submodule.
+- Change: inspect Git trees with `--full-tree`; retain root-relative submodule and private-file checks.
+  Negotiation policy/configuration is unchanged. The coding-agent workflow is in `LAB_PLAYBOOK.md`.
+- Failure: initial real-repository restore rejected the valid sibling kit as a submodule manifest
+  mismatch. A nested-project, sibling-submodule, second-clone regression reproduced it before the fix.
+- Validation: all 27 checkpoint tests passed after the fix, including publication and isolated restore
+  from a second clone. No arena cases, hosted sessions or quota consumed; no performance score claimed.
+- Decision: use the corrected source for the initial shared baseline; seeding identifies a starting
+  checkpoint and does not imply measured promotion or improved negotiation performance.
 
-## 2026-10-10 — Integrated data, economics, reply interpretation and feedback
+## 2026-10-10 — MEASURED SANDBOX: Baris Test
 
-- Hypothesis: prevent known logic/recovery failures and make experiments reproducible across
-  main, the evidence branch and Barış's lab. This is an integration, not a claimed score gain.
-- Implemented fresh-data manifests/conflict handling, unseen-supplier dossiers, complete-package
-  guards and bounded nonlinear price-budget search. Prices and binding terms remain code-owned.
-- Added deterministic bounded reply interpretation, response-aware claim vetoes and objective
-  feedback in the lab CLI/read API/UI. No LLM calls. Feedback never promotes policy.
-- Read-only import: 100 local run records / 113 attempts, 0 import failures, 15 duplicate practice
-  sessions skipped. P10's original 422 failure and operator-assisted recovery remain separate.
-- Full integrated suite before final small guards: 293 passed; relevant final guards: 49 passed;
-  Ruff and Node UI checks passed. No practice starts.
-- Twelve-session LOCAL async lab rehearsal with current candidate policy and pinned public data:
-  all original outcomes completed, zero timeouts, checkpoint restore/publication and promotion
-  invariants passed on macOS. Toy control was anchor=0/rounds=1; candidate anchor=.12/rounds=5.
-  Toy mean gain 69.9764 points, deterministic repeats. Temporary lab verdict promoted; the real
-  lab recommendation was untouched. This proves wiring, not hosted policy improvement.
-- Rehearsal evidence: temporary tacto-loop-rehearsal-6w0y_73q, summary.json and cli-results.json.
-  An initial harness argument-name collision failed before any session; corrected and rerun.
-- Runtime estimated costs remain opt-in; no live personality model or self-modifying policies.
+- Scope/hypothesis: user-authorized single D01 smoke test of the shared recommended baseline;
+  no candidate change or comparative performance claim. Budget: one sandbox session, no practice run.
+- Run: `95dca638-82b5-4f07-b88c-1bb15c3813ce`; arena session `0f0ad2bb6dd309b5`.
+- Checkpoint: `e1d931e4fcce49fb8fd341c40052953a`; clean verified source
+  `f325fcb12c09ef2590cd9496a90dddd73e714648`, locked dependencies, serial package agent.
+- Config: anchor=0.12, rounds=5, close_gap=0.005, final_hold_s=40, p_walk=0.25,
+  meso=false, claims=false, estimates={}. Original manifest retains lock/data hashes.
+- Result: ended deal, 91.9231/100, must-haves satisfied, zero reported timeouts,
+  seven recorded moves, approximately five seconds negotiation time.
+- Setup issue: the first preflight rejected the restore metadata as untracked; no session opened.
+  Temporarily moved only that metadata into ignored storage, then restored it after execution.
+- Decision: retain the recommendation; this single sandbox observation is not evidence of an
+  improvement. Tracked result and original supplier messages are saved in the lab.
 
-## 2026-10-10 — Hosted recovery and shared-memory handoff
 
-- Hypothesis: the integrated async runner resumes the original sessions after abrupt termination.
-  Source fedd609; configs/candidate.json; free D01/D02 only; injected kill after first journalled send.
-- D01 99e5175b6c5630be: 91.9231%; D02 2da225d3421b1101: 46.0898%. Both valid deals,
-  must-haves true, zero timeouts. Exactly two original sessions; no replacements, no reported problems.
-- Practice quota unchanged: used 60, left 140, limit 200. Local evidence directory:
-  experiments/runs/integrated-free-recovery-fedd609 (journal, trace, owned state/threads, rehearsal.json).
-- Decision: retain recovery fixes; scores are not a paired strategy comparison or final-wave gate.
-- Added bounded option enumeration and authoritative observation-time deadline accounting after
-  the hosted run. The full local suite with these guards passed 295 tests before graph additions.
-- Per team ownership: retain simple ingestion for Uğur's comparison; Barış owns graph service;
-  Samet owns interface. Added portable graph export and reference reader used by feedback.
-  No graph service deployment, live lesson promotion or further interface changes.
-- Graph hypothesis: typed, scoped provenance prevents unknown versions and later outcomes from
-  contaminating earlier supplier analysis. Regression checks cover stable identities, release/time
-  isolation, original failure preservation, shared feedback and refusal of raw history for live play.
-  Initial local export: 100 runs / 113 attempts, 4,356 nodes / 6,268 edges; no quota used.
-- Final validation: 300 tests passed in 47.44 seconds; Ruff and diff whitespace checks passed.
-  The final cross-run graph evidence-link check also passed all four graph tests. Feedback and graph
-  exports regenerated successfully against the local imported database. Shared host remains unchanged.
+## 2026-10-10 — Lab browsing: score history, pagination and ordering
 
-## 2026-10-10 — Shared lab payment-response campaign (INCOMPLETE: transport failures)
+- Hypothesis: chronological supplier/case evidence and consistent list ordering make prior
+  results easier to inspect; this is a lab UX change, not a negotiator strategy experiment.
+- Change: authenticated compact history projection, selected-supplier charts and filters,
+  session deduplication, explicit recovered/missing outcomes, and sortable paginated experiments.
+- Configuration/cases/quota: existing recorded/imported results only; no new arena sessions.
+- Verification: regression coverage for numeric sorting across pages, filter/page refresh behavior,
+  zero versus missing scores, supplier attribution, campaign/import duplicates and recovery shapes;
+  actual DOM checks cover navigation, chart drill-down, escaping and late response cleanup.
+- Review fixes: normalized recovered campaign scores and ordered same-time repetitions numerically.
+  No performance gain claimed and no change to the shared recommended checkpoint.
 
-- Followed current main's AGENTS.md, LAB_PLAYBOOK.md and docs/13-agent-experiment-loop.md.
-  Tooling 7b35a43; restored the actual shared recommendation into an isolated detached worktree.
-  No main merge and no extra development branch: source is published under the lab checkpoint ref.
-- Baseline e1d931e4fcce49fb8fd341c40052953a (f325fcb), generation 1. Candidate
-  7d6d2f27cfd4407a8ae63cb8b8b52914 (92d0460), published to ece-akdeniz/harve-y.
-  This candidate starts from the recommendation, not the integrated-runtime branch.
-- One hypothesis: after two explicit primary counteroffers repeat a faster payment term,
-  respond with that payment term at a deterministically compensated price that does not increase
-  total buyer cost. Expect improvement on D02 without material D01 regression. No case-ID rules.
-- Config identical in both arms: serial, anchor .12, rounds 5, close_gap .005, final_hold_s 40,
-  p_walk .25, claims false, meso false, estimates {}, empty data manifest.
-- Candidate local validation: 260 tests passed, Ruff clean. Initial timing-only failures in
-  two runtime tests passed on isolated and full reruns; retained in candidate checkpoint log.
-- Family/campaign: ece-payment-response-20261010-01. Budget reserved: 12 sandbox sessions;
-  three repeats of D01/D02 in each arm. No practice allowance and no practice sessions started.
-- Only first D01 pair completed: baseline ef57e1cffe2f7ff9 and candidate 9593bb969e3563b5
-  both 91.9231%, must-haves true, zero timeouts, explicit original ended outcomes. Ten cells pending.
-  No D02 result; no strategy improvement claim; no automatic promotion or recommendation change.
-- Lab tunnel repeatedly timed out on metadata, start acknowledgements and result uploads.
-  Coordinator-only adapter used fresh HTTP connections and bounded retries of reads and identical
-  start/result payloads after confirming backend idempotency. Worker source/configuration and gates
-  stayed unchanged. This did not establish a reliable transport fix.
-- Final sync stored both original outcomes, cleared unacknowledged requests that the server still
-  marked pending, and reported no blocking attempts. No worker is left running. Resume only the same
-  campaign once the host is healthy; retain the existing family ceiling and never rerun ended cells.
-- All gates inspected: checkpoint compatibility passes. Complete sample, must-have evidence across
-  all candidate cells, timeout evidence/comparison, overall gain, case regression and repeat wins
-  remain unsatisfied because ten cells are pending. Missing evidence is not a measured violation.
-- Cited finding stored: ece-payment-response-20261010-01-incomplete. References the baseline
-  attempt and candidate sup:DEMO-F1 message 5 (60-day payment); disposition proposed, confidence .2.
-- History import completed and verified against the shared lab: all 116 prior owned sessions are
-  represented, with session deduplication into 103 shared run records at verification time. Both
-  original tracked sweeps are present; P10 retains failed/null original score plus separate recovery.
-  An initial upload pass reported 50 acknowledged / 50 failed; missing records were retried and
-  session-level readback confirmed zero uncovered historical sessions.
-- Local evidence/control directory:
-  ../harve-y-lab-tooling/tacto-negotiator/experiments/loop/ece-payment-response-20261010-01
-  (relative to the workspace's harve-y-integration root, not an artifact committed to Git).
-- Decision: keep the recommendation unchanged; comparison is incomplete due to external transport.
-  Team is considering a persistent Azure host. Migrate the existing database and leases, not a blank lab.
+## Shared Evidence context — local contract validation, 10 October 2026
+
+- Hypothesis: a shared, inspectable context can preserve existing price-increase claim selection
+  and message economics while linking selected claims to scoped sources and input versions.
+- Source: working branch `feat/evidence-context`; pinned kit
+  `1b5516bb95ef28e37f69aa446dc62168864bca53`; no activation/config changes.
+- Inputs: local `negotiation-arena-kit/data`, manifest v1.0.0, declared snapshot 2026-09-30;
+  saved P01 practice metadata. Export command and responsibilities: docs/16-evidence-context.md.
+- P01: existing bank/pick preserved; initial notice 51/90 days, PPI-D351 -3.7%, OTD 85.2%.
+  LCI-C +2.7%, PPI-C241 +6.5% and 712 ppm remain existing candidates. Private estimates stay
+  internal. Context gaps expose unknown index units and existing signal-overlay limitations.
+- Local checks cover term preservation, private exclusion, failed checks, missing-data fallback,
+  source/version export, reservations, resumed buyer refs and PackageAgent integration.
+- Hosted sessions/quota consumed: **0**. Scores and persuasion effects: **not measured**.
+  No runtime or negotiation-readiness claim; existing verifier/loader limits remain documented.
+- Decision: hand off the shared interface and proposed hosted checklist for team review.
+  The paused practice comparison stays paused; hosted work requires a separate instruction.
+- Validation: `uv run --locked pytest -q` with explicit `ARENA_DATA`: **120 passed**;
+  `uv run --locked ruff check .`: **passed**. Local asyncio suite ran outside the restricted
+  execution sandbox after sandboxed runner tests stalled; no hosted transport was used.
+
+## Claim verification and relevance — local follow-up, 10 October 2026
+
+- Hypothesis: reject unsupported/semantically inconsistent evidence and prioritize indices named
+  in the supplier explanation while preserving message economics and disclosure/usage rules.
+- Source/config: working branch `feat/evidence-context`, same pinned kit and local data manifest
+  as the shared-context batch; no policy activation changes. No hosted sessions or quota used.
+- Added canonical claim rendering and verification of sentence/figure agreement, units,
+  finite numbers, index direction/window/source compatibility, price bases/currency, disclosure,
+  supplier-wide scorecards and requested-date OTD. Notices require supplier/part/date applicability
+  and genuinely short notice; ambiguous/missing applicability is excluded. Notice preparation
+  now works without a scorecard.
+- Relevance: latest supplier message's known series IDs, then trigger/case citations, then listed
+  part drivers. Supplier text cannot change claim eligibility/disclosure. Selection traces expose
+  reasons and remaining slots; existing message refs conservatively consume the three-claim budget.
+- Audit: compared banks and selected kinds/IDs/figures with a saved pre-change local snapshot for
+  all 19 practice fixtures. P02's 109-day and P17's 104-day notice claims (90-day requirements)
+  are removed; they were previously unselected. P02's requested effective date is also outside the
+  recorded contract interval. Initial selections, including relevance ranking, stay unchanged for
+  all 19 fixtures. P01 stays 51/90 days, -3.7% PPI-D351, 85.2% OTD; scorecard wording is explicit.
+- Validation: **162 passed** with `uv run --locked pytest -q` and explicit `ARENA_DATA`;
+  `uv run --locked ruff check .` passed. Local P01 export was regenerated successfully.
+  Tests include false notice comparisons, wrong/expired/ambiguous scope, no-scorecard notices,
+  sentence tampering, units/direction, privacy, relevance, final message budget and resumed usage.
+- Decision: ready for local/team review; hosted persuasion and scores remain **unmeasured**.
+  Prices, term sheets, closing decisions, rival disclosure and cost-pressure integration remain
+  outside this batch. The existing paused hosted comparison remains paused.
+
+## 2026-10-10 — Lab hosting: Azure VM deployment path
+
+- Hypothesis: one always-on Azure VM with SQLite on its managed disk removes the developer-tunnel
+  timeout and latency problems while preserving the existing laptop workflow.
+- Change: environment-backed server defaults, a versioned service startup file, and an operator
+  runbook for HTTPS, secrets, locked deployment, database migration, verification and rollback.
+- Configuration/cases/quota: infrastructure only; no negotiator configuration or recommendation
+  changed, no Arena case opened, and no sandbox or practice quota consumed.
+- Decision: do not use App Service's network-mounted filesystem because Microsoft documents that it
+  cannot support SQLite exclusive locks. Deploy one offer-eligible Linux VM and keep SQLite on its
+  managed disk. Cut over only after history, loop state, authentication and upload verification.
+
+## Inference/Lab setup — prepared only, 10 October 2026
+
+- Hypothesis for a future probe: the Tacto endpoint can return an allowed closing-style ID
+  without changing deterministic prices, terms, evidence or closing decisions.
+- Added opt-in `negotiator.inference:InferenceProbeAgent` for standalone serial `lab run`;
+  generic optional agent metrics are sanitized into saved/uploaded attempt results.
+- Credential placement: ignored local `.env`, separate LLM/Arena/Lab keys. Lab URL comes
+  from LAB_PLAYBOOK.md. Tacto URL, model ID and protocol confirmation remain outstanding.
+- Proposed case: D01, one session, only after separate authorization. No budget granted here.
+- Tests and lint: prepared but **not run**, per the user's instruction. Endpoint/Lab access
+  was not checked; no services started, no uploads, no inference calls and no Arena sessions.
+- Decision: unvalidated setup for review; no performance or connection-success claim.
+
+### Azure deployment verification
+
+- Host: Azure for Students VM `ehl-experiment-lab-vm`, France Central, Ubuntu 22.04,
+  Standard B2ats_v2; static hostname
+  `ehl-experiment-lab-vm.francecentral.cloudapp.azure.com`.
+- Runtime: lab binds only to VM loopback on port 8000; Caddy 2.11.7 terminates HTTPS on 443 and
+  redirects port 80. Both systemd services are enabled and active. SSH is restricted to the
+  deployment IP; port 8000 is not exposed.
+- Migration: SQLite backup API copy passed integrity checking with 110 runs and eight loop records.
+  Public login returned a Secure cookie; `Baris Test` retained its completed 0.919230949 score;
+  one recommendation, finding and campaign remained visible. Laptop sync uploaded two saved
+  snapshots with zero failures and opened no Arena sessions.
+- Setup failure: Ubuntu's enabled repositories lacked Caddy, and Caddy's signed package mirror
+  returned HTTP 402 from the VM. The final installation uses Caddy's official static Linux binary
+  and a dedicated unprivileged systemd account.
+- Quota/decision: no Arena case, sandbox session or practice session was opened. The Azure URL is
+  now the lab endpoint for this laptop; teammates can cut over with the existing upload token.
+
+
+## 2026-10-10 — Port the measured P10 delivery tie-break onto current main
+
+Hypothesis: when multiple legal opening packages have exactly the same complete buyer
+cost, offering more delivery flexibility can improve the supplier's price. This port
+contains only the opt-in delivery tie-break originally introduced in `de3e49a`.
+`configs/cost-neutral-delivery.json` is the existing `configs/candidate.json` plus
+`cost_neutral_lead_time: true`; no other strategy is introduced or activated by the port.
+The default remains off. P10 is outside the configured package-policy types, so its
+opening uses the shared optimizer and selects 42 days instead of 35 at equal cost.
+
+Previously completed, fully reviewed hosted evidence (no new session consumed here):
+- Controls `79c3a047f6c4a906`, `2323becf5b0aeba2`: score 0.4531834162,
+  EUR 35.10, 35-day delivery, 23,400 units/year, 24 months; cost EUR 1,658,966.40.
+- Run `a3a18b67-3ba8-43a0-a6b4-3baba11672dd`, session `77190d3ecf714944`, source
+  `de3e49a`; run `0ac38ae5-de1d-4a53-93f5-fa7428577f36`, session `81c99adf8b88f7be`,
+  source `fd423a6`: both score 0.5546564482, EUR 33.80, 42-day delivery,
+  23,400 units/year, 24 months; cost EUR 1,597,720.80. Both valid, must-haves kept,
+  zero timeouts. Estimates and MESOs were off; LLM advice was off.
+- Each candidate saved EUR 61,245.60 against the recorded controls. The two supplier
+  replies were identical, so this is repeated hosted evidence, not independent
+  stochastic confirmation or a newly measured ten-case fixed-policy mean.
+
+Decision: retain this isolated measured improvement behind its explicit policy flag.
+Do not infer that current main plus its newer runtime wording reproduces these scores:
+this port is verified locally, not a new hosted comparison. LLM package selection,
+relationship experiments, RFQ changes, longer commitments and runtime recovery changes
+are excluded. No lab recommendation is promoted by this port.
+
+Local validation: delivery-cost equality, must-haves, costly-lead rejection, default
+35-day opening, configured 42-day opening, control fixtures and boolean configuration
+validation. All seven new tests pass; full suite: 342 passed, one existing failure in
+`test_worker_preflight_rejects_unloadable_claim_data_before_open` (an empty explicit
+package path falls back to locally available data). The same failure reproduces with
+unchanged main production modules; no unrelated fix is included. `ruff check .` passes.
+
+## 2026-10-10 — Retain the measured capacity package-adviser improvement
+
+Hypothesis: use the model to interpret a supplier's delivery constraint and choose among
+complete, legal packages whose prices are calculated by code to preserve the scheduled
+buyer-cost ceiling. This port retains the package-selector implementation from `0b3e2fb`
+and its serial integration. It does not include the earlier generic reply decorator.
+The bounded-call helper is now local to `package_advisor.py`; timeout and fallback
+behavior are unchanged. The model returns only an approved package ID and an exact
+supporting quotation; no generated prose or numbers are sent to the supplier.
+
+Hosted exploratory run `d612dda9-42f6-4863-bace-965dcdfd5d0a`, session
+`2b0e734b37274c07`, P10, completed with score **0.6550995999**, valid must-haves and
+zero timeouts. The complete transcript was reviewed by the experiment coordinator.
+The previous delivery-only sessions scored 0.5546564482. Final terms changed from
+EUR 33.80 / 42-day delivery / 24 months to EUR 31.80 / 56-day delivery / 24 months,
+with unchanged 23,400 units per year. Complete cost fell from EUR 1,597,720.80 to
+EUR 1,537,096.80, a further EUR 60,624 saving; this includes EUR 33,600 late-delivery
+cost. This is one hosted observation, not a replicated effect or a fresh ten-case mean.
+
+The two model calls took 3.46 and 1.94 seconds. The first selected the code-priced
+EUR 27.62 / 56-day / 24-month opening; the second kept the scheduled package. Model:
+`gpt-6.1-sol`, effort `low`; estimates and MESOs were off. The original run's policy
+also listed raw-material cases for advice, but only capacity was exercised. This port's
+`configs/package-advice.json` deliberately enables advice for **capacity only** and
+otherwise matches `configs/cost-neutral-delivery.json`. No raw-material improvement
+is claimed. This evidence does not promote the lab recommendation or default policy.
+
+Activation requires the serial runner, this explicit policy config and local
+`LLM_BASE_URL`, `LLM_API_KEY`, `LLM_MODEL` settings (optional `LLM_EFFORT`). Missing
+credentials, invalid output or the eight-second call limit preserve the scheduled
+move. The async runner rejects this mode before opening a session. Final offers,
+closing actions, evidence-bearing or multiple-sheet moves, and fewer than 20 seconds
+remaining skip advice. Role context includes the arena's `from_name`; public notes
+are supplied without internal estimates or reservation costs. Previously proposed
+packages are excluded in code; interpreting other refusals remains model judgment.
+
+No additional hosted sessions or model calls were consumed to port this change.
+
+Port validation: full suite **363 passed, one existing preflight failure** described
+in the preceding entry; the same failure reproduces with the unchanged current
+`origin/main` production modules. All 22 focused delivery/adviser tests pass.
+`ruff check .` passes. No unrelated preflight fix is included.

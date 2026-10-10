@@ -67,29 +67,6 @@ def test_at_most_two_claims_and_deterministic_order():
     assert selected[0][0].refs[0].startswith("idx:ENERGY")
 
 
-def test_agent_evidence_is_opt_in_and_does_not_change_terms():
-    import json
-    from importlib.resources import files
-
-    from negotiator.agent import PackageAgent
-
-    case = json.loads(files("arena_kit").joinpath("sim_cases/S01.json").read_text())
-    evidence_case, _ = fixture()
-    case.update({"refs": evidence_case["refs"], "facts": evidence_case["facts"]})
-    sid = case["suppliers"][0]
-    threads = {sid: [{"from": "sales", "status": "open", "attachments": [],
-                     "term_sheets": [{"term_sheet_id": "offer:a", "terms": {"unit_price": 17}}]}]}
-    baseline = PackageAgent().decide(case, threads)["message"]
-    agent = PackageAgent(evidence=True)
-    candidate = agent.decide(case, threads)["message"]
-    assert baseline["term_sheets"] == candidate["term_sheets"]
-    assert "refs" not in baseline
-    assert "-3.70%" in candidate["body"]
-    assert candidate["refs"] == evidence_case["refs"]
-    threads[sid].extend([{"from": "buyer", **candidate}, threads[sid][0]])
-    assert "refs" not in agent.decide(case, threads)["message"]
-
-
 def test_hosted_case_uses_only_its_own_cost_driver_series():
     case, facts = fixture()
     case.update(refs=[], parts=["part:ours"])

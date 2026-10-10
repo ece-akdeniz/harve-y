@@ -137,6 +137,8 @@ class CaseRunner:
         move_limit_s: float = MOVE_LIMIT_S,
         send_slots: int | None = 1,
     ):
+        if getattr(agent, "package_advisor", None) is not None:
+            raise ValueError("package advice is experimental and currently requires the serial runner")
         self.arena, self.case_id, self.agent, self.journal = arena, case_id, agent, journal
         self.case_meta, self.deadline_fn = case, deadline
         self.clock = clock or Clock()

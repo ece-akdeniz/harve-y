@@ -49,7 +49,8 @@ def alternative_cost(case: dict) -> float:
     return total_cost(case, terms) if terms.get("unit_price") else float("inf")
 
 
-def best_terms(case: dict, unit_price: float, standard: dict | None = None, supplier=None) -> dict:
+def best_terms(case: dict, unit_price: float, standard: dict | None = None, supplier=None,
+               prefer_longer_lead: bool = False) -> dict:
     """Complete term sheet at `unit_price` whose non-price fields minimise C and keep the
     must-haves. Fields without listed options keep the buyer's plan (`complete_offer`)."""
     base = complete_offer(case, {"unit_price": unit_price})
@@ -65,7 +66,12 @@ def best_terms(case: dict, unit_price: float, standard: dict | None = None, supp
         # stricter PPM promise for no modeled buyer benefit.
         tie = (-(terms.get("ppm_commitment") or 0), terms.get("chargeback_eur_per_complaint") or 0)
         best_tie = (-(best.get("ppm_commitment") or 0), best.get("chargeback_eur_per_complaint") or 0)
-        if c < best_c or (c == best_c and tie < best_tie):
+        same_cost_longer_lead = (
+            prefer_longer_lead and "lead_time_days" in fields and c == best_c
+            and terms["lead_time_days"] > best["lead_time_days"]
+        )
+        quality_tie = c == best_c and not (prefer_longer_lead and "lead_time_days" in fields) and tie < best_tie
+        if c < best_c or same_cost_longer_lead or quality_tie:
             best, best_c = terms, c
     return best
 

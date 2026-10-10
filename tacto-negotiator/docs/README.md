@@ -35,9 +35,7 @@ Hosted timing is measured. Then scale to multiple cases.
 
 ## Document map
 
-- [15 — harve/y integrated design plan](15-harvey-design-plan.md): fresh-data ingestion,
-  deterministic contract economics, and evidence-linked feedback through y/agent lab.
-
+- [Coding-agent lab playbook](../LAB_PLAYBOOK.md): laptop setup and the tracked experiment workflow.
 - [00 — Challenge contract](00-challenge.md): official rules, score, limits and schedule.
 - [01 — Research](01-research.md): reproduced findings, estimates and hypotheses.
 - [02 — Architecture](02-architecture.md): ownership, state, deadlines and interfaces.
@@ -57,13 +55,30 @@ Hosted timing is measured. Then scale to multiple cases.
   conditional 52-session ceiling, stop gates and FAQ implications. Supersedes document 12's budget.
 
 - [14 — Measured demo](14-measured-demo.md): two defensible replay stories and their limits.
+
+- [15 — Azure lab hosting](15-azure-lab-hosting.md): stable App Service deployment, database
+  migration, validation, team cutover, backup and cleanup.
+
 - [12 — Experiment dashboard](12-experiment-dashboard.md): shared laptop-hosted dashboard,
   local experiment runners, comparisons, buffering and importing previous attempts.
 
 - [13 — Agent experiment loop](13-agent-experiment-loop.md): immutable checkpoints, bounded
   comparisons, cited findings, recovery and safe local/recommendation restore.
 
+- [15 — Evidence stage plan](15-evidence-stage-plan.md): prioritized data correctness, case-aware
+  supplier signals, claim validation and gated experiments for the Evidence owner.
+
+- [16 — Evidence context](16-evidence-context.md): implemented shared interface, local P01 export and hosted-run handoff checklist.
+
 ## Sources and evidence labels
+
+- [17 — Independent inference setup](17-inference-setup.md): local credential placement,
+  opt-in Lab probe and later validation commands; setup has not been executed or validated.
+
+The custom arena runner loads [runtime negotiation guidance](../src/negotiator/AGENTS.md)
+through `guidance.py` on every `negotiator play/run` launch. Its structured settings
+are executed and hashed in the run trace; research prose alone does not implement
+a new policy. See the root README for the distinction from the starter `arena` agent.
 
 Audited kit and current lockfile: `1b5516bb95ef28e37f69aa446dc62168864bca53`.
 [Source snapshot](https://github.com/tacto-ai/negotiation-arena-kit/tree/1b5516bb95ef28e37f69aa446dc62168864bca53).
@@ -79,6 +94,3 @@ Resolve conflicting official statements with the desk; public jury weighting is 
 
 Hosted sandbox observations are recorded in [the experiment log](../experiments/LOG.md).
 They do not establish generalization, final readiness or a winning probability.
-
-- [16 — Integrated runtime](16-integrated-runtime.md): implemented ingestion/economics/feedback, async lab commands and limits.
-- [17 — Shared memory handoff](17-shared-memory-handoff.md): Barış's graph contract, Uğur's ingestion boundary and Samet's interface ownership.

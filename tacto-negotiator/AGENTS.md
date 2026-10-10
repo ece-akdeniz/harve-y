@@ -3,6 +3,10 @@
 Read `docs/README.md`, then `docs/10-implementation-checklist.md`. PackageAgent uses shared closing
 checks, custom serial/async runners and opt-in claims. Final rehearsal remains outstanding. Do not report target behavior as implemented.
 
+Runtime strategy settings live in `src/negotiator/AGENTS.md` and are loaded by both
+custom CLI runners. Keep that packaged file consistent with `guidance.py`; prose alone
+does not change runtime policy. Test the CLI launch path and installed-package resource.
+
 ## Invariants
 
 - Numbers and term sheets come from code. The model interprets replies and words approved moves.
@@ -43,6 +47,11 @@ local simulator for contract checks and D01/D02 for planned sandbox experiments.
 pushes or manual moves afterward. No new frameworks or training without a demonstrated need.
 
 ## Lab experiment loop
+
+Before changing the negotiator or running experiments, read [LAB_PLAYBOOK.md](LAB_PLAYBOOK.md).
+Use `negotiator lab run` or `negotiator lab campaign run` for tracked experiments; ordinary
+play/run commands are not automatically recorded. The playbook supplies setup, isolation,
+budget, evidence and recovery steps. It does not authorize an experiment budget by itself.
 
 Follow [the coding-agent workflow](docs/13-agent-experiment-loop.md): read the current recommendation
 and cited evidence with `uv run --locked negotiator lab recommended show d01-d02-sandbox-serial-v1`

@@ -13,7 +13,7 @@ from arena_kit.cli import load_env, summary
 from arena_kit.client import ArenaClient, ArenaError
 from arena_kit.play import RemoteTable, hosted
 
-from .agent import PackageAgent
+from .guidance import RuntimeGuidance
 from .play import play_all, play_case, play_waves, run_config
 from .runner import run_async, runtime_config
 from .trace import Tracer
@@ -75,6 +75,7 @@ def main(argv=None) -> int:
     from .policy import PolicyConfig
 
     try:
+        guidance = RuntimeGuidance.load()
         policy = PolicyConfig.load(args.policy_config) if args.policy_config else None
     except (OSError, ValueError, TypeError) as exc:
         ap.error(str(exc))
@@ -85,7 +86,15 @@ def main(argv=None) -> int:
             ap.error("--model-assist requires a supported LLM_PROVIDER, LLM_MODEL and provider API key")
 
     def new_agent():
-        return PackageAgent(tracer=tracer, policy=policy, model_assist=args.model_assist)
+        agent = guidance.new_agent(tracer=tracer, policy=policy)
+        if args.model_assist:
+            from .model_assist import ModelAssist
+
+            agent.model_assist = ModelAssist(
+                memory_path=os.environ.get("NEGOTIATOR_APPROVED_MEMORY"),
+                data_sha256=os.environ.get("NEGOTIATOR_DATA_SHA256"),
+            )
+        return agent
 
     if args.runner == "async":
         cfg = {**run_config(new_agent(), runner="async"), **runtime_config(getattr(args, "parallel", 1))}
