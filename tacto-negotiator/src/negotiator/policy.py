@@ -54,6 +54,12 @@ class PolicyConfig:
     # Per case type number of buyer rounds over which the price schedule reaches the
     # supplier's price (faster convergence before a supplier's final offer); others use the agent's.
     rounds_by_type: dict[str, int] = field(default_factory=dict)
+    # Case types where, once the supplier holds its standing price, we offer once to drop the
+    # chargeback at the price that leaves the supplier's value unchanged (arena_kit supplier_value
+    # with the ppm from the supplier's own quote) - only if it lowers our C.
+    value_swap_types: tuple[str, ...] = ()
+    # Consecutive unchanged standing replies (same package and price) that trigger the swap.
+    value_swap_holds: int = 1
 
     @classmethod
     def load(cls, path):
@@ -79,6 +85,7 @@ class PolicyConfig:
             "longer_tenor_types",
             "bundle_volume_types",
             "bundle_commitment_types",
+            "value_swap_types",
         ):
             v = d.get(k, [])
             if not isinstance(v, list) or any(not isinstance(x, str) or x not in TYPES for x in v):
@@ -118,6 +125,9 @@ class PolicyConfig:
         ):
             raise ValueError("invalid rounds_by_type")
         d["rounds_by_type"] = dict(rounds)
+        holds = d.get("value_swap_holds", 1)
+        if type(holds) is not int or not 1 <= holds <= 3:
+            raise ValueError("value_swap_holds must be 1, 2 or 3")
         return cls(**d)
 
     def record(self):
