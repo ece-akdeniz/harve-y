@@ -400,3 +400,28 @@ Decision:
   and complete costs. Package-only tied this evidence arm; the claim's incremental effect is zero
   in this screen. `experiments/replays/p04-package-evidence.html`.
 - Local suite: 109 passed; ruff clean. Sunday release and final host rehearsal remain separate.
+
+## P11 refinement — source 37fe085
+
+- Lower chargeback rank 1: `2a2e85e2f0372c98` and `49fc8d01470de13a`, both **63.38**.
+- Lower chargeback rank 2: `c6869765602972cc` and `f4b2804c5cfda349`, both **70.99**.
+- All four satisfy must-haves, zero thread timeouts, no contradicted claims or unresolved
+  requests. Historical 2,376 ppm and electricity change claims were verified. Payment stayed
+  at the fixed 60 days. Source/terms/costs retained in each authenticated replay.
+- Select rank 2. This exceeds the last observed public leader's 62.6, subject to refresh.
+  Repeated results are reproducibility observations, not significance tests.
+- Quota 161 ->157; cycle total 12. Released 12 broader comparisons: P08 packages, P02 claims
+  only, P05 supplier-standard faster payment, each versus baseline twice. P10 skipped at
+  the missing-input gate. P04 optional refinements skipped; maximum planned cycle now 44
+  if all remaining gates pass, below the 52 ceiling.
+
+### Combined-policy and regression runner preparation
+
+- Added per-case-type package preferences so a combined quality chargeback policy does not
+  replace an independently measured RFQ payment policy. No case IDs or target prices enter
+  policy configuration. Local test verifies renewal, quality and RFQ preference separation.
+- The subset runner loads the selected source checkout, shares one AsyncArena across all cases,
+  and fails when requested results are missing. Final comparison can run five baseline cases,
+  all ten candidate cases concurrently, then the other five baseline cases. This alternates
+  baseline/candidate order by case while exercising candidate concurrency with one limiter.
+- Local suite: 111 tests passed, ruff clean. Final comparison has not started or spent quota.

@@ -67,7 +67,8 @@ def main():
     ap.add_argument('--out', type=Path, required=True)
     args = ap.parse_args()
     jobs = json.loads(args.manifest.read_text())
-    if not 0 < len(jobs) <= args.budget <= 52:
+    planned = sum(len(j.get('cases') or [j.get('case')]) for j in jobs)
+    if not 0 < planned <= args.budget <= 52:
         ap.error('manifest must fit the released batch budget')
     if args.out.exists():
         ap.error('output already exists; inspect existing sessions before restarting')
@@ -78,7 +79,7 @@ def main():
            'NEGOTIATOR_ESTIMATES': '0', 'NEGOTIATOR_MESO': '0'}
     client = ArenaClient(base_url=env['ARENA_URL'], api_key=env.get('ARENA_API_KEY'))
     before = practice_left(env)
-    if before.get('left', 0) - len(jobs) < 46:
+    if before.get('left', 0) - planned < 46:
         ap.error('insufficient quota to preserve 46 sessions')
     args.out.mkdir(parents=True)
     result = {'before': before, 'manifest': jobs, 'runs': [], 'stopped': None}
@@ -94,11 +95,16 @@ def main():
             arm.prepare(Path(env['ARENA_DATA']))
             arms.append(arm)
         for i, (job, arm) in enumerate(zip(jobs, arms, strict=True), 1):
-            if practice_left(env).get('left', 0) <= 46:
+            if practice_left(env).get('left', 0) - len(job.get('cases') or [job['case']]) < 46:
                 raise RuntimeError('reserve reached')
             directory = args.out / f"{i}-{job['case']}-{job['label']}"
             print(f"Starting {i}/{len(jobs)}: {job['case']} {job['label']}", flush=True)
-            run = run_one(arm, ['play', f"case:{job['case']}"], env, directory, 600)
+            if job.get('cases'):
+                argv = ['--cases', *job['cases'], '--parallel', str(job.get('parallel', 10))]
+                run = run_one(arm, argv, env, directory, 900,
+                              program=['python', str(ROOT / 'tools/selected_cases.py')])
+            else:
+                run = run_one(arm, ['play', f"case:{job['case']}"], env, directory, 600)
             run['job'] = job
             result['runs'].append(run)
             problems = inspect_run(client, run, directory)

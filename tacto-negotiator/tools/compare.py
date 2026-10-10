@@ -157,10 +157,10 @@ def practice_left(env) -> dict:
     return ArenaClient(base_url=env["ARENA_URL"], api_key=env.get("ARENA_API_KEY")).me().get("practice") or {}
 
 
-def run_one(arm: Arm, argv, env, run_dir: Path, timeout) -> dict:
+def run_one(arm: Arm, argv, env, run_dir: Path, timeout, program=None) -> dict:
     run_dir.mkdir(parents=True, exist_ok=True)
     full_env = {**env, **arm.env, "NEGOTIATOR_LOG_DIR": str(run_dir)}
-    cmd = ["uv", "run", "--locked", "negotiator", *argv, *arm.args]
+    cmd = ["uv", "run", "--locked", *(program or ["negotiator"]), *argv, *arm.args]
     started = time.monotonic()
     proc = subprocess.Popen(cmd, cwd=arm.dir, env=full_env, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                             text=True, start_new_session=True)

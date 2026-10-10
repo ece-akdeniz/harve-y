@@ -1,7 +1,7 @@
 {
   "cycle_ceiling": 52,
   "reserve": 46,
-  "spent_by_cycle": 8,
+  "spent_by_cycle": 12,
   "screening": {
     "before": {
       "used": 21,
@@ -223,7 +223,7 @@
       "house": 0.3861
     }
   ],
-  "decision": "Confirmation reproduced both improvements; release four P11 lower-chargeback refinement sessions. P04 already matches displayed current leader; skip its optional refinement.",
+  "decision": "Select chargeback_steps=2 for quality; 70.99 repeated. Broader comparison releases twelve sessions, skipping four P10 runs because valid opening reference is unavailable.",
   "confirmation": {
     "before": {
       "used": 35,
@@ -334,6 +334,122 @@
           "case": "P11",
           "label": "baseline",
           "ref": "1551125126acf6865bb0660cbcc84c66272ff301"
+        }
+      }
+    ]
+  },
+  "refinement": {
+    "before": {
+      "used": 39,
+      "left": 161,
+      "limit": 200,
+      "resets_at": "2026-10-11T11:39:03.056071+00:00"
+    },
+    "after": {
+      "used": 43,
+      "left": 157,
+      "limit": 200,
+      "resets_at": "2026-10-11T11:39:03.056071+00:00"
+    },
+    "runs": [
+      {
+        "cmd": "uv run --locked negotiator play case:P11 --runner async --policy-config configs/quality-chargeback-1.json",
+        "cwd": "/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-37fe085f-7nmcijf2/tacto-negotiator",
+        "run_dir": "experiments/runs/staged-refinement-20261010/1-P11-chargeback-1-r1",
+        "returncode": 0,
+        "timed_out": false,
+        "elapsed_s": 111.2,
+        "cases": {
+          "case:P11": {
+            "score": 0.6338060610879618,
+            "deal": true,
+            "error": null,
+            "timeouts": 0,
+            "session": "2a2e85e2f0372c98",
+            "must_haves_ok": true
+          }
+        },
+        "stderr_tail": "e active environment instead\nUsing CPython 3.12.13\nCreating virtual environment at: .venv\n   Building tacto-negotiator @ file:///private/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-37fe085f-7nmcijf2/tacto-negotiator\n      Built tacto-negotiator @ file:///private/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-37fe085f-7nmcijf2/tacto-negotiator\nInstalled 37 packages in 71ms\n",
+        "job": {
+          "case": "P11",
+          "label": "chargeback-1-r1",
+          "ref": "37fe085f5a1e4863a7d606df583789abda6ad48d",
+          "config": "configs/quality-chargeback-1.json"
+        }
+      },
+      {
+        "cmd": "uv run --locked negotiator play case:P11 --runner async --policy-config configs/quality-chargeback-2.json",
+        "cwd": "/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-37fe085f-dgdpotav/tacto-negotiator",
+        "run_dir": "experiments/runs/staged-refinement-20261010/2-P11-chargeback-2-r1",
+        "returncode": 0,
+        "timed_out": false,
+        "elapsed_s": 115.4,
+        "cases": {
+          "case:P11": {
+            "score": 0.7098962346486538,
+            "deal": true,
+            "error": null,
+            "timeouts": 0,
+            "session": "c6869765602972cc",
+            "must_haves_ok": true
+          }
+        },
+        "stderr_tail": "e active environment instead\nUsing CPython 3.12.13\nCreating virtual environment at: .venv\n   Building tacto-negotiator @ file:///private/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-37fe085f-dgdpotav/tacto-negotiator\n      Built tacto-negotiator @ file:///private/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-37fe085f-dgdpotav/tacto-negotiator\nInstalled 37 packages in 83ms\n",
+        "job": {
+          "case": "P11",
+          "label": "chargeback-2-r1",
+          "ref": "37fe085f5a1e4863a7d606df583789abda6ad48d",
+          "config": "configs/quality-chargeback-2.json"
+        }
+      },
+      {
+        "cmd": "uv run --locked negotiator play case:P11 --runner async --policy-config configs/quality-chargeback-1.json",
+        "cwd": "/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-37fe085f-u5wi8fp1/tacto-negotiator",
+        "run_dir": "experiments/runs/staged-refinement-20261010/3-P11-chargeback-1-r2",
+        "returncode": 0,
+        "timed_out": false,
+        "elapsed_s": 4.4,
+        "cases": {
+          "case:P11": {
+            "score": 0.6338060610879618,
+            "deal": true,
+            "error": null,
+            "timeouts": 0,
+            "session": "49fc8d01470de13a",
+            "must_haves_ok": true
+          }
+        },
+        "stderr_tail": " active environment instead\nUsing CPython 3.12.13\nCreating virtual environment at: .venv\n   Building tacto-negotiator @ file:///private/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-37fe085f-u5wi8fp1/tacto-negotiator\n      Built tacto-negotiator @ file:///private/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-37fe085f-u5wi8fp1/tacto-negotiator\nInstalled 37 packages in 109ms\n",
+        "job": {
+          "case": "P11",
+          "label": "chargeback-1-r2",
+          "ref": "37fe085f5a1e4863a7d606df583789abda6ad48d",
+          "config": "configs/quality-chargeback-1.json"
+        }
+      },
+      {
+        "cmd": "uv run --locked negotiator play case:P11 --runner async --policy-config configs/quality-chargeback-2.json",
+        "cwd": "/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-37fe085f-jk83o5wz/tacto-negotiator",
+        "run_dir": "experiments/runs/staged-refinement-20261010/4-P11-chargeback-2-r2",
+        "returncode": 0,
+        "timed_out": false,
+        "elapsed_s": 3.0,
+        "cases": {
+          "case:P11": {
+            "score": 0.7098962346486538,
+            "deal": true,
+            "error": null,
+            "timeouts": 0,
+            "session": "f4b2804c5cfda349",
+            "must_haves_ok": true
+          }
+        },
+        "stderr_tail": "e active environment instead\nUsing CPython 3.12.13\nCreating virtual environment at: .venv\n   Building tacto-negotiator @ file:///private/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-37fe085f-jk83o5wz/tacto-negotiator\n      Built tacto-negotiator @ file:///private/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-37fe085f-jk83o5wz/tacto-negotiator\nInstalled 37 packages in 84ms\n",
+        "job": {
+          "case": "P11",
+          "label": "chargeback-2-r2",
+          "ref": "37fe085f5a1e4863a7d606df583789abda6ad48d",
+          "config": "configs/quality-chargeback-2.json"
         }
       }
     ]

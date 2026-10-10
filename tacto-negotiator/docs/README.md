@@ -53,6 +53,8 @@ Hosted timing is measured. Then scale to multiple cases.
 - [13 — Staged experiments](13-staged-experiments.md): current implementation, four-run screening,
   conditional 52-session ceiling, stop gates and FAQ implications. Supersedes document 12's budget.
 
+- [14 — Measured demo](14-measured-demo.md): two defensible replay stories and their limits.
+
 ## Sources and evidence labels
 
 Audited kit and current lockfile: `1b5516bb95ef28e37f69aa446dc62168864bca53`.

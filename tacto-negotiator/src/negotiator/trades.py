@@ -49,6 +49,7 @@ class TradePolicy:
 
     def initial(self, case, sid, price, anchor, standard, supplier, reference=None):
         self.prepare(case)
+        preference = self.config.preferences.get(case["type"], self.config.preference)
         candidates = packages(case, price * (1 - anchor), standard, supplier)
         # Record both price surfaces; do not confuse buyer value with supplier willingness.
         self.log(
@@ -59,7 +60,7 @@ class TradePolicy:
         if "multi_year_only" in self.traits[sid] and "contract_months" in t:
             tenors = [m for m in options.get("contract_months", []) if m >= 12 * case["buyer"]["horizon_years"]]
             if tenors:
-                t["contract_months"] = max(tenors) if self.config.preference == "longer_tenor" else min(tenors)
+                t["contract_months"] = max(tenors) if preference == "longer_tenor" else min(tenors)
             if "volume_per_year" in t and (reference or {}).get("volume_per_year") is not None:
                 t["volume_per_year"] = reference["volume_per_year"]
         if "ppm_commitment" in t:
@@ -71,10 +72,10 @@ class TradePolicy:
                 ):
                     t = trial
                     break
-        if self.config.preference == "standard_payment" and "payment_days" in t:
+        if preference == "standard_payment" and "payment_days" in t:
             if standard.get("payment_days") in options.get("payment_days", []):
                 t["payment_days"] = standard["payment_days"]
-        if self.config.preference == "lower_chargeback" and "chargeback_eur_per_complaint" in t:
+        if preference == "lower_chargeback" and "chargeback_eur_per_complaint" in t:
             lower = [
                 x for x in options.get("chargeback_eur_per_complaint", []) if x < t["chargeback_eur_per_complaint"]
             ]

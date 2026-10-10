@@ -17,6 +17,7 @@ class PolicyConfig:
     final_offer_risk: str = "legacy"
     preference: str = "default"
     chargeback_steps: int = 1
+    preferences: dict[str, str] = field(default_factory=dict)
 
     @classmethod
     def load(cls, path):
@@ -37,6 +38,12 @@ class PolicyConfig:
         steps = d.get("chargeback_steps", 1)
         if type(steps) is not int or not 1 <= steps <= 3:
             raise ValueError("chargeback_steps must be 1, 2 or 3")
+        preferences = d.get("preferences", {})
+        allowed = {"default", "standard_payment", "longer_tenor", "lower_chargeback"}
+        if not isinstance(preferences, dict) or any(
+            k not in TYPES or not isinstance(v, str) or v not in allowed for k, v in preferences.items()
+        ):
+            raise ValueError("invalid case-type preferences")
         return cls(**d)
 
     def record(self):

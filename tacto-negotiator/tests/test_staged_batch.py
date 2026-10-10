@@ -36,3 +36,34 @@ def test_unresolved_intent_stops_new_starts(tmp_path):
     problems = module.inspect_run(None, run, tmp_path)
     assert 'unreconciled requests' in problems
     assert 'runtime failure or missing result' in problems
+
+
+def test_subset_runner_shares_one_client_and_rejects_missing_results(monkeypatch, tmp_path):
+    spec = importlib.util.spec_from_file_location('selected_cases', TOOLS / 'selected_cases.py')
+    selected = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(selected)
+    clients = []
+
+    class Client:
+        def __init__(self):
+            clients.append(self)
+            self.closed = False
+
+        async def aclose(self):
+            self.closed = True
+
+    async def run_set(arena, set_, new_agent, journal, **kw):
+        assert arena is clients[0] and set_ == 'practice'
+        assert kw['case_ids'] == ['case:S01', 'case:S02']
+        assert kw['parallel'] == 10
+        assert new_agent() is not new_agent()
+        return {'case:S01': {'score': 0.5, 'deal': True}}
+
+    monkeypatch.setattr(selected, 'AsyncArena', Client)
+    monkeypatch.setattr(selected, 'run_set', run_set)
+    monkeypatch.setattr(selected, 'load_env', lambda: None)
+    monkeypatch.setattr(selected, 'run_config', lambda *a, **kw: {})
+    monkeypatch.setenv('NEGOTIATOR_LOG_DIR', str(tmp_path))
+    monkeypatch.setattr(sys, 'argv', ['selected_cases', '--cases', 'case:S01', 'case:S02'])
+    assert selected.main() == 1
+    assert len(clients) == 1 and clients[0].closed

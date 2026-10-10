@@ -196,3 +196,16 @@ def test_p10_missing_valid_opening_retains_standing_offer(cases):
     events = [msg('open', ('o:0', opening)), ours(final), msg('final_offer', ('o:1', final), ('o:1-a', alt))]
     agent = PackageAgent(policy=PolicyConfig(final_offer_risk='opening_proxy'))
     assert agent.propose(c, {sid: events}, sid).get('close')
+
+
+def test_combined_preferences_are_scoped_by_case_type(cases):
+    cfg = PolicyConfig(package_types=('renewal', 'quality', 'rfq'),
+                       preferences={'quality': 'lower_chargeback', 'rfq': 'standard_payment'}, chargeback_steps=2)
+    trade = TradePolicy(cfg, lambda *a, **kw: None)
+    for cid, expected in [('case:P04', ('payment_days', 90)),
+                          ('case:P11', ('chargeback_eur_per_complaint', 150)),
+                          ('case:P05', ('payment_days', 30))]:
+        c = cases[cid]
+        result = trade.initial(c, c['suppliers'][0], c['buyer']['current_unit_price'], 0.12,
+                               {'payment_days': 30}, None)
+        assert result[expected[0]] == expected[1]
