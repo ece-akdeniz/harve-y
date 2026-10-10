@@ -853,3 +853,15 @@ in the preceding entry; the same failure reproduces with the unchanged current
 - Sessions consumed: 6/12. Verdict: merge `p01-standard-payment` (`standard_payment_types:
   ["price_increase"]`); note it also affects P02 (owned elsewhere) if adopted globally — scope to
   P01 owners' review or verify P02 before promoting.
+
+## 2026-10-10 — P07/P11/P01 line stopped (reconcile only, no new sessions)
+
+- Line stopped on request (overlap with another team agent). No new sessions started by this worker.
+- Reconciled run `2406aa57` (P07 deep anchor `anchor_by_type bundling 0.2`, session
+  `1a25cd75923030db`): it was left `running` after its attempt completed. Session verified owned and
+  ended; collected thread detail (0 timeouts), marked completed, `lab sync` ok. Score **0.7015**
+  (5.48, 90d, 24m). The supplier declared final at r3 after a 4.59 opening. Drop deep anchor.
+- Unlogged earlier run `c6416c3b` (P07 bundling OTD-scorecard evidence, session `8b8354f07cd83a87`):
+  **0.7470** (5.41, 90d, 24m, final at r5, 0 timeouts). That is +0.004 vs 0.7430 at n=1, within noise; not repeated.
+- Previous worker total: 8 practice sessions. Branch is behind origin/main (memory/model_assist), so
+  rebase before any merge. Merge candidate: `p01-standard-payment` only (0.9602 x2).
