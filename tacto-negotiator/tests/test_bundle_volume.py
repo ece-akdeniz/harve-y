@@ -53,3 +53,21 @@ def test_p07_text_only_changes_body_and_refs(monkeypatch):
     assert "1308000 pieces a year" in new["body"]
     assert 0 < len(new["refs"]) <= 3
     assert all(r in new["body"] for r in new["refs"])
+
+
+def test_rounds_by_type_validated_and_scoped():
+    cfg = PolicyConfig.from_dict({"version": 1, "rounds_by_type": {"bundling": 3}})
+    assert cfg.rounds_by_type == {"bundling": 3}
+    assert PolicyConfig.from_dict({"version": 1}).rounds_by_type == {}
+    for bad in ({"bundling": 0}, {"bundling": 2.5}, {"nope": 3}, [3]):
+        try:
+            PolicyConfig.from_dict({"version": 1, "rounds_by_type": bad})
+        except ValueError:
+            continue
+        raise AssertionError(bad)
+
+
+def test_rounds_by_type_used_only_for_listed_type():
+    agent = PackageAgent(policy=PolicyConfig.from_dict({"version": 1, "rounds_by_type": {"bundling": 3}}))
+    assert agent._rounds({"type": "bundling"}) == 3
+    assert agent._rounds({"type": "renewal"}) == agent.rounds

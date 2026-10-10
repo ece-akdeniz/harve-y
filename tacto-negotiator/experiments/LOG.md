@@ -883,3 +883,19 @@ in the preceding entry; the same failure reproduces with the unchanged current
   "volume fills capacity -> price"); the supplier responds to verified data it values, OTD is not it.
 - Config `configs/p07-bundle-volume.json` = candidate + `bundle_volume_types: ["bundling"]`.
   Pass: > 0.7470 with 0 contradicted claims, 0 timeouts. Budget: 10 sessions for this line.
+- Screen 1 `2320ed30` / session `00e07274bb4eaa48` (+1 run `31272ed7` failed pre-open, HTTP 401
+  from missing env, no session opened): **0.7535** (5.40, 90d, 24m, final r5, 0 timeouts). Supplier
+  "checked the volume change data; it holds" (no contradiction) but "already taken into account";
+  concessions 5.59→5.50→5.44→5.40. Best P07 so far (+0.0105 vs 0.7430, +0.0065 vs OTD), n=1.
+
+## 2026-10-10 — P07 concession speed (hypothesis, before screen 2)
+
+- Pattern over all 5 P07 traces: supplier step ≈0.8× our previous step (0.11→0.09, 0.07→0.06,
+  0.05→0.04), and it declares final at r5 (r2-r3 after a deep anchor). Our linear schedule
+  `k/rounds` with rounds=5 still has ~0.12 of its own room left when the supplier's final arrives,
+  so the supplier's reciprocal moves are cut off. Never tested: anchor depth was tested (0.2 → early
+  final, worse), the schedule length never was.
+- Difference: new opt-in `rounds_by_type` (bundling: 3); same 5.05 opening, larger early steps,
+  so the supplier gives more reciprocal room before its final round. Bundle volume stays on.
+  Prices still come only from our C schedule of quoted terms; no hidden outcome is used.
+- Risk: under a pure time-based supplier schedule we only pay more. Pass: > 0.7535.

@@ -260,6 +260,11 @@ class PackageAgent:
             return self.policy.anchor_by_type[case["type"]]
         return self.anchor
 
+    def _rounds(self, case):
+        if self.policy and case["type"] in self.policy.rounds_by_type:
+            return self.policy.rounds_by_type[case["type"]]
+        return self.rounds
+
     def _longer_tenor(self, case):
         return bool(self.policy and case["type"] in self.policy.longer_tenor_types)
 
@@ -556,7 +561,7 @@ class PackageAgent:
             return {"close": True, "reason": "gap closed"}
 
         floor = p_open * (1 - self._anchor(case))
-        price = floor + (p - floor) * min(1.0, k / self.rounds)
+        price = floor + (p - floor) * min(1.0, k / self._rounds(case))
         if last_p is not None:
             price = max(price, _ceil2(last_p))  # no backtracking on our own concessions (by C)
         price = min(price, p)

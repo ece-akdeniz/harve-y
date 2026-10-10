@@ -31,6 +31,9 @@ class PolicyConfig:
     # Case types whose offers state, from public facts, the volume a kit moves to the supplier
     # (kit memo quantities x need, current sourcing quota, forecast IDs, capacity note).
     bundle_volume_types: tuple[str, ...] = ()
+    # Per case type number of buyer rounds over which the price schedule reaches the
+    # supplier's price (faster convergence before a supplier's final offer); others use the agent's.
+    rounds_by_type: dict[str, int] = field(default_factory=dict)
 
     @classmethod
     def load(cls, path):
@@ -70,6 +73,12 @@ class PolicyConfig:
         ):
             raise ValueError("invalid anchor_by_type")
         d["anchor_by_type"] = {k: float(v) for k, v in anchors.items()}
+        rounds = d.get("rounds_by_type", {})
+        if not isinstance(rounds, dict) or any(
+            k not in TYPES or type(v) is not int or not 1 <= v <= 8 for k, v in rounds.items()
+        ):
+            raise ValueError("invalid rounds_by_type")
+        d["rounds_by_type"] = dict(rounds)
         return cls(**d)
 
     def record(self):
