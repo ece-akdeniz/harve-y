@@ -30,12 +30,31 @@ class Journal:
         self._lock = threading.Lock()
         self.records: list[dict] = []
         if self.path.exists():
-            for line in self.path.read_text(encoding="utf-8").splitlines():
+            raw = self.path.read_bytes()
+            offset = 0
+            lines = raw.splitlines(keepends=True)
+            for index, line in enumerate(lines):
                 if line.strip():
                     try:
                         self.records.append(json.loads(line))
-                    except json.JSONDecodeError:  # torn last line after a crash
+                    except (json.JSONDecodeError, UnicodeDecodeError):
+                        if index != len(lines) - 1:
+                            raise ValueError("corrupt journal record before the last line") from None
+                        # Keep the damaged bytes for diagnosis; otherwise appending would join
+                        # the next valid record onto the partial one and hide all later state.
+                        self.path.with_name(self.path.name + ".torn-" + uuid.uuid4().hex[:8]).write_bytes(line)
+                        with self.path.open("r+b") as stream:
+                            stream.truncate(offset)
+                            stream.flush()
+                            os.fsync(stream.fileno())
                         break
+                offset += len(line)
+            else:
+                if raw and not raw.endswith(b"\n"):
+                    with self.path.open("ab") as stream:
+                        stream.write(b"\n")
+                        stream.flush()
+                        os.fsync(stream.fileno())
 
     def _write(self, rec: dict) -> dict:
         rec = {"utc": time.time(), **rec}
