@@ -770,3 +770,46 @@ validation. All seven new tests pass; full suite: 342 passed, one existing failu
 `test_worker_preflight_rejects_unloadable_claim_data_before_open` (an empty explicit
 package path falls back to locally available data). The same failure reproduces with
 unchanged main production modules; no unrelated fix is included. `ruff check .` passes.
+
+## 2026-10-10 — Retain the measured capacity package-adviser improvement
+
+Hypothesis: use the model to interpret a supplier's delivery constraint and choose among
+complete, legal packages whose prices are calculated by code to preserve the scheduled
+buyer-cost ceiling. This port retains the package-selector implementation from `0b3e2fb`
+and its serial integration. It does not include the earlier generic reply decorator.
+The bounded-call helper is now local to `package_advisor.py`; timeout and fallback
+behavior are unchanged. The model returns only an approved package ID and an exact
+supporting quotation; no generated prose or numbers are sent to the supplier.
+
+Hosted exploratory run `d612dda9-42f6-4863-bace-965dcdfd5d0a`, session
+`2b0e734b37274c07`, P10, completed with score **0.6550995999**, valid must-haves and
+zero timeouts. The complete transcript was reviewed by the experiment coordinator.
+The previous delivery-only sessions scored 0.5546564482. Final terms changed from
+EUR 33.80 / 42-day delivery / 24 months to EUR 31.80 / 56-day delivery / 24 months,
+with unchanged 23,400 units per year. Complete cost fell from EUR 1,597,720.80 to
+EUR 1,537,096.80, a further EUR 60,624 saving; this includes EUR 33,600 late-delivery
+cost. This is one hosted observation, not a replicated effect or a fresh ten-case mean.
+
+The two model calls took 3.46 and 1.94 seconds. The first selected the code-priced
+EUR 27.62 / 56-day / 24-month opening; the second kept the scheduled package. Model:
+`gpt-6.1-sol`, effort `low`; estimates and MESOs were off. The original run's policy
+also listed raw-material cases for advice, but only capacity was exercised. This port's
+`configs/package-advice.json` deliberately enables advice for **capacity only** and
+otherwise matches `configs/cost-neutral-delivery.json`. No raw-material improvement
+is claimed. This evidence does not promote the lab recommendation or default policy.
+
+Activation requires the serial runner, this explicit policy config and local
+`LLM_BASE_URL`, `LLM_API_KEY`, `LLM_MODEL` settings (optional `LLM_EFFORT`). Missing
+credentials, invalid output or the eight-second call limit preserve the scheduled
+move. The async runner rejects this mode before opening a session. Final offers,
+closing actions, evidence-bearing or multiple-sheet moves, and fewer than 20 seconds
+remaining skip advice. Role context includes the arena's `from_name`; public notes
+are supplied without internal estimates or reservation costs. Previously proposed
+packages are excluded in code; interpreting other refusals remains model judgment.
+
+No additional hosted sessions or model calls were consumed to port this change.
+
+Port validation: full suite **363 passed, one existing preflight failure** described
+in the preceding entry; the same failure reproduces with the unchanged current
+`origin/main` production modules. All 22 focused delivery/adviser tests pass.
+`ruff check .` passes. No unrelated preflight fix is included.

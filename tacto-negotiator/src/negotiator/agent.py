@@ -93,6 +93,11 @@ class PackageAgent:
     ):
         self.anchor, self.rounds, self.close_gap, self.tracer = anchor, rounds, close_gap, tracer
         self.policy = policy
+        self.package_advisor, self.package_notes = None, {}
+        if policy and policy.package_advice_types:
+            from .package_advisor import PackageAdvisor
+
+            self.package_advisor = PackageAdvisor()
         self.conditional_exchange = False
         self.trades = None
         if policy:
@@ -246,10 +251,12 @@ class PackageAgent:
             trial = {**n, f: v}
             if not must_haves_ok(case, {**trial, "unit_price": price}, std):
                 continue
-            if (
-                total_cost(case, {**trial, "unit_price": price}, std, sup)
-                <= total_cost(case, {**n, "unit_price": price}, std, sup) + 1e-6
-            ):
+            trial_c = total_cost(case, {**trial, "unit_price": price}, std, sup)
+            previous_c = total_cost(case, {**n, "unit_price": price}, std, sup)
+            if (self.policy and case['type'] in self.policy.package_advice_types and f == "contract_months"
+                    and v < n[f] and trial_c == previous_c):
+                continue
+            if trial_c <= previous_c + 1e-6:
                 n = trial
         return n
 
@@ -280,6 +287,25 @@ class PackageAgent:
             if move.get("close"):
                 return self._close(case, threads, move.get("reason", ""))
             if not move.get("hold"):
+                if self.package_advisor and case['type'] in self.policy.package_advice_types:
+                    from .context import DATA_ERRORS
+                    from .dossiers import build_one, load_package
+
+                    if sid not in self.package_notes:
+                        try:
+                            dossier = build_one(load_package(), sid)
+                            self.package_notes[sid] = list(reversed(dossier.notes))[:12] if dossier else []
+                        except DATA_ERRORS:
+                            self.package_notes[sid] = []
+                    remaining = self.trades.deadlines.get(sid, 0) - time.time()
+                    original = move['message']['term_sheets'][0]['terms']
+                    move, advice = self.package_advisor.select(
+                        case, threads, move, supplier=self._sup(case, threads, sid),
+                        public_notes=self.package_notes[sid], remaining_s=remaining,
+                    )
+                    selected = move['message']['term_sheets'][0]['terms']
+                    self.prev[sid] = nonprice(case, selected)
+                    self._log(case, 'package_advice', sid, **advice, original=original, selected=selected)
                 return move
             reason = move.get("reason", reason)
         return self._close(case, threads, reason)
