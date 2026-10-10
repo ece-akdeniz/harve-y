@@ -208,7 +208,10 @@ class PackageAgent:
             if pay is None or pay == terms["payment_days"] or pay in [v["payment_days"] for v in out]:
                 continue
             v = {**terms, "payment_days": pay}
-            v["unit_price"] = math.floor(price_for_cost(case, v, c_main, std, sup) * 100) / 100
+            price = price_for_cost(case, v, c_main, std, sup)
+            if price is None:
+                continue
+            v["unit_price"] = math.floor(price * 100) / 100
             if must_haves_ok(case, v, std):
                 out.append(complete_offer(case, v))
         return out
@@ -267,7 +270,7 @@ class PackageAgent:
         on_n = [t["unit_price"] for _, _, t in cands if same_package(case, {**n, "unit_price": 0}, t, std)]
         nominal = min(on_n) if on_n else cands[0][2]["unit_price"]
         equal_c = price_for_cost(case, {**n, "unit_price": nominal}, cands[0][0], std, sup)
-        return round(min(nominal, equal_c), 2)
+        return round(min(nominal, equal_c), 2) if equal_c is not None else round(nominal, 2)
 
     # -- policy -------------------------------------------------------------------------------
     def _workable(self, case, threads):
@@ -402,6 +405,8 @@ class PackageAgent:
             if not math.isfinite(c_alt):
                 return None
             price = price_for_cost(case, {**n, "unit_price": terms_f["unit_price"]}, c_alt * 0.998, std, sup)
+            if price is None:
+                return None
             price = math.floor(price * 100) / 100
             terms, reason = {**n, "unit_price": price}, "final offer above alternative: one counter"
         elif (
@@ -507,7 +512,10 @@ class PackageAgent:
             price = max(price, _ceil2(last_p))  # no backtracking on our own concessions (by C)
         price = min(price, p)
         if cap_c is not None:
-            cap_p = math.floor(price_for_cost(case, {**n, "unit_price": p}, cap_c, std, sup) * 100) / 100 - 0.01
+            cap_price = price_for_cost(case, {**n, "unit_price": p}, cap_c, std, sup)
+            if cap_price is None:
+                return {"close": True, "reason": "no certified price under the cost ceiling"}
+            cap_p = math.floor(cap_price * 100) / 100 - 0.01
             if last_p is not None and cap_p < last_p - 1e-6:
                 return {"close": True, "reason": "rival cannot beat the final offer without backtracking"}
             price = min(price, cap_p)

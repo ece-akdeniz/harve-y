@@ -90,18 +90,60 @@ def same_package(case, a, b, standard=None):
 
 
 def price_for_cost(case, terms, target_c, standard=None, supplier=None, hi=None):
-    """Unit price at which `terms` (non-price fields kept) cost `target_c`; C rises with price."""
-    hi = hi or max(1.0, (terms.get("unit_price") or 1.0) * 4)
-    lo = 0.0
-    while total_cost(case, {**terms, "unit_price": hi}, standard, supplier) < target_c and hi < 1e7:
-        hi *= 2
+    """Find a positive-price cost root, preferring the branch nearest the reference price.
+
+    Relationship costs can be nonmonotonic in price. Those cases use a bounded scan to find
+    feasible brackets; absence of a bracket is reported as ``None`` rather than a guessed zero.
+    """
+    reference = terms.get("unit_price")
+    if not math.isfinite(float(target_c)) or target_c <= 0:
+        return None
+    upper = float(hi or max(1.0, (reference or 1.0) * 4))
+    upper = min(max(upper, 0.01), 1e7)
+
+    def cost(price):
+        return total_cost(case, {**terms, "unit_price": price}, standard, supplier)
+
+    # Grow a finite search interval while cost at the upper end remains below target.
+    while upper < 1e7 and cost(upper) < target_c:
+        upper = min(upper * 2, 1e7)
+    lower = 0.01
+    if supplier:
+        # A bounded grid detects multiple roots and local reversals. Refine every bracket,
+        # then choose the root nearest the caller's reference branch.
+        count = 10000
+        step = (upper - lower) / count
+        points = [(lower + i * step, cost(lower + i * step)) for i in range(count + 1)]
+        roots = []
+        for (x0, y0), (x1, y1) in zip(points, points[1:]):
+            if not (math.isfinite(y0) and math.isfinite(y1)) or (y0 - target_c) * (y1 - target_c) > 0:
+                continue
+            left, right = x0, x1
+            increasing = y1 >= y0
+            for _ in range(40):
+                mid = (left + right) / 2
+                if (cost(mid) < target_c) == increasing:
+                    left = mid
+                else:
+                    right = mid
+            candidate = (left + right) / 2
+            if candidate > 0 and abs(cost(candidate) - target_c) <= max(0.01, abs(target_c) * 1e-8):
+                roots.append(candidate)
+        return min(roots, key=lambda p: abs(p - (reference or p))) if roots else None
+
+    low_cost = cost(lower)
+    high_cost = cost(upper)
+    if not (math.isfinite(low_cost) and math.isfinite(high_cost)) or low_cost > target_c or high_cost < target_c:
+        return None
+    lo, hi = lower, upper
     for _ in range(60):
         mid = (lo + hi) / 2
-        if total_cost(case, {**terms, "unit_price": mid}, standard, supplier) < target_c:
+        if cost(mid) < target_c:
             lo = mid
         else:
             hi = mid
-    return lo
+    candidate = (lo + hi) / 2
+    return candidate if candidate > 0 and abs(cost(candidate) - target_c) <= max(0.01, abs(target_c) * 1e-8) else None
 
 
 def revealed_deltas(case, sheets, standard=None):

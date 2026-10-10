@@ -133,6 +133,8 @@ def approved_packages(case, events, terms, supplier=None, public_notes=()):
             cost = total_cost(case, candidate, standard, supplier)
             if not supplier and cost > ceiling:
                 price = price_for_cost(case, candidate, ceiling, standard)
+                if price is None:
+                    continue
                 candidate['unit_price'] = math.floor(price * 100) / 100
                 cost = total_cost(case, candidate, standard)
             if (candidate.get('unit_price', 0) <= 0 or not math.isfinite(cost)

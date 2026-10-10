@@ -127,7 +127,10 @@ class TradePolicy:
                     continue
                 if supplier:
                     continue  # inverse-price search is not monotonic with relationship estimates
-                trial["unit_price"] = math.floor(price_for_cost(case, trial, target, standard) * 100) / 100
+                price = price_for_cost(case, trial, target, standard)
+                if price is None:
+                    continue
+                trial["unit_price"] = math.floor(price * 100) / 100
                 if trial["unit_price"] <= 0 or total_cost(case, trial, standard) > target + 0.01:
                     continue
                 self.log(
