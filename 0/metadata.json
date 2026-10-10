@@ -1,0 +1,54 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4KQHPK4Q4E98868MFHC49MM",
+  "session_id": "01a12773-b099-7000-9905-fd99e5e75301",
+  "strategy": "manual-commit",
+  "created_at": "2026-10-10T20:19:54.457225465Z",
+  "branch": "codex-negotiator-v2-t1-1a-2026-10-10",
+  "checkpoints_count": 1,
+  "save_step_count": 1,
+  "files_touched": [
+    "tacto-negotiator/docs/v2/C-interfaces.md",
+    "tacto-negotiator/src/negotiator/v2/config.py",
+    "tacto-negotiator/src/negotiator/v2/core/models.py",
+    "tacto-negotiator/src/negotiator/v2/core/serialization.py",
+    "tacto-negotiator/tests/v2/catalog.py",
+    "tacto-negotiator/tests/v2/contracts/test_hardening.py"
+  ],
+  "agent": "Codex",
+  "model": "gpt-6.1-sol",
+  "turn_id": "6b02af93392f",
+  "compact_transcript_start": 0,
+  "token_usage": {
+    "input_tokens": 91632,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 1407744,
+    "output_tokens": 9779,
+    "api_call_count": 22,
+    "subagent_tokens_complete": true
+  },
+  "session_metrics": {
+    "turn_count": 1
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-10-10T20:19:54.436072439Z",
+    "agent_lines": 231,
+    "agent_removed": 12,
+    "human_added": 806,
+    "human_modified": 21,
+    "human_removed": 0,
+    "total_committed": 1058,
+    "total_lines_changed": 1071,
+    "agent_percentage": 22.689075630252102,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    }
+  ]
+}
