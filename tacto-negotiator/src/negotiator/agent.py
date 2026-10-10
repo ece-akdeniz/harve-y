@@ -685,6 +685,41 @@ class PackageAgent:
         return self._close(case, threads, reason)
 
     def propose(self, case, threads, supplier_id):
+        return self._volume_answer(case, threads, supplier_id, self._propose_enriched(case, threads, supplier_id))
+
+    def _volume_answer(self, case, threads, sid, move):
+        """Opt-in: answer the supplier's volume question with the binding volume over the offered
+        term and the shared forecast (cited once, only while the message has room for a claim)."""
+        if not (self.policy and case["type"] in self.policy.volume_answer_types):
+            return move
+        msg = move.get("message")
+        if not msg or msg.get("action") or not msg.get("term_sheets"):
+            return move
+        from . import bundle_volume, volume_answer
+        from .context import DATA_ERRORS
+        from .dossiers import build_one, load_package
+
+        try:
+            package = load_package()
+            p = volume_answer.plan(case, package, sid)
+            threshold = bundle_volume.committee_threshold(build_one(package, sid))
+        except DATA_ERRORS:
+            return move
+        sheet = (msg.get("term_sheets") or [{}])[0]
+        months = (sheet.get("terms") or sheet).get("contract_months")
+        if not p or not months:
+            return move
+        refs = list(msg.get("refs") or [])
+        room = volume_answer.checked_claims(refs) < volume_answer.MAX_CHECKED
+        first = not self._ours(threads[sid])
+        text, ids = volume_answer.paragraph(p, int(months), first, room, threshold=threshold)
+        body = msg["body"] + "\n\n" + text
+        assert not leaks(body), "body would leak internal information"
+        refs = list(dict.fromkeys([*refs, *ids]))
+        self._log(case, "volume_answer", sid, volume=p["volume"], months=int(months), refs=ids)
+        return {**move, "message": {**msg, "body": body, **({"refs": refs} if refs else {})}}
+
+    def _propose_enriched(self, case, threads, supplier_id):
         if supplier_id not in self.model_seen:
             self.prepare_email(case, threads, supplier_id)
         if self.policy:
