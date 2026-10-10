@@ -994,3 +994,21 @@ opt-in `cost_target_posterior` (s_max 0.15, `configs/p02-cost-posterior.json`). 
 optimum, never above it. It accepts a supplier sheet on our package at or below that price.
 Expected: accept → hosted ≈ .70 (+.10). Refuse → back to 366.23 (≈ .60).
 Plan: 1 P02 screen, repeat once if ≥ .62. Max 2 practice sessions.
+
+Results (source `1cae3b0`, `configured_agent` + `configs/p02-cost-posterior.json`, estimates/MESO off, serial):
+
+| run | session | score | terms | rounds | timeouts |
+|---|---|---|---|---|---|
+| c18148c9 | 936622ab15fb9214 | **0.7115** | 363.37 / 90 d / CU db5 / 12 m | 1 (instant accept) | 0 |
+| 887281c9 | 7874cdcfaa174eb6 | **0.7115** | identical | 1 (instant accept) | 0 |
+
+- Hosted breakdown: price 2,220,190.70, payment −14,801, index_risk 17,762, quality 1,191,
+  relationship 24,834 (was 12,647 at 366.23). +.1121 vs the .5993 best, n=2 identical.
+- Full transcript read: the supplier agreed in round 1 with "Our price reflects our costs". No refusal,
+  so the posterior was never updated after the opening. The instant accept at 363.37 is a second accept.
+  Under the same model it lowers E[fc] further, but this agent stops after an accept (close).
+- Not reached: .85. This package is capped near .76 local. A deeper next step (lower s_max → ~361) is
+  worth about +.02–.04 if fc ≈ 366.7, and loses ~.04/EUR if fc ≥ 375. Not screened.
+- Sessions: 2 practice (quota 174 → 176 used/600 at start/end of this block; other agents share it).
+Decision: P02 opt-in `configs/p02-cost-posterior.json` is a replicated win (.5993 → .7115). Defaults unchanged.
+P10: no session (see the offline note above).
