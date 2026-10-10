@@ -1,7 +1,7 @@
 # Agent guide: tacto-negotiator
 
-Read `docs/README.md`, then `docs/10-implementation-checklist.md`. The scaffold is not yet a
-functioning agent. Do not report target behavior as implemented.
+Read `docs/README.md`, then `docs/10-implementation-checklist.md`. PackageAgent v0 runs via the
+official kit, but the final runtime is unfinished. Do not report target behavior as implemented.
 
 ## Invariants
 

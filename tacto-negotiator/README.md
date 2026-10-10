@@ -2,10 +2,10 @@
 
 Buyer agent for the Tacto Negotiation Arena, EHL Grand Finale, 10–11 October 2026.
 
-**Status: scaffold, not a runnable custom agent.** `negotiator --help` works; `prep`, `play`,
-`run` and `report` currently print “not implemented yet” and return exit code 2. The client,
-runner, optimizer, persistence and main guards remain to be implemented. Research scripts and
-small scaffold tests exist. Start with [the hacking guide](docs/README.md).
+**Status: PackageAgent v0 runs through the official kit.** `play` and `run` dispatch
+negotiations; `prep` and `report` remain placeholders. The custom async runtime, persistent
+recovery and full closing guards remain unfinished. Start with [the hacking guide](docs/README.md)
+and [hosted experiment results](experiments/LOG.md).
 
 ## Objective
 
@@ -63,7 +63,7 @@ prototypes: the dossier tool reads the base SQLite, not the Sunday overlay; “j
 index output means a partial cost proxy; the sensitivity tool chooses an illustrative baseline.
 See [research limitations](docs/01-research.md).
 
-## Target commands — not implemented yet
+## Custom commands — partial implementation
 
 ```bash
 uv run --locked negotiator prep

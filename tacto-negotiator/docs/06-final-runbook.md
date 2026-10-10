@@ -1,7 +1,7 @@
 # Final runbook
 
-Sunday 11 October 2026, Europe/Berlin. These are target operations; the custom CLI currently
-contains placeholders. Do not execute a placeholder command as the final runner.
+Sunday 11 October 2026, Europe/Berlin. These are target operations. The custom play/run CLI
+now dispatches, but runtime and recovery gates remain unfinished.
 
 ## Before Sunday
 
@@ -37,7 +37,7 @@ uv run --locked arena data --out data
 - [ ] Tests/lint pass; working tree clean; commit and lockfile recorded. Do not auto-upgrade dependencies.
 - [ ] Scan tracked files/history with a redacting secret scanner; do not print possible keys with grep.
 - [ ] Submit repo access, commit hash, description and slides by 12:00; verify jury can open repo.
-- [ ] Power connected, sleep disabled, stable network, logs persist. Ensure only one runner uses the key.
+- [ ] Power connected, lid open, idle sleep prevented, stable network, logs persist. Ensure only one runner uses the key.
 - [ ] Create log directory and launch the **implemented and rehearsed** final command before 12:00.
 
 ```bash
@@ -52,7 +52,10 @@ tail -f experiments/runs/final.log
 ```
 
 Verify the process is alive, polling permitted case metadata and waiting for wave 1—not merely
-that the shell command started. The current scaffold would exit immediately and is not ready.
+that the shell command started. Dispatch alone does not establish final readiness.
+
+A hosted run on Saturday expired during 403 seconds of clamshell sleep. `caffeinate` prevents
+idle sleep, not normal lid-close sleep: keep the lid open or use a verified always-on host.
 
 ## Live Final
 
