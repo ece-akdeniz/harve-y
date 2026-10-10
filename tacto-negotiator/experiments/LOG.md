@@ -703,3 +703,15 @@ it is not hosted performance evidence or a proposed production strategy change.
 - Decision: do not use App Service's network-mounted filesystem because Microsoft documents that it
   cannot support SQLite exclusive locks. Deploy one offer-eligible Linux VM and keep SQLite on its
   managed disk. Cut over only after history, loop state, authentication and upload verification.
+## Inference/Lab setup — prepared only, 10 October 2026
+
+- Hypothesis for a future probe: the Tacto endpoint can return an allowed closing-style ID
+  without changing deterministic prices, terms, evidence or closing decisions.
+- Added opt-in `negotiator.inference:InferenceProbeAgent` for standalone serial `lab run`;
+  generic optional agent metrics are sanitized into saved/uploaded attempt results.
+- Credential placement: ignored local `.env`, separate LLM/Arena/Lab keys. Lab URL comes
+  from LAB_PLAYBOOK.md. Tacto URL, model ID and protocol confirmation remain outstanding.
+- Proposed case: D01, one session, only after separate authorization. No budget granted here.
+- Tests and lint: prepared but **not run**, per the user's instruction. Endpoint/Lab access
+  was not checked; no services started, no uploads, no inference calls and no Arena sessions.
+- Decision: unvalidated setup for review; no performance or connection-success claim.

@@ -72,6 +72,9 @@ Hosted timing is measured. Then scale to multiple cases.
 
 ## Sources and evidence labels
 
+- [17 — Independent inference setup](17-inference-setup.md): local credential placement,
+  opt-in Lab probe and later validation commands; setup has not been executed or validated.
+
 The custom arena runner loads [runtime negotiation guidance](../src/negotiator/AGENTS.md)
 through `guidance.py` on every `negotiator play/run` launch. Its structured settings
 are executed and hashed in the run trace; research prose alone does not implement
