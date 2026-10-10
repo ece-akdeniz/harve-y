@@ -2,7 +2,7 @@ import copy
 
 import pytest
 from test_lab_loop_store import checkpoint
-from test_lab_memory import ARENA, add_run, build, rehash
+from test_lab_memory import ARENA, add_discovery_source, add_run, build, rehash
 from test_lab_policy import sample
 
 from negotiator.lab.loop_store import LoopStore
@@ -283,3 +283,20 @@ def test_owned_session_envelope_survives_worker_and_establishes_holdout_cohort(
     expected.update(outcome, outcome=copy.deepcopy(outcome))
     assert evaluate(comparison)['eligible']
     assert all(path.startswith('/sessions') for path in visited)
+
+
+@pytest.mark.parametrize("source", ["tracked", "imported", "campaign"])
+@pytest.mark.parametrize("partial", [False, True])
+def test_missing_discovery_messages_cannot_hide_holdout_supplier_overlap(comparison, source, partial):
+    path = comparison[4]
+    add_discovery_source(path, source, dict(
+        threads={"sup:W": {"messages": []}} if partial else {}, error="session detail unavailable",
+        result={"ended": True, "threads": {"sup:W": {"closed": True}, "sup:X": {"closed": True}},
+                "supplier_id": "sup:W"},
+    ))
+    comparison[2]["config"]["memory"] = build(path)
+    result = evaluate(comparison)
+    assert not result["eligible"]
+    gate = next(g for g in result["gates"] if g["id"] == "memory_holdout")
+    assert gate["detail"]["discovery_supplier_overlap"] == ["sup:X"]
+    assert next(g for g in result["gates"] if g["id"] == "gain")["passed"]

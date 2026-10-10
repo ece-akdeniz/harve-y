@@ -2,11 +2,12 @@
 
 Reads stored runs and loop records in one SQLite read transaction, without importing
 or constructing LoopStore or invoking its promotion hooks. Original imports come
-from the owned-session API and require supplier transcripts. Canonical arena/session
+from the owned-session API; only identified supplier messages teach. Canonical arena/session
 identities deduplicate originals; campaigns precede tracked runs, then imports.
 Every eligible selected discovery session
 and its full known supplier cohort remain in snapshot provenance, even without a
-signal. Graph excerpts are untrusted display text; snapshots contain no excerpts.
+signal. New snapshots require authoritative complete discovery rosters. Graph
+excerpts are untrusted display text; snapshots contain no excerpts.
 """
 
 import json
@@ -15,6 +16,7 @@ import sqlite3
 from pathlib import Path
 
 from negotiator.memory import (
+    CITATION_FIELDS,
     ENVIRONMENTS,
     FIELDS,
     MAX_COHORT,
@@ -85,6 +87,33 @@ def _suppliers(threads):
     )
 
 
+def _discovery_cohort(result, threads):
+    """Keep every known identity; message availability cannot establish a full roster."""
+    roster = result.get("threads")
+    complete = isinstance(roster, dict) and bool(roster)
+    suppliers = set()
+    for entries in (threads, roster if isinstance(roster, dict) else {}):
+        for supplier, entry in entries.items():
+            if identifier(supplier):
+                suppliers.add(supplier)
+            else:
+                complete = False
+            if isinstance(entry, dict) and "supplier_id" in entry:
+                claimed = entry["supplier_id"]
+                if identifier(claimed):
+                    suppliers.add(claimed)
+                if claimed != supplier:
+                    complete = False
+    selected = result.get("supplier_id")
+    if selected is not None:
+        if identifier(selected):
+            suppliers.add(selected)
+        else:
+            complete = False
+    complete = complete and suppliers <= set(roster)
+    return dict(suppliers=sorted(suppliers), supplier_cohort_complete=complete)
+
+
 def _complete_supplier_threads(threads):
     suppliers = _suppliers(threads)
     if not suppliers or len(suppliers) != len(threads):
@@ -113,7 +142,7 @@ def _observations(session, threads):
         for index, message in enumerate(messages[:5000]):
             if not isinstance(message, dict) or not supplier_author_matches(message.get("from"), supplier):
                 continue
-            citation = {k: v for k, v in session.items() if k != "suppliers"}
+            citation = {k: v for k, v in session.items() if k in CITATION_FIELDS}
             citation.update(supplier=supplier, message_index=index, message_sha256=content_id(message))
             extracted = [
                 ("supplier_statement", field, direction, None) for field, direction in _statements(message.get("body"))
@@ -181,6 +210,7 @@ class MemoryStore:
                     if not identifier(session_id) or attempt.get("case_id") not in suite["cases"]:
                         continue
                     threads = None
+                    cohort = dict(suppliers=[], supplier_cohort_complete=False)
                     try:
                         start = Start.model_validate(attempt["start"]["request"]).model_dump()
                         original = Outcome.model_validate(outcome).model_dump()
@@ -192,6 +222,7 @@ class MemoryStore:
                             and _original(original)
                         ):
                             threads = original["threads"]
+                            cohort = _discovery_cohort(original["result"], threads)
                     except (ValueError, TypeError, KeyError):
                         pass
                     session = dict(
@@ -202,7 +233,7 @@ class MemoryStore:
                         run_id=None,
                         campaign_id=campaign["campaign_id"],
                         attempt_id=attempt["attempt_id"],
-                        suppliers=_suppliers(threads) if threads is not None else [],
+                        **cohort,
                     )
                     # Ineligible original ownership still suppresses an imported
                     # copy of recovered evidence, including arena-origin aliases.
@@ -218,9 +249,11 @@ class MemoryStore:
                     if not identifier(attempt["session_id"]):
                         continue
                     eligible = _original(attempt)
-                    if run["source"] == "imported":
-                        eligible = eligible and _complete_supplier_threads(attempt["threads"])
                     threads = attempt["threads"] if eligible else None
+                    if eligible and run["source"] == "imported" and not _complete_supplier_threads(threads):
+                        # Retain ended owned-session provenance even when an import
+                        # lacks message evidence sufficient to teach a lesson.
+                        threads = {}
                     session = dict(
                         arena_url=arena,
                         environment=run["environment"],
@@ -229,7 +262,7 @@ class MemoryStore:
                         run_id=run["run_id"],
                         campaign_id=None,
                         attempt_id=attempt["attempt_id"],
-                        suppliers=_suppliers(attempt["threads"]),
+                        **_discovery_cohort(attempt["result"], attempt["threads"]),
                     )
                     priority = 1 if run["source"] == "tracked" else (2 if eligible else 3)
                     sources.append((priority, session, threads))
@@ -316,6 +349,9 @@ class MemoryStore:
             ]
             if {s["case_id"] for s in selected} != set(cases):
                 raise ValueError("requested discovery cases lack original owned ended sessions")
+            incomplete = [s["session_id"] for s in selected if not s["supplier_cohort_complete"]]
+            if incomplete:
+                raise ValueError("discovery supplier cohort is incomplete or unverifiable: " + ", ".join(incomplete))
             evidence = [
                 {k: v for k, v in e.items() if k != "excerpt"}
                 for e in observations

@@ -750,3 +750,27 @@ it is not hosted performance evidence or a proposed production strategy change.
 - Decision: keep experimental. Explicitly choose and budget a separate held-out suite; its
   recommendation does not update the D01/D02 suite pointer. D01/D02 alone, ten practice suppliers
   and adaptive human holdout tuning limit generalization claims. Final readiness remains unproven.
+
+
+### 2026-10-10 — Discovery provenance final-review fix
+
+- Hypothesis: preserving authoritative discovery rosters independently of collected messages
+  prevents an unseen-supplier comparison from accepting a supplier seen during discovery.
+- Source/config: `codex/supplier-memory`, final-review fix on `2ca31c9`; no runtime, memory
+  schema, checkpoint configuration, dependencies or UI changes. Snapshot builds retain all
+  roster/selected/known thread identities and refuse an unverifiable selected discovery cohort.
+  Older ended transcripts without a complete authoritative roster remain inspectable but cannot
+  establish new snapshots. Existing content-addressed snapshots remain immutable.
+- Cases: synthetic tracked/imported runs and original campaign outcomes; missing/partial message
+  collection, unknown and malformed rosters, selected/thread identity contradictions, explicit
+  legacy missing-roster records, and held-out `sup:X` present only in discovery metadata.
+- Validation: focused RED **38 failed, 84 passed**, including six false promotion approvals;
+  focused GREEN **122 passed**; full Python suite **500 passed**; Ruff and `git diff --check`
+  passed. No UI change; prior **42 passing Node checks** apply. Full commands and logs are in
+  `.superpowers/sdd/2026-10-10-supplier-memory/final-fix-report.md` at repository root.
+- Budget/scores/failures: hosted sessions **0**, sandbox/practice quota **0**, no measured score
+  improvement. All new regressions pass after the fix. Pre-fix snapshots with potentially
+  incomplete discovery provenance must be rebuilt and reevaluated before relying on holdout
+  results; this fix does not rewrite or retrospectively certify them.
+- Decision: retain the experimental branch for scoped re-review. No hosted trial, deployment,
+  push or merge; final readiness remains unproven.

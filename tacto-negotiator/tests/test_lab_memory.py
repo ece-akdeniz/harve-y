@@ -36,7 +36,7 @@ def add_run(path, name, *, case="case:one", supplier="sup:A", messages=None, **c
         status="completed",
         session_id=f"session:{name}",
         score=0.5,
-        result={"ended": True},
+        result={"ended": True, "threads": {supplier: {"closed": True}}, "supplier_id": supplier},
         threads={
             supplier: {"supplier_id": supplier, "messages": messages if messages is not None else [message(supplier)]}
         },
@@ -66,6 +66,34 @@ def add_run(path, name, *, case="case:one", supplier="sup:A", messages=None, **c
     body.update(changes)
     Store(path).upsert(Run.model_validate(body))
     return body
+
+
+def add_discovery_source(path, source, attempt):
+    """Persist an original ended discovery session through the normal store APIs."""
+    if source != "campaign":
+        return add_run(path, "unavailable", source=source, attempt=attempt)
+    from test_lab_loop_store import checkpoint
+
+    loop = LoopStore(path)
+    for name in ("discovery-base", "discovery-candidate"):
+        loop.write("checkpoint", checkpoint(name))
+    suite = {**default_suite(), "suite_id": "discovery", "arena_url": ARENA,
+             "cases": ["case:one", "case:two"]}
+    loop.write("suite", suite)
+    loop.write("family", dict(family_id="discovery", max_sessions=suite["max_sessions"]))
+    loop.write("seed", dict(suite_id="discovery", checkpoint_id="discovery-base", author="Synthetic"))
+    campaign = loop.write("campaign", dict(
+        campaign_id="discovery", family_id="discovery", suite_id="discovery",
+        baseline_id="discovery-base", candidate_id="discovery-candidate", generation=1,
+        seed=1, author="Synthetic", hypothesis="Synthetic discovery provenance",
+    ))
+    cell = next(row for row in campaign["attempts"] if row["case_id"] == "case:one")
+    loop.write("attempt-start", dict(attempt_id=cell["attempt_id"], worker_id="synthetic", key_id="local"))
+    loop.write("attempt-result", dict(
+        attempt_id=cell["attempt_id"], checkpoint_id=cell["checkpoint_id"],
+        session_id="session:unavailable", status="completed", score=0.5,
+        **{key: value for key, value in attempt.items() if key != "error"},
+    ))
 
 
 @pytest.fixture
@@ -459,10 +487,13 @@ def test_import_alias_cannot_upgrade_failed_tracked_original(tmp_path):
 
 
 @pytest.mark.parametrize("messages", [[], [{"from": "buyer", "body": "We prefer longer contracts."}]])
-def test_incomplete_owned_import_transcripts_do_not_establish_discovery_scope(tmp_path, messages):
+def test_incomplete_owned_import_transcripts_preserve_roster_without_teaching(tmp_path, messages):
     path = tmp_path / "lab.sqlite"
     add_run(path, "incomplete", source="imported", messages=messages)
-    assert MemoryStore(path).graph()["coverage"]["sessions"] == []
+    graph = MemoryStore(path).graph()
+    assert graph["observations"] == []
+    assert graph["coverage"]["sessions"][0]["suppliers"] == ["sup:A"]
+    assert build(path, source_cases=["case:one"])["source_suppliers"] == ["sup:A"]
 
 
 def test_arena_environment_partition_and_selected_scope_do_not_mix(cohort):
@@ -535,3 +566,42 @@ def test_concurrent_builds_use_one_consistent_write_reservation(cohort, monkeypa
         results = list(pool.map(lambda _: concurrent(), range(2)))
     assert results[0] == results[1]
     assert store.list() == [results[0]]
+
+
+@pytest.mark.parametrize("source", ["tracked", "imported", "campaign"])
+@pytest.mark.parametrize("partial", [False, True])
+def test_discovery_roster_survives_missing_message_bodies(cohort, source, partial):
+    threads = {"sup:W": {"messages": [message("sup:W", "Thank you.")]}} if partial else {}
+    add_discovery_source(cohort, source, dict(
+        threads=threads, error="session detail unavailable",
+        result={"ended": True, "threads": {"sup:W": {"closed": True}, "sup:X": {"closed": True}},
+                "supplier_id": "sup:W"},
+    ))
+    snapshot = build(cohort)
+    assert snapshot["source_suppliers"] == ["sup:A", "sup:B", "sup:C", "sup:W", "sup:X"]
+    assert "session:unavailable" in snapshot["source_sessions"]
+    assert {e["citation"]["supplier"] for e in snapshot["evidence"]} == {"sup:A", "sup:B", "sup:C"}
+    assert len(snapshot["lessons"]) == 1
+
+
+@pytest.mark.parametrize("source", ["tracked", "imported", "campaign"])
+@pytest.mark.parametrize("result,threads,known", [
+    ({"ended": True}, {}, []),
+    ({"ended": True, "supplier_id": "sup:X"}, {}, ["sup:X"]),
+    ({"ended": True}, {"sup:X": {"messages": [message("sup:X")]}}, ["sup:X"]),
+    ({"ended": True, "threads": {}}, {"sup:X": {}}, ["sup:X"]),
+    ({"ended": True, "threads": {"sup:X": {}, "unknown supplier": {}}}, {}, ["sup:X"]),
+    ({"ended": True, "threads": {"sup:W": {}}, "supplier_id": "sup:X"}, {}, ["sup:W", "sup:X"]),
+    ({"ended": True, "threads": {"sup:W": {}}}, {"sup:X": {}}, ["sup:W", "sup:X"]),
+    ({"ended": True, "threads": {"sup:W": {}}}, {"sup:W": {"supplier_id": "sup:X"}}, ["sup:W", "sup:X"]),
+])
+def test_unverifiable_discovery_cohort_blocks_build_without_hiding_known_ids(cohort, source, result, threads, known):
+    add_discovery_source(cohort, source, dict(result=result, threads=threads))
+    store = MemoryStore(cohort)
+    session = next(s for s in store.graph()["coverage"]["sessions"] if s["session_id"] == "session:unavailable")
+    assert session["suppliers"] == known
+    with pytest.raises(ValueError, match="discovery supplier cohort"):
+        build(cohort)
+    assert store.list() == []
+    # Unknown discovery identity does not poison another explicitly selected case.
+    assert build(cohort, source_cases=["case:two"])["source_suppliers"] == ["sup:C"]

@@ -194,7 +194,12 @@ uv run --locked negotiator lab memory show SNAPSHOT_ID
 Markdown returns counts, lesson/conflict summaries and up to 25 concise observation citations;
 `--format json` retains the complete graph for agent inspection.
 Snapshot IDs address immutable content, including provenance; duplicate imports do not increase
-support. The full discovery cohort includes non-supporting suppliers/sessions. Choose a smaller
+support. The full discovery cohort includes non-supporting suppliers/sessions, using the owned
+result roster and selected supplier even when message collection is incomplete. Older ended
+records without an authoritative full roster remain inspectable, including every known supplier,
+but block new snapshot builds for their selected discovery cases. Missing or inconsistent
+identities also block builds; collected message bodies alone cannot prove a complete cohort.
+Existing immutable snapshots are unchanged. Choose a smaller
 scope if the 64-KiB/512-evidence snapshot bound is exceeded. A valid empty-lesson snapshot honestly
 records abstention. The Memory dashboard supplies supplier/case/environment filters, 25-row pages,
 source citation drilldown, supporting diversity, conflicts and frozen cohort details. Its browser
