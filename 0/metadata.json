@@ -1,0 +1,68 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4KJRZ5BPTAXSS1H8JRHHCSW",
+  "session_id": "01a12673-71fc-74e1-b397-e276186161e5",
+  "strategy": "manual-commit",
+  "created_at": "2026-10-10T18:56:30.380496Z",
+  "branch": "codex/score-push-p18p08",
+  "checkpoints_count": 1,
+  "save_step_count": 1,
+  "files_touched": [],
+  "agent": "Codex",
+  "model": "gpt-6-astra",
+  "turn_id": "1f7a76370b8c",
+  "checkpoint_transcript_start": 3104,
+  "transcript_lines_at_start": 3104,
+  "compact_transcript_start": 374,
+  "token_usage": {
+    "input_tokens": 30492,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 266945,
+    "output_tokens": 2334,
+    "api_call_count": 8
+  },
+  "skill_events_version": 1,
+  "skill_events": [
+    {
+      "id": "prompt-skill-codex-goal-2026-10-10T15:36:01.630974Z",
+      "event_type": "prompt_invocation",
+      "skill": {
+        "name": "goal"
+      },
+      "source": {
+        "agent": "codex",
+        "signal": "prompt_slash_command",
+        "confidence": "explicit"
+      },
+      "turn_id": "8a12e8c2f6de",
+      "timestamp": "2026-10-10T15:36:01.630974Z",
+      "native": {
+        "command": "/goal"
+      },
+      "collapse": {
+        "target": "user_message",
+        "label": "/goal",
+        "default_collapsed": true
+      }
+    }
+  ],
+  "session_metrics": {
+    "turn_count": 4
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    },
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    }
+  ]
+}
