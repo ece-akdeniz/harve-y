@@ -314,18 +314,18 @@ class PackageAgent:
         return self._close(case, threads, reason)
 
     def propose(self, case, threads, supplier_id):
-        if self.policy:
-            ours = self._ours(threads[supplier_id])
-            if ours:
-                self.prev[supplier_id] = nonprice(case, ours[-1])
-            # Rebuild the final-counter budget from actual buyer history after restart.
-            saw_final, count = False, 0
-            for event in threads[supplier_id]:
-                if event.get("from") != "buyer" and event.get("status") == "final_offer":
-                    saw_final = True
-                if saw_final and event.get("from") == "buyer" and event.get("term_sheets"):
-                    count += 1
-            self.final_counters[supplier_id] = count
+        # Rebuild history-derived policy state for every policy mode. A default guided
+        # agent must make the same package and final-counter decision after a restart.
+        ours = self._ours(threads[supplier_id])
+        if ours:
+            self.prev[supplier_id] = nonprice(case, ours[-1])
+        saw_final, count = False, 0
+        for event in threads[supplier_id]:
+            if event.get("from") != "buyer" and event.get("status") == "final_offer":
+                saw_final = True
+            if saw_final and event.get("from") == "buyer" and event.get("term_sheets"):
+                count += 1
+        self.final_counters[supplier_id] = count
         move = self._propose(case, threads, supplier_id)
         if self.evidence and self.evidence.eligible(case, move):
             from .context import DATA_ERRORS
