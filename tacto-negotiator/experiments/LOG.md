@@ -2,7 +2,7 @@
 
 Format and decision rule: `docs/04-experiments.md`. Newest on top. One entry per change.
 
-## P18 recent buyer-favourable index windows on retained package — PRE-REGISTRATION, 10 October 2026
+## P18 recent buyer-favourable index windows on retained package — KEEP 0.5200, 10 October 2026
 
 - Baseline/comparator: retained P18 policy `configs/retained-package-policy.json`,
   0.4530612521 (`b2922dc3`, session `e7f60b71102745a0`; 5.40 / 90d / 24m / deadband 0).
@@ -26,6 +26,19 @@ Format and decision rule: `docs/04-experiments.md`. Newest on top. One entry per
 - Plan: offline replay (only first counter body/refs may change), then one hosted P18 run.
   Keep if > 0.4531 and the claims are verified/used; otherwise preserve as failed. Budget: up to
   2 sessions (1 run + 1 replacement only if it expires), reserve 40 untouched.
+- Offline: replay vs retained thread — only first counter body/refs change; all 5 term sheets
+  and actions identical. 374 passed except the known claim-data preflight test; ruff clean.
+- Hosted: `f1af63e1-0f3d-4cce-8e61-c80c31304a2f`, session `193fd257d7a43c1e`, commit `83a32b0`.
+  Score **0.5200438598** vs 0.4530612521 (+0.0669826077 on P18; +0.0067 ten-case mean).
+  Deal 5.30 / 90d / 24m / AS-14404 deadband 0 (baseline 5.40, same clause). Both claims
+  `verified`; supplier: "Acknowledging the recent index decreases you verified, we are pleased
+  to offer a revised unit price of EUR 5.50" (baseline first counter-offer: 5.70/5.60), then
+  conceded to a 5.30 final. It still restated its 12-month rises ("That remains").
+- Sessions: 1 (no expiry, no replacement). Quota 443→440 during the run (others shared it).
+- Decision: KEEP as P18 candidate (new best 0.5200). Single sample: the supplier is likely
+  deterministic for identical messages, so a repeat would mostly confirm caching, not
+  variance. Transfer to other raw-material/price-increase cases is unmeasured; P08's hedge
+  rebuttal shows the lever depends on supplier context.
 
 ## Packaged runtime negotiation guidance — local integration, 10 October 2026
 
