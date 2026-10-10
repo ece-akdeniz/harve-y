@@ -1,0 +1,24 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4K6F76NNQ6Y42SRS2W0E5TD",
+  "strategy": "manual-commit",
+  "branch": "p02-relationship-price",
+  "checkpoints_count": 10,
+  "files_touched": [
+    "tacto-negotiator/configs/p02-relationship-price.json",
+    "tacto-negotiator/src/negotiator/agent.py",
+    "tacto-negotiator/src/negotiator/evaluator.py",
+    "tacto-negotiator/src/negotiator/policy.py",
+    "tacto-negotiator/src/negotiator/relationship.py",
+    "tacto-negotiator/tests/test_relationship.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ]
+}
