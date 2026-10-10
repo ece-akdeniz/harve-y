@@ -1,0 +1,30 @@
+[Unit]
+Description=harve/y persistent lab learning loop
+After=network-online.target y-agent-lab.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ece
+Group=ece
+WorkingDirectory=/var/lib/y-agent-lab/worker/source/tacto-negotiator
+EnvironmentFile=/var/lib/y-agent-lab/worker/secrets.env
+Environment=UV_CACHE_DIR=/var/lib/y-agent-lab/worker/uv-cache
+Environment=UV_PYTHON_INSTALL_DIR=/var/lib/y-agent-lab/worker/python
+Environment=GIT_CONFIG_GLOBAL=/var/lib/y-agent-lab/worker/gitconfig
+Environment=GIT_ALLOW_PROTOCOL=file:https:ssh
+Environment=PYTHONDONTWRITEBYTECODE=1
+Environment=PATH=/usr/local/bin:/usr/bin:/bin
+ExecStart=/opt/y-agent-lab/deploy/current/.venv/bin/python -m negotiator.lab.autoloop --db /var/lib/y-agent-lab/dashboard.sqlite3 --config /var/lib/y-agent-lab/worker/config.json
+Restart=on-failure
+RestartSec=15
+TimeoutStopSec=240
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/y-agent-lab
+
+[Install]
+WantedBy=multi-user.target

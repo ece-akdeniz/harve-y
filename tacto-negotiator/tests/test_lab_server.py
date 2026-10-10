@@ -80,7 +80,7 @@ def test_api_authentication_and_cookie_is_read_only(dashboard):
     assert "HttpOnly" in response.headers["set-cookie"]
     assert "SameSite=Strict" in response.headers["set-cookie"]
     assert client.get("/api/runs").json() == {
-        "runs": [], "quota": None, "team": "y/agent", "campaigns": [], "suites": [],
+        "runs": [], "quota": None, "team": "y/agent", "campaigns": [], "suites": [], "worker": None,
     }
     assert client.put("/api/runs/run-one", json=snapshot()).status_code == 401
     assert (

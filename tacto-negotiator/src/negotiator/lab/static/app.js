@@ -118,6 +118,15 @@ function updateOptions(id, entries, placeholder) {
 }
 
 function renderSummary(payload) {
+  const worker = payload.worker;
+  const workerLine = $("worker-status");
+  if (workerLine) {
+    workerLine.hidden = !worker;
+    if (worker) {
+      const stale = Date.now() / 1000 - worker.updated_at > 180;
+      workerLine.textContent = `VM learning loop · goal ${worker.target_score}/100 · ${label(worker.state)}${stale ? " · last update overdue" : ""} · ${worker.reserved_sessions ?? "?"}/${worker.max_sessions} sandbox sessions reserved · teammate review before promotion${worker.campaign_id ? " · " + worker.campaign_id : ""}`;
+    }
+  }
   $("team-name").textContent = payload.team || "y/agent";
   $("stat-total").textContent = state.runs.length;
   $("stat-running").textContent = state.runs.filter((r) => r.status === "running").length;

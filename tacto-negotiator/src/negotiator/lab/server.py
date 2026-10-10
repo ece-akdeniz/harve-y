@@ -277,6 +277,9 @@ class Handler(BaseHTTPRequestHandler):
                 loop = self.server.loop_store.read("overview")
                 listing["campaigns"] = loop["campaigns"]
                 listing["suites"] = loop["suites"]
+                from .autoloop import status as worker_status
+
+                listing["worker"] = worker_status(self.server.store.path)
                 self._json(200, listing)
             elif path.startswith("/api/feedback/"):
                 from .feedback import FeedbackAgent

@@ -955,3 +955,16 @@ Mitigation for future checkpoint sources: the async lab worker now makes two
 additional transport retries using the same journaled `X-Move-Id` and records only
 the exception class if all retries fail. This cannot rewrite or validate the
 already ambiguous original attempt. No practice sessions were used.
+
+## 2026-10-10 — Move the learning loop onto the shared lab VM
+
+- User requested a real VM process and persistent 99/100 goal, replacing the Codex heartbeat.
+- Implemented a systemd Python worker, durable SQLite goal/events, bounded feedback retries,
+  registry-backed configuration candidates, local tests and immutable publication before
+  budgeted async execution. The existing Experiments table displays a compact worker status.
+- Initial scope remains the reserved 12-session competitive-anchor sandbox family. No practice,
+  new family, automatic recommendation changes, or 99/100 success claim is authorized.
+- Added exact-move recovery for the ambiguous original start with a separate journal and receipt;
+  original failures remain promotion-ineligible. Tests cover ownership rejection, crash/retry
+  without a second logical start, budget exhaustion, freeze, restart, and review safeguards.
+- Installation and hosted outcome must be verified separately; see docs/21-vm-learning-worker.md.
