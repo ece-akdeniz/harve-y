@@ -2,6 +2,53 @@
 
 Format and decision rule: `docs/04-experiments.md`. Newest on top. One entry per change.
 
+## 2026-10-10 14:58 — One pass over all hosted practice cases (MEASURED HOSTED)
+
+- Policy revision `ba1b242`: favorable, recipient-aware index evidence enabled; same
+  PackageAgent numerical policy. Rising indices are omitted; hedge/irrelevance statements,
+  contradicted claims and final statuses suppress new index arguments. 33 tests and Ruff pass.
+- Hypothesis: avoid strengthening the supplier's position with positive cost-driver claims;
+  stop index arguments when the recipient explicitly rejects their relevance.
+- Ran exactly one session per hosted case, three cases concurrently, no model calls.
+  The nine other listed practice cases are not hosted and were not opened.
+- Mean **37.41/100**, 8 deals, 2 no-deals, zero recorded timeouts in all threads.
+  All eight deals passed must-haves. This is one unrepeated sweep, not an improvement estimate.
+
+- case:P01: **87.49/100**, session `174500003290252d`, 123.05s.
+- case:P02: **29.34/100**, session `322a15e441eac92c`, 7.94s.
+- case:P03: **89.98/100**, session `605286747cc78d67`, 11.74s.
+- case:P04: **5.64/100**, session `60eb9fa51f0e38b8`, 6.66s.
+- case:P05: **41.19/100**, session `5ef6c1f3da1cab3c`, 176.20s.
+- case:P07: **73.40/100**, session `af00461c2632436f`, 59.56s.
+- case:P08: **15.62/100**, session `5d1eb9688d46277d`, 4.04s.
+- case:P10: **0.00/100**, session `0bb925de9d587f14`, 19.15s.
+- case:P11: **31.44/100**, session `5e8b89b0308337e7`, 4.99s.
+- case:P18: **0.00/100**, session `cbf98484048a9282`, 17.52s.
+
+- P01's 87.49 is above the previous broad-evidence run's 70.62, but below the team's
+  previous best; stochastic and unpaired runs do not establish causality.
+- P04 accepted 12 months against a two-year need: EUR 94,000 uncovered need plus
+  EUR 4,700 fallback risk. Non-price negotiation/coverage deserves review.
+- P10 supplier withdrew after we countered a final offer. P18 supplier required an
+  AS-14404 index clause; the fixed initial non-price package kept rejecting it and lost the deal.
+  Next priorities: final-offer handling and economically evaluated non-price adaptations.
+- P05 completed in 176.20s with no recorded RFQ timeouts despite serial thread servicing;
+  one success does not validate sustained concurrency or final recovery.
+- Quota observed 22 -> 34, 178 -> 166 left. This script opened exactly 10 sessions;
+  two additional uses occurred outside this sweep. Team credentials are shared.
+- Live board at 14:58: y/agent #1, rounded mean 0.55, six records, all ten covered;
+  Boo 0.49 and makeAnother.md 0.47. Our P05 result set the new 0.41 case record.
+  The team's P04 best rose to 0.86 in another run, not this sweep's 0.0564 result.
+  The page also changed from played-case means to all-ten means during this work.
+  Spectator observations were never passed to the negotiation agent.
+- Raw evidence: `runs/20261010T125400Z-practice-fcac37/` contains metadata, requests,
+  per-case state/threads, decision traces and summary. No failed-case retries.
+- Entire Graph v0.4.0 and Brain v0.1.0 installed. A clean local committed snapshot
+  built all Brain components successfully without backfill/model calls or a daemon.
+  Graph located evidence selection/callers/tests; Brain remembered and retrieved the
+  earlier evidence failure with session IDs. Capturing this desktop chat still requires
+  Codex hook approval; imported history is not proof the current chat is captured.
+
 ## 2026-10-10 14:46 — Hosted evidence comparison (MEASURED HOSTED)
 
 - Baseline revision: `9181aaa`; candidate is this entry's commit on

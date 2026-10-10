@@ -38,7 +38,8 @@ The production agent must not consume spectator leaderboard data during the fina
 
 `entire status` reports seven Codex hooks awaiting approval via `/hooks`. Installation
 alone does not prove that this desktop chat is being captured. Initial Brain setup found
-zero sessions to distill. Verify a captured session before claiming session-based memory.
+zero sessions to distill; the clean committed-snapshot rebuild found one retained
+session in history. That does not establish capture of this current desktop chat. Verify a captured session before claiming session-based memory.
 
 Official sources: https://github.com/entireio/entire-graph and
 https://github.com/entireio/entire-brain.
