@@ -25,6 +25,7 @@ class PolicyConfig:
     clause_variant_types: tuple[str, ...] = ()
     rival_quote_types: tuple[str, ...] = ()
     index_window_types: tuple[str, ...] = ()
+    cost_target_posterior: float = 0.0  # s_max of the in-session supplier-cost posterior; 0 = off
 
     @classmethod
     def load(cls, path):
@@ -45,6 +46,10 @@ class PolicyConfig:
             d[k] = tuple(sorted(set(v)))
         if type(d.get("cost_target_index_clause", False)) is not bool:
             raise ValueError("cost_target_index_clause must be boolean")
+        post = d.get("cost_target_posterior", 0.0)
+        if isinstance(post, bool) or not isinstance(post, (int, float)) or not 0 <= post <= 1:
+            raise ValueError("cost_target_posterior must be a number in [0, 1]")
+        d["cost_target_posterior"] = float(post)
         if type(d.get("cost_neutral_lead_time", False)) is not bool:
             raise ValueError("cost_neutral_lead_time must be boolean")
         if d.get("final_offer_risk", "legacy") not in ("legacy", "opening_proxy"):

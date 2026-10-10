@@ -960,3 +960,37 @@ Findings:
 - Sessions: 8 practice sessions; quota 103 -> ~119 used/600 because other agents share it.
 Decision: P18 `configs/p18-clause-variants.json` is a measured win vs local .4062 (n=2, identical), but below the hosted
 best .4531. It is mergeable as an opt-in config only. P08: no change.
+
+## 2026-10-10 — P02 in-session supplier-cost posterior (branch `codex/score-push-fullcost-rel`)
+
+Hypothesis (coordinator): the instant accept of 366.23 / 90 d / CU db5 is runtime evidence that the
+supplier's cost sits below the public prior midpoint 374.95, so the cost target should adapt.
+
+Offline (no session; `/tmp/fc2/p02_post.py`, public dossier prior fc ~ U[356.20, 393.70]):
+- Likelihood: the supplier accepts an offer worth v to it (`supplier_value`) iff v >= fc·(1−s),
+  s ~ U[0, s_max] (how far below full cost it will sell). 366.23/90d is worth 361.35 to it.
+- Posterior after an accept at 366.23, and the E[C]-optimal price on the same package:
+  s_max .10 → E[fc] 370.3, opt 362.10; .125 → 371.6, 363.05; **.15 → 372.3, 363.65**; .20 → 373.1,
+  364.35; .30 → 373.8, 365.00. The accept is weak evidence. The supplier also sold the same package
+  at 349.37 in 5eccc847 (worth 344.71 to it), so acceptance alone does not bound fc from below.
+  It only says s is large (≥ 6 % at fc 366.7).
+- Score range at fc points (local model; hosted was ~.026 below local at 366.23). Price 363.37 vs 366.23:
+  fc 356 +1.25/+0.89, fc 362 +1.10/+0.86, fc 366.7 **+0.74/+0.63**, fc 375 −0.47/−0.34,
+  fc 385 −2.36/−2.17. Wrong-posterior risk: each EUR 1 below the relationship optimum costs ~.04
+  score at fc ≈ 375 and ~.05 at fc ≈ 385. A refusal-driven posterior would also over-concede: one
+  counter at 363.37 lifts E[fc] to 382 and the optimum to 375. So refusals may only bring us back to
+  the prior optimum, never above it.
+- The clause db5 package caps the score at ≈ .76 local even at the best price (~361). **.85 is not
+  reachable on this package**. No-clause 90 d is floored by the supplier at 373.65 (.29).
+- P10: not applicable. The margin at 31.80 is ≈ 23 % ≫ 10 % sustainable, so the relationship term
+  (and hence fc) does not bind above ≈ 27. Whether 31.80 is a bluff is a reservation-price question,
+  not a cost-posterior one. Countering a final offer has caused `walked_away` before (D02, line ~264).
+  No P10 session.
+
+What differs from previous P02 attempts (5eccc847 cost-driver, p02-cost-target 366.23 → .5993):
+opt-in `cost_target_posterior` (s_max 0.15, `configs/p02-cost-posterior.json`). Same package
+(90 d / CU db5). It opens at the self-consistent price p = argmin E[C | refusals, p accepted]
+(**363.37**) instead of the prior optimum 366.23. If the supplier refuses, it rises toward the prior
+optimum, never above it. It accepts a supplier sheet on our package at or below that price.
+Expected: accept → hosted ≈ .70 (+.10). Refuse → back to 366.23 (≈ .60).
+Plan: 1 P02 screen, repeat once if ≥ .62. Max 2 practice sessions.

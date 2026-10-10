@@ -388,6 +388,10 @@ class PackageAgent:
             self._log(case, "cost_target_close", sid, c=standing_c, target_c=tc, c_alt=c_alt, reason=reason)
             return accept if standing_c < c_alt else walk
 
+        s_max = getattr(self.policy, "cost_target_posterior", 0.0)
+        if s_max > 0:
+            return self._posterior_move(case, sid, events, msg, status, std, sup, tterms, sheets, c_alt, ours, left,
+                                        accept, close, s_max)
         on_ours = same_package(case, standing_terms, ours[-1] if ours else tterms, std)
         if on_ours and standing_c <= mark + 1.0:
             return close("standing sheet meets our offer by expected C")
@@ -412,6 +416,54 @@ class PackageAgent:
             price = min(price, cap)
         terms = {**tterms, "unit_price": round(min(price, ask), 2)}
         return self._target_offer(case, sid, terms, std, sup, c_alt, ec(terms), "expected-C concession")
+
+    def _posterior_move(self, case, sid, events, msg, status, std, sup, tterms, sheets, c_alt, ours, left,
+                        accept, close, s_max):
+        """In-session supplier-cost posterior on the target package. Every offer of ours that drew
+        any reply other than an agreement is a refusal. We offer the self-consistent price p with
+        p = argmin E[C | refusals so far, p accepted]: the price we would still be happy with if the
+        supplier took it at once. Refusals raise the posterior, so offers rise only as the supplier
+        reveals that its cost is higher; we never offer above its own sheet on that package."""
+        from . import cost_target as ct
+
+        package = {**tterms, "unit_price": 0}
+        refusals = [(t, False) for t in ours if same_package(case, t, package, std)]
+        grid = ct.posterior(case, std, sup, refusals, s_max)
+
+        def ec(t, g=grid):
+            return ct.expected_cost(case, t, std, sup, g)
+
+        p = tterms["unit_price"]
+        for _ in range(8):  # fixed point of p -> argmin E[C | refusals, p accepted]
+            g = ct.posterior(case, std, sup, [*refusals, ({**tterms, "unit_price": p}, True)], s_max)
+            q = ct.min_price(case, tterms, std, sup, g)
+            if abs(q - p) < 0.01:
+                break
+            p = q
+        if ours and same_package(case, ours[-1], package, std):
+            p = max(p, ours[-1]["unit_price"])  # never retreat below our own last offer
+        # A counter is partly bargaining, not only cost: refusals may lift us back to the prior
+        # optimum, never above it (the prior-target behaviour is the ceiling of this probe).
+        p = min(p, tterms["unit_price"])
+        opt = min(ct.min_price(case, tterms, std, sup, grid), tterms["unit_price"])
+        asks = [t["unit_price"] for _, _, t in sheets if same_package(case, t, package, std)]
+        ask = min(asks) if asks else None
+        standing_c, standing_id, _ = sheets[0]
+        mark_c = ec({**tterms, "unit_price": max(p, opt)})
+        self._log(case, "cost_posterior", sid, offer=round(p, 2), opt=opt, ask=ask, refusals=len(refusals),
+                  e_fc=round(sum(s["_w"] * s["full_cost"] for s in grid) / sum(s["_w"] for s in grid), 2)
+                  if all("_w" in s for s in grid) else None, standing_c=standing_c, mark_c=mark_c)
+        if same_package(case, sheets[0][2], package, std) and sheets[0][2]["unit_price"] <= max(p, opt) + 0.005:
+            return close("posterior: standing sheet meets the posterior target")
+        if status == "final_offer" or left <= 1:
+            countered = sum(1 for i, e in enumerate(events) if e.get("from") == "buyer" and e.get("term_sheets")
+                            and any(x.get("status") == "final_offer" for x in events[:i] if x.get("from") != "buyer"))
+            if status == "final_offer" and left > 1 and countered < 1 and (ask is None or p < ask):
+                return self._target_offer(case, sid, {**tterms, "unit_price": round(p, 2)}, std, sup, c_alt,
+                                          ec({**tterms, "unit_price": p}), "posterior: one counter to final offer")
+            return close("posterior: final offer or last move")
+        terms = {**tterms, "unit_price": round(min(p, ask) if ask is not None else p, 2)}
+        return self._target_offer(case, sid, terms, std, sup, c_alt, ec(terms), "posterior: self-consistent price")
 
     def _target_offer(self, case, sid, terms, std, sup, c_alt, expected_c, reason):
         self._log(case, "cost_target", sid, terms=terms, expected_c=expected_c, reason=reason)
