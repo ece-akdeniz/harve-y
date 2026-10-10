@@ -833,3 +833,24 @@ in the preceding entry; the same failure reproduces with the unchanged current
   4. P18: early equal-cost index_clause deadband variants, adopt supplier-revealed spread. Est.
      +0.03-0.06, weak-medium.
   P11 "faster payment" ask is not executable (payment_days not negotiable). Decision: implement 1-2 first.
+
+## 2026-10-10 — Restore the measured P18 package baseline
+
+Recovered original agent-visible thread for owned session336d373e78ee87f1
+(score0.4530612521, final5.40/90days/24months/AS-14404 deadband0).
+The previous best was not in local run manifests and had been overlooked when
+evaluating the0.4195698792 clause-variant candidate.
+
+Existing configs/package-advice.json with estimates={} and meso=false reproduces
+all FIVE buyer messages, term sheets and final acceptance exactly on that history.
+configs/retained-package-policy.json provides those exact factory kwargs. Runtime
+logic is unchanged; no case-specific prices or new flags. The original thread is
+an agent-visible regression fixture. In particular, clauses are not accepted into
+our counters early; the supplier's indexed standing offer can still be accepted.
+
+Plan: one hosted confirmation via negotiator.agent:configured_agent from own
+budget24/30, reserve40. This protects a historical gain; it is not a new best-of
+score or proof of unseen-case performance. No default changes or main merge.
+
+Validation:371 tests passed, only the known pre-existing claim-data preflight
+test failed; Ruff passed. The new exact historical replay passed.
