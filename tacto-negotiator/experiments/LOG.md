@@ -2,6 +2,12 @@
 
 Format and decision rule: `docs/04-experiments.md`. Newest on top. One entry per change.
 
+## P18 recent index windows — REPEAT, 10 October 2026
+
+- Same config/commit lineage as the KEEP entry below (`configs/p18-recent-index-window.json`).
+  Nothing differs; purpose is to confirm 0.5200 is reproducible rather than one favourable
+  supplier draw. 1 session, no replacement unless expired.
+
 ## P18 recent buyer-favourable index windows on retained package — KEEP 0.5200, 10 October 2026
 
 - Baseline/comparator: retained P18 policy `configs/retained-package-policy.json`,
