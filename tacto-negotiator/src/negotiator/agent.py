@@ -517,3 +517,20 @@ class PackageAgent:
             why = trade_reason or why
         variants = self._payment_variants(case, terms, cands[0][2], std, sup) if self.meso else []
         return self._offer(case, sid, terms, std, sup, c_alt, why or f"round {k + 1} schedule", variants)
+
+
+def configured_agent(policy_config, trace_dir=None, **kwargs):
+    """Lab factory `negotiator.agent:configured_agent`: JSON policy dict -> validated PackageAgent.
+
+    Keeps the full policy in the lab run manifest (the plain `package` factory cannot take a
+    PolicyConfig from JSON). `trace_dir` creates a Tracer there; other kwargs pass through.
+    """
+    from .policy import PolicyConfig
+
+    if trace_dir is not None:
+        from pathlib import Path
+
+        from .trace import Tracer
+
+        kwargs["tracer"] = Tracer(Path(trace_dir))
+    return PackageAgent(policy=PolicyConfig.from_dict(policy_config), **kwargs)

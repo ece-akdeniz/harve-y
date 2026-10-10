@@ -23,7 +23,11 @@ class PolicyConfig:
 
     @classmethod
     def load(cls, path):
-        d = json.loads(Path(path).read_text())
+        return cls.from_dict(json.loads(Path(path).read_text()))
+
+    @classmethod
+    def from_dict(cls, data):
+        d = dict(data) if isinstance(data, dict) else data
         if not isinstance(d, dict) or set(d) - set(cls.__dataclass_fields__):
             raise ValueError("unknown policy fields")
         if type(d.get("version")) is not int or d["version"] != 1:
