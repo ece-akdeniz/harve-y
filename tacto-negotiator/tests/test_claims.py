@@ -44,7 +44,7 @@ def test_p01_bank_index_claims(pkg):
     for c in bank:
         assert all(i in pkg.facts for i in c.ids)
         assert all(i in c.sentence for i in c.ids)
-        assert C.verify(c, C.case_facts(p01_case(pkg), pkg))
+        assert C.verify(c, C.case_facts(p01_case(pkg), pkg), pkg, p01_case(pkg))
 
 
 def test_p01_default_pick_is_buyer_side(pkg):
@@ -79,12 +79,15 @@ def test_pick_never_reuses_ids(pkg):
 def test_verify_tolerance_and_rules(pkg):
     facts = C.case_facts(p01_case(pkg), pkg)
     c = next(c for c in C.build_bank(p01_case(pkg), pkg) if c.subject == "PPI-D351")
-    assert C.verify(dataclasses.replace(c, figure=c.figure + 0.4), facts)
+    assert not C.verify(dataclasses.replace(c, figure=c.figure + 0.4), facts)  # sentence still has old figure
+    changed = dataclasses.replace(c, figure=c.figure + 0.4)
+    assert C.verify(dataclasses.replace(changed, sentence=C.render(changed, facts)), facts)
     assert not C.verify(dataclasses.replace(c, figure=c.figure + 0.6), facts)
     long = dataclasses.replace(c, ids=("idx:PPI-D351@2025-01", "idx:PPI-D351@2026-08"),
                                sentence="idx:PPI-D351@2025-01 idx:PPI-D351@2026-08")
     assert C.check(long, facts) == "window longer than 12 months"
     old = dataclasses.replace(c, ids=("idx:PPI-D351@2024-01", "idx:PPI-D351@2025-01"),
+                              window=("2024-01", "2025-01"),
                               sentence="idx:PPI-D351@2024-01 idx:PPI-D351@2025-01")
     assert C.check(old, facts) == "window ends too early"
     assert C.check(dataclasses.replace(c, ids=("idx:NOPE@2026-08", c.ids[1])), facts) == "unknown id"
@@ -115,7 +118,7 @@ def test_sim_cases_bank_verifies(pkg, name):
     case = sim(name)
     facts = C.case_facts(case, pkg)
     bank = C.build_bank(case, pkg)
-    assert bank and all(C.verify(c, facts) for c in bank)
+    assert bank and all(C.verify(c, facts, pkg, case) for c in bank)
     assert len(C.pick(bank, set(), case_type=case["type"], allow_adverse=True)) <= 3
 
 

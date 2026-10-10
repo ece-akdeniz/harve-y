@@ -470,3 +470,51 @@ keep that unmeasured policy out of the combined candidate.
 
 - User subsequently chose **stop after the free check and preserve quota**. No more practice
   sessions started. Final comparison is explicitly deferred until the user asks to resume.
+
+## Shared Evidence context — local contract validation, 10 October 2026
+
+- Hypothesis: a shared, inspectable context can preserve existing price-increase claim selection
+  and message economics while linking selected claims to scoped sources and input versions.
+- Source: working branch `feat/evidence-context`; pinned kit
+  `1b5516bb95ef28e37f69aa446dc62168864bca53`; no activation/config changes.
+- Inputs: local `negotiation-arena-kit/data`, manifest v1.0.0, declared snapshot 2026-09-30;
+  saved P01 practice metadata. Export command and responsibilities: docs/16-evidence-context.md.
+- P01: existing bank/pick preserved; initial notice 51/90 days, PPI-D351 -3.7%, OTD 85.2%.
+  LCI-C +2.7%, PPI-C241 +6.5% and 712 ppm remain existing candidates. Private estimates stay
+  internal. Context gaps expose unknown index units and existing signal-overlay limitations.
+- Local checks cover term preservation, private exclusion, failed checks, missing-data fallback,
+  source/version export, reservations, resumed buyer refs and PackageAgent integration.
+- Hosted sessions/quota consumed: **0**. Scores and persuasion effects: **not measured**.
+  No runtime or negotiation-readiness claim; existing verifier/loader limits remain documented.
+- Decision: hand off the shared interface and proposed hosted checklist for team review.
+  The paused practice comparison stays paused; hosted work requires a separate instruction.
+- Validation: `uv run --locked pytest -q` with explicit `ARENA_DATA`: **120 passed**;
+  `uv run --locked ruff check .`: **passed**. Local asyncio suite ran outside the restricted
+  execution sandbox after sandboxed runner tests stalled; no hosted transport was used.
+
+## Claim verification and relevance — local follow-up, 10 October 2026
+
+- Hypothesis: reject unsupported/semantically inconsistent evidence and prioritize indices named
+  in the supplier explanation while preserving message economics and disclosure/usage rules.
+- Source/config: working branch `feat/evidence-context`, same pinned kit and local data manifest
+  as the shared-context batch; no policy activation changes. No hosted sessions or quota used.
+- Added canonical claim rendering and verification of sentence/figure agreement, units,
+  finite numbers, index direction/window/source compatibility, price bases/currency, disclosure,
+  supplier-wide scorecards and requested-date OTD. Notices require supplier/part/date applicability
+  and genuinely short notice; ambiguous/missing applicability is excluded. Notice preparation
+  now works without a scorecard.
+- Relevance: latest supplier message's known series IDs, then trigger/case citations, then listed
+  part drivers. Supplier text cannot change claim eligibility/disclosure. Selection traces expose
+  reasons and remaining slots; existing message refs conservatively consume the three-claim budget.
+- Audit: compared banks and selected kinds/IDs/figures with a saved pre-change local snapshot for
+  all 19 practice fixtures. P02's 109-day and P17's 104-day notice claims (90-day requirements)
+  are removed; they were previously unselected. P02's requested effective date is also outside the
+  recorded contract interval. Initial selections, including relevance ranking, stay unchanged for
+  all 19 fixtures. P01 stays 51/90 days, -3.7% PPI-D351, 85.2% OTD; scorecard wording is explicit.
+- Validation: **162 passed** with `uv run --locked pytest -q` and explicit `ARENA_DATA`;
+  `uv run --locked ruff check .` passed. Local P01 export was regenerated successfully.
+  Tests include false notice comparisons, wrong/expired/ambiguous scope, no-scorecard notices,
+  sentence tampering, units/direction, privacy, relevance, final message budget and resumed usage.
+- Decision: ready for local/team review; hosted persuasion and scores remain **unmeasured**.
+  Prices, term sheets, closing decisions, rival disclosure and cost-pressure integration remain
+  outside this batch. The existing paused hosted comparison remains paused.

@@ -11,8 +11,10 @@ must never be presented as verified.
 """
 
 import json
+import math
 import re
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
+from datetime import date
 from pathlib import Path
 
 from negotiator import dossiers as dossiers_mod
@@ -56,6 +58,7 @@ class Claim:
     in_case_refs: bool = False
     cherry_picked: bool = False  # index window chosen for its fall, not the latest 12 months
     note: str = ""
+    driver_weight: float | None = None
 
     @property
     def direction(self) -> str:
@@ -73,6 +76,8 @@ def case_facts(case: dict, package=None) -> dict:
 
 def _months(month: str) -> int:
     y, m = month.split("-")
+    if not 1 <= int(m) <= 12:
+        raise ValueError("invalid month")
     return int(y) * 12 + int(m) - 1
 
 
@@ -161,6 +166,7 @@ def _index_claim(series, values, window, part, weight, refs, label, names, cherr
         strength=round(-fig * max(w, 0.05) if fig < 0 else fig * max(w, 0.05), 3),
         in_case_refs=all(i in refs for i in ids), cherry_picked=cherry,
         note=f"{label}; driver weight {weight}" if weight is not None else f"{label}; not a listed cost driver",
+        driver_weight=weight,
     )
 
 
@@ -171,24 +177,78 @@ def _reference_price(case: dict, target: str, facts: dict) -> float | None:
     return min(own) if own else case.get("buyer", {}).get("current_unit_price")
 
 
+def _parts(row):
+    value = row.get("part_ids") or row.get("parts") or row.get("part") or ""
+    return set(re.findall(r"part:[\w-]+", value if isinstance(value, str) else " ".join(value)))
+
+
+def _scope(ref, row, package):
+    if any(key in row for key in ("part", "parts", "part_ids")):
+        return _parts(row)
+    if package is None:
+        return set()
+    if ref.startswith("doc:") and getattr(package, "db", None) is not None:
+        rows = package.query("SELECT part_ids FROM documents WHERE id = ?", (ref,))
+        if rows:
+            return _parts(rows[0])
+    if ref.startswith("ctr:"):
+        try:
+            text = package.document(ref)
+        except (OSError, ValueError):
+            return set()
+        # Only the explicit Parts line defines applicability; other text is untrusted prose.
+        match = re.search(r"^Parts:\s*(.+)$", text, re.MULTILINE)
+        return _parts({"part_ids": match.group(1)}) if match else set()
+    return set()
+
+
 def _trigger_letter(case: dict, facts: dict, supplier: str, part: str) -> tuple[str, dict] | None:
+    def matches(row):
+        return (isinstance(row, dict) and row.get("supplier") == supplier
+                and row.get("asked_pct") is not None and row.get("days") is not None
+                and (not _parts(row) or part in _parts(row)))
+
     ref = case.get("trigger_doc")
-    if ref and isinstance(facts.get(ref), dict):
-        return ref, facts[ref]
-    letters = [(r, f) for r, f in facts.items() if r.startswith("doc:") and isinstance(f, dict)
-               and f.get("supplier") == supplier and f.get("asked_pct") is not None and f.get("days") is not None]
-    letters = [x for x in letters if x[0] in (case.get("refs") or [])] or (
-        letters if case.get("type") == "price_increase" else [])
-    return max(letters, key=lambda x: x[1].get("date") or "") if letters else None
+    if ref:
+        return (ref, facts[ref]) if ref.startswith("doc:") and matches(facts.get(ref)) else None
+    refs = set(case.get("refs") or []) | set(case.get("facts") or {})
+    letters = [(r, f) for r, f in facts.items() if r in refs and r.startswith("doc:") and matches(f)]
+    return letters[0] if len(letters) == 1 else None
 
 
-def build_bank(case: dict, package=None) -> list[Claim]:
+def _notice_reason(claim, facts, package=None, require_short=True):
+    if len(claim.ids) != 2 or not claim.ids[0].startswith("doc:") or not claim.ids[1].startswith("ctr:"):
+        return "needs letter and contract ids"
+    doc, ctr = [facts[i] for i in claim.ids]
+    if not claim.supplier_id or any(r.get("supplier") != claim.supplier_id for r in (doc, ctr)):
+        return "other supplier"
+    if not claim.part_id:
+        return "notice part unknown"
+    if any(claim.part_id not in _scope(ref, row, package) for ref, row in zip(claim.ids, (doc, ctr), strict=True)):
+        return "notice part outside or missing scope"
+    if not all(_number(r.get("days")) and r["days"] >= 0 for r in (doc, ctr)):
+        return "invalid notice days"
+    if require_short and doc["days"] >= ctr["days"]:
+        return "notice is not short"
+    try:
+        observed = date.fromisoformat(doc["date"])
+        start, end = date.fromisoformat(ctr["valid_from"]), date.fromisoformat(ctr["valid_to"])
+        effective = date.fromisoformat(doc.get("effective_date") or doc["date"])
+    except (KeyError, TypeError, ValueError):
+        return "notice validity dates unknown"
+    if not start <= observed <= effective <= end:
+        return "contract not valid at notice/effective date"
+    return None
+
+
+def build_bank(case: dict, package=None, verify_claims=True) -> list[Claim]:
     """Candidate claims for a case (arena case dict: case_id, type, parts, suppliers, refs, facts...).
 
     Index changes for the part's cost drivers (and indices the case cites) over the latest 12-month
     window, plus a buyer-favourable window when the latest one supports the supplier; rival quotes
     (case refs / alternative) per receiving supplier; scorecard OTD and ppm; letter notice vs.
-    contract notice; should-cost (internal). Every claim passes `verify` against the case facts."""
+    contract notice; should-cost (internal). By default every claim passes `verify` against
+    the case facts. `verify_claims=False` exposes raw candidates for context check diagnostics."""
     facts = case_facts(case, package)
     refs = set(case.get("refs") or []) | set(case.get("facts") or {})
     parts = case.get("parts") or []
@@ -242,15 +302,14 @@ def build_bank(case: dict, package=None) -> list[Claim]:
         rows = [(r, f) for r, f in facts.items() if r.startswith("sc:") and isinstance(f, dict)
                 and f.get("supplier") == target]
         in_refs = [x for x in rows if x[0] in refs]
-        if not (rows := in_refs or rows):
-            continue
-        ref, f = max(rows, key=lambda x: x[1].get("quarter") or "")
+        rows = in_refs or rows
+        ref, f = max(rows, key=lambda x: x[1].get("quarter") or "") if rows else (None, {})
         if f.get("otd_pct") is not None:
             otd = round(float(f["otd_pct"]), 1)
             bank.append(Claim(
                 kind="scorecard_otd", ids=(ref,), figure=otd, unit="%",
                 sentence=f"Your on-time delivery on scorecard {ref} was {otd:.1f} %.",
-                supplier_id=target, part_id=part, supports_buyer=otd < OTD_WEAK, disclosure="supplier_own",
+                supplier_id=target, part_id=None, supports_buyer=otd < OTD_WEAK, disclosure="supplier_own",
                 subject=target, strength=round(OTD_TARGET - otd, 1), in_case_refs=ref in refs))
         if f.get("ppm") is not None:
             ppm = int(f["ppm"])
@@ -259,25 +318,27 @@ def build_bank(case: dict, package=None) -> list[Claim]:
             bank.append(Claim(
                 kind="scorecard_ppm", ids=(ref,), figure=float(ppm), unit="ppm",
                 sentence=f"Your supplier-caused defect rate on scorecard {ref} was {ppm} ppm.",
-                supplier_id=target, part_id=part, supports_buyer=ppm >= PPM_WEAK or rising,
+                supplier_id=target, part_id=None, supports_buyer=ppm >= PPM_WEAK or rising,
                 disclosure="supplier_own", subject=target, strength=float(ppm), in_case_refs=ref in refs,
                 note="rising vs. a year earlier" if rising else ""))
 
         letter = _trigger_letter(case, facts, target, part)
-        contract = next(((r, c) for r, c in facts.items() if r.startswith("ctr:") and "#" not in r
-                         and isinstance(c, dict) and c.get("supplier") == target and c.get("days")), None)
-        if letter and contract and all(
-            isinstance(x, int | float) and not isinstance(x, bool)
-            for x in (letter[1].get("days"), contract[1].get("days"))
-        ):
-            (dref, d), (cref, c) = letter, contract
-            given, needed = d["days"], c["days"]
-            bank.append(Claim(
-                kind="notice", ids=(dref, cref), figure=float(given), unit="days",
-                sentence=f"Your letter {dref} gives only {given} days' notice, short of the notice period "
-                         f"in contract {cref}.",
-                supplier_id=target, part_id=part, supports_buyer=given < needed, disclosure="supplier_own",
-                subject=target, strength=float(needed - given), in_case_refs=dref in refs or cref in refs))
+        if letter:
+            dref, d = letter
+            notices = []
+            for cref, ctr in facts.items():
+                if not (cref.startswith("ctr:") and "#" not in cref and isinstance(ctr, dict)
+                        and ctr.get("supplier") == target):
+                    continue
+                candidate = Claim("notice", (dref, cref), d.get("days"), "days", "",
+                                  supplier_id=target, part_id=part, disclosure="supplier_own", subject=target)
+                if _notice_reason(candidate, facts, package, require_short=False) is None:
+                    notices.append(replace(candidate, supports_buyer=d["days"] < ctr["days"],
+                                           strength=float(ctr["days"] - d["days"]),
+                                           in_case_refs=dref in refs or cref in refs))
+            # Multiple applicable contracts need resolution, never an arbitrary first match.
+            if len(notices) == 1:
+                bank.append(notices[0])
 
         for ref, f in facts.items():
             if not (ref.startswith("cost:") and isinstance(f, dict) and f.get("part") == part):
@@ -294,7 +355,8 @@ def build_bank(case: dict, package=None) -> list[Claim]:
                 subject=target, in_case_refs=ref in refs,
                 note=f"+-{f.get('confidence_pct')} %, no margin; reveals our estimate"))
 
-    return [c for c in bank if verify(c, facts)]
+    bank = [replace(c, sentence=render(c, facts)) for c in bank]
+    return [c for c in bank if verify(c, facts, package, case)] if verify_claims else bank
 
 
 def _shift_quarter(quarter: str | None, n: int) -> str:
@@ -307,9 +369,10 @@ def _shift_quarter(quarter: str | None, n: int) -> str:
 
 def offer_claim(offer_id: str, unit_price: float, rival_supplier: str, target_supplier: str, part: str) -> Claim:
     """A rival's live offer in an RFQ session (cited once per receiving supplier; reveals it)."""
-    return Claim(kind="rival_offer", ids=(offer_id,), figure=round(unit_price, 2), unit="EUR",
+    claim = Claim(kind="rival_offer", ids=(offer_id,), figure=round(unit_price, 2), unit="EUR",
                  sentence=f"Another supplier has offered {part} at EUR {unit_price:.2f} per unit ({offer_id}).",
                  supplier_id=target_supplier, part_id=part, disclosure="reveals_rival", subject=rival_supplier)
+    return replace(claim, sentence=render(claim, {}))
 
 
 # ---------------------------------------------------------------- verify
@@ -321,58 +384,147 @@ def _close(claimed: float, actual: float, unit: str) -> bool:
     return abs(claimed - actual) <= max(abs(actual) * 0.005, 0.01)
 
 
-def check(claim: Claim, facts: dict) -> str | None:
-    """None if the claim recomputes from `facts` within tolerance, else the reason."""
+def _number(value):
+    return isinstance(value, int | float) and not isinstance(value, bool) and math.isfinite(value)
+
+
+def render(claim: Claim, facts: dict) -> str:
+    """Single approved sentence per kind, using structured fields rather than arbitrary prose."""
+    ref = claim.ids[0]
+    figure = claim.figure
+    if claim.kind == "index_change":
+        series = ref[4:].split("@")[0]
+        return f"The {series} index {_verb(figure)} {_fmt_pct(figure)} between {ref} and {claim.ids[1]}."
+    if claim.kind in ("scorecard_otd", "scorecard_ppm"):
+        quarter = facts.get(ref, {}).get("quarter") or (ref.split("@", 1)[1] if "@" in ref else None)
+        period = f" ({quarter}, rolling 12 months)" if quarter else ""
+        metric = ("on-time delivery against requested dates" if claim.kind == "scorecard_otd"
+                  else "supplier-caused defect rate")
+        value = f"{figure:.1f} %" if claim.kind == "scorecard_otd" else f"{figure:g} ppm"
+        return f"Your supplier-wide {metric} on scorecard {ref}{period} was {value}."
+    if claim.kind == "notice":
+        needed = facts[claim.ids[1]]["days"]
+        return (f"Your letter {ref} gives {figure:g} days' notice, short of the {needed:g}-day "
+                f"requirement in contract {claim.ids[1]}.")
+    if claim.kind == "rival_quote":
+        return f"We hold a quote {ref} for {claim.part_id} at EUR {figure:.2f} per unit."
+    if claim.kind == "rival_offer":
+        return f"Another supplier has offered {claim.part_id} at EUR {figure:.2f} per unit ({ref})."
+    if claim.kind == "should_cost":
+        return f"Our should-cost estimate {ref} for {claim.part_id} is EUR {figure:.2f} per unit."
+    raise ValueError("unknown claim kind")
+
+
+def _check(claim, facts, package=None, case=None):
     rows = [facts.get(i) for i in claim.ids]
-    if any(not isinstance(r, dict) for r in rows):
+    if not rows or any(not isinstance(r, dict) for r in rows):
         return "unknown id"
-    if claim.figure is None:
-        return "no figure"
+    if not _number(claim.figure):
+        return "invalid figure"
     if not all(i in claim.sentence for i in claim.ids):
         return "id missing from sentence"
     k = claim.kind
+    units = {"index_change": "%", "scorecard_otd": "%", "scorecard_ppm": "ppm", "notice": "days",
+             "rival_quote": "EUR", "rival_offer": "EUR", "should_cost": "EUR"}
+    if k not in units:
+        return f"unknown kind {k}"
+    if claim.unit != units[k]:
+        return "wrong unit"
+    disclosures = {"index_change": "public", "scorecard_otd": "supplier_own", "scorecard_ppm": "supplier_own",
+                   "notice": "supplier_own", "should_cost": "internal",
+                   "rival_quote": "reveals_rival", "rival_offer": "reveals_rival"}
+    if claim.disclosure != disclosures[k]:
+        return "wrong disclosure"
+    if case is not None and claim.part_id is not None and claim.part_id not in case.get("parts", []):
+        return "other case part"
     if k == "index_change":
-        if len(rows) != 2:
+        if len(rows) != 2 or any(not re.fullmatch(r"idx:[^@]+@\d{4}-\d{2}", i) for i in claim.ids):
             return "needs two index ids"
         sids = {i[4:].split("@")[0] for i in claim.ids}
-        months = [r.get("month") or i.split("@")[1] for i, r in zip(claim.ids, rows, strict=True)]
-        if len(sids) != 1:
-            return "different series"
-        (a, ra), (b, rb) = sorted(zip(months, rows, strict=True), key=lambda x: x[0])
+        months = [i.split("@")[1] for i in claim.ids]
+        if len(sids) != 1 or any(r.get("series", i[4:].split("@")[0]) != i[4:].split("@")[0]
+                                 or r.get("month", m) != m
+                                 for i, m, r in zip(claim.ids, months, rows, strict=True)):
+            return "different series or month"
+        a, b = months
         span = _months(b) - _months(a)
         if not 0 < span <= WINDOW_MONTHS:
             return "window longer than 12 months"
-        last = max(series_values(facts).get(sids.pop(), {b: 0}))
+        if claim.window is not None and claim.window != (a, b):
+            return "window mismatch"
+        series = next(iter(sids))
+        if claim.subject not in (None, series):
+            return "index subject mismatch"
+        last = max(series_values(facts).get(series, {b: 0}))
         if _months(b) < _months(last) - (WINDOW_MONTHS - 1):
             return "window ends too early"
-        actual = _pct(ra["value"], rb["value"])
-    elif k in ("rival_quote", "rival_offer"):
+        if len({r["unit"] for r in rows if r.get("unit")}) > 1:
+            return "incompatible index units"
+        if not all(_number(r.get("value")) and r["value"] > 0 for r in rows):
+            return "invalid index value"
+        actual = _pct(rows[0]["value"], rows[1]["value"])
+        if _verb(claim.figure) != _verb(round(actual, 1)) or claim.supports_buyer != (claim.figure < 0):
+            return "index direction mismatch"
+    elif k in ("rival_quote", "rival_offer", "should_cost"):
+        if len(rows) != 1:
+            return "needs one price id"
         r = rows[0]
-        if claim.part_id and r.get("part") and r["part"] != claim.part_id:
+        if claim.part_id and r.get("part") != claim.part_id:
             return "other part"
-        if claim.supplier_id and r.get("supplier") == claim.supplier_id:
+        if k != "should_cost" and claim.supplier_id and r.get("supplier") == claim.supplier_id:
             return "own quote"
-        actual = r["unit_price"] / (r.get("price_unit") or 1)
+        if r.get("currency", "EUR") != "EUR":
+            return "non-EUR price source"
+        unit = r.get("price_unit", 1)
+        value = r.get("unit_cost" if k == "should_cost" else "unit_price")
+        if not _number(unit) or unit <= 0 or not _number(value) or value < 0:
+            return "invalid price basis"
+        actual = value / unit
     elif k in ("scorecard_otd", "scorecard_ppm"):
-        if claim.supplier_id and any(r.get("supplier") != claim.supplier_id for r in rows):
+        if len(rows) != 1 or not claim.ids[0].startswith("sc:"):
+            return "needs one scorecard id"
+        if not claim.supplier_id or rows[0].get("supplier") != claim.supplier_id:
             return "other supplier"
+        if claim.part_id is not None or _parts(rows[0]):
+            return "scorecard is supplier-wide"
+        if rows[0].get("window_months", 12) != 12:
+            return "scorecard period is not rolling 12 months"
+        quarter = rows[0].get("quarter")
+        if quarter is not None and (not re.fullmatch(r"\d{4}Q[1-4]", quarter)
+                                    or ("@" in claim.ids[0] and claim.ids[0].split("@", 1)[1] != quarter)):
+            return "scorecard period mismatch"
         key = "otd_pct" if k == "scorecard_otd" else "ppm"
-        actual = sum(r[key] for r in rows) / len(rows)
-    elif k == "notice":
-        doc, ctr = rows
-        if doc.get("supplier") != ctr.get("supplier"):
-            return "other supplier"
-        actual = doc["days"]
-    elif k == "should_cost":
-        actual = rows[0]["unit_cost"] / (rows[0].get("price_unit") or 1)
+        actual = rows[0].get(key)
+        if not _number(actual) or actual < 0 or (k == "scorecard_otd" and actual > 100):
+            return "invalid scorecard value"
     else:
-        return f"unknown kind {k}"
-    return None if _close(claim.figure, actual, claim.unit) else f"figure {claim.figure} vs {actual:.4g}"
+        reason = _notice_reason(claim, facts, package)
+        if reason:
+            return reason
+        if case is not None:
+            if claim.supplier_id not in case.get("suppliers", []) or claim.part_id not in case.get("parts", []):
+                return "notice outside case"
+            letter = _trigger_letter(case, facts, claim.supplier_id, claim.part_id)
+            if letter is None or letter[0] != claim.ids[0]:
+                return "notice is not case trigger"
+        actual = rows[0]["days"]
+    if not _close(claim.figure, actual, claim.unit):
+        return f"figure {claim.figure} vs {actual:.4g}"
+    if claim.sentence != render(claim, facts):
+        return "sentence differs from verified fields"
+    return None
 
 
-def verify(claim: Claim, facts: dict) -> bool:
-    """Recompute the claim's figure from `facts` (package + release + case facts) within tolerance."""
-    return check(claim, facts) is None
+def check(claim: Claim, facts: dict, package=None, case=None) -> str | None:
+    """Check arithmetic, units, scope and the deterministic sentence; malformed facts fail closed."""
+    try:
+        return _check(claim, facts, package, case)
+    except (KeyError, TypeError, ValueError, IndexError, ZeroDivisionError, OverflowError):
+        return "malformed claim or source"
+
+
+def verify(claim: Claim, facts: dict, package=None, case=None) -> bool:
+    return check(claim, facts, package, case) is None
 
 
 # ---------------------------------------------------------------- pick
@@ -388,19 +540,22 @@ def claim_keys(claim: Claim) -> set[str]:
 def pick(bank: list[Claim], used_ids: set[str], max_claims: int = MAX_CHECKED, *,
          supplier_id: str | None = None, case_type: str | None = None, allow_adverse: bool = False,
          disclosures: frozenset[str] | set[str] = DEFAULT_DISCLOSURE,
-         skip_kinds: frozenset[str] | set[str] = frozenset(), allow_cherry_pick: bool = False) -> list[Claim]:
+         skip_kinds: frozenset[str] | set[str] = frozenset(), allow_cherry_pick: bool = False,
+         index_priorities: dict[str, int] | None = None) -> list[Claim]:
     """At most `max_claims` (never more than 3) unused claims for `supplier_id`.
 
     Defaults: only claims that support the buyer, latest index windows only, disclosing nothing private (pass
     `disclosures | {"reveals_rival"}` to cite a rival quote deliberately). Order by case type,
-    then case refs, then strength. Callers add `claim_keys(c)` of sent claims to `used_ids`."""
+    then optional index relevance, case refs and strength. Callers add `claim_keys(c)` of sent claims to `used_ids`."""
     order = KIND_ORDER.get(case_type or "", DEFAULT_ORDER)
     rank = {k: i for i, k in enumerate(order)}
     cands = [c for c in bank
              if (allow_adverse or c.supports_buyer) and c.disclosure in disclosures and c.kind not in skip_kinds
              and (allow_cherry_pick or not c.cherry_picked)
              and (supplier_id is None or c.supplier_id in (None, supplier_id))]
-    cands.sort(key=lambda c: (not c.supports_buyer, rank.get(c.kind, len(rank)), not c.in_case_refs, -c.strength))
+    cands.sort(key=lambda c: (not c.supports_buyer, rank.get(c.kind, len(rank)),
+                              (index_priorities or {}).get(c.subject, 0) if c.kind == "index_change" else 0,
+                              not c.in_case_refs, -c.strength))
     out, taken, subjects = [], set(used_ids), set()
     for c in cands:
         if len(out) >= min(max_claims, MAX_CHECKED):
@@ -413,6 +568,39 @@ def pick(bank: list[Claim], used_ids: set[str], max_claims: int = MAX_CHECKED, *
         taken |= keys | raw
         subjects.add((c.kind, c.subject))
     return out
+
+
+def index_relevance(bank, case, package=None, events=()):
+    """Rank only known series mentions; supplier prose cannot authorize claims or disclosure."""
+    series = {c.subject for c in bank if c.kind == "index_change" and c.subject}
+    cited = {r[4:].split("@")[0] for r in case.get("refs", []) if r.startswith("idx:")}
+    latest = next((e for e in reversed(events) if e.get("from") != "buyer" and e.get("body")), {})
+    text = latest.get("body", "")
+    mentioned = {sid for sid in series if isinstance(text, str)
+                 and re.search(rf"(?<![\w-]){re.escape(sid)}(?![\w-])", text)}
+    trigger = ""
+    ref = case.get("trigger_doc")
+    if package is not None and ref:
+        row = case_facts(case, package).get(ref, {})
+        if row.get("supplier") in case.get("suppliers", []):
+            try:
+                trigger = package.document(ref)
+            except (OSError, ValueError, AttributeError):
+                pass
+    stated = {sid for sid in series if re.search(rf"(?<![\w-]){re.escape(sid)}(?![\w-])", trigger)}
+    reasons = {}
+    priorities = {}
+    for sid in sorted(series):
+        if sid in mentioned:
+            priority, reason = 0, "latest supplier message names series"
+        elif sid in stated or sid in cited:
+            priority, reason = 1, "trigger document or case reference names series"
+        elif any(c.subject == sid and c.driver_weight is not None for c in bank):
+            priority, reason = 2, "listed part cost driver"
+        else:
+            priority, reason = 3, "no explicit explanation or driver link"
+        priorities[sid], reasons[sid] = priority, reason
+    return priorities, reasons
 
 
 # ---------------------------------------------------------------- weighted estimate (never verified)

@@ -55,6 +55,11 @@ Hosted timing is measured. Then scale to multiple cases.
 
 - [14 — Measured demo](14-measured-demo.md): two defensible replay stories and their limits.
 
+- [15 — Evidence stage plan](15-evidence-stage-plan.md): prioritized data correctness, case-aware
+  supplier signals, claim validation and gated experiments for the Evidence owner.
+
+- [16 — Evidence context](16-evidence-context.md): implemented shared interface, local P01 export and hosted-run handoff checklist.
+
 ## Sources and evidence labels
 
 Audited kit and current lockfile: `1b5516bb95ef28e37f69aa446dc62168864bca53`.
