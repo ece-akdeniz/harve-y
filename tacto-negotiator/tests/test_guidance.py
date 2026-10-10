@@ -50,13 +50,18 @@ def test_final_cli_passes_packaged_guidance_to_running_agents(monkeypatch, tmp_p
     monkeypatch.setattr(cli, "run_async", lambda args, factory, *rest: run(factory))
     monkeypatch.chdir(tmp_path)
     assert cli.main(["run", "--set", "final", "--runner", runner]) == 0
-    assert observed[0].conditional_exchange is True
+    # Final defaults to the measured v3 policy, which runs without the conditional-exchange wording.
+    assert observed[0].conditional_exchange is False
     assert observed[0].runtime_guidance == RuntimeGuidance.load().record()
     assert RuntimeGuidance.load().sha256 in (tmp_path / "trace.jsonl").read_text()
     import json
 
     rows = [json.loads(line) for line in (tmp_path / "trace.jsonl").read_text().splitlines()]
     assert "memory" not in next(row for row in rows if row.get("event") == "run")
+    assert next(row for row in rows if row.get("event") == "run")["conditional_exchange"] is False
+    observed.clear()
+    assert cli.main(["run", "--set", "sandbox", "--runner", "async"]) == 0
+    assert observed[0].conditional_exchange is True  # no policy: packaged guidance as written
 
 
 def test_invalid_guidance_stops_launch_before_session_dispatch(monkeypatch, tmp_path):

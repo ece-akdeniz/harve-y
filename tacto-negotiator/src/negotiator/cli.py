@@ -19,6 +19,9 @@ from .play import play_all, play_case, play_waves, run_config
 from .runner import run_async, runtime_config
 from .trace import Tracer
 
+# Live Final default policy: the measured score-push v3 config (sandbox D01 .9192, D02 .5239).
+FINAL_POLICY = Path(__file__).resolve().parents[2] / "configs" / "score-push-v3.json"
+
 
 def _run_dir() -> Path:
     root = Path(os.environ.get("NEGOTIATOR_LOG_DIR", "experiments/runs"))
@@ -48,9 +51,12 @@ def main(argv=None) -> int:
     r.add_argument("--waves", type=int, default=5)
     r.add_argument("-v", "--verbose", action="store_true")
     for sp in (p, r):
-        sp.add_argument("--policy-config", help="versioned JSON experiment policy")
+        sp.add_argument("--policy-config", help="versioned JSON experiment policy (final default: v3)")
         sp.add_argument("--memory-file", type=Path, help="saved immutable memory snapshot JSON (at most 64 KiB)")
-        sp.add_argument("--runner", choices=["serial", "async"], default="serial")
+        sp.add_argument(
+            "--runner", choices=["serial", "async", "auto"], default=None,
+            help="auto: more than one supplier -> async, one supplier -> serial (default for --set final)",
+        )
         sp.add_argument("--model-assist", action="store_true", help="bounded supplier-email model interpretation")
     rep = sub.add_parser("report", help="summarise a run directory")
     rep.add_argument("run_dir")
@@ -67,6 +73,11 @@ def main(argv=None) -> int:
         print(json.dumps(prep()))
         return 0
 
+    final = args.cmd == "run" and args.set_ == "final"
+    if args.runner is None:
+        args.runner = "auto" if final else "serial"
+    if final and not args.policy_config:
+        args.policy_config = str(FINAL_POLICY)  # the measured score-push v3 policy
     logging.basicConfig(
         level=logging.INFO if args.verbose else logging.WARNING, format="%(asctime)s %(message)s", datefmt="%H:%M:%S"
     )
@@ -97,6 +108,11 @@ def main(argv=None) -> int:
 
     def new_agent():
         agent = guidance.new_agent(tracer=tracer, policy=policy, memory=memory)
+        if policy is not None:
+            # Parity with the measured policy scores: lab agents (PackageAgent(**config)) never
+            # add the guidance's conditional-exchange wording; with it, sandbox D01/D02 drop
+            # from .9192/.5239 to .9048/.5029.
+            agent.conditional_exchange = False
         if args.model_assist:
             from .model_assist import ModelAssist
 
@@ -106,13 +122,15 @@ def main(argv=None) -> int:
             )
         return agent
 
-    if args.runner == "async":
-        cfg = {**run_config(new_agent(), runner="async"), **runtime_config(getattr(args, "parallel", 1))}
+    probe = new_agent()
+    if args.runner in ("async", "auto"):
+        cfg = {**run_config(probe, runner=args.runner), **runtime_config(getattr(args, "parallel", 1))}
     else:
-        cfg = run_config(new_agent())
-    tracer.log("run", cmd=args.cmd, arena=os.environ.get("ARENA_URL"), **cfg)
+        cfg = run_config(probe)
+    tracer.log("run", cmd=args.cmd, arena=os.environ.get("ARENA_URL"), policy_config=args.policy_config,
+               conditional_exchange=probe.conditional_exchange, **cfg)
 
-    if args.runner == "async":
+    if args.runner in ("async", "auto"):
         out = run_async(args, new_agent, tracer, run_dir)
     elif args.cmd == "play":
         table = RemoteTable(client)

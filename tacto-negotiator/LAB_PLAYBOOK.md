@@ -273,8 +273,16 @@ and final execution belongs to the separately authorized final runbook/window:
 
 ```bash
 uv run --locked negotiator play CASE_ID --memory-file memory-snapshot.json
-uv run --locked negotiator run --set sandbox --runner async --memory-file memory-snapshot.json
-uv run --locked negotiator run --set final --runner serial --memory-file memory-snapshot.json
+uv run --locked negotiator run --set sandbox --runner auto --policy-config configs/score-push-v3.json --memory-file memory-snapshot.json
+```
+
+The one Live Final command (identical to `docs/06-final-runbook.md`; add `--memory-file` only for a
+chosen recommended snapshot):
+
+```bash
+NEGOTIATOR_JOURNAL="$PWD/experiments/runs/final-journal.jsonl" \
+caffeinate -dimsu uv run --locked negotiator run --set final --runner auto \
+  --policy-config configs/score-push-v3.json --parallel 10 > experiments/runs/final.log 2>&1
 ```
 
 The CLI validates one at-most-64-KiB saved snapshot at launch and pins the complete object in the

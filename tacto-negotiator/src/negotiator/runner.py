@@ -14,6 +14,8 @@
 import asyncio
 import inspect
 import logging
+import random
+import threading
 import time
 
 from arena_kit.client import ArenaError
@@ -21,6 +23,8 @@ from arena_kit.docs import read_document
 from arena_kit.play import CLOSE_BEFORE_CAP_S, ENDED, MOVE_LIMIT_S, ROUND_MARGIN_S, RUNNING, hosted, latest, moves_left
 
 from .client import UncertainOutcome
+from .evaluator import best_close
+from .play import _safe_estimates, poll_backoff, repeat_last_offer
 from .state import CaseState, Journal, ThreadState
 
 log = logging.getLogger("negotiator.runner")
@@ -118,6 +122,45 @@ def _thread_level(case, threads, sid, workable, d):
     return "park", "agent: accept on a final/exhausted thread while others are workable"
 
 
+def fallback_propose(agent, case, threads, sid) -> tuple[str, object]:
+    """After `propose` crashed for `sid`: close (the coordinator accepts the best eligible sheet
+    via close_decision) when one keeps the must-haves and beats the alternative; else repeat our
+    last offer on this thread if it is open with a round left; else park (when every thread is
+    parked the watchdog closes, which walks away without an eligible sheet)."""
+    try:
+        if best_close(case, threads, _safe_estimates(agent, case)):
+            return "close", "fallback: accept best eligible sheet"
+        if (message := repeat_last_offer(case, threads.get(sid) or [])) is not None:
+            return "send", message
+    except Exception:
+        log.exception("%s: fallback proposal failed", sid)
+    return "park", "fallback: no safe move"
+
+
+def multi_supplier(case) -> bool:
+    """`--runner auto` routes cases with more than one supplier to the async runner."""
+    return len((case or {}).get("suppliers") or []) > 1
+
+
+class SharedPace:
+    """One key-wide pace shared by the serial (sync, threads) and async clients of an auto run."""
+
+    def __init__(self, rate: float = 8.0, clock=time.monotonic):
+        self.interval, self.clock, self._next, self._lock = 1.0 / rate, clock, 0.0, threading.Lock()
+
+    def reserve(self) -> float:
+        with self._lock:
+            now = self.clock()
+            wait, self._next = self._next - now, max(now, self._next) + self.interval
+        return max(0.0, wait)
+
+    def pace(self) -> None:  # arena_kit.ArenaClient._pace
+        time.sleep(self.reserve())
+
+    async def wait(self) -> None:  # negotiator.client.RateLimiter.wait
+        await asyncio.sleep(self.reserve())
+
+
 class CaseRunner:
     """Plays one case: open or resume, workers per thread, coordinated close."""
 
@@ -138,7 +181,9 @@ class CaseRunner:
         send_slots: int | None = 1,
     ):
         if getattr(agent, "package_advisor", None) is not None:
-            raise ValueError("package advice is experimental and currently requires the serial runner")
+            # Package advice is serial-only; the async runner plays this case without it.
+            log.warning("%s: package advice disabled for the async runner", case_id)
+            agent.package_advisor = None
         self.arena, self.case_id, self.agent, self.journal = arena, case_id, agent, journal
         self.case_meta, self.deadline_fn = case, deadline
         self.clock = clock or Clock()
@@ -348,14 +393,24 @@ class CaseRunner:
             t0 = self.clock.time()
             if getattr(self.agent, "model_assist", None):
                 snap = self._live_snapshot()
-                await asyncio.to_thread(self.agent.prepare_email, self.st.case, snap, sid)
+                try:
+                    await asyncio.to_thread(self.agent.prepare_email, self.st.case, snap, sid)
+                except Exception:
+                    log.exception("%s %s: e-mail interpretation failed; continuing without", self.case_id, sid)
             async with self.lock:  # decide + journal only; no HTTP under the lock
                 if self.closing or self.st.ended:
                     return
                 snap = self._live_snapshot()
                 if getattr(self.agent, "trades", None):
                     self.agent.trades.deadlines[sid] = time.time() + max(0, (t.deadline_utc or 0) - self.clock.time())
-                kind, what = await asyncio.to_thread(propose, self.agent, self.st.case, snap, sid, self._workable())
+                try:
+                    kind, what = await asyncio.to_thread(
+                        propose, self.agent, self.st.case, snap, sid, self._workable())
+                except Exception as exc:
+                    log.exception("%s %s: decision step failed; using the fallback", self.case_id, sid)
+                    kind, what = fallback_propose(self.agent, self.st.case, snap, sid)
+                    self._trace("propose_fallback", supplier=sid, error=repr(exc)[:500], kind=kind,
+                                reason=what if kind != "send" else "repeat last offer")
                 if kind == "send":
                     events = t.events
                     offer = (latest(events).get("term_sheets") or [{}])[0].get("term_sheet_id")
@@ -615,10 +670,13 @@ async def play_case(arena, case_id: str, agent, journal: Journal, **kw) -> dict:
     return await CaseRunner(arena, case_id, agent, journal, **kw).run()
 
 
-async def run_set(arena, set_: str, new_agent, journal: Journal, parallel: int = 8, case_ids=None, **kw) -> dict:
+async def run_set(arena, set_: str, new_agent, journal: Journal, parallel: int = 8, case_ids=None, serial=None,
+                  **kw) -> dict:
     """Practice/sandbox: play every hosted case of the set (≤ parallel, ≤ 10 open sessions).
-    Stops starting new cases once the practice quota is used up. {case_id: result or exception}."""
-    ids = case_ids or [c["case_id"] for c in hosted(await arena.cases(set_))]
+    Stops starting new cases once the practice quota is used up. {case_id: result or exception}.
+    `serial` (auto runner): async callable (case, agent, deadline) for one-supplier cases."""
+    metas = {c["case_id"]: c for c in hosted(await arena.cases(set_))} if serial or not case_ids else {}
+    ids = case_ids or list(metas)
     sem, used_up, out = asyncio.Semaphore(min(parallel, 10)), asyncio.Event(), {}
 
     async def one(case_id):
@@ -627,7 +685,14 @@ async def run_set(arena, set_: str, new_agent, journal: Journal, parallel: int =
                 out[case_id] = ArenaError(429, "not started: the practice quota is used up")
                 return
             try:
-                out[case_id] = await play_case(arena, case_id, new_agent(), journal, **kw)
+                meta = metas.get(case_id)
+                if serial is not None and meta is not None and not multi_supplier(meta):
+                    _route(kw.get("tracer"), case_id, "serial")
+                    out[case_id] = await serial(meta, new_agent(), None)
+                else:
+                    if serial is not None:
+                        _route(kw.get("tracer"), case_id, "async")
+                    out[case_id] = await play_case(arena, case_id, new_agent(), journal, **kw)
             except ArenaError as e:
                 if quota_used_up(e):
                     used_up.set()
@@ -651,24 +716,35 @@ async def run_waves(
     parallel: int = 10,
     poll_s: float = 3.0,
     clock: Clock | None = None,
+    serial=None,
+    rng=random.random,
     **kw,
 ) -> dict:
     """Live Final: poll final case metadata, start every open case of a running wave with a cap
-    from fresh `seconds_left`, until `waves` waves have closed and every case has finished."""
+    from fresh `seconds_left`, until `waves` waves have closed and every case has finished.
+    Case-list errors (other than 403 before wave 1) and network errors back off with jitter and
+    keep polling: running sessions and later waves must continue. `serial` as in `run_set`."""
     clock = clock or Clock()
     started, closed, caps = {}, set(), {}
     sem = asyncio.Semaphore(min(parallel, 10))
+    failures = 0
 
     async def one(case):
         async with sem:
             try:
+                deadline = lambda w=case["wave"]: caps.get(w)  # noqa: E731
+                if serial is not None and not multi_supplier(case):
+                    _route(kw.get("tracer"), case["case_id"], "serial")
+                    return await serial(case, new_agent(), deadline)
+                if serial is not None:
+                    _route(kw.get("tracer"), case["case_id"], "async")
                 return await play_case(
                     arena,
                     case["case_id"],
                     new_agent(),
                     journal,
                     case=case,
-                    deadline=lambda w=case["wave"]: caps.get(w),
+                    deadline=deadline,
                     clock=clock,
                     **kw,
                 )
@@ -678,22 +754,51 @@ async def run_waves(
 
     while len(closed) < waves or not all(f.done() for f in started.values()):
         try:
-            cases = await arena.cases("final")
-        except ArenaError as e:
-            if e.status != 403:  # 403: no wave has started yet
-                raise
-            cases = []
-        for case in cases:
-            if not case.get("open"):
-                closed.add(case["wave"])
-                continue
-            if case.get("seconds_left") is not None:
-                caps[case["wave"]] = clock.time() + case["seconds_left"]
-            if case["case_id"] not in started and case.get("seconds_left"):
-                log.warning("start %s (wave %s, %ss left)", case["case_id"], case["wave"], case["seconds_left"])
-                started[case["case_id"]] = asyncio.create_task(one(case))
+            try:
+                cases = await arena.cases("final")
+            except ArenaError as e:
+                if e.status != 403:  # 403: no wave has started yet
+                    raise
+                cases = []
+            for case in cases:
+                if not case.get("open"):
+                    closed.add(case["wave"])
+                    continue
+                if case.get("seconds_left") is not None:
+                    caps[case["wave"]] = clock.time() + case["seconds_left"]
+                if case["case_id"] not in started and case.get("seconds_left"):
+                    log.warning("start %s (wave %s, %ss left)", case["case_id"], case["wave"], case["seconds_left"])
+                    started[case["case_id"]] = asyncio.create_task(one(case))
+        except Exception as e:  # never let the final die
+            failures += 1
+            pause = poll_backoff(poll_s, failures, rng)
+            log.warning("final case list failed (%d in a row): %r; retry in %.1fs", failures, e, pause)
+            await clock.sleep(pause)
+            continue
+        failures = 0
         await clock.sleep(poll_s)
     return {cid: f.result() for cid, f in started.items()}
+
+
+def _route(tracer, case_id, runner):
+    log.info("%s: auto runner -> %s", case_id, runner)
+    if tracer:
+        tracer.log("route", case=case_id, runner=runner)
+
+
+def serial_runner(client, executor):
+    """Auto runner's serial path: `play.play_case` on a sync client in a dedicated thread pool
+    (so long serial cases never starve the async workers' default executor)."""
+    from arena_kit.play import RemoteTable
+
+    from .play import play_case as serial_play
+
+    async def run(case, agent, deadline):
+        loop = asyncio.get_running_loop()
+        table = RemoteTable(client, case)
+        return await loop.run_in_executor(executor, serial_play, table, case["case_id"], agent, deadline)
+
+    return run
 
 
 def runtime_config(parallel: int | None = None, calls_per_s: float = 8.0) -> dict:
@@ -716,23 +821,45 @@ def runtime_config(parallel: int | None = None, calls_per_s: float = 8.0) -> dic
 
 
 def run_async(args, new_agent, tracer, run_dir) -> dict:
-    """CLI entry for `--runner async` (play / run). NEGOTIATOR_JOURNAL resumes a previous run's journal."""
+    """CLI entry for `--runner async|auto` (play / run). NEGOTIATOR_JOURNAL resumes a previous run's
+    journal. `auto`: cases with more than one supplier use the async runner, one-supplier cases the
+    serial runner (sync client, dedicated threads); both clients share one key-wide pace."""
     import os
+    from concurrent.futures import ThreadPoolExecutor
 
     from .client import AsyncArena
 
     journal = Journal(os.environ.get("NEGOTIATOR_JOURNAL") or f"{run_dir}/journal.jsonl")
+    auto = getattr(args, "runner", "async") == "auto"
 
     async def main():
-        arena = AsyncArena()
+        pace = SharedPace() if auto else None
+        arena = AsyncArena(limiter=pace)
+        serial, executor = None, None
+        if auto:
+            from arena_kit.client import ArenaClient
+
+            client = ArenaClient()
+            client._pace = pace.pace
+            executor = ThreadPoolExecutor(max_workers=10, thread_name_prefix="serial-case")
+            serial = serial_runner(client, executor)
         try:
             if args.cmd == "play":
+                if serial is not None:
+                    set_ = "sandbox" if args.case_id.startswith("case:D") else "practice"
+                    meta = next((c for c in await arena.cases(set_) if c["case_id"] == args.case_id), None)
+                    if meta is not None and not multi_supplier(meta):
+                        _route(tracer, args.case_id, "serial")
+                        return {args.case_id: await serial(meta, new_agent(), None)}
+                    _route(tracer, args.case_id, "async")
                 return {args.case_id: await play_case(arena, args.case_id, new_agent(), journal, tracer=tracer)}
             parallel = min(args.parallel, 10)
             if args.set_ == "final":
-                return await run_waves(arena, new_agent, journal, args.waves, parallel, tracer=tracer)
-            return await run_set(arena, args.set_, new_agent, journal, parallel, tracer=tracer)
+                return await run_waves(arena, new_agent, journal, args.waves, parallel, tracer=tracer, serial=serial)
+            return await run_set(arena, args.set_, new_agent, journal, parallel, tracer=tracer, serial=serial)
         finally:
             await arena.aclose()
+            if executor is not None:
+                executor.shutdown(wait=False)
 
     return asyncio.run(main())

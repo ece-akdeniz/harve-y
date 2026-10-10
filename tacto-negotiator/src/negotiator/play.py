@@ -9,6 +9,7 @@ import functools
 import hashlib
 import logging
 import os
+import random
 import subprocess
 import threading
 import time
@@ -22,7 +23,9 @@ from arena_kit.play import (
     ROUND_MARGIN_S,
     RemoteTable,
     fetch_documents,
+    latest,
     live_threads,
+    moves_left,
     quota_used_up,
     standing,
 )
@@ -31,6 +34,75 @@ from . import AGENT_NAME, TEAM_NAME
 from .evaluator import close_decision
 
 log = logging.getLogger("negotiator")
+
+POLL_BACKOFF_MAX_S = 30.0  # longest pause between final case-list polls after repeated errors
+
+
+def poll_backoff(poll_s, failures, rng=random.random):
+    """Pause after `failures` consecutive case-list errors: exponential, capped, with jitter."""
+    base = min(POLL_BACKOFF_MAX_S, poll_s * 2 ** min(failures, 10))
+    return base * (0.5 + rng())
+
+
+def repeat_last_offer(case, events):
+    """Our last offer on this thread, re-sent unchanged; None when the supplier's latest message
+    is not open (never counter a final offer), no round is left or we have not offered yet."""
+    if not events or latest(events).get("status") != "open" or moves_left(case, events) < 1:
+        return None
+    last = next((m for m in reversed(events) if m.get("from") == "buyer" and m.get("term_sheets")), None)
+    sheets = [{"terms": dict(s["terms"])} for s in (last or {}).get("term_sheets") or [] if s.get("terms")]
+    if not sheets:
+        return None
+    body = last.get("body") or "We maintain our proposal as attached."
+    return {"subject": last.get("subject") or "Our proposal", "body": body, "term_sheets": sheets}
+
+
+def fallback_decision(case, threads, estimates=None):
+    """After a crashed decision step: accept the best eligible standing sheet that keeps the
+    must-haves and beats the alternative; else repeat our last offer on an open thread with a
+    round left; else walk away."""
+    decision = close_decision(case, threads, estimates, "fallback")
+    if decision["message"]["action"]["type"] == "accept":
+        return decision
+    for sid in live_threads(threads):
+        if (message := repeat_last_offer(case, threads[sid])) is not None:
+            return {"supplier_id": sid, "message": message}
+    return decision
+
+
+def _safe_estimates(agent, case):
+    try:
+        return agent_estimates(agent, case)
+    except Exception:
+        log.exception("supplier estimates failed; fallback uses none")
+        return None
+
+
+def _valid_decision(decision, threads):
+    if not isinstance(decision, dict) or decision.get("supplier_id") not in threads:
+        raise ValueError(f"invalid decision {decision!r:.200}")
+    if not isinstance(decision.get("message"), dict):
+        raise ValueError(f"invalid decision message {decision!r:.200}")
+    return decision
+
+
+def guarded_decision(agent, case, threads, decide, case_id=""):
+    """`decide()` with a safe fallback: a crash must never leave a session to time out."""
+    try:
+        return _valid_decision(decide(), threads)
+    except Exception as exc:
+        log.exception("%s: decision step failed; using the fallback", case_id)
+        error = repr(exc)[:500]
+    try:
+        decision = fallback_decision(case, threads, _safe_estimates(agent, case))
+    except Exception:
+        log.exception("%s: fallback failed; walking away", case_id)
+        live = live_threads(threads) or list(threads)
+        decision = {"supplier_id": live[0], "message": {"action": {"type": "walk_away"}}}
+    if tracer := getattr(agent, "tracer", None):
+        tracer.log("decide_fallback", case=case_id, error=error, supplier=decision["supplier_id"],
+                   action=decision["message"].get("action"))
+    return decision
 
 
 def run_config(agent, runner="serial-play_case", facts="data/package/facts.json"):
@@ -142,8 +214,11 @@ def play_case(table, case_id, agent, deadline=None):
         else:
             if getattr(agent, "model_assist", None):
                 for sid in live_threads(threads):
-                    agent.prepare_email(case, threads, sid)
-            decision = agent.decide(case, threads)
+                    try:
+                        agent.prepare_email(case, threads, sid)
+                    except Exception:
+                        log.exception("%s %s: e-mail interpretation failed; continuing without", case_id, sid)
+            decision = guarded_decision(agent, case, threads, lambda: agent.decide(case, threads), case_id)
         if (took := time.monotonic() - t0) > MOVE_LIMIT_S * 0.75:
             log.warning("decision took %.1fs - the limit is %ss per message", took, MOVE_LIMIT_S)
         sid, msg = decision["supplier_id"], decision["message"]
@@ -197,9 +272,11 @@ def play_all(new_table, case_ids, new_agent, parallel=8):
         return dict(pool.map(one, case_ids))
 
 
-def play_waves(client, new_agent, waves=5, parallel=10, poll=5.0):
-    """The Live Final (kit `play_waves` structure): play each wave's cases within its cap."""
+def play_waves(client, new_agent, waves=5, parallel=10, poll=5.0, sleep=time.sleep, rng=random.random):
+    """The Live Final (kit `play_waves` structure): play each wave's cases within its cap.
+    Case-list errors (other than 403 before wave 1) and network errors back off and keep polling."""
     started, closed, caps = {}, set(), {}
+    failures = 0
 
     def one(case, deadline):
         try:
@@ -211,20 +288,29 @@ def play_waves(client, new_agent, waves=5, parallel=10, poll=5.0):
     with ThreadPoolExecutor(max_workers=parallel) as pool:
         while len(closed) < waves or not all(f.done() for f in started.values()):
             try:
-                cases = client.cases("final")
-            except ArenaError as e:
-                if e.status != 403:
-                    raise
-                cases = []
-            for case in cases:
-                if not case.get("open"):
-                    closed.add(case["wave"])
-                    continue
-                if case.get("seconds_left") is not None:
-                    caps[case["wave"]] = time.time() + case["seconds_left"]
-                if case["case_id"] not in started and case.get("seconds_left"):
-                    if case["wave"] not in {c["wave"] for c in cases if c["case_id"] in started}:
-                        log.warning("wave %s started: %s", case["wave"], case.get("theme"))
-                    started[case["case_id"]] = pool.submit(one, case, functools.partial(caps.get, case["wave"]))
-            time.sleep(poll)
+                try:
+                    cases = client.cases("final")
+                except ArenaError as e:
+                    if e.status != 403:
+                        raise
+                    cases = []
+                for case in cases:
+                    if not case.get("open"):
+                        closed.add(case["wave"])
+                        continue
+                    if case.get("seconds_left") is not None:
+                        caps[case["wave"]] = time.time() + case["seconds_left"]
+                    if case["case_id"] not in started and case.get("seconds_left"):
+                        if case["wave"] not in {c["wave"] for c in cases if c["case_id"] in started}:
+                            log.warning("wave %s started: %s", case["wave"], case.get("theme"))
+                        started[case["case_id"]] = pool.submit(
+                            one, case, functools.partial(caps.get, case["wave"]))
+            except Exception as e:  # never let the final die: live sessions and later waves continue
+                failures += 1
+                pause = poll_backoff(poll, failures, rng)
+                log.warning("final case list failed (%d in a row): %r; retry in %.1fs", failures, e, pause)
+                sleep(pause)
+                continue
+            failures = 0
+            sleep(poll)
     return {case_id: f.result() for case_id, f in started.items()}

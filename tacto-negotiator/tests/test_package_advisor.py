@@ -67,8 +67,8 @@ def test_serial_integration_records_choice_and_async_rejects_before_session_open
     assert agent.prev[sid]['contract_months'] == 36
     retained = agent._free_concessions(case, agent.prev[sid], {**terms, 'contract_months': 24}, {}, None)
     assert retained['contract_months'] == 36
-    with pytest.raises(ValueError, match='serial runner'):
-        CaseRunner(None, case['case_id'], agent, None)
+    CaseRunner(None, case['case_id'], agent, None)  # async disables package advice, never raises
+    assert agent.package_advisor is None
 
 
 def test_role_history_public_notes_and_cache_without_private_economics():
