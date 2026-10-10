@@ -232,16 +232,30 @@ class PackageAgent:
             n = nonprice(case, best_terms(
                 case, ref_terms["unit_price"], std, sup,
                 prefer_longer_lead=bool(self.policy and self.policy.cost_neutral_lead_time),
+                prefer_longer_tenor=self._longer_tenor(case),
             ))
+            pay_options = (case.get("term_options") or {}).get("payment_days") or []
+            if (self.policy and case["type"] in self.policy.standard_payment_types and "payment_days" in n
+                    and std.get("payment_days") in pay_options
+                    and must_haves_ok(case, {**ref_terms, **n, "payment_days": std["payment_days"]}, std)):
+                n["payment_days"] = std["payment_days"]
         elif not eligible:
             return prev
         else:
             n = prev
             on_prev = [c for c, _, t in cands if same_package(case, {**prev, "unit_price": 0}, t, std)]
             if on_prev and min(on_prev) > ref_c + 1e-6:
-                n = nonprice(case, complete_offer(case, closing_terms(case, ref_terms, std)))
+                new = nonprice(case, complete_offer(case, closing_terms(case, ref_terms, std)))
+                keep_pay = (self.policy and case["type"] in self.policy.standard_payment_types
+                            and prev.get("payment_days") == std.get("payment_days"))
+                if keep_pay and "payment_days" in new:
+                    new["payment_days"] = prev["payment_days"]
+                n = new
                 self._log(case, "package_switch", sid, prev=prev, new=n, c_prev=min(on_prev), c_new=ref_c)
         return self._free_concessions(case, n, ref_terms, std, sup) if eligible else n
+
+    def _longer_tenor(self, case):
+        return bool(self.policy and case["type"] in self.policy.longer_tenor_types)
 
     def _free_concessions(self, case, n, theirs, std, sup):
         price = theirs["unit_price"]
@@ -255,6 +269,11 @@ class PackageAgent:
             previous_c = total_cost(case, {**n, "unit_price": price}, std, sup)
             if (self.policy and case['type'] in self.policy.package_advice_types and f == "contract_months"
                     and v < n[f] and trial_c == previous_c):
+                continue
+            if f == "contract_months" and self._longer_tenor(case) and v < n[f] and trial_c >= previous_c - 1e-6:
+                continue
+            if (f == "payment_days" and self.policy and case["type"] in self.policy.standard_payment_types
+                    and n[f] == std.get("payment_days")):
                 continue
             if trial_c <= previous_c + 1e-6:
                 n = trial
