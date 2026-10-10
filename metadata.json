@@ -3,7 +3,7 @@
   "checkpoint_id": "01M4KTQX5S17S3J2E6FS5JCPB8",
   "strategy": "manual-commit",
   "branch": "codex/benchmark-goal-20261010",
-  "checkpoints_count": 2,
+  "checkpoints_count": 3,
   "files_touched": [
     "tacto-negotiator/experiments/LOG.md"
   ],
@@ -21,6 +21,13 @@
       "compact_transcript": "/1/transcript.jsonl",
       "content_hash": "/1/content_hash.txt",
       "prompt": "/1/prompt.txt"
+    },
+    {
+      "metadata": "/2/metadata.json",
+      "transcript": "/2/full.jsonl",
+      "compact_transcript": "/2/transcript.jsonl",
+      "content_hash": "/2/content_hash.txt",
+      "prompt": "/2/prompt.txt"
     }
   ],
   "token_usage": {
@@ -28,6 +35,6 @@
     "cache_creation_tokens": 0,
     "cache_read_tokens": 111124,
     "output_tokens": 1226,
-    "api_call_count": 1
+    "api_call_count": 3
   }
 }
