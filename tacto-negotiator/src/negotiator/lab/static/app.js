@@ -464,6 +464,19 @@ function renderDetail(run) {
   const technical = disclosure("provenance", "Technical details · fingerprints and raw configuration", "raw-details report-disclosure");
   technical.append(keyValues([["Run ID", run.run_id], ["Code commit", run.provenance?.commit], ["Data fingerprint", run.provenance?.data_sha256], ["Dependency lock", run.provenance?.lock_sha256], ["Patch fingerprint", run.provenance?.patch_sha256], ["Arena", run.arena_url]]), element("pre", JSON.stringify(run.config || {}, null, 2)));
   setup.append(technical); content.append(setup);
+  if (run.feedback?.findings?.length) {
+    const feedback = disclosure("feedback", "Decision feedback · keep, change, test", "report-disclosure");
+    feedback.append(element("p", run.feedback.limitation, "muted"));
+    for (const finding of run.feedback.findings) {
+      const item = element("article", null, "report-panel");
+      item.append(element("strong", fieldLabel(finding.category)), element("p", finding.observation));
+      item.append(element("p", finding.next_test));
+      const refs = finding.evidence.map(ref => `${ref.attempt_id}${ref.supplier ? ` / ${ref.supplier} / message ${ref.message_index + 1}` : ""}`);
+      item.append(element("p", refs.join("; "), "evidence-id"));
+      feedback.append(item);
+    }
+    content.append(feedback);
+  }
   if (focused) {
     const target = [...content.querySelectorAll("[data-focus-key]")].find(node => node.dataset.focusKey === focused);
     target?.focus({ preventScroll: true });
@@ -475,6 +488,7 @@ async function openDetail(id, { background = false } = {}) {
   const request = ++state.detailRequest;
   try {
     const run = await api(`/api/runs/${encodeURIComponent(id)}`);
+    run.feedback = await api(`/api/feedback/${encodeURIComponent(id)}`).catch(() => null);
     if (!state.loggedIn || request !== state.detailRequest) return;
     if (background && (!$("detail-dialog").open || state.detail?.run_id !== id)) return;
     if (JSON.stringify(state.detail) !== JSON.stringify(run)) renderDetail(run);

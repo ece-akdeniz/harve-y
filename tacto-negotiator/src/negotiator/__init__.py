@@ -1,1 +1,4 @@
-"""Buyer agent for the Tacto Negotiation Arena. See docs/02-architecture.md."""
+"""harve/y, the buyer from team y/agent."""
+
+AGENT_NAME = "harve/y"
+TEAM_NAME = "y/agent"

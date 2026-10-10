@@ -11,6 +11,7 @@ must never be presented as verified.
 """
 
 import json
+import math
 import re
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -84,9 +85,14 @@ def series_values(facts: dict) -> dict[str, dict[str, float]]:
     """{series: {month: value}} from `idx:SERIES@YYYY-MM` facts."""
     out: dict[str, dict[str, float]] = {}
     for ref, f in facts.items():
-        if ref.startswith("idx:") and "@" in ref and isinstance(f, dict) and f.get("value") is not None:
+        if ref.startswith("idx:") and "@" in ref and isinstance(f, dict):
             sid, month = ref[4:].split("@", 1)
-            out.setdefault(f.get("series") or sid, {})[f.get("month") or month] = float(f["value"])
+            value = f.get("value")
+            if (type(value) not in (int, float) or not math.isfinite(value) or value <= 0
+                    or not re.fullmatch(r"\d{4}-(0[1-9]|1[0-2])", month)
+                    or f.get("series", sid) != sid or f.get("month", month) != month):
+                continue
+            out.setdefault(sid, {})[month] = float(value)
     return out
 
 
@@ -372,7 +378,10 @@ def check(claim: Claim, facts: dict) -> str | None:
 
 def verify(claim: Claim, facts: dict) -> bool:
     """Recompute the claim's figure from `facts` (package + release + case facts) within tolerance."""
-    return check(claim, facts) is None
+    try:
+        return check(claim, facts) is None
+    except (TypeError, ValueError, KeyError, ZeroDivisionError, OverflowError):
+        return False
 
 
 # ---------------------------------------------------------------- pick
@@ -501,6 +510,7 @@ def prep(data_dir=None, out_path="experiments/prep.json", release=None) -> dict:
                 "buyer": {"current_unit_price": p["price"]}}
         banks[f"{p['supplier_id']}|{p['part_id']}"] = [asdict(c) for c in build_bank(case, package)]
     out = {
+        "data_manifest": package.manifest,
         "release": str(package.release) if package.release else None,
         "facts": len(package.facts),
         "dossiers": {sid: {"name": d.name, "category": d.category, "traits": sorted(d.traits),

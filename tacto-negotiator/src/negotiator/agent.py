@@ -14,6 +14,7 @@ from arena_kit.cost import closing_terms, complete_offer, must_haves_ok, total_c
 from arena_kit.docs import standard_terms
 from arena_kit.play import latest, live_threads, moves_left
 
+from .economics import InfeasiblePackage, evaluate
 from .evaluator import (
     best_close,
     close_decision,
@@ -92,6 +93,10 @@ class PackageAgent:
         policy=None,
     ):
         self.anchor, self.rounds, self.close_gap, self.tracer = anchor, rounds, close_gap, tracer
+        if isinstance(policy, dict):
+            from .policy import PolicyConfig
+
+            policy = PolicyConfig.from_dict(policy)
         self.policy = policy
         self.trades = None
         if policy:
@@ -182,6 +187,8 @@ class PackageAgent:
         self.prev[sid] = {k: v for k, v in terms.items() if k != "unit_price"}
         c = total_cost(case, terms, std, sup)
         sheets = [{"terms": t} for t in [terms, *variants][:3]]
+        for sheet in sheets:
+            evaluate(case, sheet["terms"], std, sup)
         self._log(case, "offer", sid, terms=terms, c=c, c_alt=c_alt, reason=reason, variants=list(variants) or None)
         return {
             "supplier_id": sid,
@@ -200,7 +207,10 @@ class PackageAgent:
             if pay is None or pay == terms["payment_days"] or pay in [v["payment_days"] for v in out]:
                 continue
             v = {**terms, "payment_days": pay}
-            v["unit_price"] = math.floor(price_for_cost(case, v, c_main, std, sup) * 100) / 100
+            try:
+                v["unit_price"] = price_for_cost(case, v, c_main, std, sup)
+            except InfeasiblePackage:
+                continue
             if must_haves_ok(case, v, std):
                 out.append(complete_offer(case, v))
         return out
@@ -291,7 +301,11 @@ class PackageAgent:
                 if saw_final and event.get("from") == "buyer" and event.get("term_sheets"):
                     count += 1
             self.final_counters[supplier_id] = count
-        move = self._propose(case, threads, supplier_id)
+        try:
+            move = self._propose(case, threads, supplier_id)
+        except InfeasiblePackage as exc:
+            self._log(case, "infeasible_package", supplier_id, reason=str(exc))
+            move = {"close": True, "reason": "no valid package within cost budget"}
         return self.evidence.enrich(case, threads, supplier_id, move) if self.evidence else move
 
     def _propose(self, case, threads, supplier_id):

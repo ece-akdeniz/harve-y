@@ -76,3 +76,5 @@ Resolve conflicting official statements with the desk; public jury weighting is 
 
 Hosted sandbox observations are recorded in [the experiment log](../experiments/LOG.md).
 They do not establish generalization, final readiness or a winning probability.
+
+- [16 — Integrated runtime](16-integrated-runtime.md): implemented ingestion/economics/feedback, async lab commands and limits.

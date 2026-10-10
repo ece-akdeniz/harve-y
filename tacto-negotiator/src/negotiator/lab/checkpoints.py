@@ -73,7 +73,7 @@ def _secrets(value):
 
 
 def resolve_config(config):
-    if not isinstance(config, dict) or set(config) - (set(DEFAULTS) | {'meso', 'claims', 'estimates'}):
+    if not isinstance(config, dict) or set(config) - (set(DEFAULTS) | {'meso', 'claims', 'estimates', 'policy'}):
         raise ValueError('unknown checkpoint config option')
     out = {**DEFAULTS, 'meso': os.environ.get('NEGOTIATOR_MESO') == '1',
            'claims': os.environ.get('NEGOTIATOR_CLAIMS') == '1',
@@ -90,9 +90,19 @@ def resolve_config(config):
         raise ValueError('unresolved feature switch')
     if out['estimates'] is not None and not isinstance(out['estimates'], dict):
         raise ValueError('invalid estimates')
+    if 'policy' in out:
+        from negotiator.policy import PolicyConfig
+
+        out['policy'] = json.loads(json.dumps(PolicyConfig.from_dict(out['policy']).record()['config']))
+        out['claims'] = bool(out['policy']['evidence_types'])
     check_json(out)
     _secrets(out)
     return out
+
+
+
+def requires_data(config):
+    return config.get('estimates') is None or config.get('claims') or bool(config.get('policy'))
 
 
 def validate_checkpoint(body):
@@ -125,12 +135,13 @@ def validate_checkpoint(body):
         raise ValueError('invalid timestamp') from exc
     if body['agent'] != 'package' or body['runner'] not in {'serial', 'async'}:
         raise ValueError('unsupported agent or runner')
-    if not isinstance(body['config'], dict) or set(body['config']) != set(DEFAULTS) | {'meso', 'claims', 'estimates'}:
+    if (not isinstance(body['config'], dict)
+            or set(body['config']) - {'policy'} != set(DEFAULTS) | {'meso', 'claims', 'estimates'}):
         raise ValueError('config must be resolved')
     resolve_config(body['config'])
     if not isinstance(body['data'], dict) or len(body['data']) > 100:
         raise ValueError('invalid data manifest')
-    if (body['config']['estimates'] is None or body['config']['claims']) and not body['data']:
+    if requires_data(body['config']) and not body['data']:
         raise ValueError('dossier-dependent features require data manifest')
     for name, entry in body['data'].items():
         if not _id(name) or not isinstance(entry, dict) or set(entry) != {'sha256', 'source'}:
@@ -322,7 +333,7 @@ def restore_checkpoint(project, checkpoint, destination, *, branch=None, data_pa
         raise ValueError('restore destination already exists')
     if not isinstance(body['data'], dict) or len(body['data']) > 100:
         raise ValueError('invalid data manifest')
-    if (body['config']['estimates'] is None or body['config']['claims']) and not body['data']:
+    if requires_data(body['config']) and not body['data']:
         raise ValueError('dossier-dependent features require data manifest')
     for name, entry in body['data'].items():
         if name not in (data_paths or {}) or _data_hash(Path(data_paths[name])) != entry['sha256']:

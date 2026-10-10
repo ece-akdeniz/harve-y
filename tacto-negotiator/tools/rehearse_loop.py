@@ -5,6 +5,7 @@ Only temporary local Git remotes, lab SQLite and loopback arena are used.
 Synthetic policy outcomes are isolated from measured simulator evidence.
 """
 
+import argparse
 import hashlib
 import json
 import os
@@ -22,7 +23,7 @@ from pathlib import Path
 import uvicorn
 from arena_kit.sim import Sim, create_app, load_cases
 
-from negotiator.lab.checkpoints import _private, _verify_checkout_bytes
+from negotiator.lab.checkpoints import _data_hash, _private, _verify_checkout_bytes
 from negotiator.lab.loop_store import LoopStore
 from negotiator.lab.policy import default_suite
 from negotiator.lab.server import DashboardServer
@@ -124,6 +125,17 @@ def verify(output, baseline, candidate, suite, cli, measured, status, comparison
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--runner', choices=['serial', 'async'], default='serial')
+    parser.add_argument('--policy', type=Path)
+    parser.add_argument('--data', type=Path)
+    args = parser.parse_args()
+    if args.policy and not args.data:
+        parser.error('--policy requires --data')
+    data_paths = {'base': str(args.data.resolve())} if args.data else {}
+    data_manifest = {'base': {'sha256': _data_hash(args.data),
+                             'source': 'https://github.com/tacto-ai/negotiation-arena-kit'}} if args.data else {}
+    policy = json.loads(args.policy.read_text()) if args.policy else None
     source = Path(__file__).resolve().parents[1]
     output = Path(tempfile.mkdtemp(prefix='tacto-loop-rehearsal-'))
     print(f'Artifacts: {output}', flush=True)
@@ -131,8 +143,8 @@ def main():
     repo.mkdir()
     root = Path(git(source, 'rev-parse', '--show-toplevel'))
     names = set()
-    for args in [('ls-files', '-z'), ('ls-files', '--others', '--exclude-standard', '-z')]:
-        names.update(subprocess.check_output(['git', '-C', str(root), *args], text=True).split('\0'))
+    for git_args in [('ls-files', '-z'), ('ls-files', '--others', '--exclude-standard', '-z')]:
+        names.update(subprocess.check_output(['git', '-C', str(root), *git_args], text=True).split('\0'))
     for name in names:
         original = root / name
         if not name or _private(name) or not original.is_file() or original.is_symlink():
@@ -179,6 +191,8 @@ def main():
     calls = []
 
     def cli(*args, project=repo, storage_root=storage):
+        if data_paths and (args[0] == 'restore' or args[:2] == ('campaign', 'run')):
+            args = (*args, '--data-paths', json.dumps(data_paths))
         command = [sys.executable, '-m', 'negotiator.cli', 'lab', *map(str, args),
                    '--repo', str(project), '--root', str(storage_root), '--url', lab_url, '--author', 'rehearsal']
         result = subprocess.run(command, env=env, cwd=output, capture_output=True, text=True)
@@ -190,14 +204,20 @@ def main():
         return body
 
     try:
+        config_extra = {'policy': policy} if policy else {}
+        checkpoint_extra = ['--runner', args.runner, '--data', json.dumps(data_manifest)]
         baseline = cli('checkpoint', 'create', '--description', 'Simulator one-round control', '--config',
-                       json.dumps(dict(anchor=0, rounds=1, final_hold_s=0, estimates={}, claims=False, meso=False)))
+                       json.dumps(dict(anchor=0, rounds=1, final_hold_s=0, estimates={},
+                                       claims=False, meso=False, **config_extra)),
+                       *checkpoint_extra)
         candidate = cli('checkpoint', 'create', '--description', 'Simulator anchored rounds', '--config',
-                        json.dumps(dict(final_hold_s=0, estimates={}, claims=False, meso=False)))
+                        json.dumps(dict(final_hold_s=0, estimates={}, claims=False, meso=False, **config_extra)),
+                        *checkpoint_extra)
         for checkpoint in (baseline, candidate):
             cli('checkpoint', 'publish', checkpoint['checkpoint_id'])
         suite = default_suite(env['ARENA_URL'], 'simulator')
-        suite.update(suite_id='s01-s02-simulator-rehearsal-v1', cases=['case:S01', 'case:S02'])
+        suite.update(suite_id=f's01-s02-simulator-{args.runner}-rehearsal-v1', cases=['case:S01', 'case:S02'],
+                     runner=args.runner, data=data_manifest)
         cli('suite', 'create', '--body', json.dumps(suite))
         cli('recommended', 'seed', '--suite', suite['suite_id'], '--checkpoint', baseline['checkpoint_id'])
         print('Starting real CLI campaign: twelve planned simulator sessions', flush=True)

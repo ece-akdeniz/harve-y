@@ -7,9 +7,10 @@ import time
 from arena_kit.cost import complete_offer, must_haves_ok, total_cost
 from arena_kit.play import moves_left
 
-from .dossiers import build_one, load_package
+from .dossiers import build_one, for_case, load_package
 from .evaluator import eligible_sheets, nonprice, price_for_cost
 from .optimizer import best_terms
+from .replies import interpret
 
 
 def packages(case, price, standard, supplier=None):
@@ -42,7 +43,7 @@ class TradePolicy:
             if sid in self.traits:
                 continue
             try:
-                d = build_one(load_package(), sid)
+                d = for_case({sid: build_one(load_package(), sid)}, case)[sid]
                 self.traits[sid] = set(d.traits) if d else set()
             except (OSError, ValueError, KeyError, TypeError):
                 self.traits[sid] = set()
@@ -101,9 +102,9 @@ class TradePolicy:
         options = case.get("term_options", {})
         # Only explore dimensions with a concrete case/supplier signal.
         fields = []
-        text = " ".join(m.get("body", "") for m in events if m.get("from") != "buyer").lower()
+        signals = {s["kind"] for s in interpret(events)["signals"]}
         if "payment_days" in terms and (
-            "wants_fast_payment" in self.traits.get(sid, set()) or "faster payment" in text or "shorter payment" in text
+            "wants_fast_payment" in self.traits.get(sid, set()) or "payment_trade" in signals
         ):
             fields.append("payment_days")
         if "contract_months" in terms:

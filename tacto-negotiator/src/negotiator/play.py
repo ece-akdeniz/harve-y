@@ -27,6 +27,7 @@ from arena_kit.play import (
     standing,
 )
 
+from . import AGENT_NAME, TEAM_NAME
 from .evaluator import close_decision
 
 log = logging.getLogger("negotiator")
@@ -75,7 +76,9 @@ def run_config(agent, runner="serial-play_case", facts="data/package/facts.json"
     return {
         "commit": commit,
         "src_dirty": dirty,
-        "agent": getattr(agent, "version", type(agent).__name__),
+        "agent": AGENT_NAME,
+        "team": TEAM_NAME,
+        "implementation": getattr(agent, "version", type(agent).__name__),
         "params": params,
         "estimates": (
             "dossiers"

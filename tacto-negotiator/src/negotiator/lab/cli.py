@@ -78,6 +78,10 @@ def parser():
     history.add_argument("--environment", choices=["practice", "sandbox"], required=True)
     history.add_argument("--root", type=Path, default=Path("experiments/runs"))
     history.add_argument("--author")
+    feedback = sub.add_parser("feedback", help="audit saved runs without changing scores or policies")
+    feedback.add_argument("--db", type=Path, default=Path("experiments/dashboard.sqlite3"))
+    feedback.add_argument("--out", type=Path, default=Path("experiments/feedback.json"))
+    feedback.add_argument("--data", type=Path, help="public package for recomputing historical offer validity")
     history.add_argument(
         "--db",
         type=Path,
@@ -113,6 +117,25 @@ def main(argv=None) -> int:
     load_env()
     args = parser().parse_args(argv)
     try:
+        if args.command == "feedback":
+            from .feedback import review_store
+
+            if not args.db.is_file():
+                raise ValueError("feedback database does not exist")
+            package = None
+            if args.data:
+                from negotiator.dossiers import load_package
+
+                package = load_package(args.data)
+            try:
+                result = review_store(Store(args.db), package.cases if package else None)
+            finally:
+                if package and package.db:
+                    package.db.close()
+            args.out.parent.mkdir(parents=True, exist_ok=True)
+            args.out.write_text(json.dumps(result, indent=2))
+            print(json.dumps({"runs": result["runs"], "report": str(args.out), "policy_changed": False}))
+            return 0
         if args.command == "init":
             _init(args.secrets_file)
             return 0

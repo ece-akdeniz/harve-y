@@ -587,3 +587,24 @@ it is not hosted performance evidence or a proposed production strategy change.
   exhausted uncertain POST stays pending with its original ID. Worker errors propagate.
 - Focused simulator/fault tests: 29 passed. No hosted quota or score claim.
 - Integrated the lab without replacing main's newer package/evidence policies.
+
+## 2026-10-10 — Integrated data, economics, reply interpretation and feedback
+
+- Hypothesis: prevent known logic/recovery failures and make experiments reproducible across
+  main, the evidence branch and Barış's lab. This is an integration, not a claimed score gain.
+- Implemented fresh-data manifests/conflict handling, unseen-supplier dossiers, complete-package
+  guards and bounded nonlinear price-budget search. Prices and binding terms remain code-owned.
+- Added deterministic bounded reply interpretation, response-aware claim vetoes and objective
+  feedback in the lab CLI/read API/UI. No LLM calls. Feedback never promotes policy.
+- Read-only import: 100 local run records / 113 attempts, 0 import failures, 15 duplicate practice
+  sessions skipped. P10's original 422 failure and operator-assisted recovery remain separate.
+- Full integrated suite before final small guards: 293 passed; relevant final guards: 49 passed;
+  Ruff and Node UI checks passed. No practice starts.
+- Twelve-session LOCAL async lab rehearsal with current candidate policy and pinned public data:
+  all original outcomes completed, zero timeouts, checkpoint restore/publication and promotion
+  invariants passed on macOS. Toy control was anchor=0/rounds=1; candidate anchor=.12/rounds=5.
+  Toy mean gain 69.9764 points, deterministic repeats. Temporary lab verdict promoted; the real
+  lab recommendation was untouched. This proves wiring, not hosted policy improvement.
+- Rehearsal evidence: temporary tacto-loop-rehearsal-6w0y_73q, summary.json and cli-results.json.
+  An initial harness argument-name collision failed before any session; corrected and rerun.
+- Runtime estimated costs remain opt-in; no live personality model or self-modifying policies.

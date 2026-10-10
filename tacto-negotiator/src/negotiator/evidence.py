@@ -9,6 +9,8 @@ from dataclasses import asdict
 
 from .claims import build_bank, case_facts, claim_keys, pick, verify
 from .dossiers import load_package
+from .ingestion import context_manifest, fingerprint
+from .replies import evidence_constraints
 
 
 class EvidencePolicy:
@@ -30,20 +32,34 @@ class EvidencePolicy:
         ):
             return move
         cid = case["case_id"]
+        events = threads.get(sid, [])
+        latest_supplier = next((m for m in reversed(events) if m.get("from") != "buyer"), {})
+        if latest_supplier.get("status") in {"final_offer", "agreed", "walked_away", "no_bid"}:
+            return move
         try:
-            if cid not in self.banks:
-                if self.package is None:
-                    self.package = load_package()
-                self.banks[cid] = build_bank(case, self.package)
+            if self.package is None:
+                self.package = load_package()
+            bank_id = (cid, fingerprint(case.get("facts") or {}))
+            if bank_id not in self.banks:
+                self.banks[bank_id] = build_bank(case, self.package)
+                if self.tracer and hasattr(self.package, "manifest"):
+                    self.tracer.log("case_context", **context_manifest(case, self.package))
             facts = case_facts(case, self.package)
             used = set(self.reserved.get(cid, set()))
             for events in threads.values():
                 for event in events:
                     if event.get("from") == "buyer":
                         used.update(event.get("refs") or [])
-            bank = [c for c in self.banks[cid] if verify(c, facts)]
+            interpretation, skip_kinds = evidence_constraints(events)
+            rejected = set(interpretation["rejected_refs"])
+            if self.tracer:
+                self.tracer.log("reply_interpretation", case=cid, supplier=sid, **interpretation)
+            if "*" in rejected:
+                return move
+            bank = [c for c in self.banks[bank_id] if verify(c, facts) and not rejected.intersection(c.ids)]
             chosen = pick(
-                bank, used, supplier_id=sid, case_type="renewal_trade" if case["type"] == "renewal" else case["type"]
+                bank, used, supplier_id=sid, skip_kinds=skip_kinds,
+                case_type="renewal_trade" if case["type"] == "renewal" else case["type"]
             )
         except (OSError, ValueError, KeyError, TypeError) as exc:
             if self.tracer:

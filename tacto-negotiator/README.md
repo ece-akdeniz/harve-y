@@ -1,4 +1,6 @@
-# tacto-negotiator
+# harve/y
+
+Buyer agent from team **y/agent**.
 
 Buyer agent for the Tacto Negotiation Arena, EHL Grand Finale, 10–11 October 2026.
 
