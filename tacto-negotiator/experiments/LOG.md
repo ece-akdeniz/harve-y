@@ -1028,3 +1028,23 @@ to avoid duplicate sessions; A owns the next screen (its uncommitted `rfq_data_c
   single 31.50 claim; payment (90 d refused) and lead-time lines already closed.
 - Sessions used by B: 3 (one killed). Gap to .92 ≈ EUR 1.9/unit; remaining untested lever is a
   verified data claim to the leader (A's in-progress `rfq_data_claims`).
+
+## 2026-10-10 — P05 screen 10: one verified data fact on RFQ counters (F) — WIN
+
+Run `c3054e99-df92-4a96-9d94-9b83035d79bc`, session `a7298b34c1e012d6`, config
+`configs/p05-data-claims.json` (E + `rfq_data_claims`). Score **77.23** (vs 72.08 ×3):
+sup:70210 EUR **28.50** / 35 d / 30 d, 183 s, zero timeouts. 70210 path: 31.50 rival claim →
+32.00 + "clarify internally"; counter 31.74 + scorecard OTD 80.8 % (verified) → "clarified
+internally … I checked the delivery scorecard … dropping the price to €28.50 to make up for it
+and the other quote"; re-anchor 26.79 + PPI-D351 −3.7 % (verified) → "you are right about the
+drop … already went as low as I can go … 28.50 final"; accepted. 70240 took the 45 d
+alternative path (32.50/45 final); 70250 32.00/30. No 56 d, no 14 d, lead 35 d. Data line: 1 hit.
+
+## 2026-10-10 — P05 screen 11 plan: stack the data fact with the rival claim (G)
+
+Differs from screen 10: `rfq_data_claims_stack` also adds the data fact to counters that already
+carry a rival claim (`configs/p05-data-claims-stack.json`). In F, 70210's first counter had only
+the rival claim; each verified claim appears to buy one internal-clarification drop. Front-loading
+OTD with the rival claim may move the 32.00 reply lower, leaving PPM 1863 and PPI-D351 for later
+counters. Offline first counters: 70210 rival 31.50 + OTD 80.8 %; 70250 rival + OTD 88.0 %;
+70240 OTD 62.5 % only. Risk: 70250's 88 % OTD is mildly favorable to it.

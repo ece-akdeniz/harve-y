@@ -370,7 +370,8 @@ class PackageAgent:
         if self.policy and self.policy.rfq_rival_offer and case["type"] == "rfq":
             before = move
             move = self._rival_offer_claim(case, threads, supplier_id, move)
-            if self.policy.rfq_data_claims and self.evidence and move is before:
+            stack = self.policy.rfq_data_claims_stack
+            if (self.policy.rfq_data_claims or stack) and self.evidence and (move is before or stack):
                 # No rival undercuts this supplier: back the counter with one fresh verified fact.
                 from .context import DATA_ERRORS
 
