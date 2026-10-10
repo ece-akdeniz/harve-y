@@ -1,0 +1,44 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4KPABFN5V67TK0SR37A1VJD",
+  "session_id": "be17b514-9f71-455c-b5b2-4e6c34bedc4f",
+  "strategy": "manual-commit",
+  "created_at": "2026-10-10T19:58:27.407105Z",
+  "branch": "codex/openbook-question",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "tacto-negotiator/experiments/LOG.md",
+    "tacto-negotiator/src/negotiator/openbook_agent.py",
+    "tacto-negotiator/tests/test_openbook_agent.py"
+  ],
+  "agent": "Cursor",
+  "model": "unknown",
+  "turn_id": "325e6360fc37",
+  "checkpoint_transcript_start": 229,
+  "transcript_lines_at_start": 229,
+  "compact_transcript_start": 127,
+  "session_metrics": {
+    "turn_count": 20
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-10-10T19:58:27.38545Z",
+    "agent_lines": 200,
+    "agent_removed": 22,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 200,
+    "total_lines_changed": 222,
+    "agent_percentage": 100,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    }
+  ]
+}
