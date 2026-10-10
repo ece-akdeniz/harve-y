@@ -268,7 +268,11 @@ def test_valid_finding_and_evidence_are_traceable(loop):
     )
     assert loop.write("finding", body)["finding_id"] == "finding"
     assert loop.read("evidence", a["attempt_id"])["attempt"]["threads"]["supplier"]["messages"][0]["text"] == "evidence"
-    assert "threads" not in str(loop.read("overview"))
+    overview = loop.read("overview")
+    assert "threads" not in str(overview)
+    assert overview["campaigns"][0]["attempt_counts"] == {
+        "total": len(c["attempts"]), "completed": 1, "failed": 0,
+    }
 
 
 def test_duplicate_session_and_mismatch_rejected(loop):

@@ -554,7 +554,15 @@ class LoopStore:
                     families=self._all(db, "families"),
                     history=self._all(db, "history"),
                     campaigns=[
-                        {k: v for k, v in c.items() if k not in ("attempts", "request", "quota")} for c in campaigns
+                        {
+                            **{k: v for k, v in c.items() if k not in ("attempts", "request", "quota")},
+                            "attempt_counts": {
+                                "total": len(c["attempts"]),
+                                "completed": sum(a["status"] == "completed" for a in c["attempts"]),
+                                "failed": sum(a["status"] in {"failed", "interrupted", "recovered"}
+                                              for a in c["attempts"]),
+                            },
+                        } for c in campaigns
                     ],
                     findings=self._all(db, "findings"),
                 )
