@@ -22,7 +22,10 @@ def supplier_for(estimates, supplier_id, standard):
     est = (estimates or {}).get(supplier_id)
     if not est:
         return None
-    return {**est, "standard": est.get("standard") or standard or {}}
+    # The current quote is authoritative for fields it establishes; estimate/master
+    # defaults remain useful only for fields omitted by this quote.
+    effective = {**(est.get("standard") or {}), **(standard or {})}
+    return {**est, "standard": effective}
 
 
 def eligible_sheets(case, events, supplier=None, alternatives=False):
