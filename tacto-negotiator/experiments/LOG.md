@@ -1012,3 +1012,40 @@ Results (source `1cae3b0`, `configured_agent` + `configs/p02-cost-posterior.json
 - Sessions: 2 practice (quota 174 → 176 used/600 at start/end of this block; other agents share it).
 Decision: P02 opt-in `configs/p02-cost-posterior.json` is a replicated win (.5993 → .7115). Defaults unchanged.
 P10: no session (see the offline note above).
+
+## 2026-10-10 — Local vs server cost model: component audit (no session)
+
+Tool: `tools/compare_breakdown.py SESSION...` prints the server `cost_breakdown` beside local
+`arena_kit.cost.cost_breakdown` (dossier estimate at mid fc, and the E[grid] used by the cost target).
+
+Component by component, our own closed deals:
+- P02 936622ab (363.37/90d/CU db5): price, payment_terms (−14,801.27), index_risk (17,761.53) and quality
+  (1,191.45) match **to the cent**. Only `relationship` differs: server 24,834, local@mid 82,394,
+  local E[grid] 96,985. The worker's 2,299,891 vs 2,254,487 gap (366.23 deal) is the same term:
+  server 12,647 vs local ≈ 58k.
+- P03 c0d525e3 (433.08/90d/24m): price, payment_terms (−26,446.75; i.e. **8 % financing is right**),
+  quality match. Relationship: server 259.63, local@mid 31,619.
+- P11 24f79113 (45.02/60d/300 ppm/cb 0): every component matches. Total 742,450.50 both sides.
+  quality_first has no relationship term.
+- Formula check: inverting the public `relationship_cost` for each P02 server value gives one implied
+  full cost, **366.733**, from three different prices (349.37 → 140,072; 363.37 → 24,834; 366.23 → 12,647).
+  So `supplier_value` (8 %, standard 30 d, index clause not counted), the margin definition, `_soft` and years are
+  identical to the scorer. Only the hidden **input** differs: the supplier's true full cost. That is
+  ≈ 2.2 % below the public should-cost on P02 (×0.978) and P03 (×0.977), inside the published ±5 % error
+  (company.md). Public adjustments tried: rolling should-cost (2026-07-15) to the latest index months with
+  `cost_drivers` weights moves it the **wrong way** (+1.35 % P02, +0.82 % P03). KNOWN_ISSUES states no bias.
+- Verdict: **no formula-level mismatch to fix.** The distance is our uncertainty about full cost, which
+  the E[grid] target already models. Moving the estimate to 366.7/394.0, or applying a ×0.978 factor
+  fitted on n=2 cases, would fit hidden scorer data. Not done. No code change to the cost model.
+
+Re-evaluation with the verified components:
+- P03: 431.61/60d and 430.88/45d cost +12,982 / +19,451 in non-relationship terms. Relationship can save at
+  most 260 at the server's fc, and 7.9k / 11.3k even at should-cost mid. Across fc ∈ [383, 403] the
+  433.08/90d/4580 deal is cheapest. Volume 3,664 adds ~809k uncovered need; 5,496 adds ~790k spend.
+  Tenor has no cost effect. **No legal term change beats .8998; no screen.** The .94 elsewhere implies a lower
+  price (≈ −1.6 EUR) under the "frozen" claim, not a term package.
+- P11: no mis-valuation. Gap to .81 is ≈ EUR 1.9k = ≈ −0.12 EUR/unit (44.90 at cb 0). cb 150 at the same
+  price cuts quality cost by 715 (2,146.5 → 1,431), only +0.0075 score. That's a price lever, not a term lever. No screen.
+- P02: the model is unchanged, so the posterior result (363.37, .7115) stands. Diagnostically (hidden fc, not
+  policy) the server optimum on this package is ≈ 361 (≈ +.03–.04). Not screened: no public evidence supports it.
+Sessions: 0.
