@@ -933,3 +933,22 @@ Accepting a clause early (variants) produced `agreed` at our higher counter inst
 - Differs: nothing in policy; replaces the harness-killed R1. Runner is launched detached
   (`nohup`, own log) so a tool interruption cannot kill it. Why: R1's partial thread is the
   only observed price below 5.40 db0 on P18. Budget: session 2 of 12.
+
+### Screen R1b result — failed attempt (harness again), counts against budget
+
+- Run `a196dcdd-9013-407f-8187-b3b25cfb1457`, session `02b410e907ed4b25`: runner process died
+  silently after round 4 (empty log; `nohup ... & disown` inside the tool shell does not
+  survive). Authoritative: ended/timeout, no deal. Sessions used: **2** of 12.
+- Evidence (4 rounds): supplier db0 5.60 / 5.50 / 5.30 / **5.30** (round 4 held, db5 dropped).
+  Deeper anchor reaches the same 5.30 db0 floor that the new P18 baseline (.5200, index-window
+  lever, other worker) already closes at. Anchor alone cannot beat .5200 on P18. Stop R1 on P18.
+
+### Baseline update and plan R2 (P08 anchor16)
+
+- P18 baseline now .5200 (5.30 db0 / 90 / 24, `codex/alt-p18-buyer-window`); not screening
+  index-window on P18. P08 baseline .5930 (5.31 db0); P08 index-window claims rejected (hedge).
+- R2 differs from every P08 attempt: only the opening anchor (16% vs 12%; P08 opening ~4.58 ->
+  ~4.58*(0.84/0.88)), price schedule after the opening unchanged. Why: on P18 the deeper anchor
+  produced an extra -0.20 step at round 3 versus the retained run; P08 has never been screened
+  with it. Success: close below 5.31 db0 or 5.31 db3+. Runner launched as a tool-managed
+  background job (not nohup/disown). Budget: session 3 of 12.
