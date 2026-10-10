@@ -34,7 +34,12 @@ _BUILT: weakref.WeakKeyDictionary = weakref.WeakKeyDictionary()  # package -> bu
 
 def load_package(data_dir=None, release=None) -> DataPackage:
     """The data package plus the Sunday release overlay (`release` or ARENA_RELEASE)."""
-    for c in (data_dir, os.environ.get("ARENA_DATA"), *DATA_CANDIDATES):
+    if data_dir is not None:
+        selected = Path(data_dir).expanduser()
+        if not (selected / "facts.json").is_file():
+            raise FileNotFoundError("explicit data package has no facts.json; refusing unrelated fallback")
+        return DataPackage(selected, release=release)
+    for c in (os.environ.get("ARENA_DATA"), *DATA_CANDIDATES):
         if c and (Path(c).expanduser() / "facts.json").is_file():
             return DataPackage(c, release=release)
     raise FileNotFoundError("data package not found: pass data_dir, set ARENA_DATA or run `uv run arena data`")
