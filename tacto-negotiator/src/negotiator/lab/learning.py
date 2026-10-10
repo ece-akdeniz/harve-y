@@ -41,22 +41,36 @@ class LearningStore:
     def _connect(self):
         return sqlite3.connect(self.path, timeout=10)
 
-    def ingest(self, base, release=None):
+    def ingest(self, base, release=None, *, label=None):
         """Register supplied arena data on the lab host; never fetch external news."""
-        base = Path(base)
-        release = Path(release) if release else None
+        base = Path(base).expanduser().resolve()
+        release = Path(release).expanduser().resolve() if release else None
+        if label is not None and (not isinstance(label, str) or not 1 <= len(label.strip()) <= 120):
+            raise ValueError("dataset label must contain 1–120 characters")
         package = load_package(base, release)
         try:
+            # The loader can discover ARENA_RELEASE or a release-sunday folder. Hash the
+            # actual loaded overlay too, so its facts can never inherit the base identity.
+            resolved_release = getattr(package, "release", release)
+            if release is not None and resolved_release is None:
+                raise ValueError("configured release facts.json is unavailable")
+            release = resolved_release
             base_hash = fingerprint_data(base)
             release_hash = fingerprint_data(release) if release else None
             if not base_hash or (release and not release_hash):
                 raise ValueError("required data directory is unavailable")
             data_hash = (hashlib.sha256(f"base:{base_hash}\nrelease:{release_hash}".encode()).hexdigest()
                          if release else base_hash)
+            entities = {}
+            if callable(getattr(package, "query", None)):
+                for table in ("suppliers", "parts", "supplier_intel"):
+                    entities[table] = package.query(f"SELECT * FROM {table}", limit=10000)
             body = {"schema_version": 1, "data_sha256": data_hash,
                     "package_sha256": package.manifest["sha256"],
                     "manifest": package.manifest, "facts": package.facts,
-                    "sources": package.sources, "ingested_at": utc_now()}
+                    "sources": package.sources, "ingested_at": utc_now(), "checked_at": utc_now(),
+                    "label": label.strip() if label else base.name,
+                    "release_label": Path(release).name if release else None, "entities": entities}
             encoded = json.dumps(body, sort_keys=True, allow_nan=False)
             if len(encoded.encode()) > 32 * 1024 * 1024:
                 raise ValueError("data projection exceeds lab limit")
@@ -66,6 +80,12 @@ class LearningStore:
                     raise ValueError("data fingerprint collision")
                 if not row:
                     db.execute("INSERT INTO learning_data VALUES(?,?,?)", (data_hash, encoded, body["ingested_at"]))
+                else:
+                    old = json.loads(row[0])
+                    body["ingested_at"] = old["ingested_at"]
+                    body["label"] = label.strip() if label else old.get("label", base.name)
+                    db.execute("UPDATE learning_data SET body=? WHERE data_sha256=?",
+                               (json.dumps(body, sort_keys=True, allow_nan=False), data_hash))
             refreshed, failures = 0, 0
             for run in self.store.all():
                 if (run.status not in TERMINAL or run.provenance is None

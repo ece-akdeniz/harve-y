@@ -109,6 +109,7 @@ def parser():
     learn.add_argument("--db", type=Path, default=Path("experiments/dashboard.sqlite3"))
     learn.add_argument("--data", type=Path)
     learn.add_argument("--release", type=Path)
+    learn.add_argument("--label", help="human-readable name for the supplied dataset")
     learn.add_argument("--run-id")
     history.add_argument(
         "--db",
@@ -160,7 +161,7 @@ def main(argv=None) -> int:
             if args.action == "ingest":
                 if not args.data:
                     raise ValueError("learn ingest requires --data")
-                result = LearningStore(args.db).ingest(args.data, args.release)
+                result = LearningStore(args.db).ingest(args.data, args.release, label=args.label)
             elif args.action == "retry":
                 if not args.run_id:
                     raise ValueError("learn retry requires --run-id")

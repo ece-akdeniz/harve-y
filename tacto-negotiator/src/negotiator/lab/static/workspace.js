@@ -32,9 +32,10 @@ globalThis.HarveyWorkspace = (() => {
   }
   function disclosure(title,body,key) {const d=el('details'); if(key)d.dataset.keep=key; d.append(el('summary',title),body); return d;}
   function clearSession() {
+    HarveyKnowledge.reset();
     state.request++; state.signedIn=false;state.data=null;state.detail=null;state.signature='';
     $('shell').hidden=true;$('sign-in').hidden=false;
-    for(const id of ['supplier-content','supplier-list','attention','activity','metrics','supplier-summary','negotiation'])$(id).replaceChildren();
+    for(const id of ['supplier-content','supplier-list','attention','activity','metrics','supplier-summary','negotiation','knowledge-root'])$(id).replaceChildren();
     $('supplier-name').textContent='';$('supplier-meta').textContent='';
   }
   async function api(path,options={}) {
@@ -155,17 +156,21 @@ globalThis.HarveyWorkspace = (() => {
   function renderTab() {
     if(!state.detail)return;
     const content=$('supplier-content'),open=new Set([...content.querySelectorAll('details[open]')].map(d=>d.dataset.keep));
-    content.replaceChildren(({conversation,offers,memory,policy}[state.tab])(state.detail));
+    if(state.tab==='knowledge'){
+      let host=content.querySelector('.supplier-knowledge');
+      if(!host){host=el('div',null,'supplier-knowledge');content.replaceChildren(host);}
+      HarveyKnowledge.load({host,api,environment:state.detail.negotiation.environment,supplier:state.detail.supplier_id,arena:state.detail.negotiation.arena_url});
+    } else {HarveyKnowledge.reset();content.replaceChildren(({conversation,offers,memory,policy}[state.tab])(state.detail));}
     content.querySelectorAll('details').forEach(d=>{if(open.has(d.dataset.keep))d.open=true;});
     $('tabs').querySelectorAll('button').forEach(b=>b.setAttribute('aria-current',b.dataset.tab===state.tab?'page':'false'));
   }
   function showRoute() {
-    const r=route(),view=r.view==='supplier'?'supplier':r.view==='suppliers'?'suppliers':'overview';
-    for(const v of ['overview','suppliers','supplier'])$(v+'-view').hidden=v!==view;
-    $('breadcrumb').textContent=view==='overview'?'Overview':'Suppliers';
-    $('page-title').textContent=view==='overview'?'Every negotiation. In view.':view==='suppliers'?'Know who you’re buying from.':'Inside the negotiation.';
-    $('page-subtitle').textContent=view==='overview'?'See the value, understand the tradeoffs, follow the next move.':view==='suppliers'?'A shared record for every supplier, with evidence one click away.':'The conversation, the terms and the evidence behind them.';
-    for(const v of ['overview','suppliers']){$('nav-'+v).classList.toggle('active',v===(view==='supplier'?'suppliers':view));$('nav-'+v).setAttribute('aria-current',v===(view==='supplier'?'suppliers':view)?'page':'false');}
+    const r=route(),view=r.view==='supplier'?'supplier':r.view==='suppliers'?'suppliers':r.view==='knowledge'?'knowledge':'overview';
+    for(const v of ['overview','suppliers','supplier','knowledge'])$(v+'-view').hidden=v!==view;
+    $('breadcrumb').textContent=view==='overview'?'Overview':view==='knowledge'?'Shared knowledge':'Suppliers';
+    $('page-title').textContent=view==='overview'?'Every negotiation. In view.':view==='suppliers'?'Know who you’re buying from.':view==='knowledge'?'Every source. A clearer picture.':'Inside the negotiation.';
+    $('page-subtitle').textContent=view==='overview'?'See the value, understand the tradeoffs, follow the next move.':view==='suppliers'?'A shared record for every supplier, with evidence one click away.':view==='knowledge'?'Connect supplier facts, agent observations and updates across your work.':'The conversation, the terms and the evidence behind them.';
+    for(const v of ['overview','suppliers','knowledge']){$('nav-'+v).classList.toggle('active',v===(view==='supplier'?'suppliers':view));$('nav-'+v).setAttribute('aria-current',v===(view==='supplier'?'suppliers':view)?'page':'false');}
   }
   async function refresh() {
     const request=++state.request,r=route();state.busy=true;
@@ -186,6 +191,9 @@ globalThis.HarveyWorkspace = (() => {
         const signature=JSON.stringify(d);
         if(signature!==state.signature){supplier(d);state.signature=signature;}
       }
+      if(r.view==='knowledge')await HarveyKnowledge.load({host:$('knowledge-root'),api,environment:$('environment').value});
+      if(r.view==='supplier' && state.tab==='knowledge' && state.detail)renderTab();
+      if(request!==state.request)return;
       $('connection').textContent=`Connected · checked ${date(new Date().toISOString())}`;
     } catch(error) {
       if(request!==state.request)return;
@@ -199,9 +207,9 @@ globalThis.HarveyWorkspace = (() => {
       try{await api('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:$('password').value})});$('password').value='';$('login-error').textContent='';await refresh();}
       catch(error){$('login-error').textContent=error.message;}finally{button.disabled=false;}});
     for(const id of ['logout','mobile-logout'])$(id).addEventListener('click',logout);
-    $('refresh').addEventListener('click',refresh);
+    $('refresh').addEventListener('click',()=>{HarveyKnowledge.reset();refresh();});
     $('environment').addEventListener('change',()=>{
-      state.signature='';state.data=null;state.detail=null;
+      HarveyKnowledge.reset();state.signature='';state.data=null;state.detail=null;
       for(const id of ['supplier-list','metrics','attention','activity'])$(id).replaceChildren();
       $('supplier-count').textContent='Loading suppliers…';
       location.hash='overview';refresh();
@@ -209,7 +217,7 @@ globalThis.HarveyWorkspace = (() => {
     $('supplier-search').addEventListener('input',directory);$('supplier-status').addEventListener('change',directory);
     $('negotiation').addEventListener('change',()=>{if(state.detail)location.hash=url({key:state.detail.key},{id:$('negotiation').value});});
     $('tabs').addEventListener('click',e=>{const tab=e.target.dataset.tab;if(tab){state.tab=tab;renderTab();}});
-    window.addEventListener('hashchange',()=>{state.signature='';state.detail=null;$('supplier-content').replaceChildren(el('p','Loading negotiation…','notice'));showRoute();refresh();});
+    window.addEventListener('hashchange',()=>{HarveyKnowledge.reset();state.signature='';state.detail=null;$('supplier-content').replaceChildren(el('p','Loading negotiation…','notice'));showRoute();refresh();});
     document.addEventListener('visibilitychange',()=>{if(!document.hidden && state.signedIn)refresh();});
     setInterval(()=>{if(!document.hidden && state.signedIn && !state.busy)refresh();},5000);
     refresh();

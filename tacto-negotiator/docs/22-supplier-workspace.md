@@ -54,8 +54,58 @@ available outcome evidence; this interface cannot invent in-progress conversatio
 ## Verification
 
 Run the repository's full pytest suite and Ruff before publishing. The deployment
-workflow checks both `test_lab_server.py` and `test_lab_workspace.py`. New regressions
+workflow checks server, workspace, supplier-graph and learning tests. New regressions
 cover eligibility/negative savings, repeated-case accounting, latest failures,
 authentication, immutable originals, losing suppliers, memory isolation and campaign
-versus import deduplication. Browser verification covers login, search, all four tabs,
+versus import deduplication. Browser verification covers login, search, all supplier tabs,
 negotiation switching, retained disclosures on refresh, mobile overflow and logout.
+
+## Shared supplier knowledge (2026-10-11)
+
+The orange/neutral workspace adds **Shared knowledge** navigation and a **Knowledge
+graph** supplier tab. The global view also includes suppliers found only in supplied
+master data, before they have any saved negotiations. A grouped interactive graph
+opens records, graph relationships and original source citations. It joins parts,
+contracts, performance, supplied news/documents, runs/contributing agent configurations,
+shared observations and unresolved conflicts. Search and progressive lists keep large
+groups usable. Source evidence is rendered as text, never interpreted as instructions.
+
+The default scope is the most recently first-ingested supplied dataset. Agent evidence
+joins only on its exact recorded data fingerprint and selected environment/arena.
+An explicit run-history scope shows all source versions in distinct partitions;
+unknown versions are partitioned by original source run/campaign. Repeated IDs across
+releases do not establish the same supplier identity. Repeated offer observations
+combine with support/session counts and up to 20 citations; different offers are not
+inferred preferences. Explicit opposing statements are visible as conflicts. Raw
+conversation interpretation remains the existing conservative memory extractor.
+This is a shared human evidence view: approved runtime memory/policy does not change.
+
+Source cards show original dates and ingestion/check timestamps separately. Expired,
+future-dated and undated records remain visible and labeled. **External news/company
+feeds are a concept only**, with a dashed, expandable source-flow illustration. They
+are not connected and do not fetch, schedule or fabricate news for synthetic suppliers.
+There is no automatic background external ingestion.
+
+Register each new supplied base/release on the lab host with:
+
+```sh
+negotiator lab learn ingest --db /var/lib/y-agent-lab/dashboard.sqlite3 \
+  --data /path/to/new-supplied-data --release /path/to/optional-release \
+  --label 'Test release name'
+```
+
+Omit `--release` when none is supplied. The loader's resolved overlay (including its
+existing automatic discovery) participates in the fingerprint. Supplier/part master
+records and company profiles are included when available; facts-only packages remain
+supported. Reingesting an unchanged package enriches old projections and updates its
+checked time but preserves its first ingestion order. No upload control is added to
+the read-only browser. Refresh the workspace after registering a new dataset to reload
+the selector/catalog. The graph checks evidence at most every 30 seconds; conversation
+checks remain every five seconds.
+
+Tests in `test_supplier_graph.py` cover aggregation across cases/contributors, new
+suppliers without runs, reused IDs in unrelated new datasets, unknown-version/arena/
+environment isolation, dated/conflicting records, discovered-release fingerprints,
+recheck ordering and authenticated routes. They run in the deployment workflow with
+existing workspace/server/learning regressions. Browser checks cover groups, citations,
+history scope, source concept, tab switching, desktop/mobile and clearing on logout.

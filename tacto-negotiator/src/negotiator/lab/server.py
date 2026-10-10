@@ -266,6 +266,27 @@ class Handler(BaseHTTPRequestHandler):
                     self._error(404, "loop resource not found")
                 else:
                     self._json(200, body)
+            elif path == "/api/workspace/knowledge":
+                from .supplier_graph import catalog, graph
+                from .workspace import records
+
+                params = parse_qs(parts.query)
+                environment = params.get("environment", ["practice"])[0]
+                supplier = params.get("supplier", [None])[0]
+                if environment not in {"practice", "sandbox", "simulator"} or (supplier and len(supplier) > 160):
+                    self._error(400, "invalid knowledge scope")
+                    return
+                saved = records(self.server.store, self.server.loop_store)
+                try:
+                    body = {"catalog": catalog(self.server.store, saved)}
+                    if supplier:
+                        body["graph"] = graph(self.server.store, saved, supplier=supplier,
+                                              dataset=params.get("dataset", ["latest"])[0],
+                                              environment=environment, arena=params.get("arena", [None])[0])
+                except ValueError:
+                    self._error(404, "supplier or dataset not found")
+                else:
+                    self._json(200, body)
             elif path == "/api/workspace" or path.startswith("/api/workspace/suppliers/"):
                 from .workspace import detail, directory, records
 
@@ -363,6 +384,7 @@ class Handler(BaseHTTPRequestHandler):
         assets = {
             "/workspace": ("workspace.html", "text/html"),
             "/workspace.js": ("workspace.js", "application/javascript"),
+            "/knowledge.js": ("knowledge.js", "application/javascript"),
             "/workspace.css": ("workspace.css", "text/css"),
             "/": ("index.html", "text/html"),
             "/index.html": ("index.html", "text/html"),

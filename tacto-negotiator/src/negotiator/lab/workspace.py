@@ -35,7 +35,7 @@ def records(store, loop):
             outcome = a.get("outcome") or {}
             cp = checkpoints.get(a["checkpoint_id"], {})
             started = a.get("start", {}).get("started_at", c["created_at"])
-            run = dict(run_id=None, campaign_id=c["campaign_id"], name=c["campaign_id"],
+            run = dict(run_id=None, campaign_id=c["campaign_id"], name=c["campaign_id"], author=c["author"],
                        source="campaign", environment=suite["environment"], arena_url=suite["arena_url"],
                        started_at=datetime.fromtimestamp(started, UTC).isoformat(),
                        updated_at=datetime.fromtimestamp(a.get("finished_at") or started, UTC).isoformat(),

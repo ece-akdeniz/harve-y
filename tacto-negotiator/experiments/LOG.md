@@ -1837,3 +1837,15 @@ it is not a new score improvement or a fresh full-suite evaluation.
   streaming and policy editing remain follow-up work. No score gain claimed.
 - VM backup passed integrity check before deployment; rollout result is recorded in
   the shared project handoff and local deployment evidence.
+
+### 2026-10-11 — Supplier intelligence workspace (no Arena experiment)
+
+- Added Tacto-inspired orange/neutral styling and a supplier knowledge graph across
+  saved runs/agent configurations, supplied facts, parts, performance and news.
+- Dataset fingerprints isolate new releases and repeated IDs. Source times, citations,
+  conflicting evidence and unregistered versions remain explicit. Ingestion enriches
+  supplier/part master metadata and supports dataset labels and freshness checks.
+- External news/company feeds are an explicitly non-working interface concept;
+  synthetic suppliers are not searched online. Runtime memory/policy is unchanged.
+- Focused graph/workspace/learning tests and local Chrome desktop/mobile checks passed;
+  full regression validation and VM rollout recorded in the deployment evidence.
