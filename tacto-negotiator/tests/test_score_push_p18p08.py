@@ -1,8 +1,9 @@
 import json
 from pathlib import Path
 
-from negotiator.agent import PackageAgent
 from arena_kit.cost import total_cost
+
+from negotiator.agent import PackageAgent
 from negotiator.policy import PolicyConfig
 from negotiator.trades import TradePolicy
 
