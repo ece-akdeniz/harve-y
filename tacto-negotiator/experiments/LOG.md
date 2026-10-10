@@ -909,3 +909,28 @@ in the preceding entry; the same failure reproduces with the unchanged current
   one case only (P02, n=3+1). Suite: 376 passed + known preflight failure + 1 timing flake
   (`test_two_thread_rfq_slow_replies_no_timeouts[1]`, passes on rerun). Ruff clean.
 - Sessions used: 0 / 8. Merge verdict: merge tool + tests (harmless); no policy change.
+
+### P03 price gap — `configs/p03-cost-target.json` (branch codex/score-push-p03), 1 practice session
+- Transcripts read: c0d525e3d5026b65 (best .8998), a9ad60d5e055b7d9 (integrate run, timed out, no deal).
+  Supplier opens 438.21 / 30 d / 12 m, then quotes **433.08 / 90 d / 24 m every round** against buyer offers
+  385.62 → 423.59 and 414.09 / 36 m. It never moved the price; we did not accept early, we conceded to its
+  sheet. Public notes explain it: "head office has frozen all price reductions until December 2027 … open on
+  payment terms and call-off flexibility" (M1) and pricing committee for changes > 2 % (M2). No claims in the bank.
+- Legal packages (payment 14/30/45/60/90, contract 12/24/36, volume 3664/4580/5496), public E[C] over fc
+  383.05–423.37: optimum 423.79 / 90 / 24 (E[C] 3,997,482; 36 m equal). Volume 3664/5496 and 12 m have no
+  break-even price vs 433.08/90/24 (uncovered need / overbuy). Shorter payment break-evens: 60 d 430.23,
+  45 d 428.82, 30 d 427.42, 14 d 425.93. Supplier's own trades: 60 d 431.61 (E[C] 4,015,764), 45 d 430.88
+  (4,018,202) vs 433.08 / 90 d 4,011,350 — its payment discount (~0.05 €/unit/day) is below our 8 % financing
+  value (~0.095), so 90 d stays best. Only lever left was price.
+- Hypothesis (public M2): every past counter was > 2 % below 433.08; offers within 2 % might clear without committee.
+  Config `{"version": 1, "cost_target_types": ["renewal"]}` (renewal only; P01/P02/P10 are other types →
+  unchanged by construction; P04/P19 are `routine` → `ct.active` false). Offline replay: opens 423.79, steps
+  ~1.86 to 433.08, never above the supplier's sheet. Tests: `tests/test_p03_cost_target.py` (2).
+  Suite 379 passed + known preflight failure. Ruff clean.
+- Screen run d1b53885, session aab2f54b7ecc66d2: **0.8998** (identical: 433.08 / 90 / 24 / 4580), 7 rounds,
+  0 timeouts. Offers 423.79, 425.65, 427.51, 429.36, 431.22 (0.43 % below) all rejected: "our head office has
+  frozen price reductions, meaning we can only accommodate price adjustments through changes in terms."
+  It offered 431.61 / 60 d and 430.88 / 45 d (both higher E[C]).
+- Verdict: the gap is a hard supplier hold, not a policy weakness. Lever dropped after 1 screen: the transcript
+  rules out price concessions, and no legal package beats 433.08/90/24 at the supplier's revealed trade rates.
+  Config is harmless (same score). Do not merge as a policy change. Sessions used: 1/4. `lab sync`: uploaded 1.
