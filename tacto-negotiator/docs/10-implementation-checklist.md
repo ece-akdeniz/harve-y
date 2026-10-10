@@ -5,15 +5,17 @@ backlog, not a claim the agent works. Update boxes only with test/run evidence.
 
 ## Current implementation
 
-CLI parsers exist but custom commands return 2 without executing. AsyncArena construction,
-runner, optimizer planning/MESOs, primary guards, claim verification, dossier loader, writer,
-state persistence and reports are placeholders. Basic endpoint/leak checks, trait regexes,
-research scripts and scaffold tests exist. Their success does not establish arena readiness.
+PackageAgent v0 and custom play/run commands execute through the official kit. Deterministic
+non-price optimization, concession scheduling and basic closing checks exist. The kit runner
+still services one RFQ thread at a time. Async runtime, persistent recovery, full relationship
+cost integration, claim verification and prep/report remain unfinished. See the dated
+[experiment log](../experiments/LOG.md) for actual hosted results, including interrupted runs.
 
 ## Gate A — setup and measured baseline (Runtime + Evaluation)
 
 - [ ] Run root README setup and local checks; record installed kit revision.
-- [ ] Complete official D01; record serial D02 timing and compare planned concurrency.
+- [x] Complete official D01; record serial D02 timing and a one-round concurrent probe.
+  See experiment log; sustained concurrency and queued closing remain unverified.
 - [ ] Record organizer responses for session queuing, clock start, wave-cap acceptance and units.
 - [ ] Agree shared records and module owners in 02 before separate implementations.
 

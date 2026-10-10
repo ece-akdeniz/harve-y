@@ -42,3 +42,14 @@ def test_offer_has_exact_negotiable_fields_and_no_leak():
     sheet = move["message"]["term_sheets"][0]["terms"]
     assert set(sheet) == set(case["negotiable"])
     assert sheet["unit_price"] < 17.0
+
+
+def test_standing_picks_cheapest_of_several_sheets():
+    from negotiator.agent import standing
+
+    case = _case("S01")
+    events = [{"from": "sales", "status": "open", "attachments": [], "term_sheets": [
+        {"term_sheet_id": "offer:a", "terms": {"unit_price": 17.0, "payment_days": 60}},
+        {"term_sheet_id": "offer:b", "terms": {"unit_price": 16.0, "payment_days": 60}},
+    ]}]
+    assert standing(case, events)[0] == "offer:b"

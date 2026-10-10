@@ -36,3 +36,11 @@ Prioritize Q1, Q2, Q3 and Q13–Q16. Continue independent work while answers are
 For each response append: question ID; exact answer or clearly labeled paraphrase; organizer;
 Europe/Berlin timestamp; source; affected document/module; decision; owner; verification run.
 Do not silently substitute organizer answers for measured hosted behavior or vice versa.
+
+## Hosted observations — 10 October, not organizer answers
+
+Q2: serial naive D02 recorded one idle-thread timeout. Q13: a one-round concurrent D02
+probe returned replies after 14.9s and 70.3s without timeouts in the post-reply snapshots.
+This supports independent thread scheduling but does not settle request serialization, the
+exact clock-stop point, repeated-round safety or acceptance while a reply is pending.
+See [the experiment log](../experiments/LOG.md) for sessions, configuration and limitations.

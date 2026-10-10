@@ -7,15 +7,34 @@ alternative. No claims and no model yet.
 
 from arena_kit.cost import must_haves_ok, total_cost
 from arena_kit.docs import standard_terms
-from arena_kit.play import latest, live_threads, moves_left, standing
+from arena_kit.play import latest, live_threads, moves_left
 
 from .guards import leaks
 from .optimizer import alternative_cost, best_terms
 
 
+def standing(case, events):
+    """(term_sheet_id, terms) of the cheapest-for-us sheet in the supplier's latest message, or
+    (None, {}). Hosted suppliers often send alternatives; the first sheet is not the best."""
+    sheets = latest(events).get("term_sheets") or []
+    std = standard_terms(events)
+    priced = [s for s in sheets if s.get("terms", {}).get("unit_price") is not None]
+    if not priced:
+        return (sheets[0]["term_sheet_id"], sheets[0]["terms"]) if sheets else (None, {})
+    best = min(priced, key=lambda s: total_cost(case, s["terms"], std))
+    return best["term_sheet_id"], best["terms"]
+
+
 class PackageAgent:
     def __init__(self, anchor=0.12, rounds=5, close_gap=0.005, tracer=None):
         self.anchor, self.rounds, self.close_gap, self.tracer = anchor, rounds, close_gap, tracer
+        self.locked = {}  # supplier -> non-price terms of our first offer; kept stable after that
+
+    def _package(self, case, sid, price, std):
+        if sid not in self.locked:
+            terms = best_terms(case, price, std)
+            self.locked[sid] = {k: v for k, v in terms.items() if k != "unit_price"}
+        return {**self.locked[sid], "unit_price": round(price, 2)}
 
     # -- helpers ------------------------------------------------------------------------------
     @staticmethod
@@ -33,7 +52,7 @@ class PackageAgent:
         """(C, supplier, sheet_id) of every standing sheet we may accept, cheapest first."""
         out = []
         for sid in live_threads(threads):
-            sheet_id, terms = standing(threads[sid])
+            sheet_id, terms = standing(case, threads[sid])
             std = standard_terms(threads[sid])
             if not sheet_id or terms.get("unit_price") is None or not must_haves_ok(case, terms, std):
                 continue
@@ -88,19 +107,19 @@ class PackageAgent:
 
         # RFQ: keep every thread moving; least-worked thread first, then cheapest standing sheet.
         def key(sid):
-            _, terms = standing(threads[sid])
+            _, terms = standing(case, threads[sid])
             c = total_cost(case, terms, standard_terms(threads[sid])) if terms.get("unit_price") else float("inf")
             return (len(self._ours(threads[sid])), c)
 
         sid = min(workable, key=key)
         events = threads[sid]
         std = standard_terms(events)
-        _, theirs = standing(events)
+        _, theirs = standing(case, events)
         p = theirs.get("unit_price")
         if p is None:
             return self._close(case, threads, c_alt, "no price quoted")
         ours = self._ours(events)
-        match = best_terms(case, p, std)
+        match = self._package(case, sid, p, std)
         c_theirs = total_cost(case, theirs, std)
         c_match = total_cost(case, match, std)
 
@@ -118,7 +137,7 @@ class PackageAgent:
     def decide_thread(self, case, threads, sid, c_alt):
         events = threads[sid]
         std = standard_terms(events)
-        _, theirs = standing(events)
+        _, theirs = standing(case, events)
         p = theirs["unit_price"]
         p_open = self._opening_price(events) or p
         ours = self._ours(events)
@@ -126,7 +145,7 @@ class PackageAgent:
         last = ours[-1]["unit_price"] if ours else None
 
         if last is not None and p - last <= p * self.close_gap:
-            match = best_terms(case, p, std)
+            match = self._package(case, sid, p, std)
             if total_cost(case, match, std) < total_cost(case, theirs, std) - 1e-6:
                 return self._offer(case, sid, match, std, c_alt, "gap closed: their price, our terms")
             return self._close(case, threads, c_alt, "gap closed")
@@ -136,4 +155,4 @@ class PackageAgent:
         if last is not None:
             price = max(price, last)  # no backtracking on our own concessions
         price = round(min(price, p), 2)
-        return self._offer(case, sid, best_terms(case, price, std), std, c_alt, f"round {k + 1} schedule")
+        return self._offer(case, sid, self._package(case, sid, price, std), std, c_alt, f"round {k + 1} schedule")
