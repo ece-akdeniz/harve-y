@@ -86,7 +86,9 @@ def test_hash_mismatch_and_existing_destination(repo, tmp_path):
         restore_checkpoint(repo, cp, repo)
 
 
-@pytest.mark.parametrize('config', [{'api_key': 'private'}, {'rounds': None}, {'anchor': float('nan')}, {'meso': '1'}])
+@pytest.mark.parametrize('config', [{'api_key': 'private'}, {'rounds': None}, {'anchor': float('nan')},
+                                    {'meso': '1'}, {'multi_supplier_anchor': float('nan')},
+                                    {'multi_supplier_anchor': 1.0}])
 def test_invalid_config(repo, config):
     with pytest.raises(ValueError):
         create_checkpoint(repo, config=config, author='Test', description='candidate')
