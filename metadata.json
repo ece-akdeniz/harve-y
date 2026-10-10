@@ -1,0 +1,31 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4KVDVJEJG6V73G9NSW2AGH3",
+  "strategy": "manual-commit",
+  "branch": "codex/score-push-rawmat2",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "tacto-negotiator/configs/rawmat-volume-answer-run.json",
+    "tacto-negotiator/configs/rawmat-volume-answer.json",
+    "tacto-negotiator/src/negotiator/agent.py",
+    "tacto-negotiator/src/negotiator/policy.py",
+    "tacto-negotiator/src/negotiator/volume_answer.py",
+    "tacto-negotiator/tests/test_volume_answer.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": ""
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 4307,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 435432,
+    "output_tokens": 3691,
+    "api_call_count": 4
+  }
+}
