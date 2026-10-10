@@ -121,6 +121,7 @@ class PackageAgent:
         self.reanchored = set()  # rfq suppliers re-anchored after undercutting our own ask
         self.lead_traded = {}  # rfq supplier -> (non-price terms before the lead trade, its C then)
         self.burst_done = set()  # rfq suppliers that got the multi-claim counter
+        self.r2_given = set()  # rfq suppliers given their payment term on our second counter
         self.final_seen = {}  # final-offer sheet id -> monotonic time first seen
         if estimates is None and os.environ.get("NEGOTIATOR_ESTIMATES") != "1":
             estimates = {}  # dossier estimates are opt-in until calibrated (docs: experiments/LOG.md)
@@ -686,12 +687,29 @@ class PackageAgent:
             if last_p is not None and cap_p < last_p - 1e-6:
                 return {"close": True, "reason": "rival cannot beat the final offer without backtracking"}
             price = min(price, cap_p)
+        give = None
+        if (self.policy and self.policy.rfq_reciprocal_r2 and case["type"] == "rfq" and k == 1
+                and cap_c is None and sid not in self.r2_given):
+            sheet = (latest(events).get("term_sheets") or [{}])[0].get("terms") or {}
+            pay = sheet.get("payment_days") or std.get("payment_days")
+            if pay is not None and pay >= 30 and pay != n.get("payment_days"):
+                # Reciprocal move on the term it keeps asking for, priced C-neutral for us.
+                c_sched = total_cost(case, {**n, "unit_price": round(price, 2)}, std, sup)
+                n = {**n, "payment_days": pay}
+                self.prev[sid] = n
+                price = math.floor(price_for_cost(case, {**n, "unit_price": price}, c_sched, std, sup) * 100) / 100
+                give = pay
+                self.r2_given.add(sid)
+                self._log(case, "reciprocal_r2", sid, payment_days=pay, price=price, c=c_sched)
         terms = complete_offer(case, {**n, "unit_price": round(price, 2)})
         if self.trades and case["type"] in self.policy.package_types:
             terms, trade_reason = self.trades.switch(case, sid, events, terms, std, sup)
             why = trade_reason or why
         variants = self._payment_variants(case, terms, cands[0][2], std, sup) if self.meso else []
-        return self._offer(case, sid, terms, std, sup, c_alt, why or f"round {k + 1} schedule", variants)
+        move = self._offer(case, sid, terms, std, sup, c_alt, why or f"round {k + 1} schedule", variants)
+        if give is not None and move.get("message", {}).get("term_sheets"):
+            move["message"]["body"] += f" We move to your {give}-day payment term, as you asked."
+        return move
 
 
 def configured_agent(policy_config, trace_dir=None, **kwargs):

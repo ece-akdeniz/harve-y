@@ -1155,3 +1155,21 @@ is 26.79 @ **30 d** (its own term; we close at 30 anyway, so no cost to us vs th
 "we move to your 30-day payment term, as you asked. If you can confirm EUR 26.79 on these terms, we
 award you the full 4200 pcs per year today." Tests the supplier's "no concession without a move from
 us" rule with a give it values (cash) and award certainty.
+
+## 2026-10-10 — P05 screen 15 result: K reciprocal re-anchor = 77.23 (no gain, new signal)
+
+Run `8bb17bb3` / `dc37e2b4f3ed5204`: .7723, 28.50/30/35, 0 timeouts, 66 s. r3 26.79/**30** + award
+text → no final this time: "Good that we agree on the 30 days payment, cash flow is important …
+holding 28.50 … **A binding higher volume would help us and can improve the price. Which volume can
+you commit to?**" Our code matched 28.50/30 → agreed (r4). Volume is a fixed term in P05
+(not negotiable; above 4200 = uncovered buying in C), so no volume lever; reciprocity at r3 keeps
+the thread open but the price step was already spent at r2.
+
+## 2026-10-10 — P05 screen 16 plan: reciprocal give at r2 (L)
+
+Differs from F/K: `rfq_reciprocal_r2` (`configs/p05-reciprocal-r2.json`). Our **second** counter
+to each supplier moves to its own payment term (≥ 30 d) at the C-neutral price (70210: 31.31 @ 30 d
+= 31.74 @ 90 d for us) and says so. Why: 70210's only big drop is the r2 boss-approved step, and
+it said "to make up for the payment terms"; K showed the payment move is read as a real give. So
+the give now lands in the round that sets the step, together with the OTD claim. r3 re-anchor
+(26.79 @ 30 d) as in F.
