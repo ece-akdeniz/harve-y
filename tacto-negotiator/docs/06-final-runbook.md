@@ -57,6 +57,9 @@ trace and the command agree. The case-list poll backs off and keeps polling on a
 or network error, and a crashed decision step falls back (accept the best eligible sheet that
 beats the alternative, else repeat our last offer, else walk away; never counter a final offer).
 Rehearse with the same flags on the free sandbox (`--set sandbox`) before launch.
+With a policy config the CLI drops the guidance's conditional-exchange wording (trace field
+`conditional_exchange: false`) so it plays exactly like the lab runs that measured v3; with the
+wording, sandbox D01/D02 fell from .9192/.5239 to .9048/.5029.
 This custom launch loads `src/negotiator/AGENTS.md` from the installed package.
 Check the initial `run` trace for `runtime_guidance.sha256` and `settings`; both
 serial and async custom runners use this same guidance. The starter command

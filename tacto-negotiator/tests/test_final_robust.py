@@ -231,6 +231,7 @@ def test_final_cli_defaults_to_auto_runner_and_v3_policy(monkeypatch, tmp_path):
     assert seen["args"].runner == "auto"
     assert Path(seen["args"].policy_config) == V3
     assert seen["agent"].policy == PolicyConfig.load(V3)
+    assert seen["agent"].conditional_exchange is False  # lab parity for measured policy scores
     assert '"runner": "auto"' in (tmp_path / "trace.jsonl").read_text()
 
 

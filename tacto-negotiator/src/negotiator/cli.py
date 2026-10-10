@@ -108,6 +108,11 @@ def main(argv=None) -> int:
 
     def new_agent():
         agent = guidance.new_agent(tracer=tracer, policy=policy, memory=memory)
+        if policy is not None:
+            # Parity with the measured policy scores: lab agents (PackageAgent(**config)) never
+            # add the guidance's conditional-exchange wording; with it, sandbox D01/D02 drop
+            # from .9192/.5239 to .9048/.5029.
+            agent.conditional_exchange = False
         if args.model_assist:
             from .model_assist import ModelAssist
 
@@ -117,11 +122,13 @@ def main(argv=None) -> int:
             )
         return agent
 
+    probe = new_agent()
     if args.runner in ("async", "auto"):
-        cfg = {**run_config(new_agent(), runner=args.runner), **runtime_config(getattr(args, "parallel", 1))}
+        cfg = {**run_config(probe, runner=args.runner), **runtime_config(getattr(args, "parallel", 1))}
     else:
-        cfg = run_config(new_agent())
-    tracer.log("run", cmd=args.cmd, arena=os.environ.get("ARENA_URL"), policy_config=args.policy_config, **cfg)
+        cfg = run_config(probe)
+    tracer.log("run", cmd=args.cmd, arena=os.environ.get("ARENA_URL"), policy_config=args.policy_config,
+               conditional_exchange=probe.conditional_exchange, **cfg)
 
     if args.runner in ("async", "auto"):
         out = run_async(args, new_agent, tracer, run_dir)
