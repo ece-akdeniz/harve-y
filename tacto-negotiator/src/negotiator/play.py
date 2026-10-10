@@ -48,7 +48,7 @@ def run_config(agent, runner="serial-play_case", facts="data/package/facts.json"
         commit, dirty = None, None
     path = root / facts
     data = hashlib.sha256(path.read_bytes()).hexdigest()[:12] if path.exists() else None
-    keys = ("anchor", "rounds", "close_gap", "final_hold_s", "meso", "p_walk")
+    keys = ("anchor", "rounds", "close_gap", "final_hold_s", "meso", "p_walk", "claims")
     params = {k: getattr(agent, k) for k in keys if hasattr(agent, k)}
     return {
         "commit": commit,
@@ -113,6 +113,8 @@ def play_case(table, case_id, agent, deadline=None):
                 continue
         if "result" in reply:
             return reply["result"]
+        if tracer:
+            tracer.log("supplier_reply", case=case_id, supplier=sid, message=reply)
         threads[sid] += [{**msg, "from": "buyer"}, fetch_documents(table, reply)]
         slowest = max(slowest, time.monotonic() - t0)
         log.info("%s %s %s", sid, reply.get("status"), standing(threads[sid])[1])

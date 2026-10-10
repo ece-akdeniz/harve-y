@@ -116,6 +116,8 @@ def _case_summary(case_id, events, hosted) -> dict:
                for d in decisions if "guard" in d]
     claims = [{"src": d["src"], "supplier": d.get("supplier"), "claims": d.get("claims") or d.get("refs")}
               for d in decisions if d.get("claims") or d.get("refs")]
+    claims += [{"src": e["_src"], "supplier": e.get("supplier"), "claims": e.get("claims")}
+               for e in events if e.get("event") == "evidence"]
     offers = Counter(d.get("supplier") for d in decisions if d.get("kind") == "offer")
     s = {
         "case": case_id,
@@ -152,7 +154,7 @@ def _case_summary(case_id, events, hosted) -> dict:
     if results:
         r = results[-1]
         s["result_src"] = r["_src"]
-        row = r.get("result")
+        row = r.get("full") if isinstance(r.get("full"), dict) else r.get("result")
         if isinstance(row, dict):
             for k in ("score", "deal", "terms", "c_open", "c_deal", "c_best", "must_haves_ok"):
                 if k in row:

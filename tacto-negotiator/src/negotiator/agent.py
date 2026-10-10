@@ -80,12 +80,18 @@ class PackageAgent:
 
     def __init__(
         self, anchor=0.12, rounds=5, close_gap=0.005, tracer=None, estimates=None, final_hold_s=40.0, meso=None,
-        p_walk=0.25,
+        p_walk=0.25, claims=None,
     ):
         self.anchor, self.rounds, self.close_gap, self.tracer = anchor, rounds, close_gap, tracer
         self.meso = os.environ.get("NEGOTIATOR_MESO") == "1" if meso is None else meso
         self.final_hold_s = final_hold_s
         self.p_walk = p_walk  # chance a supplier walks when its final offer is countered (D02: 2 of 9)
+        self.claims = os.environ.get("NEGOTIATOR_CLAIMS") == "1" if claims is None else claims
+        self.evidence = None
+        if self.claims:
+            from .evidence import EvidencePolicy
+
+            self.evidence = EvidencePolicy(tracer=tracer)
         self.prev = {}  # supplier -> non-price terms of our last offer
         self.final_counters = {}  # supplier -> counters sent to its final offers (at most one)
         self.beat_asked = {}  # rival supplier -> final-offer sheet id we asked it to beat
@@ -232,6 +238,10 @@ class PackageAgent:
         return self._close(case, threads, reason)
 
     def propose(self, case, threads, supplier_id):
+        move = self._propose(case, threads, supplier_id)
+        return self.evidence.enrich(case, threads, supplier_id, move) if self.evidence else move
+
+    def _propose(self, case, threads, supplier_id):
         """The proposal for one thread given the whole snapshot: an offer move
         ({"supplier_id", "message"}), {"close": True, "reason"} for the coordinator to resolve with
         `evaluator.close_decision`, or {"hold": True, "reason"} when this thread should wait.

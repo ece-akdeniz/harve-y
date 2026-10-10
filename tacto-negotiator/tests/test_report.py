@@ -85,3 +85,15 @@ def test_session_from_sibling_log(tmp_path):
     s = summarise(tmp_path / "practice_P01")
     assert s["sessions"] == ["fa0dc70ffaaf6025"]
     assert s["cases"]["case:P01"]["session"] == "fa0dc70ffaaf6025"
+
+
+def test_full_result_preserves_costs_and_evidence(tmp_path):
+    tr = Tracer(tmp_path)
+    tr.log("evidence", case="case:P01", supplier="sup:F", claims=[{"kind": "notice"}])
+    tr.log("result", case="case:P01", result={"deal": True, "score": 0.8},
+           full={"deal": True, "score": 0.8, "must_haves_ok": True,
+                 "cost_breakdown": {"price": 100, "relationship": 5}})
+    c = summarise(tmp_path)["cases"]["case:P01"]
+    assert c["components"] == {"price": 100, "relationship": 5}
+    assert c["must_haves_ok"] is True
+    assert c["claims_used"][0]["claims"] == [{"kind": "notice"}]
