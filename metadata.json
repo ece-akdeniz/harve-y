@@ -3,14 +3,27 @@
   "checkpoint_id": "01M4KJ8WWPKC9CSPJ9CCFXD8Z0",
   "strategy": "manual-commit",
   "branch": "codex/p05-advice-screen",
-  "checkpoints_count": 1,
-  "files_touched": null,
+  "checkpoints_count": 2,
+  "files_touched": [
+    "tacto-negotiator/configs/raw-material-index-floor-lab.json",
+    "tacto-negotiator/src/negotiator/agent.py",
+    "tacto-negotiator/src/negotiator/package_advisor.py",
+    "tacto-negotiator/src/negotiator/policy.py",
+    "tacto-negotiator/tests/test_package_advisor.py"
+  ],
   "sessions": [
     {
       "metadata": "/0/metadata.json",
       "transcript": "/0/full.jsonl",
       "compact_transcript": "/0/transcript.jsonl",
       "content_hash": "/0/content_hash.txt",
+      "prompt": ""
+    },
+    {
+      "metadata": "/1/metadata.json",
+      "transcript": "/1/full.jsonl",
+      "compact_transcript": "/1/transcript.jsonl",
+      "content_hash": "/1/content_hash.txt",
       "prompt": ""
     }
   ],
