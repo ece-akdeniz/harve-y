@@ -709,3 +709,78 @@ def test_publisher_merges_same_or_lower_revision_recovery_while_upload_is_in_fli
     # The first acknowledgement must not remove later recovery with the same writer revision.
     assert [a.result["reconciled_result"]["score"] for a in uploaded[-1].attempts] == [0.6, 0.7]
     assert not publisher.pending
+
+
+def test_async_runner_metadata_and_single_attempt_plan(tmp_path):
+    run = planned(tmp_path, runner="async", config={"policy_config": {"version": 1}})
+    assert run.config["_lab_runner"] == "async"
+    assert run.config["policy_config"] == {"version": 1}
+    with pytest.raises(ValueError, match="reserved"):
+        planned(tmp_path, config={"_lab_runner": "async"})
+    with pytest.raises(ValueError, match="exactly one"):
+        planned(tmp_path, runner="async", repetitions=2, max_sessions=2)
+    args = parse_args(["run", "--name", "async", "--hypothesis", "h", "--runner", "async",
+                       "--cases", "case:D01", "--repetitions", "1", "--max-sessions", "1",
+                       "--environment", "sandbox"])
+    assert args.runner == "async"
+
+
+def test_auto_runner_routes_rfq_cases_async_and_allows_multi_case_plans(tmp_path):
+    from negotiator.lab.runner import attempt_runner
+
+    run = planned(tmp_path, runner="auto", config={"policy_config": {"version": 1}},
+                  repetitions=2, max_sessions=2)
+    assert run.config["_lab_runner"] == "auto"
+    assert attempt_runner(run, "rfq") == "async"
+    assert [attempt_runner(run, t) for t in ("capacity", "price_increase", "raw_material", None)] == ["serial"] * 4
+    assert attempt_runner(planned(tmp_path, runner="serial"), "rfq") == "serial"
+    assert parse_args(["run", "--name", "a", "--hypothesis", "h", "--runner", "auto", "--cases", "case:D01",
+                       "--repetitions", "1", "--max-sessions", "1", "--environment", "sandbox"]).runner == "auto"
+
+
+@pytest.mark.parametrize("fail_after_open", [False, True])
+def test_async_run_persists_session_before_failure_and_collects_evidence(tmp_path, monkeypatch, fail_after_open):
+    root = tmp_path / "runs"
+    run = planned(tmp_path, runner="async", config={"policy_config": {"version": 1}})
+    factory_calls, closed = [], []
+
+    class AsyncClient:
+        def __init__(self, **kwargs):
+            assert kwargs["retries"] == 0
+        async def aclose(self):
+            closed.append(True)
+
+    class AsyncRunner:
+        def __init__(self, arena, case_id, agent, journal, **kwargs):
+            assert agent == {"policy_config": {"version": 1}}
+            self.journal, self.case_id = journal, case_id
+        async def run(self):
+            self.journal.intent(self.case_id, None, None, "open", {"case_id": self.case_id})
+            self.journal.session(self.case_id, "known-session", {"case_id": self.case_id})
+            saved = json.loads((root / run.run_id / "run.json").read_text())
+            assert saved["attempts"][0]["session_id"] == "known-session"
+            assert saved["attempts"][0]["status"] == "running"
+            if fail_after_open:
+                raise RuntimeError("api_key=do-not-print")
+            return {"ended": True, "score": 0.7, "deal": False}
+
+    def factory():
+        factory_calls.append(1)
+        return {"policy_config": {"version": 1}}
+
+    monkeypatch.setattr("negotiator.client.AsyncArena", AsyncClient)
+    monkeypatch.setattr("negotiator.runner.CaseRunner", AsyncRunner)
+    client = FakeArena(root)
+    final = run_experiment(run, root, client, factory)
+    attempt = final.attempts[0]
+    assert attempt.session_id == "known-session"
+    assert attempt.status == ("failed" if fail_after_open else "completed")
+    assert attempt.score == (None if fail_after_open else 0.7)
+    assert attempt.timeouts == 0 and attempt.threads
+    assert len(factory_calls) == 1 and closed == [True] and client.opened == 0
+    assert "do-not-print" not in (root / run.run_id / "run.json").read_text()
+    # Explicitly rerunning the same attempt must neither open nor silently resume.
+    with pytest.raises(ValueError, match="already attempted"):
+        run_experiment(run, root, client, factory)
+    assert final.attempts[0].session_id == "known-session"
+    assert closed == [True]
