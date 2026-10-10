@@ -12,6 +12,7 @@ from uuid import uuid4
 from arena_kit.cli import load_env
 from arena_kit.data import DataPackage
 from arena_kit.play import hosted, play
+from practice_lab import publish
 from sandbox_baseline import RecordedClient
 
 from negotiator import AGENT_NAME, TEAM_NAME
@@ -84,7 +85,16 @@ def main():
                     record['state'] = client.session(table.session_id)
                 except Exception as state_exc:
                     record['state_error_type'] = type(state_exc).__name__
-        (root / (case_id.replace(':', '-') + '.json')).write_text(json.dumps(record, indent=2))
+        try:
+            record['quota'] = client.me().get('practice')
+            record['quota_checked_at'] = datetime.now(UTC).isoformat()
+        except Exception:
+            # Outcome and conversation are still publishable if quota refresh fails.
+            pass
+        record_path = root / (case_id.replace(':', '-') + '.json')
+        record_path.write_text(json.dumps(record, indent=2))
+        if record.get('session'):
+            print('LAB_UPLOAD', case_id, 'ok' if publish(record_path) else 'pending', flush=True)
         print('RESULT', json.dumps(summary), flush=True)
         return summary
 
@@ -93,6 +103,12 @@ def main():
     (root / 'summary.json').write_text(json.dumps(summaries, indent=2))
     after = client.me()
     (root / 'quota-after.json').write_text(json.dumps(after.get('practice'), indent=2))
+    # The final quota snapshot is now available. Retry any pending uploads and
+    # update successful records so the dashboard shows the current balance.
+    for case in cases:
+        record_path = root / (case['case_id'].replace(':', '-') + '.json')
+        if record_path.is_file():
+            print('LAB_SYNC', case['case_id'], 'ok' if publish(record_path) else 'pending', flush=True)
     print('QUOTA_AFTER', after.get('practice'), flush=True)
     if any('error_type' in row for row in summaries):
         raise SystemExit(1)

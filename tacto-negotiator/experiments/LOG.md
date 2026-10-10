@@ -2,6 +2,26 @@
 
 Format and decision rule: `docs/04-experiments.md`. Newest on top. One entry per change.
 
+## 2026-10-10 18:25 — Complete hosted practice sweep and lab publication (MEASURED HOSTED)
+
+- Hypothesis: the current verified-evidence policy at commit `2e6f5d7` can complete every
+  hosted P case; run one repetition per case, three in parallel, with official data,
+  `--evidence`, deterministic PackageAgent, and no model calls. The user approved ten
+  practice sessions. The nine other listed P cases are not hosted.
+- P01 **72.28**, P02 **29.34**, P03 **89.98**, P04 **86.04**, P05 **41.68**,
+  P07 **72.75**, P08 **52.71**, P10 **45.32**, P11 **40.64**, P18 **40.62** / 100.
+  Mean **57.14/100**; ten deals, all must-haves satisfied, zero recorded timeouts.
+- Sessions and complete owned conversation threads are in ignored local directory
+  `experiments/runs/20261010T162534Z-practice-339910/` and in the protected
+  experiment lab. Lab API verified 122 total runs, 10 new case records, P05's 13
+  messages, and zero P05 timeouts. Quota was 131 left before and **121 left after**.
+- The practice sweep now saves retryable lab snapshots and publishes each case with
+  a fresh quota reading when `LAB_URL` and `LAB_UPLOAD_TOKEN` are configured.
+  At sweep end it republishes the final quota snapshot; `tools/practice_lab.py RUN_DIR`
+  retries after an outage.
+- Decision: keep this as a single unpaired sweep, not a promotion claim. Case-specific
+  scores vary widely; P02, P05, P10, P11 and P18 remain weak.
+
 ## 2026-10-10 18:16 — Current-branch P01 smoke run (MEASURED HOSTED)
 
 - Hypothesis: the current `codex/verified-negotiation-evidence` checkout with verified index
@@ -11,8 +31,8 @@ Format and decision rule: `docs/04-experiments.md`. Newest on top. One entry per
   EUR 133.50/unit, 30-day payment, FCA, 2026-11-01 effective date. The negotiation trace is
   `experiments/runs/20261010-181623/trace.jsonl` (ignored local file).
 - Team practice quota: 132 left before, 131 left after. No retry, timeout or runner error was
-  reported. The lab record is `ece-p01-1137759cc20e3263`; it contains only score, deal flag,
-  session ID and commit provenance, without thread text or term details.
+  reported. The lab record `ece-p01-1137759cc20e3263` was later enriched with its
+  full owned conversation and zero-timeout evidence.
 - Decision: keep as a smoke result only. This single case does not support promotion or a
   general score claim; it is below the earlier P01 result of 87.49/100 from `ba1b242`.
 
