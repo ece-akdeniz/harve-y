@@ -223,7 +223,7 @@
       "house": 0.3861
     }
   ],
-  "decision": "P08 improves; P02 claims and P05 payment unchanged. Omit RFQ package policy. Freeze candidate.json for sandbox recovery and twenty-session paired regression; P01 evidence previously measured and P02 non-regressing.",
+  "decision": "User stopped practice after the successful free recovery check. Cycle used 24 sessions; last verified shared quota 140. Final 20-session comparison remains unrun and requires user instruction to resume. Candidate not promoted.",
   "confirmation": {
     "before": {
       "used": 35,
@@ -763,5 +763,41 @@
         }
       }
     ]
+  },
+  "sandbox_recovery": {
+    "crash_injected": true,
+    "sessions": [
+      "ca71bef0a414bc54",
+      "e415cfd2dafb22ae"
+    ],
+    "problems": [],
+    "before": {
+      "used": 60,
+      "left": 140,
+      "limit": 200,
+      "resets_at": "2026-10-11T11:39:03.056071+00:00"
+    },
+    "after": {
+      "used": 60,
+      "left": 140,
+      "limit": 200,
+      "resets_at": "2026-10-11T11:39:03.056071+00:00"
+    },
+    "results": {
+      "case:D01": {
+        "score": 0.9192309491602684,
+        "deal": true,
+        "timeouts": 0,
+        "must_haves_ok": true,
+        "session": "ca71bef0a414bc54"
+      },
+      "case:D02": {
+        "score": 0.4608978682431153,
+        "deal": true,
+        "timeouts": 0,
+        "must_haves_ok": true,
+        "session": "e415cfd2dafb22ae"
+      }
+    }
   }
 }

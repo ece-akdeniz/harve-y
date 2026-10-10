@@ -103,3 +103,21 @@ exercise the intended rule. This is an explicit limitation, not a measured P10 i
 A measured [P04 replay](../experiments/replays/p04-package-evidence.html) includes the package
 exchange, verified delivery claim, full closing costs and result. Its evidence arm tied the
 package-only arm, so the replay does not establish that the delivery claim added savings.
+
+### Current stopping point
+
+24 practice sessions completed. P04 improved 5.64 ->86.04; P11 31.44 ->70.99;
+P08 15.62 ->59.30. P02 and P05 comparisons were unchanged. All completed runs passed
+safety checks. Free concurrent D01/D02 crash/recovery passed, preserving exactly two
+sessions and zero timeouts; quota stayed at 140. Local suite: 111 tests, ruff clean.
+
+Candidate source: `ec56b38`, configuration `configs/candidate.json`. It includes renewal,
+quality and raw-material packages plus price-increase/quality evidence. Extra RFQ payment
+policy and experimental final-offer risk are excluded. Source/config are committed; defaults
+still preserve baseline behavior. The candidate is not promoted without full regression.
+
+The user chose to stop after the free check and preserve quota. The final 20-session
+comparison has NOT started; resume it only on a new user instruction. Its reviewable manifest is `experiments/final-comparison-manifest.json`.
+After release and a fresh quota/active-session check, run it with `tools/staged_batch.py`,
+`--budget 20`, and a new absolute output directory. This would total 44 of the 52-session
+ceiling, leaving eight allocations unused. Sunday release/final readiness remain separate.

@@ -450,3 +450,23 @@ keep that unmeasured policy out of the combined candidate.
   No runtime leaderboard, historical Cbest or case-specific target prices.
 - Before promotion: free D01/D02 crash/recovery rehearsal, then the budgeted twenty-session
   paired ten-case regression. Stop on safety failures. Maximum cycle remains 52; planned use44.
+
+## Free recovery rehearsal and quota checkpoint
+
+- Frozen candidate source `ec56b38`, `configs/candidate.json`, D01 and D02 concurrently,
+  one shared client/limiter. Injected SIGKILL after the first journalled send, then restarted
+  the same journal. Exactly two sessions across restart; both completed valid deals.
+- D01 `ca71bef0a414bc54`, score 91.92; D02 `e415cfd2dafb22ae`, score 46.09.
+  Zero actual timeouts, no contradicted claims or unresolved requests. This is runtime
+  recovery evidence, not a practice persuasion benchmark or full wave-cap rehearsal.
+- Practice quota unchanged: **140 before and after**. Cycle practice total remains **24**.
+- User asked about progress and conserving requests. No further practice starts while the
+  choice is pending. The final **20-session** paired comparison has NOT started.
+- Prepared `experiments/final-comparison-manifest.json`: five baseline cases, all ten candidate
+  cases concurrently, then the other five baseline cases. It alternates arm order by case.
+  Running it would bring this cycle to 44/52 sessions; always recheck shared quota/reserve.
+- Combined candidate is NOT promoted. Ten-case mean and regression thresholds remain untested.
+  Sunday release validation and final-machine/wave readiness remain outstanding.
+
+- User subsequently chose **stop after the free check and preserve quota**. No more practice
+  sessions started. Final comparison is explicitly deferred until the user asks to resume.
