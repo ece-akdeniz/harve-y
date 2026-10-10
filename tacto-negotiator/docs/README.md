@@ -47,6 +47,11 @@ Hosted timing is measured. Then scale to multiple cases.
 - [09 — Risks](09-risks.md): failure modes and validation.
 - [10 — Implementation checklist](10-implementation-checklist.md): actual scaffold gaps and gates.
 - [11 — Pipeline and win plan](11-pipeline-and-win-plan.md): one-page order, gates and cut list.
+- [12 — Experiment dashboard](12-experiment-dashboard.md): shared laptop-hosted dashboard,
+  local experiment runners, comparisons, buffering and importing previous attempts.
+
+- [13 — Agent experiment loop](13-agent-experiment-loop.md): immutable checkpoints, bounded
+  comparisons, cited findings, recovery and safe local/recommendation restore.
 
 ## Sources and evidence labels
 

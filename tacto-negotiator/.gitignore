@@ -10,3 +10,9 @@ experiments/runs/*
 experiments/dossiers.json
 *.log
 .DS_Store
+.lab-secrets.env
+experiments/dashboard.sqlite3*
+experiments/lab-*.sqlite3*
+
+# Local checkpoint/campaign storage (never captured as source).
+experiments/loop/
