@@ -3,7 +3,7 @@
   "checkpoint_id": "01M4K6J55FS6CM6SGEBKKQYE93",
   "strategy": "manual-commit",
   "branch": "feat/evidence-context",
-  "checkpoints_count": 15,
+  "checkpoints_count": 17,
   "files_touched": [
     "tacto-negotiator/docs/15-evidence-stage-plan.md",
     "tacto-negotiator/docs/16-evidence-context.md",
@@ -34,14 +34,21 @@
       "compact_transcript": "/1/transcript.jsonl",
       "content_hash": "/1/content_hash.txt",
       "prompt": "/1/prompt.txt"
+    },
+    {
+      "metadata": "/2/metadata.json",
+      "transcript": "/2/full.jsonl",
+      "compact_transcript": "/2/transcript.jsonl",
+      "content_hash": "/2/content_hash.txt",
+      "prompt": "/2/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 275888,
+    "input_tokens": 360149,
     "cache_creation_tokens": 0,
-    "cache_read_tokens": 6444928,
-    "output_tokens": 57821,
-    "api_call_count": 89,
+    "cache_read_tokens": 8226048,
+    "output_tokens": 69124,
+    "api_call_count": 117,
     "subagent_tokens_complete": true
   }
 }
