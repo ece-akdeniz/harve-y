@@ -3,8 +3,16 @@
   "checkpoint_id": "01M4KEPHQ28WGW889M1DX0MTQC",
   "strategy": "manual-commit",
   "branch": "codex/benchmark-p07-p11",
-  "checkpoints_count": 2,
-  "files_touched": null,
+  "checkpoints_count": 3,
+  "files_touched": [
+    "tacto-negotiator/configs/bundling-slow-lab.json",
+    "tacto-negotiator/configs/quality-package-advice-lab.json",
+    "tacto-negotiator/configs/quality-zero-chargeback-lab.json",
+    "tacto-negotiator/experiments/LOG.md",
+    "tacto-negotiator/experiments/P07_P11_HANDOFF.md",
+    "tacto-negotiator/src/negotiator/package_advisor.py",
+    "tacto-negotiator/tests/test_package_advisor.py"
+  ],
   "sessions": [
     {
       "metadata": "/0/metadata.json",
@@ -12,6 +20,13 @@
       "compact_transcript": "/0/transcript.jsonl",
       "content_hash": "/0/content_hash.txt",
       "prompt": "/0/prompt.txt"
+    },
+    {
+      "metadata": "/1/metadata.json",
+      "transcript": "/1/full.jsonl",
+      "compact_transcript": "/1/transcript.jsonl",
+      "content_hash": "/1/content_hash.txt",
+      "prompt": ""
     }
   ],
   "token_usage": {
