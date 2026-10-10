@@ -1136,3 +1136,22 @@ Differs from F: `rfq_data_claims_burst: 3` (`configs/p05-claims-burst.json`). 70
 carries every honest unused claim: OTD 80.8 % **and** PPI-D351 −3.7 % (PPM 1863 shares
 sc:70210@2026Q3 → duplicate, skipped). Why: the r2 drop is the only big move and scaled with r2
 evidence; F used one claim there and saved PPI for r3, where it changed nothing.
+
+## 2026-10-10 — P05 screen 14 result: J claim burst = 77.23 (no gain)
+
+Run `1bea8ed8` / `ede99fc74771b886`: .7723, 70210 28.50/30/35, 0 timeouts. Both r2 claims verified;
+same 28.50 ("because of your good data and to make up for the payment terms"). r3 re-anchor
+26.79/90 → hold + **"Which figures is that based on? Please send us the data."** → our 28.50/90 →
+final 28.50. Rivals ended with finals 70240 32.50/45 and 70250 31.50/30 ("clarified internally"),
+both ≥ 3 EUR above. So r2 evidence count isn't the limit; 28.50 is 70210's boss-approved step for
+this pressure. Honest claim bank is now empty for 70210 (cherry-picked AS-14404 −8.5 % /
+PPI-C2431 −3.8 % windows contradict the latest +5.9 % / +12.3 %, so not used).
+
+## 2026-10-10 — P05 screen 15 plan: reciprocal re-anchor (K)
+
+Differs from F: `rfq_reciprocal_reanchor` (`configs/p05-reciprocal.json`). F/J's r3 counter was a
+backward move (26.79 @ 90 d after 31.74 @ 90 d) with no give → final / "send data". K's r3 counter
+is 26.79 @ **30 d** (its own term; we close at 30 anyway, so no cost to us vs the deal) and says
+"we move to your 30-day payment term, as you asked. If you can confirm EUR 26.79 on these terms, we
+award you the full 4200 pcs per year today." Tests the supplier's "no concession without a move from
+us" rule with a give it values (cash) and award certainty.
