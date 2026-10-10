@@ -60,7 +60,7 @@ Every task row starts `planned`; assign owner and evidence as work begins. Use o
 
 | Task | Small assignments / required result | Status |
 |---|---|---|
-| T1.1 | a immutable values/terms/serialization; b assessment/ports; c DecisionRecord/config; d remaining DTO batches | a verified locally; b–d planned |
+| T1.1 | a immutable values/terms/serialization; b assessment/ports; c DecisionRecord/config; d remaining DTO batches | a–b verified locally; c–d planned |
 | T1.2 | a typed fixture bindings/recorded codec; b full injected offline pipeline, not a one-step proposal stub | Planned |
 | T1.3 | Immutable effective config and explicit fake clock/model/server/store composition from the start | Planned |
 | T1.4 | Versioned fixtures, exact raw bytes, immutable artifacts and append-only SQLite DecisionRecords; restart reload/replay hashes | Planned |
@@ -79,7 +79,17 @@ Every task row starts `planned`; assign owner and evidence as work begins. Use o
 
 **Verification:** required-prefix foundation selector: **22 passed, 1 expected UNIMPLEMENTED xfail, 56 deselected**. Boundary contracts: **19 passed**. Ruff over `tests/v2 src/negotiator/v2`: **all checks passed**. Additional direct JSON round trips for effective dates and nested index clauses passed.
 
-**Acceptance:** T1.1a owned gates met. Remaining M1 work includes T1.1b–d (assessment, ports, records/config, remaining DTOs), T1.2 typed fixture codec and full offline loop, T1.3 composition/config integration, and T1.4 persistence/replay. M1 and V2 are not complete.
+**Acceptance:** T1.1a owned gates met. Remaining M1 work includes T1.1b–d (assessment/ports now complete; records/config and remaining DTOs still planned), T1.2 typed fixture codec and full offline loop, T1.3 composition/config integration, and T1.4 persistence/replay. M1 and V2 are not complete.
+
+#### T1.1b completion evidence — 10 October 2026
+
+**Task / source revision:** T1.1b, based on V2 commit `86eaea6` (T1.1a), itself based on development revision `4c905b10be1f576de9b68be9c120cf6796ae4561`.
+
+**Owned files:** extended `src/negotiator/v2/core/models.py`; created `src/negotiator/v2/core/ports.py`. Added the eight grounded assessment schemas with separate observation, supplier-reported constraint, hypothesis, and uncertainty collections; citation shape and active-assertion grounding; explicit supplier authority; revision/parent fields; and typed Unicode quote spans. Added all C Protocols, including injected arithmetic/claim oracles and Clock, with the frozen method names, argument order, types, and sync/async forms. No interpreter/provider calls, strategy, economic logic, V1 changes, dependency changes, fixture/golden changes, or hosted/model calls.
+
+**Verification:** exact port signatures: **21 passed**. AssessmentDraft guardrails: **5 passed**. T1.1a foundation selector: **23 passed**. Boundaries: **19 passed**. Ruff over `tests/v2 src/negotiator/v2`: **all checks passed**. Full V2 contract suite: **113 passed, 95 expected UNIMPLEMENTED xfails, 5 failures**. The five failures are the `DecisionRecord` round-trip and four invariant checks (including unknown-version handling), all deferred to T1.1c because `DecisionRecord` is not implemented; no T1.1a or T1.1b test regressed. The xfails are absent later components.
+
+**Acceptance:** T1.1b owned tests and boundaries pass. Full contract collection is not green because later T1.1c remains absent. Remaining M1 scope is T1.1c–d, T1.2 typed fixture codec and complete offline loop, T1.3 composition/config integration, and T1.4 persistence/replay. M1 and V2 are not complete.
 
 ### M2 — Unified evidence and actual runtime preparation input
 

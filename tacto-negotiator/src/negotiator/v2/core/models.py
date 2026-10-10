@@ -78,10 +78,12 @@ class Price(FrozenModel):
 
     @field_validator("amount", mode="before")
     @classmethod
-    def strict_amount(cls, value):
+    def strict_amount(cls, value, info: ValidationInfo):
         if isinstance(value, bool) or not isinstance(value, (Decimal, str)):
             raise ValueError("amount must be a Decimal")
         if isinstance(value, str):
+            if info.mode != "json":
+                raise ValueError("Python amount values must be Decimal")
             try:
                 value = Decimal(value)
             except Exception as exc:
@@ -98,10 +100,12 @@ class Money(FrozenModel):
 
     @field_validator("amount", mode="before")
     @classmethod
-    def strict_amount(cls, value):
+    def strict_amount(cls, value, info: ValidationInfo):
         if isinstance(value, bool) or not isinstance(value, (Decimal, str)):
             raise ValueError("amount must be a Decimal")
         if isinstance(value, str):
+            if info.mode != "json":
+                raise ValueError("Python amount values must be Decimal")
             try:
                 value = Decimal(value)
             except Exception as exc:
@@ -124,10 +128,12 @@ class IndexClause(FrozenModel):
 
     @field_validator("material_share", "deadband_pct", mode="before")
     @classmethod
-    def strict_finite_decimal(cls, value):
+    def strict_finite_decimal(cls, value, info: ValidationInfo):
         if isinstance(value, bool) or not isinstance(value, (Decimal, str)):
             raise ValueError("value must be a Decimal")
         if isinstance(value, str):
+            if info.mode != "json":
+                raise ValueError("Python values must be Decimal")
             try:
                 value = Decimal(value)
             except Exception as exc:
@@ -175,6 +181,8 @@ class TermBinding(FrozenModel):
             if isinstance(value, bool) or not isinstance(value, (Decimal, str)):
                 raise ValueError(f"{field} must be a Decimal")
             if isinstance(value, str):
+                if info.mode != "json":
+                    raise ValueError(f"Python {field} values must be Decimal")
                 try:
                     value = Decimal(value)
                 except Exception as exc:
@@ -232,6 +240,13 @@ class SourceRef(FrozenModel):
             raise ValueError("record_id must be nonempty")
         return value
 
+    @field_validator("canonical_id")
+    @classmethod
+    def nonempty_canonical_id(cls, value):
+        if value is not None and not value.strip():
+            raise ValueError("canonical_id must be nonempty when supplied")
+        return value
+
 
 class MessageSpan(FrozenModel):
     session_id: str
@@ -240,6 +255,13 @@ class MessageSpan(FrozenModel):
     start: Annotated[int, Field(ge=0)]
     end: Annotated[int, Field(ge=0)]
     quote: str
+
+    @field_validator("session_id", "thread_id", "message_id")
+    @classmethod
+    def nonempty_message_identity(cls, value):
+        if not value.strip():
+            raise ValueError("message identity values must be nonempty")
+        return value
 
     @field_validator("start", "end", mode="before")
     @classmethod
@@ -250,9 +272,13 @@ class MessageSpan(FrozenModel):
 
     @model_validator(mode="after")
     def ordered_offsets(self):
-        if self.end < self.start:
-            raise ValueError("end must be greater than or equal to start")
+        if self.end - self.start != len(self.quote):
+            raise ValueError("span offsets must match the Unicode quote length")
         return self
+
+
+Citation = SourceRef | MessageSpan
+TermValue = int | Decimal | str | date | IndexClause | None
 
 
 class SnapshotRef(FrozenModel):
@@ -283,4 +309,217 @@ class Issue(FrozenModel):
     def immutable_refs(cls, value):
         if not isinstance(value, tuple):
             raise ValueError("refs must be an immutable tuple")
+        return value
+
+
+class GroundedObservation(FrozenModel):
+    observation_id: str
+    kind: Literal[
+        "request", "refusal", "conditional_offer", "constraint",
+        "approval_requirement", "stated_driver", "ambiguity",
+    ]
+    dimension: TermField | None
+    summary: str
+    citations: tuple[Citation, ...]
+    package_fingerprint: str | None = None
+
+    @field_validator("observation_id", "summary")
+    @classmethod
+    def required_observation_text(cls, value):
+        if not value.strip():
+            raise ValueError("observation identity and summary must be nonempty")
+        return value
+
+    @field_validator("citations")
+    @classmethod
+    def grounded_citations(cls, value):
+        if not value:
+            raise ValueError("observations require at least one citation")
+        return value
+
+
+class ReportedConstraint(FrozenModel):
+    constraint_id: str
+    dimension: TermField
+    op: Literal["==", "!=", "<=", ">="]
+    value: TermValue
+    condition_observation_refs: tuple[str, ...]
+    citations: tuple[Citation, ...]
+    authority: Literal["supplier_reported"]
+    status: Literal["active", "stale", "superseded"]
+
+    @field_validator("constraint_id")
+    @classmethod
+    def required_constraint_id(cls, value):
+        if not value.strip():
+            raise ValueError("constraint_id must be nonempty")
+        return value
+
+    @field_validator("condition_observation_refs")
+    @classmethod
+    def immutable_condition_refs(cls, value):
+        if any(not ref.strip() for ref in value):
+            raise ValueError("condition observation refs must be nonempty strings")
+        return value
+
+    @model_validator(mode="after")
+    def active_constraint_is_grounded(self):
+        if self.status == "active" and not self.citations:
+            raise ValueError("active reported constraints require citations")
+        return self
+
+
+class EstimatedEffect(FrozenModel):
+    low: Decimal
+    high: Decimal
+    unit: str
+    basis: PriceBasis | None = None
+    method_id: str
+    citations: tuple[Citation, ...]
+
+    @field_validator("low", "high", mode="before")
+    @classmethod
+    def finite_effect_bound(cls, value, info: ValidationInfo):
+        if isinstance(value, bool) or not isinstance(value, (Decimal, str)):
+            raise ValueError("effect bounds must be Decimal values")
+        if isinstance(value, str):
+            if info.mode != "json":
+                raise ValueError("Python effect bounds must be Decimal")
+            try:
+                value = Decimal(value)
+            except Exception as exc:
+                raise ValueError("effect bounds must be decimal strings") from exc
+        return _finite_decimal(value)
+
+    @field_validator("unit", "method_id")
+    @classmethod
+    def nonempty_effect_labels(cls, value):
+        if not value.strip():
+            raise ValueError("effect unit and method_id must be nonempty")
+        return value
+
+    @model_validator(mode="after")
+    def ordered_effect_bounds(self):
+        if self.low > self.high:
+            raise ValueError("effect low must not exceed high")
+        return self
+
+
+class PreferenceHypothesis(FrozenModel):
+    hypothesis_id: str
+    dimension: TermField | None
+    relation: Literal["prefers", "avoids", "requires", "unknown"]
+    direction: Literal["increase", "decrease", "enumerate", "unknown"]
+    summary: str
+    supporting_refs: tuple[Citation, ...]
+    contradicting_refs: tuple[Citation, ...]
+    confidence: Literal["low", "medium", "high", "unknown"]
+    status: Literal["active", "stale", "superseded", "unknown"]
+    numeric_effect: EstimatedEffect | None = None
+
+    @field_validator("hypothesis_id", "summary")
+    @classmethod
+    def required_hypothesis_text(cls, value):
+        if not value.strip():
+            raise ValueError("hypothesis identity and summary must be nonempty")
+        return value
+
+    @model_validator(mode="after")
+    def active_hypothesis_is_grounded(self):
+        if self.status == "active" and not self.supporting_refs:
+            raise ValueError("active hypotheses require supporting refs")
+        return self
+
+
+class AssessmentUncertainty(FrozenModel):
+    uncertainty_id: str
+    kind: Literal["approval", "conditional", "contradiction", "insufficient_evidence", "missing_source"]
+    dimension: TermField | None = None
+    summary: str
+    citations: tuple[Citation, ...]
+    related_observation_refs: tuple[str, ...]
+    blocking: bool
+
+    @field_validator("uncertainty_id", "summary")
+    @classmethod
+    def required_uncertainty_text(cls, value):
+        if not value.strip():
+            raise ValueError("uncertainty identity and summary must be nonempty")
+        return value
+
+    @field_validator("related_observation_refs")
+    @classmethod
+    def immutable_related_refs(cls, value):
+        if any(not ref.strip() for ref in value):
+            raise ValueError("related observation refs must be nonempty strings")
+        return value
+
+
+class ClarificationQuestion(FrozenModel):
+    question_id: str
+    template_id: str
+    dimension: TermField | None = None
+    citations: tuple[Citation, ...]
+    unknown_id: str
+    expected_information: str
+
+    @field_validator("question_id", "template_id", "unknown_id", "expected_information")
+    @classmethod
+    def required_question_text(cls, value):
+        if not value.strip():
+            raise ValueError("question identifiers and expected information must be nonempty")
+        return value
+
+
+class SupplierAssessment(FrozenModel):
+    assessment_id: str
+    supplier_id: str
+    snapshot: SnapshotRef
+    revision: Annotated[int, Field(gt=0)]
+    observations: tuple[GroundedObservation, ...]
+    reported_constraints: tuple[ReportedConstraint, ...]
+    hypotheses: tuple[PreferenceHypothesis, ...]
+    uncertainties: tuple[AssessmentUncertainty, ...]
+    questions: tuple[ClarificationQuestion, ...]
+    unknowns: tuple[str, ...]
+    status: Literal["ok", "fallback", "insufficient_evidence"]
+    interpreter_id: str
+    model_call_id: str | None
+    parent_assessment_id: str | None = None
+
+    @field_validator("revision", mode="before")
+    @classmethod
+    def reject_bool_revision(cls, value):
+        if isinstance(value, bool):
+            raise ValueError("revision must be a positive integer")
+        return value
+
+    @field_validator("assessment_id", "supplier_id", "interpreter_id")
+    @classmethod
+    def required_assessment_identity(cls, value):
+        if not value.strip():
+            raise ValueError("assessment identity values must be nonempty")
+        return value
+
+    @field_validator("unknowns")
+    @classmethod
+    def nonempty_unknown_labels(cls, value):
+        if any(not item.strip() for item in value):
+            raise ValueError("unknown labels must be nonempty strings")
+        return value
+
+
+class AssessmentDraft(FrozenModel):
+    observations: tuple[GroundedObservation, ...]
+    reported_constraints: tuple[ReportedConstraint, ...]
+    hypotheses: tuple[PreferenceHypothesis, ...]
+    uncertainties: tuple[AssessmentUncertainty, ...]
+    questions: tuple[ClarificationQuestion, ...]
+    unknowns: tuple[str, ...]
+
+    @field_validator("unknowns")
+    @classmethod
+    def nonempty_unknown_labels(cls, value):
+        if any(not item.strip() for item in value):
+            raise ValueError("unknown labels must be nonempty strings")
         return value
