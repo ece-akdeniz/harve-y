@@ -14,6 +14,7 @@ from arena_kit.cost import closing_terms, complete_offer, must_haves_ok, total_c
 from arena_kit.docs import standard_terms
 from arena_kit.play import latest, live_threads, moves_left
 
+from . import value_swap
 from .evaluator import (
     best_close,
     close_decision,
@@ -155,11 +156,13 @@ class PackageAgent:
         self.final_counters = {}  # supplier -> counters sent to its final offers (at most one)
         self.beat_asked = {}  # rival supplier -> final-offer sheet id we asked it to beat
         self.reanchored = set()  # rfq suppliers re-anchored after undercutting our own ask
+        self.value_swapped = set()  # suppliers offered the value-equivalent chargeback swap (once)
         self.final_seen = {}  # final-offer sheet id -> monotonic time first seen
         if estimates is None and os.environ.get("NEGOTIATOR_ESTIMATES") != "1":
             estimates = {}  # dossier estimates are opt-in until calibrated (docs: experiments/LOG.md)
         self._estimates, self._est_case, self._est_cache = estimates, None, {}
         self._target_cache = {}
+        self._traits_cache = {}
 
     def prepare_email(self, case, threads, sid):
         """Read each supplier message once; the async runner calls this outside its lock."""
@@ -380,6 +383,9 @@ class PackageAgent:
             if (self._standard_payment(case) and "payment_days" in n and std.get("payment_days") in pay_options
                     and must_haves_ok(case, {**ref_terms, **n, "payment_days": std["payment_days"]}, std)):
                 n["payment_days"] = std["payment_days"]
+            fast = self._fast_payment(case, sid, {**ref_terms, **n}, std)
+            if fast is not None:
+                n["payment_days"] = fast
             if self.policy and self.policy.rfq_supplier_lead_time and case["type"] == "rfq":
                 n = self._supplier_lead_time(case, sid, events, n, std)
         elif not eligible:
@@ -392,11 +398,14 @@ class PackageAgent:
                 if (self._standard_payment(case) and "payment_days" in new
                         and prev.get("payment_days") == std.get("payment_days")):
                     new["payment_days"] = prev["payment_days"]
+                if "payment_days" in new and prev.get("payment_days") == self._fast_payment(
+                        case, sid, {**ref_terms, **new}, std):
+                    new["payment_days"] = prev["payment_days"]
                 n = new
                 self._log(case, "package_switch", sid, prev=prev, new=n, c_prev=min(on_prev), c_new=ref_c)
         if self.policy and self.policy.rfq_supplier_payment and case["type"] == "rfq":
             n = self._supplier_payment(case, sid, events, n, std)
-        n = self._free_concessions(case, n, ref_terms, std, sup) if eligible else n
+        n = self._free_concessions(case, n, ref_terms, std, sup, sid) if eligible else n
         identity = (case['case_id'], sid)
         if prev is None and not self._ours(events) and identity not in self._memory_seen:
             self._memory_seen.add(identity)
@@ -407,6 +416,54 @@ class PackageAgent:
 
     def _standard_payment(self, case):
         return bool(self.policy and case["type"] in self.policy.standard_payment_types)
+
+    def _public_traits(self, sid):
+        if sid not in self._traits_cache:
+            from .context import DATA_ERRORS
+            from .dossiers import build_one, load_package
+
+            try:
+                dossier = build_one(load_package(), sid)
+            except DATA_ERRORS:
+                dossier = None
+            self._traits_cache[sid] = (set(dossier.traits), dossier) if dossier else (set(), None)
+        return self._traits_cache[sid]
+
+    def _fast_payment(self, case, sid, terms, std):
+        """Shortest legal payment option for a supplier whose public notes ask for faster payment
+        (opt-in `fast_payment_types`); None when off, not applicable or not legal."""
+        if not (self.policy and case["type"] in self.policy.fast_payment_types and "payment_days" in terms):
+            return None
+        if "wants_fast_payment" not in self._public_traits(sid)[0]:
+            return None
+        for days in sorted((case.get("term_options") or {}).get("payment_days") or []):
+            if must_haves_ok(case, complete_offer(case, {**terms, "payment_days": days}), std):
+                return days
+        return None
+
+    def _fast_payment_note(self, case, threads, sid, move):
+        """First offer only: answer the supplier's public fast-payment note with the offered term."""
+        msg = move.get("message")
+        if not (self.policy and case["type"] in self.policy.fast_payment_types):
+            return move
+        events = threads.get(sid, [])
+        if not msg or msg.get("action") or not msg.get("term_sheets") or self._ours(events):
+            return move
+        terms = msg["term_sheets"][0].get("terms") or {}
+        days = terms.get("payment_days")
+        if days is None or days != self._fast_payment(case, sid, terms, standard_terms(events)):
+            return move
+        from . import traits as T
+
+        traits, dossier = self._public_traits(sid)
+        ids = T.evidence(dossier, "wants_fast_payment") if dossier else []
+        source = f"Your note {ids[0]}" if ids else "Your note"
+        text = (f"{source} asked whether we could pay your invoices faster in return for a cash discount."
+                f" We offer payment within {days} days; the attached unit price reflects that discount.")
+        body = msg["body"] + "\n\n" + text
+        assert not leaks(body), "body would leak internal information"
+        self._log(case, "fast_payment", sid, payment_days=days, refs=ids[:1])
+        return {**move, "message": {**msg, "body": body}}
 
     def _supplier_payment(self, case, sid, events, n, std):
         """Concede payment to the supplier's own stated term (never below 30 days) so that every
@@ -457,7 +514,7 @@ class PackageAgent:
     def _longer_tenor(self, case):
         return bool(self.policy and case["type"] in self.policy.longer_tenor_types)
 
-    def _free_concessions(self, case, n, theirs, std, sup):
+    def _free_concessions(self, case, n, theirs, std, sup, sid=None):
         price = theirs["unit_price"]
         for f, v in theirs.items():
             if f == "unit_price" or f not in n or v is None or n[f] == v:
@@ -473,6 +530,8 @@ class PackageAgent:
             if f == "contract_months" and self._longer_tenor(case) and v < n[f] and trial_c >= previous_c - 1e-6:
                 continue
             if f == "payment_days" and self._standard_payment(case) and n[f] == std.get("payment_days"):
+                continue
+            if f == "payment_days" and self._fast_payment(case, sid, {**n, "unit_price": price}, std) == n[f]:
                 continue
             if trial_c <= previous_c + 1e-6:
                 n = trial
@@ -702,6 +761,7 @@ class PackageAgent:
             self.final_counters[supplier_id] = count
         move = self._propose(case, threads, supplier_id)
         move = self._bundle_volume(case, threads, supplier_id, move)
+        move = self._fast_payment_note(case, threads, supplier_id, move)
         if self.policy and self.policy.rfq_rival_offer and case["type"] == "rfq":
             before = move
             move = self._rival_offer_claim(case, threads, supplier_id, move)
@@ -948,6 +1008,27 @@ class PackageAgent:
             self._log(case, "revealed", sid, deltas=deltas)
 
         ref_c = cands[0][0]
+        if (
+            self.policy
+            and case["type"] in self.policy.value_swap_types
+            and cap_c is None
+            and sid not in self.value_swapped
+            and eligible
+            and latest(events).get("status") == "open"
+            and moves_left(case, events) > 1
+            and value_swap.holds(case, events, sup) >= self.policy.value_swap_holds
+        ):
+            self.value_swapped.add(sid)
+            standing_terms = eligible_sheets(case, events, sup)[0][2]
+            ours_ = self._ours(events)
+            swapped, trace = value_swap.swap(
+                case, events, standing_terms, std, sup,
+                last_price=ours_[-1].get("unit_price") if ours_ else None, split=self.policy.value_swap_split,
+            )
+            self._log(case, "value_swap", sid, **trace)
+            if swapped:
+                return self._offer(case, sid, complete_offer(case, swapped), std, sup, c_alt,
+                                   "value-equivalent chargeback swap")
         n = self._nonprice(case, sid, events, std, sup, cands, eligible)
         p = self._ask_on(case, n, cands, std, sup)
         first = next((i for i, m in enumerate(events) if m.get("from") != "buyer" and m.get("term_sheets")), None)

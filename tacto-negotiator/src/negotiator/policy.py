@@ -54,6 +54,19 @@ class PolicyConfig:
     # Per case type number of buyer rounds over which the price schedule reaches the
     # supplier's price (faster convergence before a supplier's final offer); others use the agent's.
     rounds_by_type: dict[str, int] = field(default_factory=dict)
+    # Case types where a supplier whose public notes ask us to pay faster (`wants_fast_payment`)
+    # gets the shortest legal payment term in every package (instead of the quote standard), and
+    # the first offer answers that note.
+    fast_payment_types: tuple[str, ...] = ()
+    # Case types where, once the supplier holds its standing price, we offer once to drop the
+    # chargeback at the price that leaves the supplier's value unchanged (arena_kit supplier_value
+    # with the ppm from the supplier's own quote) - only if it lowers our C.
+    value_swap_types: tuple[str, ...] = ()
+    # Consecutive unchanged standing replies (same package and price) that trigger the swap.
+    value_swap_holds: int = 1
+    # Fraction of the way from our last price to the value-equivalent ceiling the swap offers
+    # (1.0 = the ceiling itself); later rounds concede toward it on the swapped package.
+    value_swap_split: float = 1.0
 
     @classmethod
     def load(cls, path):
@@ -79,6 +92,8 @@ class PolicyConfig:
             "longer_tenor_types",
             "bundle_volume_types",
             "bundle_commitment_types",
+            "value_swap_types",
+            "fast_payment_types",
         ):
             v = d.get(k, [])
             if not isinstance(v, list) or any(not isinstance(x, str) or x not in TYPES for x in v):
@@ -118,6 +133,13 @@ class PolicyConfig:
         ):
             raise ValueError("invalid rounds_by_type")
         d["rounds_by_type"] = dict(rounds)
+        holds = d.get("value_swap_holds", 1)
+        if type(holds) is not int or not 1 <= holds <= 3:
+            raise ValueError("value_swap_holds must be 1, 2 or 3")
+        split = d.get("value_swap_split", 1.0)
+        if isinstance(split, bool) or not isinstance(split, (int, float)) or not 0 < split <= 1:
+            raise ValueError("value_swap_split must be a number in (0, 1]")
+        d["value_swap_split"] = float(split)
         return cls(**d)
 
     def record(self):
