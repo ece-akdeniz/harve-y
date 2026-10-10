@@ -19,7 +19,7 @@ def worker_env():
     return env
 
 
-def prepare_arms(client, campaign, project, directory, data_paths):
+def prepare_arms(client, campaign, project, directory, data_paths, suite):
     directory = Path(directory)
     frozen = directory / "data"
     paths = {}
@@ -53,8 +53,9 @@ def prepare_arms(client, campaign, project, directory, data_paths):
         if destination.exists():
             restored = destination / manifest["project_path"]
             # Never silently trust a reused worktree: verify its exact tracked content.
-            from .checkpoints import _verify_checkout_bytes
+            from .checkpoints import _verify_checkout_bytes, _verify_tree
 
+            _verify_tree(destination, manifest)
             _verify_checkout_bytes(destination, manifest["commit"])
             for path, sha in manifest["submodules"].items():
                 _verify_checkout_bytes(destination / path, sha)
@@ -72,6 +73,8 @@ def prepare_arms(client, campaign, project, directory, data_paths):
             project=str(restored),
             attempt_root=str(directory / "preflight" / arm),
             data_paths=paths,
+            arena_url=suite["arena_url"],
+            environment=suite["environment"],
         )
         preflight = subprocess.run(
             ["uv", "run", "--locked", "--offline", "--no-sync", "python", "-m", "negotiator.lab.worker", "--preflight"],

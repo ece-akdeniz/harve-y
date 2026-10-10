@@ -12,6 +12,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from urllib.parse import urlsplit
 
+from ..memory import validate_memory
 from .models import SECRET_KEYS, check_json
 
 DEFAULTS = dict(anchor=0.12, rounds=5, close_gap=0.005, final_hold_s=40.0, p_walk=0.25)
@@ -73,7 +74,7 @@ def _secrets(value):
 
 
 def resolve_config(config):
-    if not isinstance(config, dict) or set(config) - (set(DEFAULTS) | {'meso', 'claims', 'estimates'}):
+    if not isinstance(config, dict) or set(config) - (set(DEFAULTS) | {'meso', 'claims', 'estimates', 'memory'}):
         raise ValueError('unknown checkpoint config option')
     out = {**DEFAULTS, 'meso': os.environ.get('NEGOTIATOR_MESO') == '1',
            'claims': os.environ.get('NEGOTIATOR_CLAIMS') == '1',
@@ -90,6 +91,8 @@ def resolve_config(config):
         raise ValueError('unresolved feature switch')
     if out['estimates'] is not None and not isinstance(out['estimates'], dict):
         raise ValueError('invalid estimates')
+    if 'memory' in out:
+        out['memory'] = validate_memory(out['memory'])
     check_json(out)
     _secrets(out)
     return out
@@ -97,18 +100,20 @@ def resolve_config(config):
 
 def validate_checkpoint(body):
     """Validate untrusted public metadata without Git, disk access or network calls."""
-    if not isinstance(body, dict) or set(body) != FIELDS:
+    if not isinstance(body, dict) or set(body) - {'source_tree'} != FIELDS:
         raise ValueError('invalid checkpoint fields')
     try:
         encoded = json.dumps(body, allow_nan=False)
     except (TypeError, ValueError) as exc:
         raise ValueError('checkpoint must contain finite JSON') from exc
-    if len(encoded.encode()) > 65536:
+    if len(encoded.encode()) > 131072:
         raise ValueError('checkpoint too large')
     if type(body['schema_version']) is not int or body['schema_version'] != 1 or not _id(body['checkpoint_id']):
         raise ValueError('invalid checkpoint identity')
     if not _hash(body['commit'], 40) or not _hash(body['lock_sha256']):
         raise ValueError('invalid commit or lock hash')
+    if 'source_tree' in body and not _hash(body['source_tree'], 40):
+        raise ValueError('invalid source tree identity')
     if not _relative(body['project_path']) or type(body['published']) is not bool:
         raise ValueError('invalid checkpoint path or publication')
     if body['parent_id'] is not None and not _id(body['parent_id']):
@@ -125,7 +130,8 @@ def validate_checkpoint(body):
         raise ValueError('invalid timestamp') from exc
     if body['agent'] != 'package' or body['runner'] not in {'serial', 'async'}:
         raise ValueError('unsupported agent or runner')
-    if not isinstance(body['config'], dict) or set(body['config']) != set(DEFAULTS) | {'meso', 'claims', 'estimates'}:
+    if (not isinstance(body['config'], dict)
+            or set(body['config']) - {'memory'} != set(DEFAULTS) | {'meso', 'claims', 'estimates'}):
         raise ValueError('config must be resolved')
     resolve_config(body['config'])
     if not isinstance(body['data'], dict) or len(body['data']) > 100:
@@ -236,7 +242,7 @@ def create_checkpoint(project, *, config, agent='package', runner='serial', auth
             **env, 'GIT_AUTHOR_NAME': 'Lab', 'GIT_AUTHOR_EMAIL': 'lab@localhost',
             'GIT_COMMITTER_NAME': 'Lab', 'GIT_COMMITTER_EMAIL': 'lab@localhost'})
     body = validate_checkpoint(dict(
-        schema_version=1, checkpoint_id=checkpoint_id, commit=commit,
+        schema_version=1, checkpoint_id=checkpoint_id, commit=commit, source_tree=tree,
         project_path=project.relative_to(repo).as_posix(), author=author, description=description,
         parent_id=parent_id, created_at=datetime.now(UTC).isoformat(), agent=agent, config=config,
         runner=runner, lock_sha256=hashlib.sha256(lock.read_bytes()).hexdigest(), submodules=submodules,
@@ -271,6 +277,8 @@ def _verify_tree(project, body):
     lock_bytes = _git(project, 'show', f"{body['commit']}:{lock_path}", raw=True)
     if hashlib.sha256(lock_bytes).hexdigest() != body['lock_sha256']:
         raise ValueError('checkpoint lock hash mismatch')
+    if 'source_tree' in body and _git(project, 'rev-parse', body['commit'] + '^{tree}') != body['source_tree']:
+        raise ValueError('checkpoint source tree mismatch')
 
 
 def publish_checkpoint(project, checkpoint, *, remote='origin'):

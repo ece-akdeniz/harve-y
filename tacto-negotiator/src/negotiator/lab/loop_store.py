@@ -19,6 +19,7 @@ from .loop_models import (
     Start,
     Suite,
 )
+from .memory import MemoryStore
 from .ordering import campaign_order
 from .policy import evaluate_campaign
 from .store import Conflict
@@ -102,6 +103,11 @@ class LoopStore:
             raise ValueError("practice allowance exhausted")
 
     def write(self, operation: str, body: dict) -> dict:
+        # MemoryStore owns its own connection/transaction; do not nest its writer.
+        if operation == 'memory-snapshot':
+            if not isinstance(body, dict) or set(body) != {'arena_url', 'environment', 'source_cases'}:
+                raise ValueError('invalid memory snapshot request')
+            return MemoryStore(self.path).build(**body)
         models = {
             "suite": Suite,
             "family": Family,
@@ -117,6 +123,10 @@ class LoopStore:
         }
         if operation == "checkpoint":
             body = validate_checkpoint(body)
+            if 'memory' in body['config']:
+                snapshot = body['config']['memory']
+                if MemoryStore(self.path).get(snapshot['snapshot_id']) != snapshot:
+                    raise ValueError('checkpoint memory differs from registered snapshot')
         elif operation in models:
             body = models[operation].model_validate(body).model_dump()
         else:
@@ -137,7 +147,9 @@ class LoopStore:
                 return self._put(db, kind, key, body, immutable=True)
             if operation in ("seed", "restore"):
                 suite = self._get(db, "suites", body["suite_id"])
-                self._checkpoint(db, suite, body["checkpoint_id"])
+                checkpoint = self._checkpoint(db, suite, body['checkpoint_id'])
+                if operation == 'seed' and checkpoint['config'].get('memory', {}).get('lessons'):
+                    raise ValueError('nonempty memory requires held-out evaluation before recommendation')
                 if operation == "restore" and not body["request_id"]:
                     raise ValueError("restore request ID required")
                 if operation == "restore" and not any(
@@ -391,6 +403,13 @@ class LoopStore:
         return rec
 
     def read(self, resource: str, key: str | None = None) -> dict:
+        if resource == 'memory':
+            if key is not None:
+                raise ValueError('memory graph does not take a key')
+            return MemoryStore(self.path).graph()
+        if resource == 'memory-snapshots':
+            memory = MemoryStore(self.path)
+            return memory.get(key) if key is not None else {resource: memory.list()}
         if resource not in (
             "checkpoints",
             "suites",

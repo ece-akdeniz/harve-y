@@ -285,3 +285,65 @@ def test_injected_estimates_cannot_carry_unknown_credentials(repo):
     with pytest.raises(ValueError):
         create_checkpoint(repo, config={'estimates': {'credentials': 'not-in-environment'}},
                           author='Test', description='private config')
+
+
+def test_checkpoint_source_tree_stable_across_unique_captures_and_legacy_shape(repo):
+    from negotiator.lab.checkpoints import DEFAULTS
+
+    one, two = make(repo), make(repo)
+    assert one['commit'] != two['commit']
+    assert one['source_tree'] == two['source_tree'] == git(repo, 'rev-parse', one['commit'] + '^{tree}')
+    assert set(one['config']) == set(DEFAULTS) | {'meso', 'claims', 'estimates'}
+    legacy = {k: v for k, v in one.items() if k != 'source_tree'}
+    assert validate_checkpoint(legacy) == legacy
+
+
+@pytest.mark.parametrize('operation', ['restore', 'publish'])
+def test_forged_source_tree_rejected(repo, tmp_path, operation):
+    cp = make(repo)
+    cp['source_tree'] = '0' * 40
+    with pytest.raises(ValueError, match='source tree'):
+        if operation == 'restore':
+            restore_checkpoint(repo, cp, tmp_path / 'forged-tree')
+        else:
+            publish_checkpoint(repo, cp)
+
+
+def test_checkpoint_memory_roundtrip_and_tampering(repo, tmp_path):
+    import copy
+    import json
+
+    from test_lab_memory import add_run, build
+
+    path = tmp_path / 'memory.sqlite'
+    for name, case in [('A', 'case:one'), ('B', 'case:one'), ('C', 'case:two')]:
+        add_run(path, name, supplier='sup:' + name, case=case)
+    memory = build(path)
+    cp = create_checkpoint(repo, config={'memory': memory}, author='Test', description='memory')
+    memory['lessons'].clear()
+    restored = restore_checkpoint(repo, cp, tmp_path / 'memory-restored')
+    assert json.loads((restored / '.lab-checkpoint.json').read_text()) == cp
+    assert cp['config']['memory']['lessons'][0]['direction'] == 'higher'
+    bad = copy.deepcopy(cp)
+    bad['config']['memory']['source_suppliers'].append('sup:forged')
+    with pytest.raises(ValueError, match='memory'):
+        validate_checkpoint(bad)
+
+
+def test_checkpoint_envelope_accepts_bounded_near_limit_memory(repo, tmp_path):
+    import json
+
+    from test_lab_memory import add_run, build, rehash
+
+    from negotiator.memory import canonical_json, validate_memory
+
+    path = tmp_path / 'memory.sqlite'
+    add_run(path, 'A')
+    snapshot = build(path, source_cases=['case:one'])
+    # Provenance, not arbitrary padding: bounded valid session IDs near the 64 KiB cap.
+    snapshot['source_sessions'] = sorted(['session:A'] + [f'session:{i:04}:' + 'x' * 200 for i in range(299)])
+    snapshot = validate_memory(rehash(snapshot))
+    assert 63000 < len(canonical_json(snapshot).encode()) <= 65536
+    cp = create_checkpoint(repo, config={'memory': snapshot}, author='Test', description='near limit')
+    assert validate_checkpoint(cp) == cp
+    assert len(json.dumps(cp).encode()) > 65536
