@@ -145,6 +145,40 @@ def best_buyer_window(values: dict[str, float]) -> tuple[str, str] | None:
     return best
 
 
+def recent_buyer_window(values: dict[str, float]) -> tuple[str, str] | None:
+    """Largest fall (≤ 12 months) ending at the latest published month: the current trend."""
+    if not values:
+        return None
+    end = max(values)
+    e = _months(end)
+    best, best_pct = None, 0.0
+    for k in range(1, WINDOW_MONTHS + 1):
+        start = _month(e - k)
+        if start in values and (p := _pct(values[start], values[end])) < best_pct:
+            best, best_pct = (start, end), p
+    return best
+
+
+def recent_index_claims(case: dict, package, facts: dict) -> list["Claim"]:
+    """Public claims for cost drivers that are falling at the latest month (opt-in, not in the bank)."""
+    parts = case.get("parts") or []
+    part = parts[0] if parts else None
+    refs = set(case.get("refs") or [])
+    drivers = _drivers(package, part)
+    names = _series_names(package)
+    series = series_values(facts)
+    out = []
+    for sid in sorted(drivers, key=lambda s: -drivers[s]):
+        values = series.get(sid, {})
+        if (w := recent_buyer_window(values)) is None:
+            continue
+        c = _index_claim(sid, values, w, part, drivers[sid], refs, "recent buyer window", names, cherry=True)
+        c = replace(c, sentence=render(c, facts))
+        if c.figure is not None and c.figure <= -BEST_WINDOW_MIN_PP:
+            out.append(c)
+    return out
+
+
 # ---------------------------------------------------------------- bank
 
 

@@ -35,6 +35,8 @@ class PolicyConfig:
     rfq_undercut_reanchor: bool = False
     rfq_data_claims: bool = False
     rfq_data_claims_stack: bool = False
+    # Case types whose evidence uses only public index windows ending at the latest month.
+    recent_index_window_types: tuple[str, ...] = ()
 
     @classmethod
     def load(cls, path):
@@ -54,6 +56,7 @@ class PolicyConfig:
             "cost_target_types",
             "clause_variant_types",
             "standard_payment_types",
+            "recent_index_window_types",
         ):
             v = d.get(k, [])
             if not isinstance(v, list) or any(not isinstance(x, str) or x not in TYPES for x in v):

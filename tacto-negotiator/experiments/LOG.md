@@ -68,6 +68,44 @@ hosted sessions or practice quota were used.
   claim; model assistance and package advice remain opt-in. A hosted paired comparison,
   model latency/cost check, and final-machine rehearsal are still required.
 
+## P18 recent buyer-favourable index windows on retained package — KEEP 0.5200, 10 October 2026
+
+- Baseline/comparator: retained P18 policy `configs/retained-package-policy.json`,
+  0.4530612521 (`b2922dc3`, session `e7f60b71102745a0`; 5.40 / 90d / 24m / deadband 0).
+- Single change: the first buyer counter adds two verified public index claims over windows
+  ending at the latest published month: AS-14404 2026-06→2026-09 (-5.5%) and PPI-C2431
+  2026-06→2026-08 (-2.3%). Packages, prices, clause and message order are otherwise identical.
+  No scorecard, quote, PO, scope or internal-estimate claims.
+- What differs from earlier attempts: P18 evidence screens cited the scorecard (verified,
+  no movement, 0.3861), a public quote (irrelevant) or scope (0.3861); none cited falling
+  index windows, because the default picker drops rising 12-month windows and cherry-pick was
+  off. The P08 alloy-hedge letter (`aaac8af4`, tie) is a different lever. P08's index-window
+  test (`7fdf0fce`) ran on the full-cost policy, not this package, and its AS-14404 claim was
+  rejected only because P08's supplier says it is hedged until 03/2027. P18's supplier 70740
+  has no such hedge in its notice or case documents, and its own breakdown attributes 45% of
+  cost to AS-14404 and 38% to PPI-C2431.
+- Why it could work: the supplier justifies +11% with 12-month rises. Latest-month windows
+  show both drivers now falling, which is current, public and checkable. Unlike a stale
+  cherry-picked window, it disputes the trend the supplier is pricing forward.
+- Fairness: the windows use only public index facts. No hidden outcomes, `C_best` or other
+  teams' prices are used in pricing.
+- Plan: offline replay (only first counter body/refs may change), then one hosted P18 run.
+  Keep if > 0.4531 and the claims are verified/used; otherwise preserve as failed. Budget: up to
+  2 sessions (1 run + 1 replacement only if it expires), reserve 40 untouched.
+- Offline: replay vs retained thread — only first counter body/refs change; all 5 term sheets
+  and actions identical. 374 passed except the known claim-data preflight test; ruff clean.
+- Hosted: `f1af63e1-0f3d-4cce-8e61-c80c31304a2f`, session `193fd257d7a43c1e`, commit `83a32b0`.
+  Score **0.5200438598** vs 0.4530612521 (+0.0669826077 on P18; +0.0067 ten-case mean).
+  Deal 5.30 / 90d / 24m / AS-14404 deadband 0 (baseline 5.40, same clause). Both claims
+  `verified`; supplier: "Acknowledging the recent index decreases you verified, we are pleased
+  to offer a revised unit price of EUR 5.50" (baseline first counter-offer: 5.70/5.60), then
+  conceded to a 5.30 final. It still restated its 12-month rises ("That remains").
+- Sessions: 1 (no expiry, no replacement). Quota 443→440 during the run (others shared it).
+- Decision: KEEP as P18 candidate (new best 0.5200). Single sample: the supplier is likely
+  deterministic for identical messages, so a repeat would mostly confirm caching, not
+  variance. Transfer to other raw-material/price-increase cases is unmeasured; P08's hedge
+  rebuttal shows the lever depends on supplier context.
+
 ## Packaged runtime negotiation guidance — local integration, 10 October 2026
 
 - Hypothesis: explicit conditional package wording communicates the exchange more clearly
@@ -1404,3 +1442,33 @@ Sessions in this task: 7 (2b8fbe32, 69acb4ae, 2ffdd9c5, a7298b34, 6f46f019, d480
 09f597f1 expired, launched by a parallel worker in this worktree) plus 1 inherited expired
 (6c3717e8). Shared-team quota also fell from other teams' P05/other runs during this window.
 Validation: `pytest -q` 382 passed, 1 known failure (preflight); ruff clean.
+
+
+## 2026-10-10 — Restore the measured P18 package baseline
+
+Recovered original agent-visible thread for owned session336d373e78ee87f1
+(score0.4530612521, final5.40/90days/24months/AS-14404 deadband0).
+The previous best was not in local run manifests and had been overlooked when
+evaluating the0.4195698792 clause-variant candidate.
+
+Existing configs/package-advice.json with estimates={} and meso=false reproduces
+all FIVE buyer messages, term sheets and final acceptance exactly on that history.
+configs/retained-package-policy.json provides those exact factory kwargs. Runtime
+logic is unchanged; no case-specific prices or new flags. The original thread is
+an agent-visible regression fixture. In particular, clauses are not accepted into
+our counters early; the supplier's indexed standing offer can still be accepted.
+
+Plan: one hosted confirmation via negotiator.agent:configured_agent from own
+budget24/30, reserve40. This protects a historical gain; it is not a new best-of
+score or proof of unseen-case performance. No default changes or main merge.
+
+Validation:371 tests passed, only the known pre-existing claim-data preflight
+test failed; Ruff passed. The new exact historical replay passed.
+
+Hosted confirmation: b2922dc3-6036-4a59-9c29-c75afc4af0e2,
+sessione7f60b71102745a0, sourced070c01. Score0.4530612521, zero timeouts,4.11s.
+All11 original messages (body, terms, refs, actions, statuses, claim results)
+match the recovered historical thread exactly; likely deterministic/cache reuse.
+Retain this policy over the0.4195698792 clause-variant config. Delta+0.0334913728
+on P18, equivalent+0.0033491373 on ten-case mean. No new historical-best claim.
+Own budget24/30;6 remain. Result uploaded to lab automatically.

@@ -7,15 +7,16 @@ skipping an unsent claim is preferable to consuming the same fact twice.
 
 from dataclasses import asdict
 
-from .claims import MAX_CHECKED, case_facts, claim_keys, index_relevance, pick, verify
+from .claims import MAX_CHECKED, case_facts, claim_keys, index_relevance, pick, recent_index_claims, verify
 from .context import DATA_ERRORS, build_context, content_hash
 from .dossiers import load_package
 from .replies import evidence_constraints
 
 
 class EvidencePolicy:
-    def __init__(self, package=None, tracer=None, case_types=None, interpretation=None):
-        self.case_types = set(case_types if case_types is not None else ["price_increase"])
+    def __init__(self, package=None, tracer=None, case_types=None, interpretation=None, recent_window_types=()):
+        self.recent_window_types = set(recent_window_types)
+        self.case_types = set(case_types if case_types is not None else ["price_increase"]) | self.recent_window_types
         self.package = package
         self.tracer = tracer
         self.banks = {}
@@ -94,7 +95,10 @@ class EvidencePolicy:
                 self.tracer.log("reply_interpretation", case=cid, supplier=sid, **interpretation)
             if "*" in rejected:
                 return move
-            bank = [c for c in context.candidates if verify(c, facts, self.package, case)
+            recent = case["type"] in self.recent_window_types
+            # Recent-window cases use only public index claims over windows ending at the latest month.
+            source = recent_index_claims(case, self.package, facts) if recent else context.candidates
+            bank = [c for c in source if verify(c, facts, self.package, case)
                     and not rejected.intersection(c.ids) and c.kind not in skip_kinds]
             priorities, reasons = index_relevance(bank, case, self.package, threads.get(sid, []))
             # Each pre-existing ref conservatively consumes one checked-claim slot.
@@ -104,7 +108,7 @@ class EvidencePolicy:
             chosen = pick(
                 bank, used, max_claims=budget, supplier_id=sid,
                 case_type="renewal_trade" if case["type"] == "renewal" else case["type"],
-                index_priorities=priorities,
+                index_priorities=priorities, allow_cherry_pick=recent,
                 skip_kinds=frozenset({"should_cost"}) if rfq else frozenset(),
             )
         except DATA_ERRORS as exc:

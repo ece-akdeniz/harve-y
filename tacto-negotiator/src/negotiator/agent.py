@@ -129,7 +129,7 @@ class PackageAgent:
         self.p_walk = p_walk  # chance a supplier walks when its final offer is countered (D02: 2 of 9)
         self.claims = os.environ.get("NEGOTIATOR_CLAIMS") == "1" if claims is None else claims
         if policy is not None:
-            self.claims = bool(policy.evidence_types)
+            self.claims = bool(policy.evidence_types or policy.recent_index_window_types)
         self.evidence = None
         self.model_context = {}
         self.model_seen = {}
@@ -145,8 +145,10 @@ class PackageAgent:
         if self.claims:
             from .evidence import EvidencePolicy
 
-            self.evidence = EvidencePolicy(tracer=tracer, case_types=policy.evidence_types if policy else None,
-                                           interpretation=self.model_context)
+            self.evidence = EvidencePolicy(
+                tracer=tracer, case_types=policy.evidence_types if policy else None,
+                interpretation=self.model_context,
+                recent_window_types=policy.recent_index_window_types if policy else ())
         self.prev = {}  # supplier -> non-price terms of our last offer
         self.final_counters = {}  # supplier -> counters sent to its final offers (at most one)
         self.beat_asked = {}  # rival supplier -> final-offer sheet id we asked it to beat
