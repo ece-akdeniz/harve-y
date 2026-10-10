@@ -1007,3 +1007,24 @@ responded to "your data on the market was solid". F appends exactly one fresh ve
 supplier-own fact (scorecard OTD/PPM, latest index windows) to an RFQ counter only when no rival
 claim was added. Should-cost (internal estimate) excluded; no hidden outcomes are used.
 Offline replay: at 70210's 29.00 the counter carries scorecard sc:70210@2026Q3 OTD 80.8 %.
+
+## 2026-10-10 — P05 (parallel worker B): repeat + screen E (undercut re-anchor) — miss
+
+Note: two workers ran in this worktree at once (B did not know about A's `5dc584b`). B stops here
+to avoid duplicate sessions; A owns the next screen (its uncommitted `rfq_data_claims` is untouched).
+- Lever (from the full transcript of `d52efd4374aaf110`): `rfq_rival_offer_history` cites the
+  lowest rival sheet from the *whole session*, including must-have-invalid ones, so the leader
+  70210 receives 70240's opening 31.50 @ 52 d (offer:70240-0) in its first counter (verified) →
+  "clarify internally" → 36.00 → 32.00 → **29.00**. Screen 6 (valid sheets only) never cited to 70210.
+- Run `57b90d1e` / session `09f597f13bebed64`: process killed seconds after a nohup start (the shell
+  call reaping background jobs); ended by timeout, 0.00, reconciled for that one session only. 1 session.
+- Run `d1fea8bb` / session `2b8fbe3260167f15`, commit `5770caf`'s parent config
+  `configs/p05-rival-history.json`, foreground: **72.08**, 70210 29.00/35/30, 24.3 s, 0 timeouts.
+  Identical path to screen 8. Replicated (with A's `237f5adb` = 3/3 completed at 72.08).
+- Screen E `rfq_undercut_reanchor` (`configs/p05-undercut-reanchor.json`, commit `5770caf`), run
+  `376427e0` / session `2ffdd9c5ee8c2b9d`: **72.08** (no change), 97 s, 0 timeouts. Counter 27.26
+  after the 29.00 drop; 70210: "price stays … already gave you a massive drop to 29.00", then
+  final 29.00/30 d; accepted. Price-floor line: 1 miss. 29.00 looks like 70210's floor under the
+  single 31.50 claim; payment (90 d refused) and lead-time lines already closed.
+- Sessions used by B: 3 (one killed). Gap to .92 ≈ EUR 1.9/unit; remaining untested lever is a
+  verified data claim to the leader (A's in-progress `rfq_data_claims`).
