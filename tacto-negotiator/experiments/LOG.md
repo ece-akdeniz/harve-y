@@ -929,3 +929,16 @@ in the preceding entry; the same failure reproduces with the unchanged current
   its pricing committee. No new IDs, terms, prices or closing logic (unit test). No hidden outcome.
 - Why it could work: the supplier's script names a binding volume as its price lever, and the
   committee note names its approval limit; both answer its stated conditions. Pass: > 0.7535.
+- Screen 4 `db8102bc` / session `0a624e505af85d00`: **0.7600** (5.39, 90d, 24m, final r5, 0 timeouts).
+  Supplier acknowledged both ("appreciate the binding commitment to 30,000 kits", "presented your
+  package to our pricing committee") but steps were unchanged (5.59/5.49/5.42/5.39 vs 5.59/5.50/5.44/5.40).
+  +0.0065 vs screen 1 is within n=1 noise (seven P07 runs span 5.38-5.48 with similar schedules).
+- Checked and not screened (no lever in public data): PPI-C2594 +1.7 % and LCI-C +2.7 % y/y (rising);
+  kit at today's PO prices ≈ EUR 5.95, so 5.39 is already below piece prices; no should-cost for
+  these parts; 30d alternative (5.52) ≈ 90d at 5.59 in our C (8 %/yr). No local run in any worktree
+  beats 0.76.
+
+## 2026-10-10 — P07 repeat of bundle-commit (before screen 5)
+
+- Same config/commit as screen 4 (`configs/p07-bundle-commit.json`). Purpose: separate signal from noise
+  before proposing a merge; no behavior change. Pass to keep: ≥ 0.7535 again.
