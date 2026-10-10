@@ -90,11 +90,14 @@ class PackageAgent:
         self.final_counters = {}  # supplier -> counters sent to its final offers (at most one)
         self.beat_asked = {}  # rival supplier -> final-offer sheet id we asked it to beat
         self.final_seen = {}  # final-offer sheet id -> monotonic time first seen
+        if estimates is None and os.environ.get("NEGOTIATOR_ESTIMATES") != "1":
+            estimates = {}  # dossier estimates are opt-in until calibrated (docs: experiments/LOG.md)
         self._estimates, self._est_case, self._est_cache = estimates, None, {}
 
     # -- estimates ----------------------------------------------------------------------------
     def estimates_for(self, case):
-        """{supplier_id: estimate}: the injected estimates, else `dossiers.supplier_estimate`."""
+        """{supplier_id: estimate}: the injected estimates, else `dossiers.supplier_estimate`
+        (with NEGOTIATOR_ESTIMATES=1)."""
         if self._estimates is not None:
             return self._estimates
         if self._est_case != case["case_id"]:

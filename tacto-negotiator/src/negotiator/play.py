@@ -55,7 +55,10 @@ def run_config(agent, runner="serial-play_case", facts="data/package/facts.json"
         "src_dirty": dirty,
         "agent": getattr(agent, "version", type(agent).__name__),
         "params": params,
-        "estimates": "injected" if getattr(agent, "_estimates", None) else "dossiers-if-available",
+        "estimates": (
+            "dossiers" if getattr(agent, "_estimates", {}) is None
+            else "injected" if getattr(agent, "_estimates", None) else "off"
+        ),
         "runner": runner,
         "facts_sha256": data,
     }
