@@ -2,6 +2,7 @@ import json
 from datetime import UTC, datetime, timedelta
 from importlib.resources import files
 
+import pytest
 from arena_kit.cost import total_cost
 from test_runner import ScaledClock, SimArena
 
@@ -13,6 +14,13 @@ from negotiator.runner import CaseRunner
 from negotiator.state import Journal
 
 pytest_plugins = ["test_evidence"]
+
+
+def test_enabled_model_without_configuration_fails_fast(monkeypatch):
+    monkeypatch.delenv("LLM_MODEL", raising=False)
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    with pytest.raises(ValueError, match="model assistance requires"):
+        PackageAgent(model_assist=True)
 
 
 def test_model_observations_require_verbatim_source_and_do_not_create_terms():

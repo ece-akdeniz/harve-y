@@ -78,6 +78,11 @@ def main(argv=None) -> int:
         policy = PolicyConfig.load(args.policy_config) if args.policy_config else None
     except (OSError, ValueError, TypeError) as exc:
         ap.error(str(exc))
+    if args.model_assist:
+        provider = os.environ.get("LLM_PROVIDER", "anthropic")
+        key_name = "ANTHROPIC_API_KEY" if provider == "anthropic" else "LLM_API_KEY"
+        if provider not in {"anthropic", "openai"} or not os.environ.get("LLM_MODEL") or not os.environ.get(key_name):
+            ap.error("--model-assist requires a supported LLM_PROVIDER, LLM_MODEL and provider API key")
 
     def new_agent():
         return PackageAgent(tracer=tracer, policy=policy, model_assist=args.model_assist)

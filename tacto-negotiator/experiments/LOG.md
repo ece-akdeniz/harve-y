@@ -14,7 +14,7 @@ Format and decision rule: `docs/04-experiments.md`. Newest on top. One entry per
   selects a verified scorecard claim, and leaves the offer sheet unchanged. An async kit-simulator
   S01 case with the model path enabled completes with zero recorded thread timeouts. A cited
   payment request adds a deterministic, no-more-expensive payment variant. Malformed,
-  unsupported and uncited model outputs fall back or are discarded. Full suite: 308 passed;
+  unsupported and uncited model outputs fall back or are discarded. Full suite: 309 passed;
   Ruff clean.
 - Quota/provider: zero hosted sessions, zero real provider calls, zero practice sessions. No
   score-gain or latency conclusion. Decision: candidate only; compare in a separate bounded

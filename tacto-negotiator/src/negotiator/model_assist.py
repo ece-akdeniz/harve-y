@@ -77,18 +77,20 @@ def approved_lessons(path, *, supplier, case, data_sha256):
 class ModelAssist:
     def __init__(self, complete=None, *, memory_path=None, data_sha256=None, timeout_s=2.0,
                  provider=None, model=None):
+        self.provider = provider or os.environ.get("LLM_PROVIDER", "anthropic")
+        self.model = model or os.environ.get("LLM_MODEL", "")
+        if complete is None:
+            key_name = "ANTHROPIC_API_KEY" if self.provider == "anthropic" else "LLM_API_KEY"
+            if (self.provider not in {"anthropic", "openai"} or not self.model
+                    or not os.environ.get(key_name)):
+                raise ValueError("model assistance requires provider, model and provider API key")
         self.complete = complete or self._provider
         self.memory_path = memory_path
         self.data_sha256 = data_sha256
         self.timeout_s = max(0.1, min(float(timeout_s), 3.0))
-        self.provider = provider
-        self.model = model
 
     def _provider(self, prompt):
-        provider = self.provider or os.environ.get("LLM_PROVIDER", "anthropic")
-        model = self.model or os.environ.get("LLM_MODEL", "")
-        if not model:
-            raise ValueError("LLM_MODEL is required for model assistance")
+        provider, model = self.provider, self.model
         if provider == "anthropic":
             import anthropic
 
