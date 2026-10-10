@@ -1,1 +1,5 @@
 Hey, so AWS Bedrock doesn't work, why? Here even though I have configured it and turned it on.
+
+---
+
+Hey, so AWS Bedrock doesn't work, why? Here even though I have configured it and turned it on.
