@@ -38,7 +38,8 @@ def alternative_cost(case: dict) -> float:
     return total_cost(case, terms) if terms.get("unit_price") else float("inf")
 
 
-def best_terms(case: dict, unit_price: float, standard: dict | None = None, supplier=None) -> dict:
+def best_terms(case: dict, unit_price: float, standard: dict | None = None, supplier=None,
+               prefer_longer_lead: bool = False) -> dict:
     """Complete term sheet at `unit_price` whose non-price fields minimise C and keep the
     must-haves. Fields without listed options keep the buyer's plan (`complete_offer`)."""
     base = complete_offer(case, {"unit_price": unit_price})
@@ -50,7 +51,11 @@ def best_terms(case: dict, unit_price: float, standard: dict | None = None, supp
         if not must_haves_ok(case, terms, standard):
             continue
         c = total_cost(case, terms, standard, supplier)
-        if c < best_c:
+        same_cost_longer_lead = (
+            prefer_longer_lead and "lead_time_days" in fields and c == best_c
+            and terms["lead_time_days"] > best["lead_time_days"]
+        )
+        if c < best_c or same_cost_longer_lead:
             best, best_c = terms, c
     return best
 

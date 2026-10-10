@@ -734,3 +734,39 @@ it is not hosted performance evidence or a proposed production strategy change.
   and a dedicated unprivileged systemd account.
 - Quota/decision: no Arena case, sandbox session or practice session was opened. The Azure URL is
   now the lab endpoint for this laptop; teammates can cut over with the existing upload token.
+
+
+## 2026-10-10 — Port the measured P10 delivery tie-break onto current main
+
+Hypothesis: when multiple legal opening packages have exactly the same complete buyer
+cost, offering more delivery flexibility can improve the supplier's price. This port
+contains only the opt-in delivery tie-break originally introduced in `de3e49a`.
+`configs/cost-neutral-delivery.json` is the existing `configs/candidate.json` plus
+`cost_neutral_lead_time: true`; no other strategy is introduced or activated by the port.
+The default remains off. P10 is outside the configured package-policy types, so its
+opening uses the shared optimizer and selects 42 days instead of 35 at equal cost.
+
+Previously completed, fully reviewed hosted evidence (no new session consumed here):
+- Controls `79c3a047f6c4a906`, `2323becf5b0aeba2`: score 0.4531834162,
+  EUR 35.10, 35-day delivery, 23,400 units/year, 24 months; cost EUR 1,658,966.40.
+- Run `a3a18b67-3ba8-43a0-a6b4-3baba11672dd`, session `77190d3ecf714944`, source
+  `de3e49a`; run `0ac38ae5-de1d-4a53-93f5-fa7428577f36`, session `81c99adf8b88f7be`,
+  source `fd423a6`: both score 0.5546564482, EUR 33.80, 42-day delivery,
+  23,400 units/year, 24 months; cost EUR 1,597,720.80. Both valid, must-haves kept,
+  zero timeouts. Estimates and MESOs were off; LLM advice was off.
+- Each candidate saved EUR 61,245.60 against the recorded controls. The two supplier
+  replies were identical, so this is repeated hosted evidence, not independent
+  stochastic confirmation or a newly measured ten-case fixed-policy mean.
+
+Decision: retain this isolated measured improvement behind its explicit policy flag.
+Do not infer that current main plus its newer runtime wording reproduces these scores:
+this port is verified locally, not a new hosted comparison. LLM package selection,
+relationship experiments, RFQ changes, longer commitments and runtime recovery changes
+are excluded. No lab recommendation is promoted by this port.
+
+Local validation: delivery-cost equality, must-haves, costly-lead rejection, default
+35-day opening, configured 42-day opening, control fixtures and boolean configuration
+validation. All seven new tests pass; full suite: 342 passed, one existing failure in
+`test_worker_preflight_rejects_unloadable_claim_data_before_open` (an empty explicit
+package path falls back to locally available data). The same failure reproduces with
+unchanged main production modules; no unrelated fix is included. `ruff check .` passes.

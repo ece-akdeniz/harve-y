@@ -224,7 +224,10 @@ class PackageAgent:
                 return prev
             return self.trades.initial(case, sid, ref_terms["unit_price"], self.anchor, std, sup, reference=ref_terms)
         if prev is None:
-            n = nonprice(case, best_terms(case, ref_terms["unit_price"], std, sup))
+            n = nonprice(case, best_terms(
+                case, ref_terms["unit_price"], std, sup,
+                prefer_longer_lead=bool(self.policy and self.policy.cost_neutral_lead_time),
+            ))
         elif not eligible:
             return prev
         else:
