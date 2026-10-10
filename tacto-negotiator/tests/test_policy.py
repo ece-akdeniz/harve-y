@@ -185,3 +185,14 @@ def test_quality_chargeback_refinement_variants(cases, steps, expected):
     assert result['chargeback_eur_per_complaint'] == expected
     assert result['ppm_commitment'] == 300
     assert 'payment_days' not in result
+
+
+def test_p10_missing_valid_opening_retains_standing_offer(cases):
+    c = cases['case:P10']
+    sid = c['suppliers'][0]
+    opening = {'unit_price': 32.2, 'lead_time_days': 54, 'volume_per_year': 19890, 'contract_months': 12}
+    final = {'unit_price': 35.1, 'lead_time_days': 35, 'volume_per_year': 23400, 'contract_months': 24}
+    alt = {**final, 'unit_price': 32.1, 'lead_time_days': 54}
+    events = [msg('open', ('o:0', opening)), ours(final), msg('final_offer', ('o:1', final), ('o:1-a', alt))]
+    agent = PackageAgent(policy=PolicyConfig(final_offer_risk='opening_proxy'))
+    assert agent.propose(c, {sid: events}, sid).get('close')

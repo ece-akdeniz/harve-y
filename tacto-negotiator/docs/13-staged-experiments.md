@@ -81,3 +81,25 @@ The agent runs on our machine or VM; submit repository and commit hash on ehl.gg
 commit. Jury prize weighting after the top-ten cutoff remains unspecified. Before freeze,
 rehearse deadlines and recovery locally/free sandbox, validate the Sunday release and record
 provenance. Neither passing tests nor practice wins establish final readiness or the overall prize.
+
+### Refinement controls and measured checkpoint
+
+`preference: lower_chargeback` starts a quality trade at the lowest permitted ppm commitment
+and one lower permitted chargeback. `chargeback_steps: 2` tests the next lower chargeback;
+valid ranks are 1–3. This is an experimental package preference, not a buyer requirement.
+Stagnation trades prioritize adjacent lower chargeback and only relax ppm upward. Volume is
+preserved from the quote for multi-year trades, including when annual volume is negotiable.
+
+Eight measured sessions confirmed P04 package-only at 86.04 versus fresh baseline 5.64, and
+P11 package + evidence at 39.80 versus 31.44. All had valid deals and zero actual timeouts.
+Exact repeats may be cached. P04 matches the refreshed displayed lead; P11 remains below
+62.6. Four P11 refinement sessions are released. See the compact cycle ledger and LOG.md.
+
+P10's recorded opening volume (19,890) fails its 22,230 must-have, so no compliant opening
+reference is available for the experimental proxy. The missing-input guard retains the standing
+offer. Do not substitute historical Copen/Cbest; skip a hosted risk comparison until it can
+exercise the intended rule. This is an explicit limitation, not a measured P10 improvement.
+
+A measured [P04 replay](../experiments/replays/p04-package-evidence.html) includes the package
+exchange, verified delivery claim, full closing costs and result. Its evidence arm tied the
+package-only arm, so the replay does not establish that the delivery claim added savings.

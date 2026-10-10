@@ -378,6 +378,8 @@ class PackageAgent:
                         opening += [x[0] for x in eligible_sheets(case, events_[: i + 1], alternatives=True)]
                         break
             if not opening:
+                self._log(case, "final_proxy_unavailable", sid,
+                          reason="no must-have-compliant opening; retain standing offer")
                 return None
             c_open = min(opening)
             gain = max(0, c_open - alts[0][0]) - max(0, c_open - c_f)

@@ -388,3 +388,15 @@ Decision:
 - Skip P04 optional refinements: candidate matches the refreshed displayed leading score.
 - Refinement source also fixes stagnation to consider adjacent lower chargeback before ppm,
   with ppm switches only upward within the must-have. Initial concession schedule unchanged.
+
+### P10 offline gate and replay artifact
+
+- Reproduced P10's recorded opening: 19,890 units/year versus must-have >=22,230.
+  The experimental opening-relative proxy has no compliant opening input, so it safely retains
+  the standing offer. Added an actual-case regression and an explicit unavailable-input log.
+  Skip P10's four hosted comparison allocations unless that prerequisite becomes available.
+  Do not inject historical Copen/Cbest or reinterpret finite fallback cost as no-deal score.
+- Generated a shareable measured P04 HTML replay with actual terms, verified delivery evidence
+  and complete costs. Package-only tied this evidence arm; the claim's incremental effect is zero
+  in this screen. `experiments/replays/p04-package-evidence.html`.
+- Local suite: 109 passed; ruff clean. Sunday release and final host rehearsal remain separate.
