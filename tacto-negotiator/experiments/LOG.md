@@ -849,3 +849,11 @@ then let 70250's "gap closed" through while 70210's reply was in flight; the coo
 excludes in-flight sheets, so the only live sheet was the losing 34.00. Fix (`agent.py`): keep
 holding while the leader is open and has moves left, regardless of the loser's deadline.
 Regression updated. Tests 377 passed + known preflight failure; ruff clean.
+
+## 2026-10-10 — P05 screen 2: non-leading hold without own-deadline fallback (async)
+
+Run `ca2cade9-a914-4c6c-b556-4fe39a06ce1d`, session `ef13f675e65e7676`, commit `0bd7080`, same
+config. Score **41.19** (vs 36.04 traced baseline, ties prior best .4119): sup:70210 EUR 32.00 /
+35 d / 30 d, 50.7 s, zero timeouts. sup:70250's 34.00 convergence held; 70210 went 32.50 → 32.00
+→ final 32.00; 70240 final 33.50/45 d; coordinator accepted 70210's final at once. Lead time
+35 d (<= 42), no 56-day counter, no early payment. Next: repeat once for replication.
