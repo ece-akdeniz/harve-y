@@ -1103,6 +1103,42 @@ The proposed 99/100 target is aspirational; these two fixed sandbox cases do not
 establish generalization. Local evidence remains in ignored `experiments/loop/`;
 original hosted outcomes and gates are in the shared lab.
 
+## 2026-10-10 — Conditional multi-supplier anchor candidate (blocked sandbox comparison)
+
+Hypothesis: the prior 0.16 anchor's D02 gain and D01 loss may reflect supplier-roster
+context. Apply 0.16 only when the case contains multiple suppliers; retain the 0.12
+opening in single-supplier cases. This is inferred from repeatedly used D01/D02 cases,
+not a held-out finding. The case roster is fixed at session start, so active-thread
+changes cannot alter the anchor mid-negotiation. Deterministic closing and term checks
+remain unchanged. Model assistance and supplier memory stay off.
+
+Candidate source branch: `codex/competitive-anchor-candidate`. The paired async
+sandbox comparison has a separate user-approved maximum of 12 sessions and zero
+practice allowance. Checkpoint IDs, per-case scores, gates, failures, and disposition
+will be recorded after the lab campaign. Local tests: targeted agent/checkpoint tests
+passed; full suite had 598 passes and one timing-sensitive model-assisted simulator
+timeout assertion, which passed immediately in isolation; Ruff passed. At that
+candidate commit, no sandbox sessions had started.
+
+Follow-up: published feature-capable baseline `019a78caef124846ad7f972eae431add`
+and candidate `f017d55148d046cda80f86a32f9a7065`, sharing the exact source tree;
+registered async suite `d01-d02-sandbox-async-competitive-anchor-20261010` and
+family/campaign `ece-competitive-anchor-20261010-01` at a strict 12-session sandbox
+ceiling. An initial offline-cache preflight failed before session start; resuming the
+same family with the correct absolute cache reached the first D01 baseline open,
+which ended **ambiguous with no returned session ID**. Its original result remains
+saved, and the other eleven attempts remain pending. The Arena's owned sandbox
+session listing showed no session created after the campaign began, but absence
+from that listing is not accepted as definitive not-created evidence by the lab.
+The campaign therefore remains blocked and has **no score comparison or promotion
+verdict**. Do not start the remaining cells or reuse the reserved budget until
+the start is reconciled under the lab's original-outcome rules.
+
+Mitigation for future checkpoint sources: the async lab worker now makes two
+additional transport retries using the same journaled `X-Move-Id` and records only
+the exception class if all retries fail. This cannot rewrite or validate the
+already ambiguous original attempt. No practice sessions were used.
+
 ## 2026-10-10 — P05 offline cost decomposition (no session)
 
 Session `ef13f675` deal sup:70210 32.00/35 d/30 d: C = 271,720.96 (price 268,800; payment

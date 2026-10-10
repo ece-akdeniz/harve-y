@@ -273,7 +273,11 @@ class Handler(BaseHTTPRequestHandler):
                     suites=loop.read("suites")["suites"], checkpoints=loop.read("checkpoints")["checkpoints"],
                 ))
             elif path == "/api/runs":
-                self._json(200, self.server.store.listing())
+                listing = self.server.store.listing()
+                loop = self.server.loop_store.read("overview")
+                listing["campaigns"] = loop["campaigns"]
+                listing["suites"] = loop["suites"]
+                self._json(200, listing)
             elif path.startswith("/api/feedback/"):
                 from .feedback import FeedbackAgent
                 from .knowledge import SnapshotMemory, export_graph

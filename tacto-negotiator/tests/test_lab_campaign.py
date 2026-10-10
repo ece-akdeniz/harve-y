@@ -593,7 +593,7 @@ def test_async_worker_uses_checkpoint_config_and_durable_journal_identity(tmp_pa
     calls = []
 
     async def custom_play(arena, case_id, agent, journal):
-        assert arena.retries == 0
+        assert arena.retries == 2
         assert agent._estimates == {}
         journal.session(case_id, "owned", {"case_id": case_id})
         calls.append(case_id)

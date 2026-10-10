@@ -96,8 +96,16 @@ class PackageAgent:
         model_provider=None,
         model_name=None,
         memory=None,
+        multi_supplier_anchor=None,
     ):
         self.anchor, self.rounds, self.close_gap, self.tracer = anchor, rounds, close_gap, tracer
+        if multi_supplier_anchor is not None and (
+            type(multi_supplier_anchor) not in (int, float)
+            or not math.isfinite(multi_supplier_anchor)
+            or not 0 <= multi_supplier_anchor < 1
+        ):
+            raise ValueError("multi_supplier_anchor must be a finite fraction below one")
+        self.multi_supplier_anchor = multi_supplier_anchor
         if isinstance(policy, dict):
             from .policy import PolicyConfig
 
@@ -337,6 +345,12 @@ class PackageAgent:
         sheets = eligible_sheets(case, threads[sid], self._sup(case, threads, sid))
         return (len(self._ours(threads[sid])), sheets[0][0] if sheets else math.inf)
 
+    def _anchor_for(self, case):
+        """Freeze the scope to the case roster; changing live thread status cannot change the schedule."""
+        if self.multi_supplier_anchor is not None and len(set(case.get("suppliers") or ())) > 1:
+            return self.multi_supplier_anchor
+        return self.anchor
+
     # -- packages -----------------------------------------------------------------------------
     def _nonprice(self, case, sid, events, std, sup, cands, eligible):
         """Our non-price terms: the previous ones, unless a supplier package (by C) is cheaper
@@ -347,7 +361,8 @@ class PackageAgent:
         if self.trades and case["type"] in self.policy.package_types:
             if prev is not None:
                 return self._clause_track(case, sid, events, prev, ref_terms)
-            return self.trades.initial(case, sid, ref_terms["unit_price"], self.anchor, std, sup, reference=ref_terms)
+            return self.trades.initial(case, sid, ref_terms["unit_price"], self._anchor_for(case), std, sup,
+                                       reference=ref_terms)
         if prev is None:
             n = nonprice(case, best_terms(
                 case, ref_terms["unit_price"], std, sup,
@@ -841,7 +856,7 @@ class PackageAgent:
                     return {"hold": True, "reason": "nonleading supplier converged; leader still workable"}
             return {"close": True, "reason": "gap closed"}
 
-        floor = p_open * (1 - self.anchor)
+        floor = p_open * (1 - self._anchor_for(case))
         price = floor + (p - floor) * min(1.0, k / self.rounds)
         if last_p is not None:
             price = max(price, _ceil2(last_p))  # no backtracking on our own concessions (by C)

@@ -92,6 +92,20 @@ globalThis.LoopDashboard = (() => {
   function renderOverview(data) {
     const root=document.getElementById('loop-content');
     root.replaceChildren();
+    const campaignCount=document.getElementById('campaign-count');
+    if(campaignCount)campaignCount.textContent=String((data.campaigns||[]).length);
+    const campaigns=section('Recorded comparisons');
+    if(!(data.campaigns||[]).length)campaigns.append(node('p','No campaigns yet. Read the recommendation, create and publish a candidate, then run a bounded comparison.'),command('uv run --locked negotiator lab campaign run --help'));
+    for(const c of [...(data.campaigns||[])].sort((a,b)=>(b.created_at||0)-(a.created_at||0))){
+      const card=section(c.campaign_id);
+      const counts=c.attempt_counts||{};
+      card.append(node('p',`${c.author} · ${c.status} · ${c.suite_id}`),node('p',`${counts.completed??'?'} of ${counts.total??'?'} attempts completed${counts.failed?` · ${counts.failed} need attention`:''}`,'muted'),node('p',c.hypothesis),node('p',campaignView(c).message));
+      const button=node('button','View attempts, scores and gates','button secondary');
+      button.addEventListener('click',()=>openCampaign(c.campaign_id));
+      card.append(button);
+      campaigns.append(card);
+    }
+    root.append(campaigns);
     const recs=section('Current recommendations');
     if(!(data.recommended||[]).length){
       recs.append(node('p','No recommendation yet. Publish a checkpoint, register the suite and explicitly seed a baseline.'),command('uv run --locked negotiator lab checkpoint create --description "Initial baseline"'),command('uv run --locked negotiator lab suite create'));
@@ -103,17 +117,6 @@ globalThis.LoopDashboard = (() => {
       recs.append(card);
     }
     root.append(recs);
-    const campaigns=section('Campaigns');
-    if(!(data.campaigns||[]).length)campaigns.append(node('p','No campaigns yet. Read the recommendation, create and publish a candidate, then run a bounded comparison.'),command('uv run --locked negotiator lab campaign run --help'));
-    for(const c of data.campaigns||[]){
-      const card=section(c.campaign_id);
-      card.append(node('p',`${c.author} · ${c.status} · ${c.suite_id}`),node('p',c.hypothesis),node('p',campaignView(c).message));
-      const button=node('button','Inspect gates and evidence','button secondary');
-      button.addEventListener('click',()=>openCampaign(c.campaign_id));
-      card.append(button);
-      campaigns.append(card);
-    }
-    root.append(campaigns);
     const families=section('Exploration budgets');
     families.append(table(['Family','Reserved / ceiling','Practice reserved / allowance','Protected reserve'],(data.families||[]).map(f=>[f.family_id,`${f.reserved_sessions} / ${f.max_sessions}`,`${f.practice_reserved} / ${f.practice_allowance}`,f.reserve])));
     families.append(node('p','Reservations remain charged. Practice quota is separately checked at reservation and each start.','muted'));
@@ -176,14 +179,16 @@ globalThis.LoopDashboard = (() => {
         r.repeat, points(r.baseline), points(r.candidate), points(r.gain)
       ])
     )));
-    root.append(disclosure('Attempt evidence', table(
+    const attemptEvidence=disclosure(`Attempt evidence (${(c.attempts||[]).length})`, table(
       ['Attempt', 'Arm / case / repeat', 'Status', 'Score', 'Timeouts', 'Session'],
       (c.attempts || []).map(a => [
         a.attempt_id, `${a.arm} / ${a.case_id} / ${a.repeat}`, a.status,
         typeof a.score === 'number' ? points(a.score * 100) : 'Unknown',
         a.timeouts ?? 'Unknown', a.session_id ?? 'Unknown'
       ])
-    )));
+    ));
+    attemptEvidence.open=true;
+    root.append(attemptEvidence);
     for (const a of c.attempts || []) {
       root.append(command(`uv run --locked negotiator lab evidence show ${quote(a.attempt_id)}`));
     }

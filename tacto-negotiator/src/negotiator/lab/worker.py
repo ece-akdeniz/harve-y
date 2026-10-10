@@ -132,7 +132,9 @@ def execute(request):
             journal = Journal(root / "journal.jsonl")
 
             async def run():
-                arena = AsyncArena(base_url=request["arena_url"], retries=0, calls_per_s=2)
+                # Every POST already carries a journaled X-Move-Id. Retry transient transport
+                # failures with that same ID before declaring a start uncertain.
+                arena = AsyncArena(base_url=request["arena_url"], retries=2, calls_per_s=2)
                 try:
                     return await async_play(arena, attempt["case_id"], agent, journal)
                 finally:
@@ -144,9 +146,10 @@ def execute(request):
         body.update(
             session_id=record.session_id, status="completed", score=result.get("score"), result=sanitize(result)
         )
-    except BaseException:
-        # No retry of an uncertain open. Preserve durable identity and any already journaled session.
+    except BaseException as exc:
+        # After bounded same-ID retries, preserve the uncertain original and stop new starts.
         body["status"] = "ambiguous"
+        body["result"]["worker_error_type"] = type(exc).__name__
     finally:
         if agent is not None and hasattr(agent, "experiment_metrics"):
             body["result"]["agent_metrics"] = sanitize(agent.experiment_metrics(), budget=10000)

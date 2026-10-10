@@ -53,3 +53,21 @@ def test_standing_picks_cheapest_of_several_sheets():
         {"term_sheet_id": "offer:b", "terms": {"unit_price": 16.0, "payment_days": 60}},
     ]}]
     assert standing(case, events)[0] == "offer:b"
+
+
+def test_multi_supplier_anchor_changes_only_competitive_case_opening():
+    from test_evaluator import RFQ, STABILISE, msg
+
+    agent = PackageAgent(anchor=0.12, multi_supplier_anchor=0.16, meso=False, claims=False, estimates={})
+    assert agent._anchor_for(STABILISE) == 0.12
+    assert agent._anchor_for(RFQ) == 0.16
+    for case, expected_change in ((STABILISE, False), (RFQ, True)):
+        sid = case["suppliers"][0]
+        terms = {key: options[0] for key, options in case["term_options"].items()}
+        terms["unit_price"] = 20.0
+        threads = {sid: [msg("open", ("offer:0", terms))]}
+        baseline = PackageAgent(anchor=0.12, meso=False, claims=False, estimates={}).propose(case, threads, sid)
+        candidate = agent.propose(case, threads, sid)
+        base_price = baseline["message"]["term_sheets"][0]["terms"]["unit_price"]
+        candidate_price = candidate["message"]["term_sheets"][0]["terms"]["unit_price"]
+        assert (candidate_price < base_price) is expected_change
