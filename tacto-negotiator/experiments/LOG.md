@@ -942,3 +942,12 @@ in the preceding entry; the same failure reproduces with the unchanged current
 
 - Same config/commit as screen 4 (`configs/p07-bundle-commit.json`). Purpose: separate signal from noise
   before proposing a merge; no behavior change. Pass to keep: ≥ 0.7535 again.
+- Screen 5 `97f6d4cc` / session `c3383857201b8946`: **0.7600** again (identical path 5.59/5.49/5.42/5.39,
+  0 timeouts). Reproducible: +0.017 vs 0.7430 baseline, +0.013 vs OTD evidence.
+- Line total: 5 practice sessions opened (screens 1-5) + 1 failed run `31272ed7` (HTTP 401 before
+  open, no session). Budget 10 → 5 used, 5 left.
+- Verdict: merge candidate `configs/p07-bundle-commit.json` (`bundle_volume_types` +
+  `bundle_commitment_types` = ["bundling"]); bundling cases P07 and P15 are affected; P15 is unscreened, so verify it (or its owner) before promoting globally.
+  Drop `rounds_by_type` (3 and 10 both 0.7145). 0.81 not reached: the supplier's ladder (≈0.20 total
+  after its first reply, final at reply 4) did not respond to volume, commitment, committee, or
+  schedule changes; the remaining ≈0.08/unit needs a lever not found in public data.
