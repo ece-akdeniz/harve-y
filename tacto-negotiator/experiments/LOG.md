@@ -813,3 +813,23 @@ Port validation: full suite **363 passed, one existing preflight failure** descr
 in the preceding entry; the same failure reproduces with the unchanged current
 `origin/main` production modules. All 22 focused delivery/adviser tests pass.
 `ruff check .` passes. No unrelated preflight fix is included.
+
+## 2026-10-10 — Score push Phase 1: factory port + offline triage (no sessions)
+
+- Branch `codex/score-push-20261010` from origin/main `3653046` (no teammate commits since).
+- Ported `negotiator.agent:configured_agent` + `PolicyConfig.from_dict` (no default policy change),
+  tests in `tests/test_configured_agent.py`. Full suite 367 passed, 1 known preflight failure; ruff clean.
+- Quota read-only: practice 79/200 used, 121 left, 0 active sessions. Hosted best P05 is 0.4168
+  (`fc0baf478c14eebb`, no local transcript).
+- Offline triage of all saved runs (no quota). Ranked hypotheses for Phase 2:
+  1. P02: once supplier accepts the CU 5%-deadband clause package (run 5eccc847), counter at the
+     relationship-cost argmin (~361, calibrated from the supplier's own no-index alternative sheet),
+     not the lowest price. Local kit fit reproduces server C within 2 EUR; est. 0.29 -> ~0.70. Medium.
+  2. P05 (`rfq`): a non-leading thread's "gap closed" must hold, not close the case (0.3604 runs
+     closed on sup:70250 and accepted 70210 at 32.50; best run continued to 32.00). Pair with
+     `rfq_close_guard` (d8a0b0b). Est. +0.05. Medium-high.
+  3. P08: cost-neutral 36-month tie-break for raw_material (`longer_tenor` outside multi_year_only).
+     Est. +0.05, weak-moderate.
+  4. P18: early equal-cost index_clause deadband variants, adopt supplier-revealed spread. Est.
+     +0.03-0.06, weak-medium.
+  P11 "faster payment" ask is not executable (payment_days not negotiable). Decision: implement 1-2 first.
