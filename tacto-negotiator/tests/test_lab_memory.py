@@ -486,3 +486,21 @@ def test_arena_environment_partition_and_selected_scope_do_not_mix(cohort):
     graph = MemoryStore(cohort).graph()
     assert graph["conflicts"] == []
     assert [(lesson["arena_url"], lesson["environment"]) for lesson in graph["lessons"]] == [(ARENA, "sandbox")]
+
+
+@pytest.mark.parametrize("operation", ["get", "list"])
+def test_valid_snapshot_body_substitution_is_rejected(cohort, operation):
+    original = build(cohort)
+    replacement = build(cohort, source_cases=["case:one"])
+    assert original["snapshot_id"] != replacement["snapshot_id"]
+    assert validate_memory(replacement) == replacement
+    with sqlite3.connect(cohort) as db:
+        db.execute(
+            "UPDATE memory_snapshots SET body=? WHERE snapshot_id=?", (json.dumps(replacement), original["snapshot_id"])
+        )
+    store = MemoryStore(cohort)
+    with pytest.raises(ValueError, match="snapshot.*identity"):
+        if operation == "get":
+            store.get(original["snapshot_id"])
+        else:
+            store.list()

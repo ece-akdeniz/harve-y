@@ -345,14 +345,23 @@ class MemoryStore:
                 raise ValueError("immutable memory snapshot conflict")
         return snapshot
 
+    @staticmethod
+    def _stored_snapshot(snapshot_id: str, encoded: str) -> dict:
+        snapshot = validate_memory(json.loads(encoded))
+        if snapshot["snapshot_id"] != snapshot_id:
+            raise ValueError("stored snapshot identity mismatch")
+        return snapshot
+
     def get(self, snapshot_id: str) -> dict:
         with self._connect() as db:
-            row = db.execute("SELECT body FROM memory_snapshots WHERE snapshot_id=?", (snapshot_id,)).fetchone()
+            row = db.execute(
+                "SELECT snapshot_id,body FROM memory_snapshots WHERE snapshot_id=?", (snapshot_id,)
+            ).fetchone()
         if row is None:
             raise ValueError("memory snapshot not found")
-        return validate_memory(json.loads(row[0]))
+        return self._stored_snapshot(*row)
 
     def list(self) -> list[dict]:
         with self._connect() as db:
-            rows = db.execute("SELECT body FROM memory_snapshots ORDER BY snapshot_id").fetchall()
-        return [validate_memory(json.loads(row[0])) for row in rows]
+            rows = db.execute("SELECT snapshot_id,body FROM memory_snapshots ORDER BY snapshot_id").fetchall()
+        return [self._stored_snapshot(*row) for row in rows]
