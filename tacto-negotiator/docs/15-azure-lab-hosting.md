@@ -14,7 +14,7 @@ Use one VM, one managed OS disk, and one static Standard public IPv4 address. Th
 
 1. Open **Home → Education → Free Services** and choose the eligible Linux virtual-machine offer.
 2. Select the **Azure for Students** subscription and create resource group `y-agent-lab-rg`.
-3. Name the VM `y-agent-lab`, choose Ubuntu Server 24.04 LTS x64, and select a nearby region with an offer-eligible size.
+3. Name the VM `y-agent-lab`, choose a supported Ubuntu Server LTS x64 image (the first deployment uses 22.04), and select a nearby region with an offer-eligible size.
 4. Use SSH public-key authentication. Save the generated private key locally; Azure cannot show it again.
 5. Select the offer-eligible managed OS disk. Encryption at rest remains enabled.
 6. Under networking, create a **static Standard public IPv4** address. Assign a unique DNS name label such as `y-agent-lab-TEAMSUFFIX`; Azure shows the resulting hostname, for example `y-agent-lab-TEAMSUFFIX.westeurope.cloudapp.azure.com`.
@@ -47,9 +47,23 @@ Connect over SSH, then install OS packages and `uv`:
 
 ```bash
 sudo apt-get update
-sudo apt-get install -y caddy curl git sqlite3
+sudo apt-get install -y ca-certificates curl git sqlite3
 curl -LsSf https://astral.sh/uv/install.sh | sh
 sudo install -m 755 "$HOME/.local/bin/uv" /usr/local/bin/uv
+```
+
+The Caddy package mirror returned HTTP 402 from the initial France Central VM. Use Caddy's official static Linux build and a dedicated service account instead:
+
+```bash
+curl -fL 'https://caddyserver.com/api/download?os=linux&arch=amd64' -o /tmp/caddy
+chmod 755 /tmp/caddy
+/tmp/caddy version
+sudo install -m 755 -o root -g root /tmp/caddy /usr/bin/caddy
+sudo groupadd --system caddy
+sudo useradd --system --gid caddy --create-home --home-dir /var/lib/caddy \
+  --shell /usr/sbin/nologin caddy
+sudo install -d -o root -g root /etc/caddy
+sudo install -d -o caddy -g caddy /var/lib/caddy
 ```
 
 Create a locked-down service account and deploy the tracked archive and database:
@@ -132,11 +146,37 @@ AZURE_HOST {
 }
 ```
 
+Install `/etc/systemd/system/caddy.service`:
+
+```ini
+[Unit]
+Description=Caddy
+Documentation=https://caddyserver.com/docs/
+After=network.target network-online.target
+Requires=network-online.target
+
+[Service]
+Type=notify
+User=caddy
+Group=caddy
+ExecStart=/usr/bin/caddy run --environ --config /etc/caddy/Caddyfile
+ExecReload=/usr/bin/caddy reload --config /etc/caddy/Caddyfile --force
+TimeoutStopSec=5s
+LimitNOFILE=1048576
+PrivateTmp=true
+ProtectSystem=full
+AmbientCapabilities=CAP_NET_ADMIN CAP_NET_BIND_SERVICE
+
+[Install]
+WantedBy=multi-user.target
+```
+
 Validate and reload Caddy:
 
 ```bash
 sudo caddy validate --config /etc/caddy/Caddyfile
-sudo systemctl reload caddy
+sudo systemctl daemon-reload
+sudo systemctl enable --now caddy
 sudo journalctl -u caddy -n 50 --no-pager
 ```
 

@@ -703,6 +703,7 @@ it is not hosted performance evidence or a proposed production strategy change.
 - Decision: do not use App Service's network-mounted filesystem because Microsoft documents that it
   cannot support SQLite exclusive locks. Deploy one offer-eligible Linux VM and keep SQLite on its
   managed disk. Cut over only after history, loop state, authentication and upload verification.
+
 ## Inference/Lab setup — prepared only, 10 October 2026
 
 - Hypothesis for a future probe: the Tacto endpoint can return an allowed closing-style ID
@@ -715,3 +716,21 @@ it is not hosted performance evidence or a proposed production strategy change.
 - Tests and lint: prepared but **not run**, per the user's instruction. Endpoint/Lab access
   was not checked; no services started, no uploads, no inference calls and no Arena sessions.
 - Decision: unvalidated setup for review; no performance or connection-success claim.
+
+### Azure deployment verification
+
+- Host: Azure for Students VM `ehl-experiment-lab-vm`, France Central, Ubuntu 22.04,
+  Standard B2ats_v2; static hostname
+  `ehl-experiment-lab-vm.francecentral.cloudapp.azure.com`.
+- Runtime: lab binds only to VM loopback on port 8000; Caddy 2.11.7 terminates HTTPS on 443 and
+  redirects port 80. Both systemd services are enabled and active. SSH is restricted to the
+  deployment IP; port 8000 is not exposed.
+- Migration: SQLite backup API copy passed integrity checking with 110 runs and eight loop records.
+  Public login returned a Secure cookie; `Baris Test` retained its completed 0.919230949 score;
+  one recommendation, finding and campaign remained visible. Laptop sync uploaded two saved
+  snapshots with zero failures and opened no Arena sessions.
+- Setup failure: Ubuntu's enabled repositories lacked Caddy, and Caddy's signed package mirror
+  returned HTTP 402 from the VM. The final installation uses Caddy's official static Linux binary
+  and a dedicated unprivileged systemd account.
+- Quota/decision: no Arena case, sandbox session or practice session was opened. The Azure URL is
+  now the lab endpoint for this laptop; teammates can cut over with the existing upload token.
