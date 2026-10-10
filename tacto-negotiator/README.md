@@ -128,3 +128,20 @@ running concurrently. It consumes practice quota; it does not retry failed cases
 The candidate uses favorable, reply-aware evidence. Raw requests, replays, outcomes,
 revision and quota are stored under ignored `experiments/runs/`. The kit still runs
 RFQ threads serially, so this is an evaluation tool, not a final-readiness claim.
+
+### Package policy update
+
+The agent now accepts valid final offers by their actual sheet ID instead of countering
+with a mixture of supplier prices and buyer terms. All standing sheets are checked for
+must-haves before closing. Initial packages are calculated at the buyer's proposed price;
+subsequent counters start from the supplier's selected package. Up to three cost-bounded
+alternatives explore allowed payment, quality, index and duration trades. Fixed fields,
+including P11 payment, are never added to the negotiated fields.
+
+With `--data`, matching supplier/part should-cost estimates (same price unit) contribute
+an internal conservative supplier-health cost at closing. This uses the upper confidence
+bound and the buyer financing rate as a proxy. Missing estimates fall back to the published
+cost without a health estimate. This is not knowledge of hidden supplier costs; initial
+price anchoring and relationship-sensitive package optimization remain limited.
+
+Target a subset with repeated `--case case:P04` arguments to `tools/practice_sweep.py`.

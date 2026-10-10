@@ -16,6 +16,7 @@ from sandbox_baseline import RecordedClient
 
 from negotiator.agent import PackageAgent
 from negotiator.evidence import cost_driver_series
+from negotiator.supplier_costs import load_estimates
 from negotiator.trace import Tracer
 
 
@@ -23,6 +24,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--data', required=True)
     parser.add_argument('--parallel', type=int, default=3, choices=range(1, 4))
+    parser.add_argument('--case', action='append', help='restrict to these hosted case IDs')
     parser.add_argument('--execute', action='store_true')
     args = parser.parse_args()
     if not args.execute:
@@ -33,14 +35,20 @@ def main():
     client = RecordedClient(root / 'requests.jsonl')
     package = DataPackage(args.data)
     facts, links = dict(package.facts), cost_driver_series(package)
+    estimates = load_estimates(package)
     if package.db is not None:
         package.db.close()
     before = client.me()
     cases = hosted(client.cases('practice'))
+    if args.case:
+        unknown = set(args.case) - {c['case_id'] for c in cases}
+        if unknown:
+            raise SystemExit(f'Not hosted: {sorted(unknown)}')
+        cases = [c for c in cases if c['case_id'] in args.case]
     if before.get('practice', {}).get('left', 0) < len(cases):
         raise SystemExit('Not enough quota for a complete sweep')
     metadata = {'commit': subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),
-                'policy': 'favorable-reply-aware-evidence', 'parallel': args.parallel,
+                'policy': 'adaptive-packages-final-offer-close', 'parallel': args.parallel,
                 'quota_before': before.get('practice'), 'cases': cases}
     (root / 'metadata.json').write_text(json.dumps(metadata, indent=2))
     print('RUN_DIR', root, flush=True)
@@ -50,7 +58,7 @@ def main():
         case_id = case['case_id']
         table = RemoteTable(client)
         start = time.time()
-        agent = PackageAgent(evidence=True, facts=facts, series_by_part=links,
+        agent = PackageAgent(evidence=True, facts=facts, series_by_part=links, supplier_estimates=estimates,
                              tracer=Tracer(root / case_id.replace(':', '-')))
         print('START', case_id, flush=True)
         try:

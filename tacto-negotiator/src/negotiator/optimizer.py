@@ -50,9 +50,58 @@ def best_terms(case: dict, unit_price: float, standard: dict | None = None, supp
         if not must_haves_ok(case, terms, standard):
             continue
         c = total_cost(case, terms, standard, supplier)
-        if c < best_c:
+        # When chargebacks eliminate residual quality cost, do not demand a
+        # stricter PPM promise for no modeled buyer benefit.
+        tie = (-(terms.get("ppm_commitment") or 0), terms.get("chargeback_eur_per_complaint") or 0)
+        best_tie = (-(best.get("ppm_commitment") or 0), best.get("chargeback_eur_per_complaint") or 0)
+        if c < best_c or (c == best_c and tie < best_tie):
             best, best_c = terms, c
     return best
+
+
+def trade_packages(case, primary, standard=None):
+    """Up to three distinct, valid packages at no greater modeled cost.
+
+    Prices are proposed indifference prices, not predictions of acceptance.
+    Relationship-sensitive goals need supplier-specific valuation; do not apply
+    this linear price search to those cases.
+    """
+    packages = [primary]
+    if case["buyer"].get("category_goal") in {"secure_supply", "stabilise"}:
+        return packages
+    target = total_cost(case, primary, standard)
+    options = case.get("term_options") or {}
+    variants = []
+    for term_field in ("chargeback_eur_per_complaint", "payment_days", "index_clause", "contract_months"):
+        if term_field not in case["negotiable"]:
+            continue
+        values = options.get(term_field) or []
+        if term_field == "chargeback_eur_per_complaint":
+            values = [v for v in reversed(values) if 0 < v < primary.get(term_field, 0)]
+        elif term_field == "payment_days":
+            values = [v for v in values if v < primary.get(term_field, 0)]
+        elif term_field == "index_clause":
+            values = [v for v in reversed(values) if v is not None]
+        else:
+            values = [v for v in values if v >= 12 * case["buyer"]["horizon_years"]]
+        variants.extend({**primary, term_field: v} for v in values[:1] if v != primary.get(term_field))
+    for variant in variants:
+        low, high = 0.01, primary["unit_price"]
+        if total_cost(case, {**variant, "unit_price": low}, standard) > target:
+            continue
+        for _ in range(40):
+            mid = (low + high) / 2
+            if total_cost(case, {**variant, "unit_price": mid}, standard) <= target:
+                low = mid
+            else:
+                high = mid
+        variant["unit_price"] = int(low * 100) / 100
+        if (variant["unit_price"] > 0 and must_haves_ok(case, variant, standard)
+                and total_cost(case, variant, standard) <= target + 0.01 and variant not in packages):
+            packages.append(variant)
+        if len(packages) == 3:
+            break
+    return packages
 
 
 def payment_breakeven_pct(case: dict, from_days: int, to_days: int) -> float:

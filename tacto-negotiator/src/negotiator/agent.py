@@ -5,16 +5,17 @@ Every accept goes through `_acceptable`: must-haves, standard terms resolved, C 
 alternative. Optional verified index evidence; no model calls.
 """
 
-from arena_kit.cost import must_haves_ok, total_cost
+from arena_kit.cost import complete_offer, must_haves_ok, total_cost
 from arena_kit.docs import standard_terms
 from arena_kit.play import latest, live_threads, moves_left
 
 from .evidence import evidence_for_offer
 from .guards import leaks
-from .optimizer import alternative_cost, best_terms
+from .optimizer import alternative_cost, best_terms, trade_packages
+from .supplier_costs import estimated_cost
 
 
-def standing(case, events):
+def standing(case, events, cost=None):
     """(term_sheet_id, terms) of the cheapest-for-us sheet in the supplier's latest message, or
     (None, {}). Hosted suppliers often send alternatives; the first sheet is not the best."""
     sheets = latest(events).get("term_sheets") or []
@@ -22,24 +23,31 @@ def standing(case, events):
     priced = [s for s in sheets if s.get("terms", {}).get("unit_price") is not None]
     if not priced:
         return (sheets[0]["term_sheet_id"], sheets[0]["terms"]) if sheets else (None, {})
-    best = min(priced, key=lambda s: total_cost(case, s["terms"], std))
+    cost = cost or (lambda terms: total_cost(case, terms, std))
+    valid = [s for s in priced if must_haves_ok(case, s["terms"], std)]
+    best = min(valid or priced, key=lambda s: cost(s["terms"]))
     return best["term_sheet_id"], best["terms"]
 
 
 class PackageAgent:
     def __init__(
-        self, anchor=0.12, rounds=5, close_gap=0.005, tracer=None, evidence=False, facts=None, series_by_part=None
+        self, anchor=0.12, rounds=5, close_gap=0.005, tracer=None, evidence=False, facts=None, series_by_part=None,
+        supplier_estimates=None
     ):
         self.anchor, self.rounds, self.close_gap, self.tracer = anchor, rounds, close_gap, tracer
+        self.supplier_estimates = supplier_estimates or {}
         self.series_by_part = series_by_part or {}
         self.evidence, self.facts = evidence, dict(facts or {})
-        self.locked = {}  # supplier -> non-price terms of our first offer; kept stable after that
-
     def _package(self, case, sid, price, std):
-        if sid not in self.locked:
-            terms = best_terms(case, price, std)
-            self.locked[sid] = {k: v for k, v in terms.items() if k != "unit_price"}
-        return {**self.locked[sid], "unit_price": round(price, 2)}
+        # Pure calculation: inspecting an offer must never lock future proposals.
+        return best_terms(case, price, std)
+
+    def _cost(self, case, sid, terms, std):
+        return estimated_cost(case, sid, terms, std, self.supplier_estimates)
+
+    def _standing(self, case, sid, events):
+        std = standard_terms(events)
+        return standing(case, events, lambda terms: self._cost(case, sid, terms, std))
 
     # -- helpers ------------------------------------------------------------------------------
     @staticmethod
@@ -57,13 +65,14 @@ class PackageAgent:
         """(C, supplier, sheet_id) of every standing sheet we may accept, cheapest first."""
         out = []
         for sid in live_threads(threads):
-            sheet_id, terms = standing(case, threads[sid])
             std = standard_terms(threads[sid])
-            if not sheet_id or terms.get("unit_price") is None or not must_haves_ok(case, terms, std):
-                continue
-            c = total_cost(case, terms, std)
-            if c < c_alt:
-                out.append((c, sid, sheet_id))
+            for sheet in latest(threads[sid]).get("term_sheets") or []:
+                terms = sheet.get("terms") or {}
+                if terms.get("unit_price") is None or not must_haves_ok(case, terms, std):
+                    continue
+                c = self._cost(case, sid, terms, std)
+                if c < c_alt:
+                    out.append((c, sid, sheet["term_sheet_id"]))
         return sorted(out)
 
     def _log(self, case, kind, sid, **fields):
@@ -81,12 +90,15 @@ class PackageAgent:
         return {"supplier_id": sid, "message": {"action": {"type": "walk_away"}}}
 
     def _offer(self, case, sid, terms, std, c_alt, reason, threads):
+        packages = trade_packages(case, terms, std)
         body = (
             f"Thank you for your offer. To go ahead we propose the attached terms: "
             f"unit price EUR {terms['unit_price']:.2f}"
             + "".join(f", {k.replace('_', ' ')} {v}" for k, v in terms.items() if k != "unit_price")
             + ". We look forward to your confirmation."
         )
+        if len(packages) > 1:
+            body += " Alternatively, please consider the attached packages; each is a separate proposal."
         claims = (evidence_for_offer(case, self.facts, threads, series_by_part=self.series_by_part, supplier_id=sid)
                   if self.evidence else [])
         refs = [ref for claim, _ in claims for ref in claim.refs]
@@ -94,11 +106,13 @@ class PackageAgent:
             body += "\n" + "\n".join(sentence for _, sentence in claims)
             body += "\nCould you share a cost breakdown explaining how these movements affect your requested increase?"
         assert not leaks(body), "body would leak internal information"
-        c = total_cost(case, terms, std)
-        self._log(case, "offer", sid, terms=terms, c=c, c_alt=c_alt, reason=reason, evidence_refs=refs)
+        c = self._cost(case, sid, terms, std)
+        self._log(case, "offer", sid, terms=terms, c=c, c_alt=c_alt, reason=reason,
+                  evidence_refs=refs, packages=packages)
         return {
             "supplier_id": sid,
-            "message": {"subject": case["title"], "body": body, "term_sheets": [{"terms": terms}],
+            "message": {"subject": case["title"], "body": body,
+                        "term_sheets": [{"terms": package} for package in packages],
                         **({"refs": refs} if refs else {})},
         }
 
@@ -112,44 +126,29 @@ class PackageAgent:
             return self._close(case, threads, c_alt, "supplier agreed")
 
         workable = [
-            sid for sid in live if status[sid] in ("open", "final_offer") and moves_left(case, threads[sid]) > 1
+            sid for sid in live if status[sid] == "open" and moves_left(case, threads[sid]) > 1
         ]
         if not workable:
             return self._close(case, threads, c_alt, "no moves left")
 
         # RFQ: keep every thread moving; least-worked thread first, then cheapest standing sheet.
         def key(sid):
-            _, terms = standing(case, threads[sid])
+            _, terms = self._standing(case, sid, threads[sid])
             c = total_cost(case, terms, standard_terms(threads[sid])) if terms.get("unit_price") else float("inf")
             return (len(self._ours(threads[sid])), c)
 
         sid = min(workable, key=key)
         events = threads[sid]
-        std = standard_terms(events)
-        _, theirs = standing(case, events)
+        _, theirs = self._standing(case, sid, events)
         p = theirs.get("unit_price")
         if p is None:
             return self._close(case, threads, c_alt, "no price quoted")
-        ours = self._ours(events)
-        match = self._package(case, sid, p, std)
-        c_theirs = total_cost(case, theirs, std)
-        c_match = total_cost(case, match, std)
-
-        if status[sid] == "final_offer":
-            if c_match < c_theirs - 1e-6 and not (ours and ours[-1] == match):
-                return self._offer(case, sid, match, std, c_alt, "final offer: same price, our terms", threads)
-            if all(status[s] == "final_offer" for s in workable):
-                return self._close(case, threads, c_alt, "all final offers")
-            others = [s for s in workable if status[s] != "final_offer"]
-            sid = min(others, key=key)
-            return self.decide_thread(case, threads, sid, c_alt)
-
         return self.decide_thread(case, threads, sid, c_alt)
 
     def decide_thread(self, case, threads, sid, c_alt):
         events = threads[sid]
         std = standard_terms(events)
-        _, theirs = standing(case, events)
+        _, theirs = self._standing(case, sid, events)
         p = theirs["unit_price"]
         p_open = self._opening_price(events) or p
         ours = self._ours(events)
@@ -157,16 +156,19 @@ class PackageAgent:
         last = ours[-1]["unit_price"] if ours else None
 
         if last is not None and p - last <= p * self.close_gap:
-            match = self._package(case, sid, p, std)
-            if total_cost(case, match, std) < total_cost(case, theirs, std) - 1e-6:
-                return self._offer(case, sid, match, std, c_alt, "gap closed: their price, our terms", threads)
-            return self._close(case, threads, c_alt, "gap closed")
+            return self._close(case, threads, c_alt, "gap closed: evaluate actual standing packages")
 
         floor = p_open * (1 - self.anchor)
         price = floor + (p - floor) * min(1.0, k / self.rounds)
         if last is not None:
             price = max(price, last)  # no backtracking on our own concessions
         price = round(min(price, p), 2)
-        return self._offer(
-            case, sid, self._package(case, sid, price, std), std, c_alt, f"round {k + 1} schedule", threads
-        )
+        if ours:
+            # Negotiate from the supplier's actual package, including concessions
+            # it requires for that price. Never graft its price onto our old terms.
+            terms = complete_offer(case, {**theirs, "unit_price": price})
+            if not must_haves_ok(case, terms, std):
+                terms = self._package(case, sid, price, std)
+        else:
+            terms = self._package(case, sid, price, std)
+        return self._offer(case, sid, terms, std, c_alt, f"round {k + 1} package schedule", threads)

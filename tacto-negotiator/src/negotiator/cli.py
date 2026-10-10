@@ -16,6 +16,7 @@ from arena_kit.play import RemoteTable, hosted, play, play_all, play_waves
 
 from .agent import PackageAgent
 from .evidence import cost_driver_series
+from .supplier_costs import load_estimates
 from .trace import Tracer
 
 
@@ -54,18 +55,20 @@ def main(argv=None) -> int:
     run_dir = _run_dir()
     tracer = Tracer(run_dir)
     tracer.log("run", cmd=args.cmd, arena=os.environ.get("ARENA_URL"), agent="PackageAgent-v0")
-    facts, series_by_part = {}, {}
-    if args.evidence and args.data:
+    facts, series_by_part, estimates = {}, {}, {}
+    if args.data:
         package = DataPackage(args.data)
         facts = dict(package.facts)
         series_by_part = cost_driver_series(package)
+        estimates = load_estimates(package)
         if package.db is not None:
             package.db.close()
     tracer.log("evidence_config", enabled=args.evidence, fact_count=len(facts))
     client = ArenaClient()
 
     def new_agent():
-        return PackageAgent(tracer=tracer, evidence=args.evidence, facts=facts, series_by_part=series_by_part)
+        return PackageAgent(tracer=tracer, evidence=args.evidence, facts=facts,
+                            series_by_part=series_by_part, supplier_estimates=estimates)
 
     if args.cmd == "play":
         table = RemoteTable(client)

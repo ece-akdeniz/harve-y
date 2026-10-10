@@ -190,3 +190,15 @@ Decision:
   payment terms (136.20 @30 d vs 138.40 @90 d).
 - Fix v0.1: evaluate every sheet in the latest message by C; lock non-price terms after the
   first offer. Sim regression 85.8 unchanged. Next: index claims for price_increase cases.
+
+## 2026-10-10 — Pre-meeting package fixes (candidate, before hosted test)
+
+- Hypothesis: accepting actual final sheets avoids preventable walkaways; calculating
+  opening packages at our bid and offering cost-bounded alternatives improves tradeoffs.
+- Fixes: no counter to final_offer; validate every standing sheet; remove preview-induced
+  lock; counter from supplier package; allow up to three independently valid trade packages;
+  prefer less strict PPM when modeled quality cost ties; supplier/part-specific should-cost
+  upper confidence bound in closing costs, with buyer financing rate as a stated proxy.
+- Tests: 41 pass; Ruff passes. Regression fixtures are public Tacto practice case inputs.
+- Planned experiment: one run each of P04, P08, P10, P11, P18, five practice sessions.
+  Results to be recorded after completion; no improvement or final-readiness claim yet.
