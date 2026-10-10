@@ -703,6 +703,7 @@ class PackageAgent:
             self.final_counters[supplier_id] = count
         move = self._propose(case, threads, supplier_id)
         move = self._bundle_volume(case, threads, supplier_id, move)
+        move = self._committee_escalation(case, threads, supplier_id, move)
         if self.policy and self.policy.rfq_rival_offer and case["type"] == "rfq":
             before = move
             move = self._rival_offer_claim(case, threads, supplier_id, move)
@@ -800,6 +801,37 @@ class PackageAgent:
         refs = list(dict.fromkeys([*(msg.get("refs") or []), *ids]))
         self._log(case, "bundle_volume", sid, new=p["new"], total=p["total"], refs=ids)
         return {**move, "message": {**msg, "body": body, **({"refs": refs} if refs else {})}}
+
+    def _committee_escalation(self, case, threads, sid, move):
+        """Opt-in: ask a holding supplier with a pricing committee to escalate our proposal."""
+        if not (self.policy and case["type"] in self.policy.committee_escalation_types):
+            return move
+        msg = move.get("message")
+        if not msg or msg.get("action") or not msg.get("term_sheets"):
+            return move
+        events = threads[sid]
+        if value_swap.holds(case, events) < 1:
+            return move
+        from . import bundle_volume, escalation
+        from .context import DATA_ERRORS
+        from .dossiers import build_one, load_package
+
+        try:
+            threshold = bundle_volume.committee_threshold(build_one(load_package(), sid))
+        except DATA_ERRORS:
+            threshold = None
+        standing_ = eligible_sheets(case, events)
+        ours = (msg["term_sheets"][0].get("terms") or {}).get("unit_price")
+        if threshold is None or not standing_ or ours is None:
+            return move
+        text = escalation.request(threshold, standing_[0][2]["unit_price"], ours)
+        if not text:
+            return move
+        body = msg["body"] + "\n\n" + text
+        assert not leaks(body), "body would leak internal information"
+        self._log(case, "committee_escalation", sid, threshold=threshold,
+                  standing=standing_[0][2]["unit_price"], ours=ours)
+        return {**move, "message": {**msg, "body": body}}
 
     def _propose(self, case, threads, supplier_id):
         """The proposal for one thread given the whole snapshot: an offer move

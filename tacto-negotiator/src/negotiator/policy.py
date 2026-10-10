@@ -63,6 +63,9 @@ class PolicyConfig:
     # Fraction of the way from our last price to the value-equivalent ceiling the swap offers
     # (1.0 = the ceiling itself); later rounds concede toward it on the swapped package.
     value_swap_split: float = 1.0
+    # Case types whose offers, once a supplier with a pricing committee (its own dossier note) holds
+    # its standing price, ask it to put the proposal to that committee when our ask is beyond its band.
+    committee_escalation_types: tuple[str, ...] = ()
 
     @classmethod
     def load(cls, path):
@@ -89,6 +92,7 @@ class PolicyConfig:
             "bundle_volume_types",
             "bundle_commitment_types",
             "value_swap_types",
+            "committee_escalation_types",
         ):
             v = d.get(k, [])
             if not isinstance(v, list) or any(not isinstance(x, str) or x not in TYPES for x in v):
