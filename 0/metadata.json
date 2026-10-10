@@ -1,0 +1,37 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4KD39MY95N9DZQYQ6TWVXYQ",
+  "session_id": "01a126ce-67c4-76e3-a362-23f6c3193130",
+  "strategy": "manual-commit",
+  "created_at": "2026-10-10T17:17:16.689318462Z",
+  "branch": "codex-main-branch-remediation-2026-10-10",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "tacto-negotiator/src/negotiator/agent.py"
+  ],
+  "agent": "Codex",
+  "model": "gpt-6-luna",
+  "turn_id": "21f2c525397a",
+  "checkpoint_transcript_start": 278,
+  "transcript_lines_at_start": 278,
+  "compact_transcript_start": 50,
+  "token_usage": {
+    "input_tokens": 5325,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 379904,
+    "output_tokens": 1089,
+    "api_call_count": 4
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-10-10T17:17:16.668530102Z",
+    "agent_lines": 12,
+    "agent_removed": 12,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 12,
+    "total_lines_changed": 24,
+    "agent_percentage": 100,
+    "metric_version": 2
+  }
+}
