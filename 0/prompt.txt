@@ -1,0 +1,311 @@
+<uploaded_documents>
+The following documents have been saved to your filesystem. You can read them using your file-reading tool or other tools:
+- /Users/sametdegirmenci/.cursor/projects/Users-sametdegirmenci-Downloads-ysamet/attachments/ebcf0827-a7d5-48cb-a3cb-2f2e0a3ce377/BMW_Hackathon_Briefing_Short.pdf
+</uploaded_documents>
+<timestamp>Saturday, Oct 10, 2026, 11:15 AM (UTC+2)</timestamp>
+
+Ignore the workspace yet. Please analyse all the challenges, and find the most important technologies through web-search etc. for all the different challenges (e.g. using Jev for the Atira challenge or open-source models). We're in a hackathon and want to win since the overall prize money is 11500€. So please go through all of this. Here are all the challenges:
+Negotiation ArenaApplyLiveResultsDiscord
+EHL Grand Finale 2026 · Garching       
+Tacto Negotiation Arena
+Your agent. Our suppliers. Real money.
+Build an AI buyer agent that negotiates with our supplier bots for industrial parts. Practice all         weekend; on Sunday the Live Final ranks every team against suppliers nobody has met.
+Apply for your key       
+One key per team: apply here, then show your match code at the Tacto desk.
+SUPPLIERYOUR AGENTDEAL            
+Links
+- Brief and starter kit         The rules, the data and a Python kit: your first agent on the board in 15 minutes.         github.com/tacto-ai/negotiation-arena-kit
+- API docs         Every endpoint with examples: sessions, offers, e-mails, claims.brief/api.md
+- Practice build page         Who is practising, the best score per practice supplier, highlights.arena.tacto.ai/live
+- Live Final results         Sunday's standings, wave by wave. Click a team for its cases.arena.tacto.ai/results
+- Discord         Questions to the Tacto team, announcements.discord.gg/hPwFfbWRV
+The weekend at a glance
+1. Sat 12:00-13:00Challenge deep dive         Data, API and kit with the Tacto team. Ground floor, room on the signs.
+2. Sun 08:00New market data         A second release of news and supplier letters. Your agent should read it.
+3. Sun 12:00Freeze and Live Final         Code freeze, then five waves of 8 minutes. Your agent plays alone.
+4. Sun 13:00PitchesThe top 10 pitch to the Tacto jury.
+Sunday, from 12:00
+The one rule that matters
+During the Live Final your agent must not read /v1/events, /screen,       /leaderboard or /results. They are for people: watch them, your agent plays on its own.
+Tacto · EHL Grand Finale 2026
+EHL Challenge
+Start
+Challenge
+Leaderboard
+Sign in→
+
+An Atira agent hackathon · industrial sales
+Can your agent win a tender?
+
+Build an AI agent that works through the software a sales engineer uses every day: a tender portal, a supplier portal, an ERP and a webmail inbox. It clicks through them like a person would, collects the facts and submits a priced bid. Every submission runs in a sandbox and lands on a live leaderboard. At the end, the winners are picked on performance on data nobody has seen first, then on the public leaderboard, then on the elegance of the system.
+
+Websites
+    4
+Test run time limit
+    2 hours
+Scored run time limit
+    20 minutes
+Leaderboard
+    Public dataset
+
+Get started→
+The challenge→
+
+Live · updated 09:12:45 UTC
+Teams
+1
+Submissions
+0
+Running now
+0
+Best quality
+–
+Leaderboard
+Public dataset
+
+Eligible first, then quality, then cost × time.
+Full leaderboard →
+#	Team	Quality	Cost	Time	Subm.	Trend
+
+No team has a scored submission yet. Test runs don't appear here.
+From RFQ to bid
+
+Your agent reads a public tender, finds the current specification, checks prices and stock in the ERP, looks up the approved discount in the sales inbox and submits one signed bid.
+The challenge →
+TENDER PORTAL SUPPLIER PORTAL ERP WEBMAIL ONE BID
+
+    01 · tender-portal
+    Open site ↗
+    Tender portalVergabeportal
+
+    The public tender, its bill of quantities, the bidder Q&A that changes quantities, and the bid configurator.
+
+    Cookie wall, flaky error pages, documents behind an expression of interest, iframes and ZIP files, a deadline in another timezone.
+    02 · customer-portal
+    Open site ↗
+    Supplier portalLieferantenportal
+
+    The buyer's technical specification and its revisions.
+
+    Opens the oldest revision first, nested document viewers, paged requirement tables.
+    03 · erp
+    Open site ↗
+    ERP
+
+    Your company's materials, stock, lead times and price conditions with validity periods and quantity scales.
+
+    SAP-style transaction codes, an F4 search popup, status codes, a short session timeout.
+    04 · mail
+    Open site ↗
+    WebmailWerkpost
+
+    Your sales inbox, with the sales director's discount approval and the signing TAN.
+
+    Look-alike approvals for other tenders, superseded approvals, an archive folder, paging.
+
+Test runs, scouting and the leaderboard all use these websites with public data. The final run uses a private dataset: the same jobs, bid rules and answer format, on different websites with other content and data. Scout them yourself →
+How it works
+Getting started →
+
+    01
+    Form a team
+
+    Sign in with GitHub, create a team and invite your teammates. Agents and scripts sign in with atira login; each person gets their own token.
+    02
+    Develop locally
+
+    Look around the websites, fork the starter kit and run your agent from your laptop with atira scout --env. These runs aren't scored.
+    03
+    Test in the sandbox
+
+    Upload your package as a test run. Watch its browser live, read its logs, replay its recording.
+    04
+    Submit
+
+    Each submission is checked automatically, then runs once in the sandbox. Its score sets your place on the leaderboard.
+
+Rules at a glance: Fair play
+Unlimited Inference
+
+We host Qwen3.8-Flash-Next and Cloudflare's Clef for this hackathon, free and with no usage cap. On your laptop, atira models proxy gives you a URL and key (setup on your team page). In test and scored runs it's set up for you. Free for you. Each call still adds its simulated price to your run's cost, so the cost ranking stays fair.
+How to call them →
+
+    Qwen3.8-Flash-Next
+
+    #6 on the Artificial Analysis Intelligence Index (open-weight, large models). Multimodal general-purpose LLM. Strong at reasoning, tool calls and reading pages and screenshots, with a 256k context, so it can plan, browse and write the answer.
+
+    Limits
+        No usage cap. Up to 32 calls per team at once, across all its runs; more wait in line.
+    Simulated pricing
+        Input	$0.15 / M tokens
+        Cached input	$0.016 / M tokens
+        Cache writes	Free
+        Output	$0.47 / M tokens
+    Precision
+        NVFP4 (NVIDIA's checkpoint)
+
+    Scales to zero when idle, but warm-up isn't counted toward a submission's time.
+    Cloudflare Clef
+
+    A multimodal decision model. Give it a state and up to 4 screenshots, then ask it questions: choice picks one of your options, noul gives the probability of yes, from 0 to 1, and score rates on a scale you set. See Cloudflare's announcement and the benchmarks. Worth a try for quick, low-stakes decisions, such as which link to open or whether a page is the right document, while the bigger model reads and reasons.
+
+    Limits
+        No usage cap. Up to 16 calls per team at once, across all its runs; more wait in line.
+    Simulated pricing
+        Input	$0.24 / M tokens
+        Output	Not priced
+
+    Scales to zero when idle, but warm-up isn't counted toward a submission's time.
+
+Activity
+
+    08 Oct, 11:09
+    vitor registered 
+
+Atira EHL Challenge
+Getting started
+Challenge
+Leaderboard
+Sign in
+For agents
+
+EHL Challenge
+Start
+Challenge
+Leaderboard
+Sign in→
+
+An Atira agent hackathon · industrial sales
+Can your agent win a tender?
+
+Build an AI agent that works through the software a sales engineer uses every day: a tender portal, a supplier portal, an ERP and a webmail inbox. It clicks through them like a person would, collects the facts and submits a priced bid. Every submission runs in a sandbox and lands on a live leaderboard. At the end, the winners are picked on performance on data nobody has seen first, then on the public leaderboard, then on the elegance of the system.
+
+Websites
+    4
+Test run time limit
+    2 hours
+Scored run time limit
+    20 minutes
+Leaderboard
+    Public dataset
+
+Get started→
+The challenge→
+
+Live · updated 09:12:45 UTC
+Teams
+1
+Submissions
+0
+Running now
+0
+Best quality
+–
+Leaderboard
+Public dataset
+
+Eligible first, then quality, then cost × time.
+Full leaderboard →
+#	Team	Quality	Cost	Time	Subm.	Trend
+
+No team has a scored submission yet. Test runs don't appear here.
+From RFQ to bid
+
+Your agent reads a public tender, finds the current specification, checks prices and stock in the ERP, looks up the approved discount in the sales inbox and submits one signed bid.
+The challenge →
+TENDER PORTAL SUPPLIER PORTAL ERP WEBMAIL ONE BID
+
+    01 · tender-portal
+    Open site ↗
+    Tender portalVergabeportal
+
+    The public tender, its bill of quantities, the bidder Q&A that changes quantities, and the bid configurator.
+
+    Cookie wall, flaky error pages, documents behind an expression of interest, iframes and ZIP files, a deadline in another timezone.
+    02 · customer-portal
+    Open site ↗
+    Supplier portalLieferantenportal
+
+    The buyer's technical specification and its revisions.
+
+    Opens the oldest revision first, nested document viewers, paged requirement tables.
+    03 · erp
+    Open site ↗
+    ERP
+
+    Your company's materials, stock, lead times and price conditions with validity periods and quantity scales.
+
+    SAP-style transaction codes, an F4 search popup, status codes, a short session timeout.
+    04 · mail
+    Open site ↗
+    WebmailWerkpost
+
+    Your sales inbox, with the sales director's discount approval and the signing TAN.
+
+    Look-alike approvals for other tenders, superseded approvals, an archive folder, paging.
+
+Test runs, scouting and the leaderboard all use these websites with public data. The final run uses a private dataset: the same jobs, bid rules and answer format, on different websites with other content and data. Scout them yourself →
+How it works
+Getting started →
+
+    01
+    Form a team
+
+    Sign in with GitHub, create a team and invite your teammates. Agents and scripts sign in with atira login; each person gets their own token.
+    02
+    Develop locally
+
+    Look around the websites, fork the starter kit and run your agent from your laptop with atira scout --env. These runs aren't scored.
+    03
+    Test in the sandbox
+
+    Upload your package as a test run. Watch its browser live, read its logs, replay its recording.
+    04
+    Submit
+
+    Each submission is checked automatically, then runs once in the sandbox. Its score sets your place on the leaderboard.
+
+Rules at a glance: Fair play
+Unlimited Inference
+
+We host Qwen3.8-Flash-Next and Cloudflare's Clef for this hackathon, free and with no usage cap. On your laptop, atira models proxy gives you a URL and key (setup on your team page). In test and scored runs it's set up for you. Free for you. Each call still adds its simulated price to your run's cost, so the cost ranking stays fair.
+How to call them →
+
+    Qwen3.8-Flash-Next
+
+    #6 on the Artificial Analysis Intelligence Index (open-weight, large models). Multimodal general-purpose LLM. Strong at reasoning, tool calls and reading pages and screenshots, with a 256k context, so it can plan, browse and write the answer.
+
+    Limits
+        No usage cap. Up to 32 calls per team at once, across all its runs; more wait in line.
+    Simulated pricing
+        Input	$0.15 / M tokens
+        Cached input	$0.016 / M tokens
+        Cache writes	Free
+        Output	$0.47 / M tokens
+    Precision
+        NVFP4 (NVIDIA's checkpoint)
+
+    Scales to zero when idle, but warm-up isn't counted toward a submission's time.
+    Cloudflare Clef
+
+    A multimodal decision model. Give it a state and up to 4 screenshots, then ask it questions: choice picks one of your options, noul gives the probability of yes, from 0 to 1, and score rates on a scale you set. See Cloudflare's announcement and the benchmarks. Worth a try for quick, low-stakes decisions, such as which link to open or whether a page is the right document, while the bigger model reads and reasons.
+
+    Limits
+        No usage cap. Up to 16 calls per team at once, across all its runs; more wait in line.
+    Simulated pricing
+        Input	$0.24 / M tokens
+        Output	Not priced
+
+    Scales to zero when idle, but warm-up isn't counted toward a submission's time.
+
+Activity
+
+    08 Oct, 11:09
+    vitor registered 
+
+Atira EHL Challenge
+Getting started
+Challenge
+Leaderboard
+Sign in
+For agents
