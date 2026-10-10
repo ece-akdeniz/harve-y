@@ -3,7 +3,7 @@
   "checkpoint_id": "01M4KM5917SHCTMDH9X4CZ14AA",
   "strategy": "manual-commit",
   "branch": "codex/score-push-integrate",
-  "checkpoints_count": 2,
+  "checkpoints_count": 5,
   "files_touched": [
     "tacto-negotiator/configs/score-push.json",
     "tacto-negotiator/src/negotiator/lab/cli.py",
@@ -25,6 +25,13 @@
       "compact_transcript": "/1/transcript.jsonl",
       "content_hash": "/1/content_hash.txt",
       "prompt": ""
+    },
+    {
+      "metadata": "/2/metadata.json",
+      "transcript": "/2/full.jsonl",
+      "compact_transcript": "/2/transcript.jsonl",
+      "content_hash": "/2/content_hash.txt",
+      "prompt": "/2/prompt.txt"
     }
   ],
   "token_usage": {
