@@ -34,9 +34,15 @@ _BUILT: weakref.WeakKeyDictionary = weakref.WeakKeyDictionary()  # package -> bu
 
 def load_package(data_dir=None, release=None) -> DataPackage:
     """The data package plus the Sunday release overlay (`release` or ARENA_RELEASE)."""
-    for c in (data_dir, os.environ.get("ARENA_DATA"), *DATA_CANDIDATES):
-        if c and (Path(c).expanduser() / "facts.json").is_file():
-            return DataPackage(c, release=release)
+    configured = data_dir if data_dir is not None else os.environ.get("ARENA_DATA")
+    if configured is not None:
+        root = Path(configured).expanduser()
+        if not (root / "facts.json").is_file():
+            raise FileNotFoundError(f"configured data package is invalid: {root}")
+        return DataPackage(root, release=release)
+    for candidate in DATA_CANDIDATES:
+        if (Path(candidate).expanduser() / "facts.json").is_file():
+            return DataPackage(candidate, release=release)
     raise FileNotFoundError("data package not found: pass data_dir, set ARENA_DATA or run `uv run arena data`")
 
 
