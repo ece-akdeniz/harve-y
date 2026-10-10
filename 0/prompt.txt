@@ -76,40 +76,6 @@ Push back if any part of this looks wrong.
 
 ---
 
-Hard requirement from the brief (Live Final): each wave has an 8-minute hard cap. Threads still open at the cap end with no deal (wave_cap). Limits per message: 60 seconds, plus supplier replies of up to about 1 minute, and 10 messages per thread.
-
-Before anything is merged:
-1. Add a wall-clock guard. Using state.deadline / runner.py, once the time remaining in the wave falls below a safe margin (about 2 rounds of time), stop extending the negotiation. Accept the best standing offer that is acceptable under our cost check (cheaper than the alternative, all must-haves kept), or converge to the best legal offer.
-2. Log the time used per round and per thread.
-3. Any extra rounds (slower schedule) or LLM calls must fit inside this budget. LLM calls must fall back to the deterministic path after about 8 seconds.
-4. Rehearse the final the way the brief asks: all hosted cases in parallel, timed, with the worst-case thread duration reported.
-
----
-
-New findings from the brief and API docs. Read all of them; you own 3, 5 and the time guard for LLM calls. Don't build 1, 2 or 4: the pacing agent (codex/fresh-pacing) owns those.
-
-1. Back-office record (the pacing agent's). GET /v1/sessions/{sid}/backoffice returns the supplier's internal talk after a case ends. FYI: you may read existing back-office output to see how suppliers react to wording, offline only.
-2. Cost-breakdown request (the pacing agent's). FYI only.
-3. Supplier value model (yours).
-   - beliefs.py is an unimplemented stub (prior and update raise NotImplementedError). It was meant to learn how much each supplier values each field from its answers to our 2–3 term sheets. The brief's tip is to send 2–3 term sheets to see what a supplier values.
-   - Fold this into your option-choice feature: track which sheet the supplier answered and how its counter moved per field, and feed that summary to the LLM when it chooses among code-priced options.
-   - Keep it deterministic where possible.
-4. Citing lower quotes (the pacing agent's). FYI only.
-5. Tone and supplier questions (yours).
-   - The brief says replies are "understood – and have consequences": questions, appreciation and relationship matter, padding does not.
-   - This backs your validated answers to supplier questions. Keep them short and polite, answer the question, and never pad.
-
-Hard requirement (Live Final): every wave has an 8-minute cap. Threads still open at the cap end with no deal.
-- Every LLM call needs a timeout of about 8 s, with a deterministic fallback.
-- Log the latency of each call.
-- Total thinking time per message must stay well under the 60-second limit.
-
----
-
-Briefly inform the user about the task result and perform any follow-up actions (if needed).
-
----
-
 Approved, with these changes:
 1. Don't implement the wave-cap guard (part 5). The pacing agent owns it. Only consume wave_deadline / TurnBudget to skip LLM calls.
 2. Keep the logic in llm_*.py, with minimal call sites in decide_thread/propose(). Expect to rebase on codex/fresh-pacing.
