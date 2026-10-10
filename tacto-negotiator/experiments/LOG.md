@@ -984,6 +984,7 @@ Supplier signals: P18/P08 ask "Which figures is that based on?" and for volume. 
 | fc54cd39 | 056fe5f9aab95c16 | P18 | repeat | **0.4531** | 5.40/db0/90/24 | 0 |
 | e3f1f373 | 7fdf0fcecdbb79be | P08 | same index windows | 0.3606 | 5.52/db0/90/24 | 0 |
 | 16b4c246 | c98e831efffcd084 | P08 | hedge guard (OTD claim + clause variants only) | 0.3274 | 5.55/db0/90/24 | 0 |
+| 84a3e117 | d070fcf2a565de5a | P08 | final guard: hedged → plain path (commit 6f13830) | 0.5930 | 5.31/db0/90/24 | 0 |
 
 - Rival quote: the arena marked it `irrelevant` because it is not a case ref, and the supplier went final earlier.
   Line dropped. `rival_quote_types` stays opt-in, off.
@@ -991,7 +992,8 @@ Supplier signals: P18/P08 ask "Which figures is that based on?" and for volume. 
   final at 5.40 and replicated 2/2, up 0.0335 from .4196 and equal to the arena best. P08 supplier rebutted with its hedge.
   The code now detects a documented hedge (supplier letters or quote remarks: "covered … fixed prices/until") and
   then sends no raw-material evidence and no clause variants (P08 falls back to the main path; offline first
-  move = 5.31/no clause, no claims). The P08 fallback is unscreened.
-- Sessions: 5 practice. Suite 387 passed + known preflight failure; ruff clean.
+  move = 5.31/no clause, no claims). The P08 fallback reproduced baseline .5930 exactly (84a3e117).
+- Sessions: 6 practice (2 other agents' sessions were open during the last start; separate cases). Suite 387 passed + known preflight failure; ruff clean.
 - Merge verdict: merge `configs/raw-material-index-window.json` (adds `raw_material` to `evidence_types`,
-  `index_window_types: ["raw_material"]` on top of p18 clause variants). P18 .4531 (n=2).
+  `index_window_types: ["raw_material"]` on top of p18 clause variants). P18 .4531 (n=2), P08 .5930
+  unchanged (n=1). P10/P11: no executable lever found offline; no sessions.
