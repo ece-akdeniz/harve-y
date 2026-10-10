@@ -1,0 +1,1 @@
+Okay, clear tasks please. Fetch from main, then clean your branch such that only evident helping stuff is inside, then merge this branch into main. And give me a handoff prompt for another agent to iteratively improve where we're at. Thank you.
