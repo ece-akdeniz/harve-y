@@ -201,9 +201,11 @@ class CaseRunner:
                 meta = next((c for c in await self.arena.cases(set_) if c["case_id"] == self.case_id), None)
             if meta:
                 await asyncio.to_thread(self.agent.trades.prepare, meta)
-        if (done := self.journal.finished(self.case_id)) is not None:
-            return done
         session_id = self.journal.session_for(self.case_id)
+        # A journal result is only a local record. Reconcile its session with the server
+        # before treating it as terminal; older versions wrote results after failed closes.
+        if session_id is None and (done := self.journal.finished(self.case_id)) is not None:
+            return done
         if session_id is None:
             pend = [p for p in self.journal.pending(case_id=self.case_id) if p["kind"] == "open"]
             payload = {"case_id": self.case_id}
@@ -530,8 +532,14 @@ class CaseRunner:
                 return
             if not self.st.ended:
                 state = await self.arena.session(self.st.session_id)
-                fallback = {"deal": False, "end_reason": state.get("end_reason")}
-                self._end(state.get("result") or fallback, "close fallback")
+                if state.get("status") == "ended":
+                    self._end(
+                        state.get("result") or {"deal": False, "end_reason": state.get("end_reason")},
+                        "server confirmed after close retries",
+                    )
+                else:
+                    self.closing = False
+                    self._trace("close_unresolved", status=state.get("status"), attempts=MAX_CLOSE_ATTEMPTS)
 
     async def _watchdog(self):
         while not self.st.ended:
@@ -553,7 +561,10 @@ class CaseRunner:
     async def run(self) -> dict:
         early = await self._open()
         if early is not None:
-            return early
+            # Legacy result records are returned only when their session has authoritative
+            # terminal proof. `_resume` sets `st.ended` for an ended server session.
+            if self.st is None or self.st.ended:
+                return early
         if not self.st.ended:
             workers = [asyncio.create_task(self._worker(sid)) for sid in self.st.threads]
             watchdog = asyncio.create_task(self._watchdog())
@@ -567,6 +578,12 @@ class CaseRunner:
         if self.st.ended:
             for p in self.journal.pending(session_id=self.st.session_id):
                 self.journal.outcome(p["move_id"], "abandoned", why="case ended")
+        else:
+            return {
+                "status": "unresolved",
+                "session_id": self.st.session_id,
+                "recovery_required": True,
+            }
         result = dict(self.st.result or {})
         self.journal.result(self.case_id, self.st.session_id, result)
         try:
