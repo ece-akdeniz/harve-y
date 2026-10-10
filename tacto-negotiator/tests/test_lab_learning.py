@@ -178,6 +178,50 @@ def test_learning_candidate_requires_review_before_promotion(tmp_path):
     assert loop.read("recommended", default_suite()["suite_id"])["checkpoint_id"] == "candidate"
 
 
+def test_failed_comparison_marks_registered_proposal_evaluated(tmp_path):
+    path = tmp_path / "lab.db"
+    learning, loop = LearningStore(path), LoopStore(path)
+    base = checkpoint("base")
+    candidate = deepcopy(checkpoint("candidate"))
+    candidate["parent_id"] = "base"
+    candidate["config"]["final_hold_s"] = 20.0
+    loop.write("checkpoint", base)
+    loop.write("checkpoint", candidate)
+    suite = default_suite()
+    loop.write("suite", suite)
+    loop.write("family", {"family_id": "family", "max_sessions": 12})
+    loop.write("seed", {"suite_id": suite["suite_id"], "checkpoint_id": "base", "author": "tester"})
+    proposal = {"proposal_id": "proposal-1", "status": "draft", "config_patch": {"final_hold_s": 20.0}}
+    with learning._connect() as db:
+        db.execute("INSERT INTO learning_proposals VALUES(?,?)", ("proposal-1", json.dumps(proposal)))
+    loop.write("learning-register", {"proposal_id": "proposal-1", "checkpoint_id": "candidate"})
+    campaign = loop.write("campaign", {"campaign_id": "comparison", "family_id": "family",
+                                       "suite_id": suite["suite_id"], "baseline_id": "base",
+                                       "candidate_id": "candidate", "generation": 1, "seed": 1,
+                                       "author": "tester", "hypothesis": "shorter hold"})
+    for attempt in campaign["attempts"]:
+        loop.write("attempt-start", {"attempt_id": attempt["attempt_id"], "worker_id": "laptop",
+                                     "key_id": "shared"})
+        loop.write("attempt-result", {"attempt_id": attempt["attempt_id"],
+                                      "checkpoint_id": attempt["checkpoint_id"],
+                                      "session_id": attempt["attempt_id"], "status": "completed",
+                                      "score": 0.4 if attempt["arm"] == "candidate" else 0.6,
+                                      "timeouts": 0, "result": {"deal": True, "must_haves_ok": True,
+                                                              "ended": True}, "threads": {}, "elapsed_s": 1.0})
+    assert loop.write("complete", {"campaign_id": "comparison"})["status"] == "rejected"
+    assert loop.read("recommended", suite["suite_id"])["checkpoint_id"] == "base"
+    saved = learning.proposals()[0]
+    assert saved["status"] == "evaluated_rejected"
+    assert saved["campaign_id"] == "comparison"
+    assert saved["evaluation_status"] == "rejected"
+    # A campaign completed by an older lab revision can be repaired idempotently.
+    with learning._connect() as db:
+        db.execute("UPDATE learning_proposals SET body=? WHERE proposal_id=?",
+                   (json.dumps({**saved, "status": "registered"}), "proposal-1"))
+    assert loop.write("complete", {"campaign_id": "comparison"})["status"] == "rejected"
+    assert learning.proposals()[0]["status"] == "evaluated_rejected"
+
+
 def test_stale_feedback_cannot_register_a_checkpoint(tmp_path):
     path = tmp_path / "lab.db"
     learning, loop = LearningStore(path), LoopStore(path)

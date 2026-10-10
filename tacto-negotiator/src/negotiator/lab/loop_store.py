@@ -331,6 +331,7 @@ class LoopStore:
             if operation == "complete":
                 campaign = self._get(db, "campaigns", body["campaign_id"])
                 if "completion" in campaign:
+                    self._mark_rejected_proposal(db, campaign, campaign["completion"]["status"])
                     return campaign["completion"]
                 if any(a["status"] in ("pending", "started") for a in campaign["attempts"]):
                     raise Conflict("campaign has unfinished planned attempts")
@@ -373,6 +374,7 @@ class LoopStore:
                         )
                         else "rejected"
                     )
+                self._mark_rejected_proposal(db, campaign, status)
                 completion = dict(campaign_id=campaign["campaign_id"], status=status, evaluation=evaluation)
                 campaign.update(status=status, completion=completion)
                 self._put(db, "campaigns", campaign["campaign_id"], campaign)
@@ -384,6 +386,24 @@ class LoopStore:
                 validate_references(body["evidence"], campaign["attempts"])
                 return self._put(db, "findings", body["finding_id"], body, immutable=True)
         raise ValueError("unknown operation")
+
+    def _mark_rejected_proposal(self, db, campaign, status):
+        if status not in {"rejected", "insufficient_evidence", "baseline_superseded"} or not self._has_table(
+            db, "learning_proposals"
+        ):
+            return
+        row = db.execute(
+            "SELECT proposal_id,body FROM learning_proposals WHERE json_extract(body,'$.checkpoint_id')=?",
+            (campaign["candidate_id"],),
+        ).fetchone()
+        if not row:
+            return
+        proposal = json.loads(row[1])
+        if proposal.get("status") == "registered":
+            proposal.update(status="evaluated_rejected", campaign_id=campaign["campaign_id"],
+                            evaluation_status=status)
+            db.execute("UPDATE learning_proposals SET body=? WHERE proposal_id=?",
+                       (json.dumps(proposal, sort_keys=True), row[0]))
 
     @staticmethod
     def _has_table(db, name):

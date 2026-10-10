@@ -879,3 +879,43 @@ Port validation: full suite **363 passed, one existing preflight failure** descr
 in the preceding entry; the same failure reproduces with the unchanged current
 `origin/main` production modules. All 22 focused delivery/adviser tests pass.
 `ruff check .` passes. No unrelated preflight fix is included.
+
+## 2026-10-10 — Recover serial comparison and test the async feedback proposal
+
+Recovered `ece-payment-response-20261010-01` from its original local state and reserved
+12-session sandbox family. The two prior D01 results were preserved; ten never-started
+cells completed. All original outcomes ended as valid deals with zero timeouts. The
+payment-response candidate scored 91.92 versus 91.92 on D01 and 41.89 versus 46.09
+on D02 (candidate versus baseline, three repeats each). Gain, case-regression and
+repeat-win gates failed. The serial recommendation stayed unchanged. Cited lab finding:
+`ece-payment-response-20261010-01-completed-regression`.
+
+Hypothesis for the next bounded test: raising only the opening anchor from 0.12 to
+0.16 would improve async D01/D02 complete-deal scores without a material case
+regression. The integrated `b66b0b4` source was captured in two published async
+checkpoints with the same source tree, runner and empty data manifest; only `anchor`
+differs. Baseline `0159f25330e9459787096cd3a2a34ccd`, candidate
+`d17c131a44514cc7a3f5924db6665495`. The candidate was registered to the
+feedback proposal `a10d8787f6f066ac49079fa9c856dc279403df6852cf708e3722a85fdbe23128`.
+Suite/family/campaign: `d01-d02-sandbox-async-anchor-20261010`,
+`ece-async-anchor-20261010-01`, `ece-async-anchor-20261010-01`.
+User-approved ceiling: 12 sandbox sessions; zero practice allowance.
+
+All 12 async attempts completed as valid deals with zero timeouts and no model
+fallbacks (model assistance and runtime memory off). D01 candidate mean 87.24
+versus 91.92 baseline (−4.68); D02 candidate mean 52.39 versus 46.09 (+6.30).
+Overall mean gain +0.81, below the required +1.00. Each repeat gained +0.81,
+but the D01 regression exceeded the 2-point gate. Checkpoint, complete-sample,
+must-have, timeout-evidence, timeout-comparison and repeat-win gates passed;
+gain and case-regression gates failed. The lab rejected the candidate and retained
+the async baseline. Mean elapsed attempt time was 8.13 s baseline versus 50.68 s
+candidate; two slow candidate repeats dominated that difference. Provider/model
+cost was zero for this model-off comparison. Cited lab finding:
+`ece-async-anchor-20261010-01-case-tradeoff`.
+
+Decision: do not promote either candidate. The next hypothesis is to inspect the
+D01/D02 reply sequence and test one bounded response-conditioned economic change
+that preserves D01 while targeting D02, under a separately approved held-out budget.
+The proposed 99/100 target is aspirational; these two fixed sandbox cases do not
+establish generalization. Local evidence remains in ignored `experiments/loop/`;
+original hosted outcomes and gates are in the shared lab.
