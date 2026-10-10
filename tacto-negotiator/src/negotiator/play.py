@@ -129,6 +129,15 @@ def play_case(table, case_id, agent, deadline=None):
         if (took := time.monotonic() - t0) > MOVE_LIMIT_S * 0.75:
             log.warning("decision took %.1fs - the limit is %ss per message", took, MOVE_LIMIT_S)
         sid, msg = decision["supplier_id"], decision["message"]
+        from .guards import check as validate_outgoing
+
+        validate_outgoing(
+            case,
+            sid,
+            msg,
+            threads,
+            {"estimates": agent_estimates(agent, case)},
+        )
         try:
             if msg.get("action"):
                 log.info("%s %s", sid, msg["action"])

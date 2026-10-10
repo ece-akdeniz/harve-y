@@ -353,6 +353,13 @@ class CaseRunner:
                     self.agent.trades.deadlines[sid] = time.time() + max(0, (t.deadline_utc or 0) - self.clock.time())
                 kind, what = await asyncio.to_thread(propose, self.agent, self.st.case, snap, sid, self._workable())
                 if kind == "send":
+                    from .guards import check as validate_outgoing
+
+                    estimates = self.estimates
+                    if estimates is None:
+                        estimates_for = getattr(self.agent, "estimates_for", None)
+                        estimates = estimates_for(self.st.case) if estimates_for else getattr(self.agent, "estimates", None)
+                    validate_outgoing(self.st.case, sid, what, snap, {"estimates": estimates or {}})
                     events = t.events
                     offer = (latest(events).get("term_sheets") or [{}])[0].get("term_sheet_id")
                     intent = self.journal.intent(
@@ -520,6 +527,9 @@ class CaseRunner:
                         )
                     d = self.close_fn(self.st.case, live, estimates, reason)
                     sid, msg = d["supplier_id"], d["message"]
+                    from .guards import check as validate_outgoing
+
+                    validate_outgoing(self.st.case, sid, msg, live, {"estimates": estimates or {}})
                     intent = self.journal.intent(self.case_id, self.st.session_id, sid, "close", msg, reason=reason)
                 self._trace("close", supplier=sid, action=msg.get("action"), reason=reason)
                 try:
