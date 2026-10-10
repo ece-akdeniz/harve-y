@@ -833,3 +833,23 @@ in the preceding entry; the same failure reproduces with the unchanged current
   4. P18: early equal-cost index_clause deadband variants, adopt supplier-revealed spread. Est.
      +0.03-0.06, weak-medium.
   P11 "faster payment" ask is not executable (payment_days not negotiable). Decision: implement 1-2 first.
+
+## 2026-10-10 — P07/P11/P01 score push (branch codex/score-push-p07p11)
+
+- Code: opt-in `longer_tenor_types` (cost-equal longer `contract_months` tie-break + no free
+  tenor concession) and `standard_payment_types` (adopt quote-standard `payment_days` if legal;
+  protect it in free concessions/package switch). Configs: `p07-longer-tenor`, `p07-standard-payment`,
+  `p01-standard-payment`, `p11-chargeback-zero`. Tests: `tests/test_tenor_payment_policy.py`.
+- Practice runs (configured_agent, 0 timeouts each):
+  - P07 longer-tenor `8daf33e5` / `064283abb3864b33`: 0.7405 (5.42, 90d, 36m; final at r5). Drop
+    (worse than 0.7430; also the rejected 36m-without-gain pattern).
+  - P01 standard-payment `b8875ca5` / `dff8db6b184aa534`: **0.9602** (133.70, 30d, eff 2027-04-01;
+    relationship 9.4k vs ~larger at 90d). Repeat `0171c5d9` / `8ff60c359f65cef7`: **0.9602** identical.
+    Winner (+0.032 vs 0.9279).
+  - P11 chargeback-zero `9cc1cbb5` / `294733b34a3e8667`: 0.7099 (45.50, 300ppm, cb 0) = best. Supplier
+    floor 45.50 at r4; holds through r7, only faster payment (fixed term) moves it. Drop.
+  - P07 standard-payment `b9c3510b` / `511eafb58b9545bf`: 0.7430 (5.38, 60d, 24m) = baseline; flag
+    no-op (no quote standard parsed); supplier declares final at r5. Drop P07.
+- Sessions consumed: 6/12. Verdict: merge `p01-standard-payment` (`standard_payment_types:
+  ["price_increase"]`); note it also affects P02 (owned elsewhere) if adopted globally — scope to
+  P01 owners' review or verify P02 before promoting.
