@@ -1204,8 +1204,8 @@ Runner `async`, launched under nohup so the process survives the shell.
 
 ## 2026-10-10 22:35 — Score-push integration: final combined config, ten-case confirmation (MEASURED HOSTED PRACTICE)
 
-- Branch `codex/score-push-integrate`, runtime commit `ed1474c` (clean). Merged current `origin/main`
-  (`b66b0b4`), `origin/codex/score-push-p18p08`, `origin/codex/score-push-p05` and the confirmed P05
+- Branch `codex/score-push-integrate`, runtime commit `ed1474c` (clean). Merged `origin/main` at
+  `d73f6af` (main has since moved to `b7a0646`; not merged, to keep the confirmed provenance), `origin/codex/score-push-p18p08`, `origin/codex/score-push-p05` and the confirmed P05
   rival-history commit `5dc584b`; ported only `standard_payment_types` from `score-push-p07p11`
   (no P07 deep anchor, no P03 cost target, no longer-tenor).
 - Config `configs/score-push.json` (factory kwargs `configs/score-push-run.json`: `estimates={}`,
