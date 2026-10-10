@@ -75,7 +75,7 @@ def _secrets(value):
 
 def resolve_config(config):
     allowed = set(DEFAULTS) | {'meso', 'claims', 'estimates', 'policy', 'model_assist',
-                               'model_provider', 'model_name', 'memory'}
+                               'model_provider', 'model_name', 'memory', 'multi_supplier_anchor'}
     if not isinstance(config, dict) or set(config) - allowed:
         raise ValueError('unknown checkpoint config option')
     out = {**DEFAULTS, 'meso': os.environ.get('NEGOTIATOR_MESO') == '1',
@@ -90,6 +90,11 @@ def resolve_config(config):
         raise ValueError('invalid rounds')
     if any(out[key] > 1 for key in ('anchor', 'close_gap', 'p_walk')):
         raise ValueError('invalid fraction')
+    scoped_anchor = out.get('multi_supplier_anchor')
+    if scoped_anchor is not None and (type(scoped_anchor) not in (int, float)
+                                      or not math.isfinite(scoped_anchor)
+                                      or not 0 <= scoped_anchor < 1):
+        raise ValueError('invalid multi-supplier anchor')
     if any(type(out[key]) is not bool for key in ('meso', 'claims', 'model_assist')):
         raise ValueError('unresolved feature switch')
     if out['model_assist']:
@@ -152,7 +157,8 @@ def validate_checkpoint(body):
     if body['agent'] != 'package' or body['runner'] not in {'serial', 'async'}:
         raise ValueError('unsupported agent or runner')
     if (not isinstance(body['config'], dict)
-            or set(body['config']) - {'policy', 'model_assist', 'model_provider', 'model_name', 'memory'}
+            or set(body['config']) - {'policy', 'model_assist', 'model_provider', 'model_name',
+                                     'memory', 'multi_supplier_anchor'}
             != set(DEFAULTS) | {'meso', 'claims', 'estimates'}):
         raise ValueError('config must be resolved')
     resolve_config(body['config'])

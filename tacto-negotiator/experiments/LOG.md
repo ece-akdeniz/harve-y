@@ -919,3 +919,20 @@ that preserves D01 while targeting D02, under a separately approved held-out bud
 The proposed 99/100 target is aspirational; these two fixed sandbox cases do not
 establish generalization. Local evidence remains in ignored `experiments/loop/`;
 original hosted outcomes and gates are in the shared lab.
+
+## 2026-10-10 — Conditional multi-supplier anchor candidate (pending sandbox comparison)
+
+Hypothesis: the prior 0.16 anchor's D02 gain and D01 loss may reflect supplier-roster
+context. Apply 0.16 only when the case contains multiple suppliers; retain the 0.12
+opening in single-supplier cases. This is inferred from repeatedly used D01/D02 cases,
+not a held-out finding. The case roster is fixed at session start, so active-thread
+changes cannot alter the anchor mid-negotiation. Deterministic closing and term checks
+remain unchanged. Model assistance and supplier memory stay off.
+
+Candidate source branch: `codex/competitive-anchor-candidate`. The paired async
+sandbox comparison has a separate user-approved maximum of 12 sessions and zero
+practice allowance. Checkpoint IDs, per-case scores, gates, failures, and disposition
+will be recorded after the lab campaign. Local tests: targeted agent/checkpoint tests
+passed; full suite had 598 passes and one timing-sensitive model-assisted simulator
+timeout assertion, which passed immediately in isolation; Ruff passed. No sandbox
+sessions were started for this entry yet.
