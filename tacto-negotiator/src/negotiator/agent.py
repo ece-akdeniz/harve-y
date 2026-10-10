@@ -958,7 +958,11 @@ class PackageAgent:
         ):
             self.value_swapped.add(sid)
             standing_terms = eligible_sheets(case, events, sup)[0][2]
-            swapped, trace = value_swap.swap(case, events, standing_terms, std, sup)
+            ours_ = self._ours(events)
+            swapped, trace = value_swap.swap(
+                case, events, standing_terms, std, sup,
+                last_price=ours_[-1].get("unit_price") if ours_ else None, split=self.policy.value_swap_split,
+            )
             self._log(case, "value_swap", sid, **trace)
             if swapped:
                 return self._offer(case, sid, complete_offer(case, swapped), std, sup, c_alt,

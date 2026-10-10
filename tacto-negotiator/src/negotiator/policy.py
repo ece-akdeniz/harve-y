@@ -60,6 +60,9 @@ class PolicyConfig:
     value_swap_types: tuple[str, ...] = ()
     # Consecutive unchanged standing replies (same package and price) that trigger the swap.
     value_swap_holds: int = 1
+    # Fraction of the way from our last price to the value-equivalent ceiling the swap offers
+    # (1.0 = the ceiling itself); later rounds concede toward it on the swapped package.
+    value_swap_split: float = 1.0
 
     @classmethod
     def load(cls, path):
@@ -128,6 +131,10 @@ class PolicyConfig:
         holds = d.get("value_swap_holds", 1)
         if type(holds) is not int or not 1 <= holds <= 3:
             raise ValueError("value_swap_holds must be 1, 2 or 3")
+        split = d.get("value_swap_split", 1.0)
+        if isinstance(split, bool) or not isinstance(split, (int, float)) or not 0 < split <= 1:
+            raise ValueError("value_swap_split must be a number in (0, 1]")
+        d["value_swap_split"] = float(split)
         return cls(**d)
 
     def record(self):

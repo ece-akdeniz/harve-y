@@ -51,6 +51,16 @@ def test_swap_prices_chargeback_at_quoted_ppm(p11):
     assert total_cost(p11, terms) < total_cost(p11, HELD)
 
 
+def test_swap_split_concedes_part_way_and_takes_cheapest_ppm(p11):
+    held = {**HELD, "ppm_commitment": 1500, "unit_price": 48.5}
+    terms, trace = value_swap.swap(p11, thread(held, held), held, {}, last_price=44.22, split=0.5)
+    assert trace["ceiling"] == pytest.approx(45.30)
+    assert terms["unit_price"] == pytest.approx(44.76)
+    assert terms["ppm_commitment"] == 300 and terms["chargeback_eur_per_complaint"] == 0
+    full, _ = value_swap.swap(p11, thread(held, held), held, {}, last_price=44.22)
+    assert full["unit_price"] == pytest.approx(45.30)
+
+
 def test_swap_skips_without_lower_chargeback(p11):
     base = {**HELD, "chargeback_eur_per_complaint": 0.0}
     terms, trace = value_swap.swap(p11, thread(base, base), base, {})
@@ -65,6 +75,9 @@ def test_value_swap_policy_validation():
         PolicyConfig.from_dict({"version": 1, "value_swap_types": ["nope"]})
     with pytest.raises(ValueError):
         PolicyConfig.from_dict({"version": 1, "value_swap_holds": 0})
+    assert PolicyConfig.from_dict({"version": 1, "value_swap_split": 0.5}).value_swap_split == 0.5
+    with pytest.raises(ValueError):
+        PolicyConfig.from_dict({"version": 1, "value_swap_split": 0})
 
 
 def _agent(**kw):
