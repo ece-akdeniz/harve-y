@@ -837,3 +837,15 @@ Added `negotiator lab run --runner async` for exactly one explicitly budgeted at
 Local regressions use real `PackageAgent` plus the simulator with a 66-second rival response and check timely final acceptance under both soft single-send and concurrent execution. A separate regression exposed acceptance of a stale cheaper offer from an in-flight supplier after the close wait; closing now excludes those sheets. When every reply is pending at the wave-cap close, the coordinator waits within its reserved closing window for a current sheet. Both model adviser attributes are rejected before async session creation.
 
 Validation: `uv run --locked pytest -q` passed 461 tests with the main public package data; `uv run --locked ruff check .` passed. Budget used: zero practice and zero sandbox sessions. This is runtime preparation, not a measured score improvement or a promotion; full hosted async RFQ behavior still needs the planned single-session experiment and complete replay review.
+
+## 2026-10-10 — P05 screen 1: non-leading convergence hold (async)
+
+Run `74d3bf74-b5c5-48db-86ce-c109c9bffe0d`, session `a9a16a1231994e51`, commit `8e6a7fa`,
+config `configs/p05-nonleading-hold.json` (cost-neutral-delivery + `rfq_nonleading_hold`),
+`--runner async`. Score **21.28** (worse than 36.04 baseline): accepted sup:70250 EUR 34.00 /
+35 d / 30 d payment, 113 s, zero timeouts. Transcript: sup:70210 led (32.50, then 32.00 in its
+next reply); hold fired correctly on sup:70250 for ~40 s, but the `>20 s own deadline` fallback
+then let 70250's "gap closed" through while 70210's reply was in flight; the coordinator
+excludes in-flight sheets, so the only live sheet was the losing 34.00. Fix (`agent.py`): keep
+holding while the leader is open and has moves left, regardless of the loser's deadline.
+Regression updated. Tests 377 passed + known preflight failure; ruff clean.

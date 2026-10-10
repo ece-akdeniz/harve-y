@@ -55,6 +55,9 @@ def test_p05_losing_rival_gap_closed_does_not_end_case_while_leader_workable():
     guarded = PackageAgent(policy=PolicyConfig(rfq_nonleading_hold=True))
     guarded.trades.deadlines[rival] = time.time() + 60
     assert guarded.propose(case, threads, rival)['hold']
-    # Near the rival's own deadline the legacy close remains available.
+    # Near the rival's own deadline it still holds: closing then would pick the losing sheet.
     guarded.trades.deadlines[rival] = time.time() + 5
-    assert guarded.propose(case, threads, rival).get('close')
+    assert guarded.propose(case, threads, rival)['hold']
+    # Once the leader is no longer workable, the legacy close returns.
+    threads[leader][-1] = msg('final_offer', ('offer:lead-2', threads[leader][-1]['term_sheets'][0]['terms']))
+    assert not guarded.propose(case, threads, rival).get('hold')

@@ -506,9 +506,9 @@ class PackageAgent:
             if self.policy and self.policy.rfq_nonleading_hold and case["type"] == "rfq":
                 best = best_close(case, threads, self.estimates_for(case))
                 if (best and best[1] != sid and latest(threads[best[1]]).get("status") == "open"
-                        and moves_left(case, threads[best[1]]) > 1
-                        and self.trades.deadlines.get(sid, 0) - time.time() > 20):
-                    # A losing rival converging must not end the case while the leader is workable.
+                        and moves_left(case, threads[best[1]]) > 1):
+                    # A losing rival converging must not end the case while the leader is workable;
+                    # letting the loser's window lapse is cheaper than closing on its sheet.
                     self._log(case, "nonleading_convergence", sid, leading_supplier=best[1], leading_cost=best[0])
                     return {"hold": True, "reason": "nonleading supplier converged; leader still workable"}
             return {"close": True, "reason": "gap closed"}
