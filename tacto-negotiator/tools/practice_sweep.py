@@ -14,6 +14,7 @@ from arena_kit.data import DataPackage
 from arena_kit.play import hosted, play
 from sandbox_baseline import RecordedClient
 
+from negotiator import AGENT_NAME, TEAM_NAME
 from negotiator.agent import PackageAgent
 from negotiator.closing import GuardedRemoteTable
 from negotiator.evidence import cost_driver_series
@@ -49,6 +50,7 @@ def main():
     if before.get('practice', {}).get('left', 0) < len(cases):
         raise SystemExit('Not enough quota for a complete sweep')
     metadata = {'commit': subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),
+                'agent': AGENT_NAME, 'team': TEAM_NAME,
                 'policy': 'adaptive-packages-final-offer-close', 'parallel': args.parallel,
                 'quota_before': before.get('practice'), 'cases': cases}
     (root / 'metadata.json').write_text(json.dumps(metadata, indent=2))

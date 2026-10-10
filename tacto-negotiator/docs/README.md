@@ -35,6 +35,9 @@ Hosted timing is measured. Then scale to multiple cases.
 
 ## Document map
 
+- [15 — harve/y integrated design plan](15-harvey-design-plan.md): fresh-data ingestion,
+  deterministic contract economics, and evidence-linked feedback through y/agent lab.
+
 - [00 — Challenge contract](00-challenge.md): official rules, score, limits and schedule.
 - [01 — Research](01-research.md): reproduced findings, estimates and hypotheses.
 - [02 — Architecture](02-architecture.md): ownership, state, deadlines and interfaces.

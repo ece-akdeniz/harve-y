@@ -14,6 +14,7 @@ from arena_kit.client import ArenaClient, ArenaError
 from arena_kit.data import DataPackage
 from arena_kit.play import hosted, play, play_all, play_waves
 
+from . import AGENT_NAME, TEAM_NAME
 from .agent import PackageAgent
 from .closing import GuardedRemoteTable
 from .evidence import cost_driver_series
@@ -28,7 +29,7 @@ def _run_dir() -> Path:
 
 def main(argv=None) -> int:
     load_env()
-    ap = argparse.ArgumentParser(prog="negotiator")
+    ap = argparse.ArgumentParser(prog="negotiator", description=f"{AGENT_NAME} — team {TEAM_NAME}")
     sub = ap.add_subparsers(dest="cmd", required=True)
     sub.add_parser("prep", help="build dossiers and the claim bank from the data package")
     p = sub.add_parser("play", help="play one case")
@@ -55,7 +56,8 @@ def main(argv=None) -> int:
     )
     run_dir = _run_dir()
     tracer = Tracer(run_dir)
-    tracer.log("run", cmd=args.cmd, arena=os.environ.get("ARENA_URL"), agent="PackageAgent-v0")
+    tracer.log("run", cmd=args.cmd, arena=os.environ.get("ARENA_URL"),
+               agent=AGENT_NAME, team=TEAM_NAME, policy="PackageAgent-v0")
     facts, series_by_part, estimates = {}, {}, {}
     if args.data:
         package = DataPackage(args.data)

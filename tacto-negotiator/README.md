@@ -1,6 +1,7 @@
-# tacto-negotiator
+# harve/y
 
-Buyer agent for the Tacto Negotiation Arena, EHL Grand Finale, 10–11 October 2026.
+**harve/y**, the buyer agent from team **y/agent**, competes in the Tacto Negotiation
+Arena, EHL Grand Finale, 10–11 October 2026.
 
 **Status: PackageAgent v0 runs through the official kit.** `play` and `run` dispatch
 negotiations; `prep` and `report` remain placeholders. The custom async runtime, persistent
