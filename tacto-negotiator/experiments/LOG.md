@@ -2,6 +2,72 @@
 
 Format and decision rule: `docs/04-experiments.md`. Newest on top. One entry per change.
 
+## 2026-10-10 — Shared-lab ingestion compatibility hotfix (DEPLOYMENT CHECK)
+
+- Hypothesis: registering a matching supplied package should refresh feedback for versioned runs while skipping historical imports that have no provenance. The first deployed ingest stopped on such an import before refresh; the original runs and recommendation were unchanged.
+- Change: skip a run whose provenance is absent when selecting version-matched refreshes. A regression fixture includes an imported run without provenance alongside a matched tracked run.
+- Validation: nine focused learning tests, 595 full Python tests and Ruff passed. No Arena session or practice quota. The matching supplied package was transferred to the trusted team lab and fingerprint-checked before ingest. A pre-deployment SQLite backup passed integrity check.
+- Decision: deploy the compatibility fix and retry the same data ingest. Do not infer negotiation-score improvement or promote a checkpoint from this operational fix.
+
+## 2026-10-10 — Supplier learning loop, local integration (UNPROMOTED)
+
+- Hypothesis: versioned supplied data and terminal run uploads can refresh separate public-fact and episodic stores, produce cited feedback, and create a reviewable configuration candidate without changing active sessions or the recommended checkpoint.
+- Source: `codex/combined-latest-updates` based on `883a272`; local uncommitted implementation in `src/negotiator/lab/learning.py`, `knowledge.py`, `loop_store.py`, and related API/CLI/tests. Configuration changes are registry-bounded; code-change findings remain engineering work.
+- Evidence: kit-data ingest projected 10,356 public facts; offline replay of saved practice run `385bee17-1dac-45a4-bb88-25477127355a` produced one ready report and no candidate proposal (zero recorded timeouts). The explicit async local simulator rehearsal used 12 sessions, zero timeouts, and completed its temporary comparison; toy scores are not hosted evidence. Focused learning tests, full Python/Node tests, and Ruff are recorded in the development report. No Arena sessions or practice quota consumed; no real provider calls or cost estimate.
+- Decision: retain as a local integration candidate. No shared-lab deployment, recommended-checkpoint promotion, or memory/model policy enablement. Hosted lab feedback/learning endpoints still return 404 on the deployed revision. Next: deploy after team review, verify migration/endpoints, then authorize a budgeted held-out async hosted comparison and inspect every gate.
+
+Follow-up on the same local candidate: the prior practice run's P02, P05, P10 and P18 each
+had a valid deal, zero recorded timeouts, a score below 50/100 and price cost above 75% of
+the recorded deal cost. Objective feedback now cites those four attempts and proposes one
+bounded `anchor=0.16` comparison. This is a price-opening hypothesis, not an identified
+cause or measured improvement. It does not change the recommended checkpoint. Supplier
+memory retrieval now excludes other cases, stale source revisions cannot register or
+promote a proposal, and teammate review must use a different author. The shared lab's
+authenticated feedback/learning routes were rechecked and still returned 404. No additional
+hosted sessions or practice quota were used.
+
+## 2026-10-10 — Combined branch, all hosted practice suppliers (MEASURED HOSTED)
+
+- Hypothesis: the combined package/evidence policy completes every currently hosted practice supplier with valid outcomes and measurable scores. This is one unpaired exploratory sweep, not promotion evidence.
+- Source: `codex/combined-latest-updates` at `883a272`; `configs/candidate.json` passed as `PackageAgent(policy=...)`; pinned kit data `1b5516b`; serial `negotiator lab run`. Model assistance and optional supplier-memory snapshot were off. Run: `experiments/runs/385bee17-1dac-45a4-bb88-25477127355a/run.json` (also uploaded to the team lab).
+- Arena returned 19 practice case IDs, of which exactly ten were marked `hosted: true`: P01–P05, P07–P08, P10–P11, P18. An initial 19-case lab plan was rejected before any session opened (`f1fd4e45-bae7-4fd6-90a9-432e6deab557`); the actual run used a strict ten-session ceiling and one repetition.
+- Scores (/100): P01 92.53, P02 29.47, P03 89.98, P04 86.04, P05 36.04, P07 74.30, P08 59.30, P10 45.32, P11 79.02, P18 45.31. Mean 63.73; sum 637.31. All ten attempts completed with deals, must-haves satisfied, session IDs, no recorded attempt errors and zero recorded timeouts. Practice quota moved from 88 used / 512 left to 98 used / 502 left (limit 600) during this sweep.
+- The initial publisher left a stale `running` lab revision; an idempotent upload of the final saved snapshot was acknowledged and GET verified `completed`. Hosted `/api/feedback/<run-id>` returned 404, so automatic hosted feedback could not be verified. The run file is the primary outcome evidence.
+- Next: inspect low-scoring P02, P05, P10 and P18 against the full saved transcripts, then test a single specific change in a paired, repeated comparison before promotion. This run does not validate async execution, model interpretation, or supplier memory.
+
+## Supplier memory merge and data/feedback separation — local integration, 10 October 2026
+
+- Hypothesis: Barış's cited, immutable supplier memory can coexist with bounded email
+  interpretation and current public-data graph projection, without allowing fresh data
+  to rewrite conversation history or automatically change negotiation policy.
+- Source/config: `codex/combined-latest-updates` merges `origin/codex/supplier-memory`
+  at `975c15e`; immutable memory and model assistance are separate explicit options.
+  Fresh facts are projected only when a versioned public package is supplied.
+- Cases: local synthetic graph, feedback, checkpoint and memory-policy tests. The data
+  projection test changes a supplier scorecard between releases and checks that episodic
+  node IDs remain stable. A terminal lab upload test checks persisted feedback and retained
+  original run data. Validation: 585 Python tests passed, Ruff clean; 21 lab Node
+  checks passed and nine DOM-dependent checks skipped in this local environment.
+- Hosted sessions/quota: 0. Model calls: 0. Scores: unmeasured. Decision: retain as an
+  opt-in integration candidate; no default policy promotion or main deployment.
+
+## Combined latest-updates branch — local integration, 10 October 2026
+
+- Hypothesis: the verified evidence branch can retain its standalone index evidence while
+  adopting the newer async runtime, bounded model interpretation, lab feedback, and
+  `main`'s context/claim checks and measured opt-in policies without breaking contracts.
+- Config/source: `codex/combined-latest-updates`; merged
+  `codex/verified-negotiation-evidence`, `codex/bounded-model-memory`, and `origin/main`
+  at `3653046`. Historical evidence tests expecting acceptance of non-standing sheet IDs
+  were archived in `experiments/legacy-package-regressions.py.txt`; the current hosted
+  standing-only contract is tested by `test_evaluator.py` and `test_runner.py`.
+- Cases: local fixture and simulator tests only. Validation: 419 pytest tests passed,
+  Ruff clean, including local lab HTTP tests. The pinned kit data path was supplied
+  explicitly. No Arena sessions, model-provider calls, or practice quota were used.
+- Result: merge and local regression checks passed. No deal-score estimate or promotion
+  claim; model assistance and package advice remain opt-in. A hosted paired comparison,
+  model latency/cost check, and final-machine rehearsal are still required.
+
 ## Packaged runtime negotiation guidance — local integration, 10 October 2026
 
 - Hypothesis: explicit conditional package wording communicates the exchange more clearly
@@ -996,3 +1062,43 @@ excluded rfq. Not a test of the hypothesis. Next: same config with `rfq` in pack
   .4168 is ~EUR 400 (consistent with 32.00 at 45 d), ~0.0005 on the ten-case mean; not pursued.
   `rfq_final_guard` stays off (serial-only protection; async covers the 65 s rival case).
   Sessions consumed by this P05 work: 4.
+
+## 2026-10-10 — Recover serial comparison and test the async feedback proposal
+
+Recovered `ece-payment-response-20261010-01` from its original local state and reserved
+12-session sandbox family. The two prior D01 results were preserved; ten never-started
+cells completed. All original outcomes ended as valid deals with zero timeouts. The
+payment-response candidate scored 91.92 versus 91.92 on D01 and 41.89 versus 46.09
+on D02 (candidate versus baseline, three repeats each). Gain, case-regression and
+repeat-win gates failed. The serial recommendation stayed unchanged. Cited lab finding:
+`ece-payment-response-20261010-01-completed-regression`.
+
+Hypothesis for the next bounded test: raising only the opening anchor from 0.12 to
+0.16 would improve async D01/D02 complete-deal scores without a material case
+regression. The integrated `b66b0b4` source was captured in two published async
+checkpoints with the same source tree, runner and empty data manifest; only `anchor`
+differs. Baseline `0159f25330e9459787096cd3a2a34ccd`, candidate
+`d17c131a44514cc7a3f5924db6665495`. The candidate was registered to the
+feedback proposal `a10d8787f6f066ac49079fa9c856dc279403df6852cf708e3722a85fdbe23128`.
+Suite/family/campaign: `d01-d02-sandbox-async-anchor-20261010`,
+`ece-async-anchor-20261010-01`, `ece-async-anchor-20261010-01`.
+User-approved ceiling: 12 sandbox sessions; zero practice allowance.
+
+All 12 async attempts completed as valid deals with zero timeouts and no model
+fallbacks (model assistance and runtime memory off). D01 candidate mean 87.24
+versus 91.92 baseline (−4.68); D02 candidate mean 52.39 versus 46.09 (+6.30).
+Overall mean gain +0.81, below the required +1.00. Each repeat gained +0.81,
+but the D01 regression exceeded the 2-point gate. Checkpoint, complete-sample,
+must-have, timeout-evidence, timeout-comparison and repeat-win gates passed;
+gain and case-regression gates failed. The lab rejected the candidate and retained
+the async baseline. Mean elapsed attempt time was 8.13 s baseline versus 50.68 s
+candidate; two slow candidate repeats dominated that difference. Provider/model
+cost was zero for this model-off comparison. Cited lab finding:
+`ece-async-anchor-20261010-01-case-tradeoff`.
+
+Decision: do not promote either candidate. The next hypothesis is to inspect the
+D01/D02 reply sequence and test one bounded response-conditioned economic change
+that preserves D01 while targeting D02, under a separately approved held-out budget.
+The proposed 99/100 target is aspirational; these two fixed sandbox cases do not
+establish generalization. Local evidence remains in ignored `experiments/loop/`;
+original hosted outcomes and gates are in the shared lab.

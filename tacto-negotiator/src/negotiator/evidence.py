@@ -10,10 +10,11 @@ from dataclasses import asdict
 from .claims import MAX_CHECKED, case_facts, claim_keys, index_relevance, pick, verify
 from .context import DATA_ERRORS, build_context, content_hash
 from .dossiers import load_package
+from .replies import evidence_constraints
 
 
 class EvidencePolicy:
-    def __init__(self, package=None, tracer=None, case_types=None):
+    def __init__(self, package=None, tracer=None, case_types=None, interpretation=None):
         self.case_types = set(case_types if case_types is not None else ["price_increase"])
         self.package = package
         self.tracer = tracer
@@ -21,6 +22,7 @@ class EvidencePolicy:
         self.contexts = {}
         self.context_keys = {}
         self.reserved = {}
+        self.interpretation = interpretation
 
     def eligible(self, case, move):
         message = move.get("message") or {}
@@ -56,6 +58,10 @@ class EvidencePolicy:
         if not self.eligible(case, move):
             return move
         cid = case["case_id"]
+        events = threads.get(sid, [])
+        latest_supplier = next((m for m in reversed(events) if m.get("from") != "buyer"), {})
+        if latest_supplier.get("status") in {"final_offer", "agreed", "walked_away", "no_bid"}:
+            return move
         try:
             context = context if context is not None else self.context_for(case)
             if (
@@ -72,7 +78,18 @@ class EvidencePolicy:
                         used.update(event.get("refs") or [])
             existing = set(message.get("refs") or [])
             used.update(existing)
-            bank = [c for c in context.candidates if verify(c, facts, self.package, case)]
+            interpretation, skip_kinds = evidence_constraints(
+                events, self.interpretation.get(sid) if self.interpretation else None
+            )
+            skip_kinds.update(lesson["avoid_claim_kind"] for lesson in interpretation.get("lessons", [])
+                              if lesson.get("avoid_claim_kind"))
+            rejected = set(interpretation["rejected_refs"])
+            if self.tracer:
+                self.tracer.log("reply_interpretation", case=cid, supplier=sid, **interpretation)
+            if "*" in rejected:
+                return move
+            bank = [c for c in context.candidates if verify(c, facts, self.package, case)
+                    and not rejected.intersection(c.ids) and c.kind not in skip_kinds]
             priorities, reasons = index_relevance(bank, case, self.package, threads.get(sid, []))
             # Each pre-existing ref conservatively consumes one checked-claim slot.
             budget = max(0, MAX_CHECKED - len(existing))

@@ -89,9 +89,17 @@ def series_values(facts: dict) -> dict[str, dict[str, float]]:
     """{series: {month: value}} from `idx:SERIES@YYYY-MM` facts."""
     out: dict[str, dict[str, float]] = {}
     for ref, f in facts.items():
-        if ref.startswith("idx:") and "@" in ref and isinstance(f, dict) and f.get("value") is not None:
+        if ref.startswith("idx:") and "@" in ref and isinstance(f, dict):
             sid, month = ref[4:].split("@", 1)
-            out.setdefault(f.get("series") or sid, {})[f.get("month") or month] = float(f["value"])
+            try:
+                _months(month)
+                value = f.get("value")
+                if (f.get("series", sid) != sid or f.get("month", month) != month or isinstance(value, bool)
+                        or not isinstance(value, (int, float)) or not math.isfinite(value) or value <= 0):
+                    continue
+            except ValueError:
+                continue
+            out.setdefault(sid, {})[month] = float(value)
     return out
 
 

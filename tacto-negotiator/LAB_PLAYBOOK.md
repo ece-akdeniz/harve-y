@@ -6,7 +6,7 @@ recover from regressions. Passing sandbox gates is not proof of final negotiatio
 
 ## Connection and scope
 
-- Dashboard: <https://1r9qgc6b-8000.euw.devtunnels.ms/>
+- Dashboard: <https://66-201-6-11.sslip.io/> (verify availability before publishing).
 - Tooling branch: `main` in `ece-akdeniz/harve-y`.
 - Default suite: `d01-d02-sandbox-serial-v1` — D01/D02, serial, three repeats per arm,
   twelve sessions for one baseline/candidate comparison.
@@ -38,7 +38,7 @@ Create or update the ignored `.env`, preserving existing settings:
 ```dotenv
 ARENA_URL=https://arena.tacto.ai
 ARENA_API_KEY=<team arena key supplied privately>
-LAB_URL=https://1r9qgc6b-8000.euw.devtunnels.ms/
+LAB_URL=https://66-201-6-11.sslip.io/
 LAB_UPLOAD_TOKEN=<upload token supplied privately>
 LAB_AUTHOR=<your unique teammate name>
 ```
@@ -195,3 +195,92 @@ Never reset or overwrite someone's active checkout to restore a version.
 > all experiments. Use only my approved session budget; ask if none is supplied. Publish the
 > candidate to our authorized remote, inspect the full comparison, record a cited finding and
 > experiment-log entry, and report the verdict. Do not use practice quota or merge into main.
+
+## Experimental supplier memory: reserve discovery and holdout first
+
+Supplier memory is opt-in on `codex/supplier-memory`. Reserve discovery cases and suppliers,
+then separate held-out cases and suppliers **before** building or tuning a candidate. D01/D02
+alone cannot support a generalization claim. Graph history is descriptive; a general lesson
+requires consistent explicit statements from at least three suppliers across two cases.
+Conflicts and insufficient evidence abstain. That minimum is a safeguard, not proof that unseen
+or final suppliers are statistically covered. Repeated human tuning on the holdout remains a
+limitation. A sandbox comparison cannot establish final readiness.
+
+Read the authenticated graph and its citations without opening sessions:
+
+```bash
+uv run --locked negotiator lab memory graph --format markdown
+uv run --locked negotiator lab memory snapshots
+uv run --locked negotiator lab memory build --arena-url ARENA_ORIGIN --environment sandbox \
+  --source-case DISCOVERY_CASE_1 --source-case DISCOVERY_CASE_2
+uv run --locked negotiator lab memory show SNAPSHOT_ID
+```
+
+Markdown gives a concise cited preview of up to 25 observations; JSON retains the complete graph.
+A graph read projects original owned ended lab transcripts. Snapshot creation freezes the full
+selected discovery cohort, including suppliers with no positive statement. Supplier prose never
+becomes a runtime instruction. The dashboard Memory view shows supplier history, general
+candidate lessons, conflicts and frozen snapshots; observations filter by supplier, case and
+environment and page in groups of 25. The dashboard cookie can inspect; creating snapshots needs
+the CLI upload token.
+
+Capture a baseline **without memory** and a candidate with `--memory SNAPSHOT_ID` from the same
+clean feature-capable source/config/data and runner. An old pre-feature recommended source is
+not a comparable baseline. Commit the feature-capable source locally before capturing both
+arms. Preserve the baseline's non-memory settings; conflicting `config.memory` is refused.
+
+```bash
+uv run --locked negotiator lab checkpoint create --repo FEATURE_PROJECT \
+  --config @BASELINE_CONFIG_JSON --description "Feature-capable baseline without memory"
+uv run --locked negotiator lab checkpoint create --repo FEATURE_PROJECT \
+  --config @BASELINE_CONFIG_JSON --memory SNAPSHOT_ID --parent BASELINE_ID \
+  --description "Same inputs with frozen discovery memory"
+```
+
+Publish only to the authorized remote when authorized. Register an explicitly chosen held-out
+suite with at least two case-disjoint cases, three supplier-disjoint suppliers and three repeats,
+and seed that suite with the memory-free baseline. Recommendation pointers are **per suite**:
+use `--suite HOLDOUT_SUITE_ID` in the campaign and `recommended show HOLDOUT_SUITE_ID` afterward.
+Promoting this suite does not change `d01-d02-sandbox-serial-v1`. Budget its exact plan separately:
+`2 × case count × repeat count` sessions, with any practice allowance/reserve explicitly approved.
+Inspect every ordinary gate plus `memory_comparability` and `memory_holdout`, original transcripts
+and contamination reasons. Missing original evidence or overlap rejects promotion. See the
+[full memory workflow](docs/13-agent-experiment-loop.md#experimental-memory-discovery-and-held-out-evaluation)
+for suite registration, comparison and rollback examples. Restore a previous checkpoint locally
+to roll code/config/memory back together; shared recommendation rollback requires the user's request.
+
+### Explicit ordinary play/run handoff
+
+The lab recommendation does not automatically configure ordinary `play/run`. After reading the
+recommendation for the **chosen held-out suite**, inspect its checkpoint and export only its
+`config.memory` object as a local JSON file:
+
+```bash
+uv run --locked negotiator lab recommended show HOLDOUT_SUITE_ID
+uv run --locked negotiator lab checkpoint show RECOMMENDED_CHECKPOINT_ID > recommended-checkpoint.json
+python - <<'PY'
+import json
+from pathlib import Path
+checkpoint = json.loads(Path('recommended-checkpoint.json').read_text())
+Path('memory-snapshot.json').write_text(json.dumps(checkpoint['config']['memory']))
+PY
+```
+
+If the recommended checkpoint has no memory, launch without `--memory-file`; do not invent an
+empty snapshot. Reproduce the chosen source, runner, public data and supported runtime settings.
+The examples below demonstrate explicit loading; they are **not authorization to open sessions**,
+and final execution belongs to the separately authorized final runbook/window:
+
+```bash
+uv run --locked negotiator play CASE_ID --memory-file memory-snapshot.json
+uv run --locked negotiator run --set sandbox --runner async --memory-file memory-snapshot.json
+uv run --locked negotiator run --set final --runner serial --memory-file memory-snapshot.json
+```
+
+The CLI validates one at-most-64-KiB saved snapshot at launch and pins the complete object in the
+run trace and every agent factory. It never queries the lab or refreshes the file mid-run. Final
+and unseen suppliers use the same identity-free rules under current constraints. The standard
+PackageAgent initial-package path supports these hints; the separate experimental TradePolicy
+path selected by `--policy-config` currently abstains from memory selection. Do not assume every
+policy configuration uses memory. Unsupported conditions leave the existing behavior in place.
+Ordinary `play/run` remain untracked by the lab, even with memory; use tracked campaigns for evidence.

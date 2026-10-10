@@ -107,8 +107,8 @@ def test_case_only_and_malformed_data_fallback():
     assert any(g["area"] == "package" for g in build_context(case, None).gaps)
     package.facts["idx:ENERGY@2025-08"]["value"] = 0
     context = build_context(case, package)
-    assert not context.candidates
-    assert any(g["area"] == "claims" and g["reason"] == "ZeroDivisionError" for g in context.gaps)
+    assert not any(c.kind == "index_yoy" for c in context.candidates)
+    assert any(c.kind == "scorecard_otd" for c in context.candidates)
 
 
 def test_p01_context_preserves_existing_bank_and_selection():

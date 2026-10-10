@@ -272,6 +272,17 @@ async def test_rate_limiter_has_no_bursts():
     assert min(gaps) >= 0.018
 
 
+async def test_rate_limiter_spaces_concurrent_callers():
+    lim, stamps = RateLimiter(50.0), []
+
+    async def call():
+        await lim.wait()
+        stamps.append(time.monotonic())
+
+    await asyncio.gather(*(call() for _ in range(8)))
+    assert min(b - a for a, b in zip(stamps, stamps[1:], strict=False)) >= 0.018
+
+
 async def test_client_retries_reuse_move_id_and_422_is_final():
     seen = []
 

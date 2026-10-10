@@ -96,6 +96,20 @@ def parser():
     history.add_argument("--environment", choices=["practice", "sandbox"], required=True)
     history.add_argument("--root", type=Path, default=Path("experiments/runs"))
     history.add_argument("--author")
+    feedback = sub.add_parser("feedback", help="audit saved runs without changing scores or policies")
+    feedback.add_argument("--db", type=Path, default=Path("experiments/dashboard.sqlite3"))
+    feedback.add_argument("--out", type=Path, default=Path("experiments/feedback.json"))
+    feedback.add_argument("--data", type=Path, help="public package for recomputing historical offer validity")
+    graph = sub.add_parser("graph-export", help="export a versioned evaluation graph for the shared lab")
+    graph.add_argument("--db", type=Path, default=Path("experiments/dashboard.sqlite3"))
+    graph.add_argument("--out", type=Path, default=Path("experiments/knowledge-graph.json"))
+    graph.add_argument("--data", type=Path, help="optional current public data package for a separate graph layer")
+    learn = sub.add_parser("learn", help="update or retry lab-owned learning projections")
+    learn.add_argument("action", choices=("ingest", "retry", "status"))
+    learn.add_argument("--db", type=Path, default=Path("experiments/dashboard.sqlite3"))
+    learn.add_argument("--data", type=Path)
+    learn.add_argument("--release", type=Path)
+    learn.add_argument("--run-id")
     history.add_argument(
         "--db",
         type=Path,
@@ -130,14 +144,82 @@ def main(argv=None) -> int:
         "campaign",
         "evidence",
         "findings",
+        "memory",
+        "learning",
         "restore",
     ):
         from .loop_cli import main as loop_main
 
         return loop_main(argv)
+    load_env()
+    args = parse_args(argv)
     try:
-        load_env()
-        args = parse_args(argv)
+        if args.command == "learn":
+            from .learning import LearningStore
+
+            if args.action == "ingest":
+                if not args.data:
+                    raise ValueError("learn ingest requires --data")
+                result = LearningStore(args.db).ingest(args.data, args.release)
+            elif args.action == "retry":
+                if not args.run_id:
+                    raise ValueError("learn retry requires --run-id")
+                report = LearningStore(args.db).review(args.run_id)
+                result = {"run_id": report["run_id"], "state": "ready"}
+            else:
+                if not args.run_id:
+                    raise ValueError("learn status requires --run-id")
+                result = LearningStore(args.db).status(args.run_id)
+            print(json.dumps(result))
+            return 0
+        if args.command == "graph-export":
+            from .feedback import review_store
+            from .knowledge import export_graph
+
+            if not args.db.is_file():
+                raise ValueError("graph database does not exist")
+            store = Store(args.db)
+            package = None
+            if args.data:
+                from negotiator.dossiers import load_package
+
+                package = load_package(args.data)
+            try:
+                graph = export_graph(store.all(), review_store(store)["reports"], package=package)
+            finally:
+                if package and package.db:
+                    package.db.close()
+            args.out.parent.mkdir(parents=True, exist_ok=True)
+            args.out.write_text(json.dumps(graph, indent=2, allow_nan=False))
+            print(json.dumps({"nodes": len(graph["nodes"]), "edges": len(graph["edges"]),
+                              "graph": str(args.out), "live_lessons_enabled": False}))
+            return 0
+        if args.command == "feedback":
+            from .feedback import review_store
+            from .runner import fingerprint_data
+
+            if not args.db.is_file():
+                raise ValueError("feedback database does not exist")
+            package = None
+            if args.data:
+                from negotiator.dossiers import load_package
+
+                package = load_package(args.data)
+            try:
+                data_hash = fingerprint_data(package.root) if package else None
+                if package and package.release:
+                    import hashlib
+
+                    overlay_hash = fingerprint_data(package.release)
+                    data_hash = hashlib.sha256(f"base:{data_hash}\nrelease:{overlay_hash}".encode()).hexdigest()
+                result = review_store(Store(args.db), package.cases if package else None, data_hash, package)
+            finally:
+                if package and package.db:
+                    package.db.close()
+            args.out.parent.mkdir(parents=True, exist_ok=True)
+            args.out.write_text(json.dumps(result, indent=2))
+            print(json.dumps({"runs": result["runs"], "report": str(args.out), "policy_changed": False}))
+            return 0
         if args.command == "init":
             _init(args.secrets_file)
             return 0

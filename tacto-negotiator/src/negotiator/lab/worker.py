@@ -10,7 +10,8 @@ import time
 from pathlib import Path
 from types import SimpleNamespace
 
-from .checkpoints import _data_hash
+from ..memory import normalize_arena
+from .checkpoints import _data_hash, _git, requires_data, resolve_config
 from .runner import RecordingTable, collect_session, sanitize
 
 
@@ -50,19 +51,35 @@ def prepare_environment(manifest, data_paths, root):
         os.environ["NEGOTIATOR_ESTIMATES"] = "1"
     if config.get("claims"):
         os.environ["NEGOTIATOR_CLAIMS"] = "1"
-    if (config.get("estimates") is None or config.get("claims")) and "base" not in data:
+    if requires_data(config) and "base" not in data:
         raise ValueError("enabled dossier features require base data")
 
 
 def validate_runtime(request):
     manifest = request["checkpoint"]
+    # Validate structured lessons before any agent or session can execute.
+    resolve_config(manifest['config'])
+    memory = manifest['config'].get('memory')
+    if memory is not None:
+        if (normalize_arena(request.get('arena_url')) != memory['arena_url']
+                or request.get('environment') != memory['environment']):
+            raise ValueError('memory scope differs from campaign arena/environment')
     project = Path(request["project"]).resolve()
     if Path(__file__).resolve().parents[2] != project / "src":
         raise ValueError("worker source does not match checkpoint project")
     if hashlib.sha256((project / "uv.lock").read_bytes()).hexdigest() != manifest["lock_sha256"]:
         raise ValueError("checkpoint lock mismatch")
+    if 'source_tree' in manifest:
+        if _git(project, 'rev-parse', manifest['commit'] + '^{tree}') != manifest['source_tree']:
+            raise ValueError('checkpoint source tree mismatch')
+        from .checkpoints import _verify_checkout_bytes
+
+        repo = Path(_git(project, 'rev-parse', '--show-toplevel'))
+        _verify_checkout_bytes(repo, manifest['commit'])
+        for path, sha in manifest['submodules'].items():
+            _verify_checkout_bytes(repo / path, sha)
     prepare_environment(manifest, request.get("data_paths", {}), request["attempt_root"])
-    if manifest["config"].get("estimates") is None or manifest["config"].get("claims"):
+    if requires_data(manifest["config"]):
         from negotiator.dossiers import load_package
 
         load_package(os.environ["ARENA_DATA"], os.environ["ARENA_RELEASE"])
@@ -72,6 +89,7 @@ def validate_runtime(request):
 def execute(request):
     from negotiator.agent import PackageAgent
     from negotiator.play import play_case
+    from negotiator.trace import Tracer
 
     manifest = validate_runtime(request)
     root = Path(request["attempt_root"])
@@ -99,8 +117,11 @@ def execute(request):
         body["session_id"] = record.session_id
         durable_json(path, body)
 
+    agent = None
     try:
-        agent = PackageAgent(**manifest["config"])
+        from negotiator.trace import Tracer
+
+        agent = PackageAgent(**manifest["config"], tracer=Tracer(root))
         if manifest["runner"] == "serial":
             result = play_case(RecordingTable(client, record, changed), attempt["case_id"], agent)
         else:
@@ -127,6 +148,8 @@ def execute(request):
         # No retry of an uncertain open. Preserve durable identity and any already journaled session.
         body["status"] = "ambiguous"
     finally:
+        if agent is not None and hasattr(agent, "experiment_metrics"):
+            body["result"]["agent_metrics"] = sanitize(agent.experiment_metrics(), budget=10000)
         body["elapsed_s"] = time.monotonic() - started
         durable_json(path, body)
         if record.session_id:

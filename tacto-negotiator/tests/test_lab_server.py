@@ -91,6 +91,17 @@ def test_api_authentication_and_cookie_is_read_only(dashboard):
     assert client.get("/api/runs").status_code == 401
 
 
+def test_feedback_requires_auth_and_preserves_original_record(dashboard):
+    client, store = dashboard
+    assert client.get("/api/feedback/run-one").status_code == 401
+    client.headers["Authorization"] = "Bearer test-token"
+    client.put("/api/runs/run-one", json=snapshot())
+    before = store.get("run-one")
+    report = client.get("/api/feedback/run-one").json()
+    assert report["run_id"] == "run-one" and report["policy_changed"] is False
+    assert store.get("run-one") == before
+
+
 def test_snapshot_revisions_and_sqlite_persistence(dashboard):
     client, store = dashboard
     client.headers["Authorization"] = "Bearer test-token"
@@ -101,6 +112,9 @@ def test_snapshot_revisions_and_sqlite_persistence(dashboard):
     newer.update(revision=3, status="completed")
     newer["attempts"][0].update(status="completed", score=0.7, result={"deal": True})
     assert client.put("/api/runs/run-one", json=newer).status_code == 200
+    with store._connect() as db:
+        saved = db.execute("SELECT body FROM feedback WHERE run_id='run-one'").fetchone()
+    assert saved is not None and '"policy_changed": false' in saved[0]
     first["revision"] = 2
     assert not client.put("/api/runs/run-one", json=first).json()["accepted"]
     assert Store(store.path).get("run-one")["attempts"][0]["score"] == 0.7
@@ -339,3 +353,25 @@ def test_score_history_requires_login_and_returns_compact_points(dashboard):
     point = response.json()['points'][0]
     assert point['score'] == .75 and point['supplier_id'] == 'sup:A'
     assert 'threads' not in point and 'config' not in point
+
+
+def test_memory_routes_require_auth_cookie_reads_bearer_builds(dashboard):
+    from test_lab_memory import ARENA, add_run
+
+    client, store = dashboard
+    add_run(store.path, 'discovery')
+    body = {'arena_url': ARENA, 'environment': 'sandbox', 'source_cases': ['case:one']}
+    for resource in ('memory', 'memory-snapshots'):
+        assert client.get('/api/loop/' + resource).status_code == 401
+    assert client.post('/api/loop/memory-snapshot', json=body).status_code == 401
+    assert client.post('/api/login', json={'password': 'test-password'}).status_code == 200
+    assert client.get('/api/loop/memory').json()['coverage']['session_count'] == 1
+    assert client.get('/api/loop/memory-snapshots').json() == {'memory-snapshots': []}
+    assert client.post('/api/loop/memory-snapshot', json=body).status_code == 401
+    result = client.post('/api/loop/memory-snapshot', json=body, headers={'Authorization': 'Bearer test-token'})
+    assert result.status_code == 200
+    saved = result.json()
+    assert client.get('/api/loop/memory-snapshots/' + saved['snapshot_id']).json() == saved
+    assert client.get('/memory.js').status_code == 200
+    assert client.post('/api/logout').status_code == 200
+    assert client.get('/api/loop/memory').status_code == 401

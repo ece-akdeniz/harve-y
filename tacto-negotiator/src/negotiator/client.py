@@ -54,13 +54,15 @@ class RateLimiter:
 
     def __init__(self, rate: float = 8.0, clock=time.monotonic):
         self.interval, self.clock, self._next = 1.0 / rate, clock, 0.0
+        self._lock = asyncio.Lock()
 
     async def wait(self) -> None:
-        now = self.clock()
-        slot = max(now, self._next)
-        self._next = slot + self.interval
-        if slot > now:
-            await asyncio.sleep(slot - now)
+        # Reserve the next slot from the actual wake time. A delayed wake followed by an
+        # absolute pre-reserved slot can otherwise create a burst for sequential callers.
+        async with self._lock:
+            while (delay := self._next - self.clock()) > 0:
+                await asyncio.sleep(delay)
+            self._next = self.clock() + self.interval
 
 
 class AsyncArena:

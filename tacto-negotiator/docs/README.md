@@ -74,6 +74,12 @@ Hosted timing is measured. Then scale to multiple cases.
 
 - [17 — Independent inference setup](17-inference-setup.md): local credential placement,
   opt-in Lab probe and later validation commands; setup has not been executed or validated.
+- [18 — Supplier knowledge and memory](18-supplier-knowledge-and-memory.md): current public
+  facts, immutable conversations, feedback boundary and remaining integration work.
+- [19 — Supplier learning loop](19-supplier-learning-loop.md): local data and run triggers,
+  retryable feedback, bounded candidate drafts and reviewed promotion.
+- [20 — Lab deployment handoff](20-lab-deployment-handoff.md): additive migration and
+  endpoint checks for the shared server.
 
 The custom arena runner loads [runtime negotiation guidance](../src/negotiator/AGENTS.md)
 through `guidance.py` on every `negotiator play/run` launch. Its structured settings

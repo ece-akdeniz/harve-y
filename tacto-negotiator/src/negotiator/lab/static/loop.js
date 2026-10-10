@@ -24,6 +24,7 @@ globalThis.LoopDashboard = (() => {
       baseline_superseded: 'The baseline was superseded. Compare this candidate against the new recommendation in a new campaign.',
       insufficient_evidence: 'Evidence is incomplete or invalid. Inspect all attempts and evidence gaps before planning another comparison.',
       rejected: 'The candidate did not pass all promotion gates. Inspect the failed gates and record a finding.',
+      awaiting_review: 'All gates passed. A teammate must review this learning candidate before the recommendation changes.',
       promoted: 'All promotion gates passed. The lab recommendation was updated.',
       running: 'Comparison is running on a teammate’s laptop. Pending and failed attempts remain visible.'
     };

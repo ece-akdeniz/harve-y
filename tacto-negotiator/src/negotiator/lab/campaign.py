@@ -200,7 +200,7 @@ def run_campaign(client, campaign_id, project, root, *, data_paths=None):
         campaign = client.read("campaigns", campaign_id)
         suite = client.read("suites", campaign["suite_id"])
         arena_snapshot(suite)  # Origin and case/environment verification before restored source execution.
-        manifests, projects, paths = prepare_arms(client, campaign, project, directory, data_paths)
+        manifests, projects, paths = prepare_arms(client, campaign, project, directory, data_paths, suite)
         key = os.environ.get("ARENA_API_KEY")
         if not key:
             raise ValueError("ARENA_API_KEY required before campaign execution")
@@ -228,6 +228,7 @@ def run_campaign(client, campaign_id, project, root, *, data_paths=None):
                         directory / "attempts" / hashlib.sha256(attempt["attempt_id"].encode()).hexdigest()
                     ),
                     arena_url=suite["arena_url"],
+                    environment=suite["environment"],
                     data_paths=paths,
                     worker_id=start["worker_id"],
                 )

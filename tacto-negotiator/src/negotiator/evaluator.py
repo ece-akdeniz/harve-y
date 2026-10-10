@@ -9,10 +9,11 @@ estimate, if any, and only a sheet below the alternative's C may be accepted.
 
 import math
 
-from arena_kit.cost import closing_terms, must_haves_ok, total_cost
+from arena_kit.cost import closing_terms, must_haves_ok
 from arena_kit.docs import standard_terms
 from arena_kit.play import ENDED, latest, live_threads
 
+from .economics import InfeasiblePackage, evaluate, price_for_budget
 from .optimizer import alternative_cost
 
 
@@ -44,7 +45,10 @@ def eligible_sheets(case, events, supplier=None, alternatives=False):
             continue
         if not must_haves_ok(case, terms, std):
             continue
-        c = total_cost(case, terms, std, supplier)
+        try:
+            c = evaluate(case, terms, std, supplier)["cost"]
+        except InfeasiblePackage:
+            continue
         if math.isfinite(c):
             out.append((c, sheet_id, terms))
     return sorted(out, key=lambda x: (x[0], x[1]))
@@ -88,17 +92,7 @@ def same_package(case, a, b, standard=None):
 
 def price_for_cost(case, terms, target_c, standard=None, supplier=None, hi=None):
     """Unit price at which `terms` (non-price fields kept) cost `target_c`; C rises with price."""
-    hi = hi or max(1.0, (terms.get("unit_price") or 1.0) * 4)
-    lo = 0.0
-    while total_cost(case, {**terms, "unit_price": hi}, standard, supplier) < target_c and hi < 1e7:
-        hi *= 2
-    for _ in range(60):
-        mid = (lo + hi) / 2
-        if total_cost(case, {**terms, "unit_price": mid}, standard, supplier) < target_c:
-            lo = mid
-        else:
-            hi = mid
-    return lo
+    return price_for_budget(case, terms, target_c, standard, supplier, hi)
 
 
 def revealed_deltas(case, sheets, standard=None):

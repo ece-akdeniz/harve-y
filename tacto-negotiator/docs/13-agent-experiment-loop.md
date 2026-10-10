@@ -165,3 +165,117 @@ Owned-session preflight refuses ten open sessions; uncertainty stays conservativ
 backend shared-key leases do not validate all upstream endpoint limits. Stop on quota/concurrency
 errors and preserve evidence. This workflow was tested with local/fake services; no claim of hosted
 policy validation is made.
+
+## Experimental memory discovery and held-out evaluation
+
+This branch adds cited memory inspection and explicit runtime snapshots. Supplier observation
+history stays separate from general candidate lessons. Only allowlisted higher/lower contract
+length and payment preferences can affect the standard PackageAgent's initial package, and
+only among valid packages of no greater complete buyer cost. Unknown contexts, insufficient
+support and opposing statements abstain. The separate experimental TradePolicy path currently
+does not use memory selection, so `--policy-config` compatibility must not be assumed.
+
+Choose the discovery/holdout split before tuning: held-out cases, suppliers and sessions must be
+disjoint from **both arms' full discovery cohorts**. Require at least two held-out cases and three
+held-out suppliers with complete original owned ended transcripts and known supplier identities.
+D01/D02 alone do not establish generalization, nor does the three-supplier threshold statistically
+cover new suppliers. Adaptive human reuse/tuning of holdouts is not prevented. Keep final suppliers
+and final execution outside development trials; sandbox results cannot prove final readiness.
+
+Inspect existing owned evidence and freeze an explicit arena/environment/discovery-case scope:
+
+```bash
+uv run --locked negotiator lab memory graph --format markdown
+uv run --locked negotiator lab memory build --arena-url https://arena.tacto.ai \
+  --environment sandbox --source-case DISCOVERY_CASE_A --source-case DISCOVERY_CASE_B
+uv run --locked negotiator lab memory show SNAPSHOT_ID
+```
+
+Markdown returns counts, lesson/conflict summaries and up to 25 concise observation citations;
+`--format json` retains the complete graph for agent inspection.
+Snapshot IDs address immutable content, including provenance; duplicate imports do not increase
+support. The full discovery cohort includes non-supporting suppliers/sessions, using the owned
+result roster and selected supplier even when message collection is incomplete. Older ended
+records without an authoritative full roster remain inspectable, including every known supplier,
+but block new snapshot builds for their selected discovery cases. Missing or inconsistent
+identities also block builds; collected message bodies alone cannot prove a complete cohort.
+Existing immutable snapshots are unchanged. Choose a smaller
+scope if the 64-KiB/512-evidence snapshot bound is exceeded. A valid empty-lesson snapshot honestly
+records abstention. The Memory dashboard supplies supplier/case/environment filters, 25-row pages,
+source citation drilldown, supporting diversity, conflicts and frozen cohort details. Its browser
+session is read-only; CLI snapshot builds require bearer authentication. Graph-derived lessons
+and listed snapshots are candidates and carry no score or promotion claim.
+
+Capture both arms from the same clean feature-capable source, runner, lock, non-memory config and
+public-data manifest. Restore/rebase a legacy baseline deliberately so it has the feature; do not
+compare a new-memory candidate against pre-feature source. Use `checkpoint create --memory
+SNAPSHOT_ID` to retrieve the full immutable snapshot into config; a conflicting config object is
+refused. Capture/publish the memory-free baseline and memory candidate using the playbook commands.
+New captures carry a source-tree fingerprint; differing legacy commits cannot prove comparability.
+
+Register a separate immutable held-out suite. This is an example public `holdout-suite.json`, with
+placeholders to replace and the runner/data matching both checkpoint manifests:
+
+```json
+{
+  "suite_id": "MEMORY_HOLDOUT_SUITE_ID",
+  "cases": ["HELDOUT_CASE_A", "HELDOUT_CASE_B"],
+  "repetitions": 3,
+  "runner": "serial",
+  "arena_url": "https://arena.tacto.ai",
+  "environment": "sandbox",
+  "data": {},
+  "max_sessions": 12,
+  "policy": {"version": "v1", "min_gain": 1.0, "max_case_regression": 2.0, "min_win_fraction": 0.6666666666666666}
+}
+```
+
+The suite alone cannot predeclare which suppliers will appear: verify the reserved supplier
+split from current-case knowledge and inspect actual original transcripts; promotion checks the
+actual cohort. No new campaign budget is granted here. Once separately authorized, a two-case,
+three-repeat comparison costs twelve reserved sessions; practice also needs its explicit
+allowance and reserve. Commands below are examples, not actions performed in this branch trial:
+
+```bash
+uv run --locked negotiator lab suite create --body @holdout-suite.json
+uv run --locked negotiator lab recommended seed --suite MEMORY_HOLDOUT_SUITE_ID \
+  --checkpoint FEATURE_BASELINE_ID --request-id UNIQUE_SEED_ID
+uv run --locked negotiator lab family create --family-id MEMORY_FAMILY_ID --max-sessions 12
+uv run --locked negotiator lab campaign run --repo FEATURE_PROJECT --suite MEMORY_HOLDOUT_SUITE_ID \
+  --family MEMORY_FAMILY_ID --candidate MEMORY_CANDIDATE_ID --max-sessions 12 \
+  --campaign-id MEMORY_CAMPAIGN_ID --hypothesis "Frozen diverse preference helps on reserved unseen suppliers"
+uv run --locked negotiator lab campaign compare MEMORY_CAMPAIGN_ID --format markdown
+uv run --locked negotiator lab recommended show MEMORY_HOLDOUT_SUITE_ID
+```
+
+Read `memory_comparability` and `memory_holdout` gate details alongside complete-sample, must-have,
+score/regression/repeat and timeout gates. Missing identities/rosters, recovered-only results,
+discovery overlap or changed code/config/data reject the comparison. Both arms must match snapshot
+origin/environment and have identical supplier cohorts per case/repeat. An initial seed cannot
+recommend nonempty untested memory. Recommendations are per suite; promotion above does not move
+the existing D01/D02 pointer. Inspect that chosen suite's checkpoint before using or exporting it.
+
+Restore for local rollback using `negotiator lab restore PREVIOUS_ID --destination NEW_PATH`;
+source and frozen `config.memory` restore together. If the user requests shared pointer rollback,
+use `negotiator lab recommended restore --suite MEMORY_HOLDOUT_SUITE_ID --checkpoint PREVIOUS_ID
+--request-id UNIQUE_ROLLBACK_ID` and preserve the recorded history. Do not overwrite a teammate's
+checkout or silently change another suite's recommendation.
+
+### Ordinary runner handoff, including final
+
+Ordinary `play/run` do not consult recommendations and are not automatically lab-tracked. Follow
+[the playbook export example](../LAB_PLAYBOOK.md#explicit-ordinary-playrun-handoff) to save the chosen
+recommended checkpoint's **complete `config.memory` object** to `memory-snapshot.json`; neither a
+checkpoint envelope, graph response nor snapshot-list envelope is a memory file. Then explicitly
+pass `--memory-file memory-snapshot.json` to `negotiator play CASE_ID` or `negotiator run --set
+sandbox|practice|final`, with the chosen serial/async runner. These are syntax examples; final
+sessions must follow the separately authorized final runbook and are not run for development.
+
+Launch validates the bounded saved snapshot once before any session dispatch, detaches it for
+individual PackageAgents and records the full frozen content in `run_config`/`trace.jsonl`.
+Changes to the file during a run do not refresh it; no lab API is read during negotiation.
+Identity-free lesson matching handles final/unseen suppliers through supported current fields;
+it does not reproduce historical supplier offers, promises, raw text, claims or closing authority.
+Launching without a memory file retains the existing behavior and trace shape. No hosted score
+gain or generalization has been measured for this branch; keep it experimental until a separately
+budgeted, disjoint campaign actually passes all gates.

@@ -1300,3 +1300,16 @@ th[aria-sort="ascending"], th[aria-sort="descending"] { color: #165b47; }
 .history-attempts summary { cursor: pointer; color: #235a43; font-size: 13px; padding: 12px 0; }
 .history-attempts .table-shell { max-height: 360px; overflow: auto; }
 @media (max-width: 600px) { .history-card { padding: 16px; } .history-stats { grid-template-columns: repeat(2,1fr); } .page-buttons { width: 100%; justify-content: space-between; } }
+
+.memory-heading { margin-top: 28px; }
+.memory-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 14px; margin: 16px 0; }
+.memory-card { padding: 20px; min-width: 0; }
+.memory-card h4 { margin: 0 0 10px; }
+.memory-card p { overflow-wrap: anywhere; }
+.memory-card details { margin-top: 12px; }
+.memory-card summary { cursor: pointer; color: var(--muted); }
+.memory-support { font-weight: 600; }
+.memory-conflict { border-left: 3px solid #bc7622; }
+.memory-citation { font-size: 12px; line-height: 1.6; }
+.memory-filters { display: flex; flex-wrap: wrap; align-items: end; gap: 14px; padding: 18px; }
+.memory-filters label { display: grid; gap: 6px; flex: 1; min-width: 160px; }

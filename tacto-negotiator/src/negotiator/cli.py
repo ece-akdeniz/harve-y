@@ -14,6 +14,7 @@ from arena_kit.client import ArenaClient, ArenaError
 from arena_kit.play import RemoteTable, hosted
 
 from .guidance import RuntimeGuidance
+from .memory import MAX_MEMORY_BYTES, validate_memory
 from .play import play_all, play_case, play_waves, run_config
 from .runner import run_async, runtime_config
 from .trace import Tracer
@@ -48,7 +49,9 @@ def main(argv=None) -> int:
     r.add_argument("-v", "--verbose", action="store_true")
     for sp in (p, r):
         sp.add_argument("--policy-config", help="versioned JSON experiment policy")
+        sp.add_argument("--memory-file", type=Path, help="saved immutable memory snapshot JSON (at most 64 KiB)")
         sp.add_argument("--runner", choices=["serial", "async"], default="serial")
+        sp.add_argument("--model-assist", action="store_true", help="bounded supplier-email model interpretation")
     rep = sub.add_parser("report", help="summarise a run directory")
     rep.add_argument("run_dir")
     rep.add_argument("--json", action="store_true")
@@ -69,18 +72,39 @@ def main(argv=None) -> int:
     )
     run_dir = _run_dir()
     tracer = Tracer(run_dir)
-    client = ArenaClient()
 
     from .policy import PolicyConfig
 
     try:
+        memory = None
+        if args.memory_file:
+            with args.memory_file.open("rb") as source:
+                raw = source.read(MAX_MEMORY_BYTES + 1)
+            if len(raw) > MAX_MEMORY_BYTES:
+                raise ValueError("memory snapshot file too large")
+            memory = validate_memory(json.loads(raw))
         guidance = RuntimeGuidance.load()
         policy = PolicyConfig.load(args.policy_config) if args.policy_config else None
     except (OSError, ValueError, TypeError) as exc:
         ap.error(str(exc))
+    if args.model_assist:
+        provider = os.environ.get("LLM_PROVIDER", "anthropic")
+        key_name = "ANTHROPIC_API_KEY" if provider == "anthropic" else "LLM_API_KEY"
+        if provider not in {"anthropic", "openai"} or not os.environ.get("LLM_MODEL") or not os.environ.get(key_name):
+            ap.error("--model-assist requires a supported LLM_PROVIDER, LLM_MODEL and provider API key")
+
+    client = ArenaClient()
 
     def new_agent():
-        return guidance.new_agent(tracer=tracer, policy=policy)
+        agent = guidance.new_agent(tracer=tracer, policy=policy, memory=memory)
+        if args.model_assist:
+            from .model_assist import ModelAssist
+
+            agent.model_assist = ModelAssist(
+                memory_path=os.environ.get("NEGOTIATOR_APPROVED_MEMORY"),
+                data_sha256=os.environ.get("NEGOTIATOR_DATA_SHA256"),
+            )
+        return agent
 
     if args.runner == "async":
         cfg = {**run_config(new_agent(), runner="async"), **runtime_config(getattr(args, "parallel", 1))}

@@ -19,8 +19,10 @@ from arena_kit.data import DataPackage
 
 from negotiator import traits as traits_mod
 
+from .ingestion import VersionedPackage
+
 DATA_CANDIDATES = ("data/package", "/tmp/nak/data")
-SKIP_SUBJECTS = {"Holiday shutdown", "New contact person", "ISO 9001 certificate", "Packaging",
+SKIP_SUBJECTS = {"Holiday shutdown", "ISO 9001 certificate", "Packaging",
                  "Trade fair invitation"}
 
 # company.md: full cost relative to the German base for German-base should-cost rows.
@@ -34,9 +36,10 @@ _BUILT: weakref.WeakKeyDictionary = weakref.WeakKeyDictionary()  # package -> bu
 
 def load_package(data_dir=None, release=None) -> DataPackage:
     """The data package plus the Sunday release overlay (`release` or ARENA_RELEASE)."""
-    for c in (data_dir, os.environ.get("ARENA_DATA"), *DATA_CANDIDATES):
+    explicit = data_dir or os.environ.get("ARENA_DATA")
+    for c in ([explicit] if explicit else DATA_CANDIDATES):
         if c and (Path(c).expanduser() / "facts.json").is_file():
-            return DataPackage(c, release=release)
+            return VersionedPackage(c, release=release or os.environ.get("ARENA_RELEASE"))
     raise FileNotFoundError("data package not found: pass data_dir, set ARENA_DATA or run `uv run arena data`")
 
 
@@ -87,7 +90,8 @@ def build(package) -> dict[str, Dossier]:
         intel = (q("SELECT * FROM supplier_intel WHERE supplier_id = ?", (sid,)) or [{}])[0]
         sc = (q("SELECT * FROM scorecards WHERE supplier_id = ? ORDER BY quarter DESC LIMIT 1", (sid,)) or [{}])[0]
         late = q("SELECT round(AVG(julianday(paid_date) - julianday(due_date)), 1) d FROM invoices "
-                 "WHERE supplier_id = ? AND paid_date IS NOT NULL", (sid,))[0]["d"]
+                 "WHERE supplier_id = ? AND paid_date IS NOT NULL", (sid,))
+        late = late[0].get("d") if late else None
         hist = q("SELECT date, part_id, type, asked_pct, settled_pct, note FROM negotiation_history "
                  "WHERE supplier_id = ? ORDER BY date", (sid,), limit=10_000)
         notes = [n for ref, f in sorted(by_sup_docs.get(sid, []), key=lambda x: x[1].get("date") or "")
@@ -106,15 +110,16 @@ def for_case(dossiers: dict[str, Dossier], case: dict) -> dict[str, Dossier]:
     """Dossiers for the case's suppliers; hidden cases may add facts via `case['facts']`."""
     out = {}
     for sid in case.get("suppliers", []):
-        if sid not in dossiers:
-            continue
-        d = dossiers[sid]
+        d = dossiers.get(sid) or Dossier(sid, sid, "", "")
         extra = [{"id": k, "date": v.get("date"), "topic": v.get("topic"), "headline": v.get("headline")}
                  for k, v in (case.get("facts") or {}).items()
                  if k.startswith("news:") and v.get("supplier") == sid and k not in {n["id"] for n in d.news}]
-        if extra:
-            d = Dossier(**{**d.__dict__, "news": d.news + extra})
-            d.traits = traits_mod.classify(d)
+        notes = [{"id": k, "date": v.get("date"), "kind": v.get("type"),
+                  "subject": v.get("title"), "text": v.get("body") or v.get("text") or ""}
+                 for k, v in (case.get("facts") or {}).items()
+                 if k.startswith("doc:") and v.get("supplier") == sid]
+        d = Dossier(**{**d.__dict__, "news": d.news + extra, "notes": d.notes + notes})
+        d.traits = traits_mod.classify(d)
         out[sid] = d
     return out
 
@@ -207,6 +212,13 @@ def build_one(package, supplier_id: str) -> Dossier | None:
         return full[supplier_id]
     rows = package.query("SELECT * FROM suppliers WHERE id = ?", (supplier_id,)) if package.db else []
     if not rows:
-        return None
+        d = Dossier(supplier_id, supplier_id, "", "")
+        d.news = [{"id": ref, **(package.lookup(ref) or {})} for ref in package.ids("news:")
+                  if (package.lookup(ref) or {}).get("supplier") == supplier_id]
+        d.notes = [n for ref in package.ids("doc:")
+                   if (f := package.lookup(ref) or {}).get("supplier") == supplier_id
+                   if (n := _note(package, ref, f))]
+        d.traits = traits_mod.classify(d)
+        return d
     s = rows[0]
     return Dossier(supplier_id, s["name"], s["country"], s["category"], master=s)

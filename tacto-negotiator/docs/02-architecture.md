@@ -2,6 +2,9 @@
 
 Target design. Track implementation in [10](10-implementation-checklist.md).
 
+The [10 October integrated design plan](15-harvey-design-plan.md) updates the delivery order
+using both experiment logs and Barış's y/agent lab. Its additions remain proposals.
+
 ## Data flow
 
 ```text

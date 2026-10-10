@@ -25,6 +25,8 @@ from .evaluator import (
     supplier_for,
 )
 from .guards import leaks
+from .memory import validate_memory
+from .memory_policy import prefer_package
 from .optimizer import alternative_cost, best_terms
 
 log = logging.getLogger("negotiator")
@@ -90,14 +92,24 @@ class PackageAgent:
         p_walk=0.25,
         claims=None,
         policy=None,
+        model_assist=False,
+        model_provider=None,
+        model_name=None,
+        memory=None,
     ):
         self.anchor, self.rounds, self.close_gap, self.tracer = anchor, rounds, close_gap, tracer
+        if isinstance(policy, dict):
+            from .policy import PolicyConfig
+
+            policy = PolicyConfig.from_dict(policy)
         self.policy = policy
         self.package_advisor, self.package_notes = None, {}
         if policy and policy.package_advice_types:
             from .package_advisor import PackageAdvisor
 
             self.package_advisor = PackageAdvisor()
+        self.memory = validate_memory(memory) if memory is not None else None
+        self._memory_seen = set()
         self.conditional_exchange = False
         self.trades = None
         if policy:
@@ -111,10 +123,22 @@ class PackageAgent:
         if policy is not None:
             self.claims = bool(policy.evidence_types)
         self.evidence = None
+        self.model_context = {}
+        self.model_seen = {}
+        self.model_assist = None
+        if model_assist:
+            from .model_assist import ModelAssist
+
+            self.model_assist = model_assist if isinstance(model_assist, ModelAssist) else ModelAssist(
+                memory_path=os.environ.get("NEGOTIATOR_APPROVED_MEMORY"),
+                data_sha256=os.environ.get("NEGOTIATOR_DATA_SHA256"),
+                provider=model_provider, model=model_name,
+            )
         if self.claims:
             from .evidence import EvidencePolicy
 
-            self.evidence = EvidencePolicy(tracer=tracer, case_types=policy.evidence_types if policy else None)
+            self.evidence = EvidencePolicy(tracer=tracer, case_types=policy.evidence_types if policy else None,
+                                           interpretation=self.model_context)
         self.prev = {}  # supplier -> non-price terms of our last offer
         self.final_counters = {}  # supplier -> counters sent to its final offers (at most one)
         self.beat_asked = {}  # rival supplier -> final-offer sheet id we asked it to beat
@@ -123,6 +147,35 @@ class PackageAgent:
             estimates = {}  # dossier estimates are opt-in until calibrated (docs: experiments/LOG.md)
         self._estimates, self._est_case, self._est_cache = estimates, None, {}
         self._target_cache = {}
+
+    def prepare_email(self, case, threads, sid):
+        """Read each supplier message once; the async runner calls this outside its lock."""
+        if self.model_assist is None:
+            return
+        events = threads.get(sid, [])
+        latest_supplier = next(((i, e) for i, e in reversed(list(enumerate(events)))
+                                if e.get("from") != "buyer"), None)
+        if latest_supplier is None:
+            return
+        from .ingestion import fingerprint
+
+        token = (latest_supplier[0], fingerprint(latest_supplier[1]))
+        if self.model_seen.get(sid) == token:
+            return
+        try:
+            result = self.model_assist.read(case, events, sid)
+        except Exception:
+            from .replies import interpret
+
+            result = {**interpret(events), "terms": [], "questions": [], "lessons": [], "source": "rules"}
+        self.model_context[sid] = result
+        self.model_seen[sid] = token
+        self._log(case, "model_interpretation", sid, interpretation=result)
+
+    def experiment_metrics(self):
+        return {"model": self.model_assist.metrics() if self.model_assist is not None else
+                {"calls": 0, "fallbacks": 0, "latency_s": [], "input_tokens": 0, "output_tokens": 0},
+                "memory_snapshot_id": self.memory["snapshot_id"] if self.memory else None}
 
     # -- estimates ----------------------------------------------------------------------------
     def estimates_for(self, case):
@@ -187,6 +240,21 @@ class PackageAgent:
             )
         elif self.conditional_exchange and any(k != "unit_price" for k in terms):
             body += " The proposed non-price terms are conditional on the proposed unit price as one package."
+        context = self.model_context.get(sid, {})
+        signals = [x for x in context.get("signals", [])
+                   if x.get("message_index") == self.model_seen.get(sid, (-1,))[0]]
+        latest_signal = next(
+            (x for x in reversed(signals) if x.get("kind") in
+             {"payment_trade", "quality_objection", "delivery_constraint", "capacity_constraint"}),
+            None,
+        )
+        if latest_signal:
+            body += {
+                "payment_trade": " We can consider payment terms as part of the full package.",
+                "quality_objection": " We can discuss the quality requirements as part of this package.",
+                "delivery_constraint": " Please clarify which delivery requirement is difficult to meet.",
+                "capacity_constraint": " Please clarify the capacity you can commit to.",
+            }[latest_signal["kind"]]
         if any(v.get("index_clause") != terms.get("index_clause") for v in variants):
             body += " Alternatively, please consider the attached packages; each is a separate proposal."
         assert not leaks(body), "body would leak internal information"
@@ -293,7 +361,14 @@ class PackageAgent:
             if on_prev and min(on_prev) > ref_c + 1e-6:
                 n = nonprice(case, complete_offer(case, closing_terms(case, ref_terms, std)))
                 self._log(case, "package_switch", sid, prev=prev, new=n, c_prev=min(on_prev), c_new=ref_c)
-        return self._free_concessions(case, n, ref_terms, std, sup) if eligible else n
+        n = self._free_concessions(case, n, ref_terms, std, sup) if eligible else n
+        identity = (case['case_id'], sid)
+        if prev is None and not self._ours(events) and identity not in self._memory_seen:
+            self._memory_seen.add(identity)
+            n, trace = prefer_package(case, n, ref_terms['unit_price'], std, sup, memory=self.memory)
+            if trace:
+                self._log(case, 'memory_package', sid, **trace)
+        return n
 
     def _free_concessions(self, case, n, theirs, std, sup):
         price = theirs["unit_price"]
@@ -467,6 +542,8 @@ class PackageAgent:
         return self._close(case, threads, reason)
 
     def propose(self, case, threads, supplier_id):
+        if supplier_id not in self.model_seen:
+            self.prepare_email(case, threads, supplier_id)
         if self.policy:
             ours = self._ours(threads[supplier_id])
             if ours:
@@ -683,7 +760,12 @@ class PackageAgent:
         if self.trades and case["type"] in self.policy.package_types:
             terms, trade_reason = self.trades.switch(case, sid, events, terms, std, sup)
             why = trade_reason or why
-        variants = self._payment_variants(case, terms, cands[0][2], std, sup) if self.meso else []
+        payment_requested = any(
+            signal.get("kind") == "payment_trade"
+            and signal.get("message_index") == self.model_seen.get(sid, (-1,))[0]
+            for signal in self.model_context.get(sid, {}).get("signals", [])
+        )
+        variants = self._payment_variants(case, terms, cands[0][2], std, sup) if self.meso or payment_requested else []
         if not variants and cap_c is None:
             variants = self._clause_variants(case, events, terms, std, sup)
             if variants:

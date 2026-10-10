@@ -351,6 +351,8 @@ def test_subprocess_runs_restored_source_not_mutable_receiver(tmp_path, monkeypa
 from pathlib import Path
 request=json.load(sys.stdin)
 if '--preflight' in sys.argv:
+ assert request['arena_url'] == 'http://localhost'
+ assert request['environment'] == 'simulator'
  print('{}')
 else:
  body={'final':True,'attempt_id':request['attempt']['attempt_id'],'checkpoint_id':request['checkpoint']['checkpoint_id'],
@@ -368,7 +370,8 @@ else:
             return checkpoint
 
     manifests, projects, paths = prepare_arms(
-        Client(), {"baseline_id": "cp", "candidate_id": "cp"}, repo, tmp_path / "campaign", {}
+        Client(), {"baseline_id": "cp", "candidate_id": "cp"}, repo, tmp_path / "campaign", {},
+        {"arena_url": "http://localhost", "environment": "simulator"}
     )
     result = launch_worker(
         dict(
@@ -380,6 +383,10 @@ else:
         )
     )
     assert result["result"]["source"] == "checkpoint"
+    checkpoint['source_tree'] = '0' * 40
+    with pytest.raises(ValueError, match='source tree'):
+        prepare_arms(Client(), {"baseline_id": "cp", "candidate_id": "cp"}, repo, tmp_path / "campaign", {},
+                     {"arena_url": "http://localhost", "environment": "simulator"})
 
 
 def test_definite_worker_failure_stops_new_starts_even_when_lease_released(tmp_path, monkeypatch):
