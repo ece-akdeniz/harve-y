@@ -1062,3 +1062,21 @@ spends a claim slot without a matching drop. Stack line: 1 miss; `rfq_data_claim
 
 Differs from screen 11: stack off, i.e. exactly screen 10's `configs/p05-data-claims.json`.
 Purpose: confirm 77.23 (28.50) is not a single-sample draw versus 29.00 in G/E.
+
+## 2026-10-10 — P05 screen 12: replicate F — WIN replicated
+
+Run `5918e884-4983-41ae-b5b3-44c36a7fe366`, session `d48049c4678d0466`: **77.23**, sup:70210
+28.50/35/30, 10.8 s, zero timeouts; transcript identical to screen 10 (OTD → "clarified
+internally … 28.50"; PPI-D351 → "as low as I can go … 28.50 final"). F 2/2.
+
+Decision / merge verdict: merge candidate = `configs/p05-data-claims.json` (async runner;
+hold + rival offer + rival history + undercut re-anchor + `rfq_data_claims`), 77.23 ×2, zero
+timeouts, lead 35 d (≤42), 30 d payment, no 56 d counter, no 14 d / early cash. All new
+flags are opt-in; defaults unchanged. Drop: stack (1 miss), standalone re-anchor (tie, kept only
+as F's carrier). 70210 states 28.50 is its floor; remaining gap to ~.92 (≈EUR 27.1) is not
+reachable by more claims on this path. Next untested lines: 42 d lead time traded for price with
+70210, and the teammate's 24-month commitment (both price-for-term trades, none screened).
+Sessions in this task: 7 (2b8fbe32, 69acb4ae, 2ffdd9c5, a7298b34, 6f46f019, d48049c4 completed;
+09f597f1 expired, launched by a parallel worker in this worktree) plus 1 inherited expired
+(6c3717e8). Shared-team quota also fell from other teams' P05/other runs during this window.
+Validation: `pytest -q` 382 passed, 1 known failure (preflight); ruff clean.
