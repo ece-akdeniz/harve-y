@@ -7,14 +7,28 @@ skipping an unsent claim is preferable to consuming the same fact twice.
 
 from dataclasses import asdict
 
-from .claims import MAX_CHECKED, case_facts, claim_keys, index_relevance, pick, verify
+from arena_kit.cost import total_cost
+
+from .claims import (
+    DEFAULT_DISCLOSURE,
+    MAX_CHECKED,
+    case_facts,
+    claim_keys,
+    index_relevance,
+    pick,
+    public_rival_quotes,
+    verify,
+)
 from .context import DATA_ERRORS, build_context, content_hash
 from .dossiers import load_package
 
 
 class EvidencePolicy:
-    def __init__(self, package=None, tracer=None, case_types=None):
+    def __init__(self, package=None, tracer=None, case_types=None, rival_quote_types=()):
         self.case_types = set(case_types if case_types is not None else ["price_increase"])
+        # Opt-in: disclose a documented, still-valid public rival quote for the case part when its
+        # complete cost (case cost model) beats the supplier's standing sheet.
+        self.rival_quote_types = set(rival_quote_types or ())
         self.package = package
         self.tracer = tracer
         self.banks = {}
@@ -47,6 +61,27 @@ class EvidencePolicy:
                                 context=context.to_dict())
         return self.contexts[cid]
 
+    def cheaper_rivals(self, case, events, sid):
+        """Public rival quotes whose complete buyer cost beats the supplier's standing sheet."""
+        if case.get("type") not in self.rival_quote_types:
+            return []
+        standing = next((e for e in reversed(events) if e.get("from") != "buyer" and e.get("term_sheets")), None)
+        if standing is None:
+            return []
+        c_standing = min(total_cost(case, s.get("terms") or {}) for s in standing["term_sheets"])
+        cited = {r for e in events if e.get("from") == "buyer" for r in e.get("refs") or []}
+        out = []
+        for claim, terms in public_rival_quotes(case, self.package):
+            if claim.supplier_id != sid or set(claim.ids) & cited:
+                continue
+            c_rival = total_cost(case, terms)
+            if c_rival < c_standing:
+                out.append(claim)
+            if self.tracer:
+                self.tracer.log("rival_quote_check", case=case["case_id"], supplier=sid, ids=list(claim.ids),
+                                c_rival=c_rival, c_standing=c_standing, cites=c_rival < c_standing)
+        return out
+
     def fallback(self, case, exc):
         if self.tracer:
             self.tracer.log("evidence_fallback", case=case["case_id"], error_type=type(exc).__name__)
@@ -73,13 +108,18 @@ class EvidencePolicy:
             existing = set(message.get("refs") or [])
             used.update(existing)
             bank = [c for c in context.candidates if verify(c, facts, self.package, case)]
+            disclosures = DEFAULT_DISCLOSURE
+            rivals = self.cheaper_rivals(case, threads.get(sid, []), sid)
+            if rivals:
+                bank = [c for c in bank if c.kind != "rival_quote"] + rivals
+                disclosures = DEFAULT_DISCLOSURE | {"reveals_rival"}
             priorities, reasons = index_relevance(bank, case, self.package, threads.get(sid, []))
             # Each pre-existing ref conservatively consumes one checked-claim slot.
             budget = max(0, MAX_CHECKED - len(existing))
             chosen = pick(
                 bank, used, max_claims=budget, supplier_id=sid,
                 case_type="renewal_trade" if case["type"] == "renewal" else case["type"],
-                index_priorities=priorities,
+                index_priorities=priorities, disclosures=disclosures,
             )
         except DATA_ERRORS as exc:
             self.fallback(case, exc)

@@ -23,6 +23,7 @@ class PolicyConfig:
     cost_target_types: tuple[str, ...] = ()
     cost_target_index_clause: bool = False
     clause_variant_types: tuple[str, ...] = ()
+    rival_quote_types: tuple[str, ...] = ()
 
     @classmethod
     def load(cls, path):
@@ -36,7 +37,7 @@ class PolicyConfig:
         if type(d.get("version")) is not int or d["version"] != 1:
             raise ValueError("policy version must be 1")
         for k in ("package_types", "evidence_types", "package_advice_types", "cost_target_types",
-                  "clause_variant_types"):
+                  "clause_variant_types", "rival_quote_types"):
             v = d.get(k, [])
             if not isinstance(v, list) or any(not isinstance(x, str) or x not in TYPES for x in v):
                 raise ValueError(f"invalid {k}")

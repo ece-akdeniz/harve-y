@@ -359,6 +359,48 @@ def build_bank(case: dict, package=None, verify_claims=True) -> list[Claim]:
     return [c for c in bank if verify(c, facts, package, case)] if verify_claims else bank
 
 
+def public_rival_quotes(case: dict, package=None) -> list[tuple[Claim, dict]]:
+    """Documented quotes for the case part from suppliers outside the case, still valid on the case
+    trigger date, as (claim, buyer terms of the quote). Cost comparison is the caller's job: a
+    rival quote supports the buyer only if its complete cost beats the supplier's standing sheet.
+    Fails closed (empty) without a package, a dated trigger document or a quote validity."""
+    if package is None or getattr(package, "db", None) is None:
+        return []
+    facts = case_facts(case, package)
+    parts, suppliers = set(case.get("parts") or []), set(case.get("suppliers") or [])
+    trigger = facts.get(case.get("trigger_doc") or "") or {}
+    try:
+        as_of = date.fromisoformat(trigger["date"])
+    except (KeyError, TypeError, ValueError):
+        return []
+    out = []
+    for part in sorted(parts):
+        rows = package.query("SELECT id, validity_days FROM quotes WHERE part_id = ?", (part,), limit=10_000)
+        for row in rows:
+            q, f = row["id"], facts.get(row["id"])
+            if not isinstance(f, dict) or f.get("supplier") in suppliers or f.get("unit_price") is None:
+                continue
+            try:
+                quoted = date.fromisoformat(f["date"])
+                valid = int(row["validity_days"])
+            except (KeyError, TypeError, ValueError):
+                continue
+            if not quoted <= as_of or (as_of - quoted).days > valid:
+                continue
+            price = f["unit_price"] / (f.get("price_unit") or 1)
+            for target in sorted(suppliers):
+                claim = Claim(kind="rival_quote", ids=(q,), figure=round(price, 2), unit="EUR", sentence="",
+                              supplier_id=target, part_id=part, disclosure="reveals_rival",
+                              subject=f.get("supplier"), note=f"public rival {f.get('supplier')} quoted {f['date']}")
+                claim = replace(claim, sentence=render(claim, facts))
+                if verify(claim, facts, package, case):
+                    terms = {"unit_price": round(price, 4), "payment_days": f.get("payment_days"),
+                             "lead_time_days": f.get("lead_time_days"), "incoterm": f.get("incoterm"),
+                             "index_clause": None}
+                    out.append((claim, {k: v for k, v in terms.items() if k == "index_clause" or v is not None}))
+    return out
+
+
 def _shift_quarter(quarter: str | None, n: int) -> str:
     if not quarter or "Q" not in quarter:
         return ""
