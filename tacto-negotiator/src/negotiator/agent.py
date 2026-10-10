@@ -154,6 +154,7 @@ class PackageAgent:
         if estimates is None and os.environ.get("NEGOTIATOR_ESTIMATES") != "1":
             estimates = {}  # dossier estimates are opt-in until calibrated (docs: experiments/LOG.md)
         self._estimates, self._est_case, self._est_cache = estimates, None, {}
+        self._target_cache = {}
 
     def prepare_email(self, case, threads, sid):
         """Read each supplier message once; the async runner calls this outside its lock."""
@@ -262,6 +263,8 @@ class PackageAgent:
                 "delivery_constraint": " Please clarify which delivery requirement is difficult to meet.",
                 "capacity_constraint": " Please clarify the capacity you can commit to.",
             }[latest_signal["kind"]]
+        if any(v.get("index_clause") != terms.get("index_clause") for v in variants):
+            body += " Alternatively, please consider the attached packages; each is a separate proposal."
         assert not leaks(body), "body would leak internal information"
         self.prev[sid] = {k: v for k, v in terms.items() if k != "unit_price"}
         c = total_cost(case, terms, std, sup)
@@ -289,6 +292,55 @@ class PackageAgent:
                 out.append(complete_offer(case, v))
         return out
 
+    def _clause_on(self, case):
+        return bool(self.policy and case["type"] in self.policy.clause_variant_types)
+
+    @staticmethod
+    def _clause_probed(events):
+        """True once one of our messages carried sheets that differ in index_clause."""
+        for m in events:
+            if m.get("from") == "buyer" and len(m.get("term_sheets") or []) > 1:
+                if len({repr(s["terms"].get("index_clause")) for s in m["term_sheets"]}) > 1:
+                    return True
+        return False
+
+    def _clause_track(self, case, sid, events, prev, ref_terms):
+        """Locked previous terms, except for the index clause when clause variants are enabled:
+        a mandatory clause (we offered none; every latest supplier sheet carries one) adopts the
+        supplier's clause, and after our deadband probe the cheapest supplier sheet's (by C)
+        clause is adopted. Never insists on no clause."""
+        if not self._clause_on(case) or "index_clause" not in prev:
+            return prev
+        sheets = latest(events).get("term_sheets") or []
+        clause = ref_terms.get("index_clause")
+        if clause is None or clause not in (case.get("term_options") or {}).get("index_clause", []):
+            return prev
+        mandatory = prev["index_clause"] is None and sheets and all(s["terms"].get("index_clause") for s in sheets)
+        if (mandatory or self._clause_probed(events)) and clause != prev["index_clause"]:
+            self._log(case, "clause_track", sid, prev=prev["index_clause"], new=clause, mandatory=bool(mandatory))
+            return {**prev, "index_clause": clause}
+        return prev
+
+    def _clause_variants(self, case, events, terms, std, sup):
+        """Once, after the supplier made the clause mandatory: up to two sheets at our main sheet's
+        C that differ only in deadband (legal options of the same series), so the supplier reveals
+        which deadband it prices cheaper."""
+        clause = terms.get("index_clause")
+        if not self._clause_on(case) or not clause or self._clause_probed(events):
+            return []
+        options = [
+            o for o in (case.get("term_options") or {}).get("index_clause") or []
+            if o and o.get("series") == clause.get("series") and o != clause
+        ]
+        c_main = total_cost(case, terms, std, sup)
+        out = []
+        for o in sorted(options, key=lambda o: -o.get("deadband_pct", 0))[:2]:
+            v = {**terms, "index_clause": o}
+            v["unit_price"] = math.floor(price_for_cost(case, v, c_main, std, sup) * 100) / 100
+            if v["unit_price"] > 0 and must_haves_ok(case, v, std):
+                out.append(complete_offer(case, v))
+        return out
+
     def _key(self, case, threads, sid):
         sheets = eligible_sheets(case, threads[sid], self._sup(case, threads, sid))
         return (len(self._ours(threads[sid])), sheets[0][0] if sheets else math.inf)
@@ -308,7 +360,7 @@ class PackageAgent:
         prev = self.prev.get(sid)
         if self.trades and case["type"] in self.policy.package_types:
             if prev is not None:
-                return prev
+                return self._clause_track(case, sid, events, prev, ref_terms)
             return self.trades.initial(case, sid, ref_terms["unit_price"], self._anchor_for(case), std, sup,
                                        reference=ref_terms)
         if prev is None:
@@ -316,14 +368,26 @@ class PackageAgent:
                 case, ref_terms["unit_price"], std, sup,
                 prefer_longer_lead=bool(self.policy and self.policy.cost_neutral_lead_time),
             ))
+            pay_options = (case.get("term_options") or {}).get("payment_days") or []
+            if (self._standard_payment(case) and "payment_days" in n and std.get("payment_days") in pay_options
+                    and must_haves_ok(case, {**ref_terms, **n, "payment_days": std["payment_days"]}, std)):
+                n["payment_days"] = std["payment_days"]
+            if self.policy and self.policy.rfq_supplier_lead_time and case["type"] == "rfq":
+                n = self._supplier_lead_time(case, sid, events, n, std)
         elif not eligible:
             return prev
         else:
             n = prev
             on_prev = [c for c, _, t in cands if same_package(case, {**prev, "unit_price": 0}, t, std)]
             if on_prev and min(on_prev) > ref_c + 1e-6:
-                n = nonprice(case, complete_offer(case, closing_terms(case, ref_terms, std)))
+                new = nonprice(case, complete_offer(case, closing_terms(case, ref_terms, std)))
+                if (self._standard_payment(case) and "payment_days" in new
+                        and prev.get("payment_days") == std.get("payment_days")):
+                    new["payment_days"] = prev["payment_days"]
+                n = new
                 self._log(case, "package_switch", sid, prev=prev, new=n, c_prev=min(on_prev), c_new=ref_c)
+        if self.policy and self.policy.rfq_supplier_payment and case["type"] == "rfq":
+            n = self._supplier_payment(case, sid, events, n, std)
         n = self._free_concessions(case, n, ref_terms, std, sup) if eligible else n
         identity = (case['case_id'], sid)
         if prev is None and not self._ours(events) and identity not in self._memory_seen:
@@ -332,6 +396,47 @@ class PackageAgent:
             if trace:
                 self._log(case, 'memory_package', sid, **trace)
         return n
+
+    def _standard_payment(self, case):
+        return bool(self.policy and case["type"] in self.policy.standard_payment_types)
+
+    def _supplier_payment(self, case, sid, events, n, std):
+        """Concede payment to the supplier's own stated term (never below 30 days) so that every
+        later round negotiates price only, instead of re-asking a payment term it keeps refusing."""
+        if "payment_days" not in n:
+            return n
+        stated = [s["terms"]["payment_days"] for m in events if m.get("from") != "buyer"
+                  for s in (m.get("term_sheets") or [])[:1] if (s.get("terms") or {}).get("payment_days") is not None]
+        if not stated:
+            return n
+        pay = stated[-1]
+        options = (case.get("term_options") or {}).get("payment_days", [])
+        if pay < 30 or pay >= n["payment_days"] or pay not in options:
+            return n
+        out = {**n, "payment_days": pay}
+        if not must_haves_ok(case, complete_offer(case, {**out, "unit_price": 1.0}), std):
+            return n
+        self._log(case, "supplier_payment", sid, prev=n["payment_days"], new=pay)
+        return out
+
+    def _supplier_lead_time(self, case, sid, events, n, std):
+        """A supplier quoting a longer lead time than ours gets the longest legal option up to its
+        quote: its capacity premium for short lead times can exceed our late-delivery cost."""
+        if "lead_time_days" not in n:
+            return n
+        quoted = [s["terms"]["lead_time_days"] for m in events if m.get("from") != "buyer"
+                  for s in m.get("term_sheets") or [] if (s.get("terms") or {}).get("lead_time_days") is not None]
+        if not quoted or max(quoted) <= n["lead_time_days"]:
+            return n
+        legal = [v for v in (case.get("term_options") or {}).get("lead_time_days", [])
+                 if n["lead_time_days"] < v <= max(quoted)
+                 and must_haves_ok(case, complete_offer(case, {**n, "lead_time_days": v, "unit_price": 1.0}), std)]
+        if not legal:
+            return n
+        out = {**n, "lead_time_days": max(legal)}
+        self._log(case, "supplier_lead_time", sid, quoted=max(quoted), prev=n["lead_time_days"],
+                  new=out["lead_time_days"])
+        return out
 
     def _free_concessions(self, case, n, theirs, std, sup):
         price = theirs["unit_price"]
@@ -346,6 +451,8 @@ class PackageAgent:
             if (self.policy and case['type'] in self.policy.package_advice_types and f == "contract_months"
                     and v < n[f] and trial_c == previous_c):
                 continue
+            if f == "payment_days" and self._standard_payment(case) and n[f] == std.get("payment_days"):
+                continue
             if trial_c <= previous_c + 1e-6:
                 n = trial
         return n
@@ -359,6 +466,106 @@ class PackageAgent:
         equal_c = price_for_cost(case, {**n, "unit_price": nominal}, cands[0][0], std, sup)
         return round(min(nominal, equal_c), 2)
 
+    # -- expected-cost target (opt-in: policy.cost_target_types) --------------------------------
+    def _target_supplier(self, case, sid, std):
+        """Public dossier estimate for the relationship term, standard terms from the quote."""
+        key = (case["case_id"], sid)
+        if key not in self._target_cache:
+            try:
+                from .dossiers import supplier_estimate
+
+                est = supplier_estimate(case, sid)
+            except Exception:
+                log.exception("cost target estimate for %s failed; flag inactive", sid)
+                est = None
+            self._target_cache[key] = est
+        est = self._target_cache[key]
+        return {**est, "standard": {**(est.get("standard") or {}), **(std or {})}} if est else None
+
+    def _cost_target_move(self, case, threads):
+        """Single-supplier relationship cases only; None falls back to the default policy."""
+        from . import cost_target as ct
+
+        live = live_threads(threads)
+        if len(case.get("suppliers", [])) != 1 or len(live) != 1:
+            return None
+        sid = live[0]
+        events = threads[sid]
+        msg = latest(events)
+        status = msg.get("status")
+        if status not in ("open", "final_offer"):
+            return None
+        std = standard_terms(events)
+        sup = self._target_supplier(case, sid, std)
+        if not ct.active(case, sup):
+            return None
+        key = ("target", case["case_id"], sid)
+        if key not in self._target_cache:
+            self._target_cache[key] = ct.target(case, std, sup, index_clause=self.policy.cost_target_index_clause)
+        tgt = self._target_cache[key]
+        if tgt is None:
+            return None
+        tc, tterms = tgt
+        grid = ct.scenarios(sup)
+
+        def ec(t):
+            return ct.expected_cost(case, t, std, sup, grid)
+
+        sheets = [
+            (ec(s["terms"]), s["term_sheet_id"], s["terms"])
+            for s in msg.get("term_sheets") or []
+            if s.get("term_sheet_id") and (s.get("terms") or {}).get("unit_price") is not None
+            and must_haves_ok(case, s["terms"], std)
+        ]
+        if not sheets:
+            return None
+        c_alt = alternative_cost(case)
+        ours = self._ours(events)
+        left = moves_left(case, events)
+        standing_c, standing_id, standing_terms = sheets[0]
+        mark = min(tc, ec(ours[-1])) if ours else tc
+        accept = {"supplier_id": sid, "message": {"action": {"type": "accept", "term_sheet_id": standing_id}}}
+        walk = {"supplier_id": sid, "message": {"action": {"type": "walk_away"}}}
+
+        def close(reason):
+            self._log(case, "cost_target_close", sid, c=standing_c, target_c=tc, c_alt=c_alt, reason=reason)
+            return accept if standing_c < c_alt else walk
+
+        on_ours = same_package(case, standing_terms, ours[-1] if ours else tterms, std)
+        if on_ours and standing_c <= mark + 1.0:
+            return close("standing sheet meets our offer by expected C")
+        if status == "final_offer" or left <= 1:
+            countered, seen_final = 0, False
+            for e in events:
+                seen_final = seen_final or (e.get("from") != "buyer" and e.get("status") == "final_offer")
+                countered += bool(seen_final and e.get("from") == "buyer" and e.get("term_sheets"))
+            if status == "final_offer" and left > 1 and countered < 1:
+                return self._target_offer(case, sid, tterms, std, sup, c_alt, tc, "final offer: one counter at target")
+            return close("final offer or last move")
+        on_target = [t["unit_price"] for _, _, t in sheets if same_package(case, {**tterms, "unit_price": 0}, t, std)]
+        ask = min(on_target) if on_target else None
+        tp = tterms["unit_price"]
+        if ask is None or ask <= tp:
+            return self._target_offer(case, sid, tterms, std, sup, c_alt, tc, "expected-C target package")
+        price = tp + (ask - tp) * min(1.0, len(ours) / self.rounds)
+        if ours and same_package(case, ours[-1], tterms, std):
+            price = max(price, ours[-1]["unit_price"])
+        cap = ct.ceiling(case, tterms, min(standing_c, c_alt), std, sup)
+        if cap is not None:
+            price = min(price, cap)
+        terms = {**tterms, "unit_price": round(min(price, ask), 2)}
+        return self._target_offer(case, sid, terms, std, sup, c_alt, ec(terms), "expected-C concession")
+
+    def _target_offer(self, case, sid, terms, std, sup, c_alt, expected_c, reason):
+        self._log(case, "cost_target", sid, terms=terms, expected_c=expected_c, reason=reason)
+        move = self._offer(case, sid, complete_offer(case, terms), std, sup, c_alt, reason)
+        if terms.get("index_clause"):
+            move["message"]["body"] += (
+                " We propose this risk-sharing package, including the index clause,"
+                " in exchange for the attached unit price."
+            )
+        return move
+
     # -- policy -------------------------------------------------------------------------------
     def _workable(self, case, threads):
         live = live_threads(threads)
@@ -369,6 +576,10 @@ class PackageAgent:
     def decide(self, case, threads):
         """Serial wrapper: final-offer threads first, then the least-worked open thread; the first
         proposal that is not a hold is sent, and a close request is resolved by the evaluator."""
+        if self.policy and case["type"] in self.policy.cost_target_types:
+            move = self._cost_target_move(case, threads)
+            if move is not None:
+                return move
         status, workable = self._workable(case, threads)
         order = sorted(workable, key=lambda s: (status[s] != "final_offer", self._key(case, threads, s)))
         reason = "no moves left"
@@ -416,6 +627,8 @@ class PackageAgent:
                     count += 1
             self.final_counters[supplier_id] = count
         move = self._propose(case, threads, supplier_id)
+        if self.policy and self.policy.rfq_rival_offer and case["type"] == "rfq":
+            move = self._rival_offer_claim(case, threads, supplier_id, move)
         if self.evidence and self.evidence.eligible(case, move):
             from .context import DATA_ERRORS
 
@@ -426,6 +639,44 @@ class PackageAgent:
                 return move
             return self.evidence.enrich(case, threads, supplier_id, move, context=context)
         return move
+
+    def _rival_offer_claim(self, case, threads, sid, move):
+        """Cite the lowest-priced must-have-valid standing rival offer from this session when it
+        undercuts this supplier's standing price. Figure and ID come from the live sheet; each
+        offer ID is cited at most once per receiving supplier (citing reveals it)."""
+        from .claims import offer_claim
+
+        message = move.get("message") or {}
+        if not message.get("term_sheets") or message.get("action") or len(case.get("parts") or []) != 1:
+            return move
+        own = [t["unit_price"] for _, _, t in eligible_sheets(case, threads[sid], None, alternatives=True)]
+        if not own:
+            return move
+        cited = {r for e in threads[sid] if e.get("from") == "buyer" for r in e.get("refs") or []}
+        best = None
+        for s in live_threads(threads):
+            if s == sid:
+                continue
+            if self.policy.rfq_rival_offer_history:
+                sheets = [(sh.get("term_sheet_id"), sh.get("terms") or {}) for m in threads[s]
+                          if m.get("from") != "buyer" for sh in m.get("term_sheets") or []]
+            else:
+                sheets = [(i, t) for _, i, t in eligible_sheets(case, threads[s], None, alternatives=True)]
+            for offer_id, terms in sheets:
+                p = terms.get("unit_price")
+                if not offer_id:
+                    continue
+                if offer_id in cited or p is None or p >= min(own) - 1e-6:
+                    continue
+                if best is None or (p, offer_id) < (best[0], best[1]):
+                    best = (p, offer_id, s)
+        if best is None:
+            return move
+        claim = offer_claim(best[1], best[0], best[2], sid, case["parts"][0])
+        refs = list(dict.fromkeys([*(message.get("refs") or []), best[1]]))
+        self._log(case, "rival_offer_claim", sid, offer_id=best[1], figure=best[0], rival=best[2])
+        return {**move, "message": {**message, "body": message.get("body", "") + "\n\n" + claim.sentence,
+                                     "refs": refs}}
 
     def _propose(self, case, threads, supplier_id):
         """The proposal for one thread given the whole snapshot: an offer move
@@ -449,6 +700,10 @@ class PackageAgent:
                 self.final_seen.setdefault(sheet.get("term_sheet_id"), now)
         best = best_close(case, threads, self.estimates_for(case)) if finals else None
         leading_final = best is not None and best[1] in finals
+
+        if leading_final and self.policy and self.policy.rfq_final_guard and case["type"] == "rfq":
+            # A rival HTTP call can outlast the held offer's 60s response window.
+            return {"close": True, "reason": "preserve leading final offer before blocking rival call"}
 
         if supplier_id in finals:
             counter = self._final_counter(case, threads, supplier_id, c_alt)
@@ -591,6 +846,14 @@ class PackageAgent:
                 # only the standing sheet can be accepted: counter with the cheaper alternative
                 alt = complete_offer(case, cands[0][2])
                 return self._offer(case, sid, alt, std, sup, c_alt, "gap closed: take alternative")
+            if self.policy and self.policy.rfq_nonleading_hold and case["type"] == "rfq":
+                best = best_close(case, threads, self.estimates_for(case))
+                if (best and best[1] != sid and latest(threads[best[1]]).get("status") == "open"
+                        and moves_left(case, threads[best[1]]) > 1):
+                    # A losing rival converging must not end the case while the leader is workable;
+                    # letting the loser's window lapse is cheaper than closing on its sheet.
+                    self._log(case, "nonleading_convergence", sid, leading_supplier=best[1], leading_cost=best[0])
+                    return {"hold": True, "reason": "nonleading supplier converged; leader still workable"}
             return {"close": True, "reason": "gap closed"}
 
         floor = p_open * (1 - self._anchor_for(case))
@@ -613,4 +876,25 @@ class PackageAgent:
             for signal in self.model_context.get(sid, {}).get("signals", [])
         )
         variants = self._payment_variants(case, terms, cands[0][2], std, sup) if self.meso or payment_requested else []
+        if not variants and cap_c is None:
+            variants = self._clause_variants(case, events, terms, std, sup)
+            if variants:
+                why = why or "deadband probe at equal cost"
         return self._offer(case, sid, terms, std, sup, c_alt, why or f"round {k + 1} schedule", variants)
+
+
+def configured_agent(policy_config, trace_dir=None, **kwargs):
+    """Lab factory `negotiator.agent:configured_agent`: JSON policy dict -> validated PackageAgent.
+
+    Keeps the full policy in the lab run manifest (the plain `package` factory cannot take a
+    PolicyConfig from JSON). `trace_dir` creates a Tracer there; other kwargs pass through.
+    """
+    from .policy import PolicyConfig
+
+    if trace_dir is not None:
+        from pathlib import Path
+
+        from .trace import Tracer
+
+        kwargs["tracer"] = Tracer(Path(trace_dir))
+    return PackageAgent(policy=PolicyConfig.from_dict(policy_config), **kwargs)

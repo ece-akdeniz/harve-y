@@ -20,25 +20,46 @@ class PolicyConfig:
     preferences: dict[str, str] = field(default_factory=dict)
     cost_neutral_lead_time: bool = False
     package_advice_types: tuple[str, ...] = ()
+    cost_target_types: tuple[str, ...] = ()
+    cost_target_index_clause: bool = False
+    clause_variant_types: tuple[str, ...] = ()
+    rfq_nonleading_hold: bool = False
+    rfq_final_guard: bool = False
+    # Case types whose opening and later packages keep the supplier's standard (quote PDF)
+    # payment days when that is a listed option; price is still scheduled by buyer C.
+    standard_payment_types: tuple[str, ...] = ()
+    rfq_supplier_lead_time: bool = False
+    rfq_rival_offer: bool = False
+    rfq_supplier_payment: bool = False
+    rfq_rival_offer_history: bool = False
 
     @classmethod
     def load(cls, path):
         return cls.from_dict(json.loads(Path(path).read_text()))
 
     @classmethod
-    def from_dict(cls, value):
-        d = dict(value)
+    def from_dict(cls, data):
+        d = dict(data) if isinstance(data, dict) else data
         if not isinstance(d, dict) or set(d) - set(cls.__dataclass_fields__):
             raise ValueError("unknown policy fields")
         if type(d.get("version")) is not int or d["version"] != 1:
             raise ValueError("policy version must be 1")
-        for k in ("package_types", "evidence_types", "package_advice_types"):
+        for k in (
+            "package_types",
+            "evidence_types",
+            "package_advice_types",
+            "cost_target_types",
+            "clause_variant_types",
+            "standard_payment_types",
+        ):
             v = d.get(k, [])
             if not isinstance(v, list) or any(not isinstance(x, str) or x not in TYPES for x in v):
                 raise ValueError(f"invalid {k}")
             d[k] = tuple(sorted(set(v)))
-        if type(d.get("cost_neutral_lead_time", False)) is not bool:
-            raise ValueError("cost_neutral_lead_time must be boolean")
+        for k in ("cost_neutral_lead_time", "cost_target_index_clause", "rfq_nonleading_hold", "rfq_final_guard",
+                  "rfq_supplier_lead_time", "rfq_rival_offer", "rfq_supplier_payment", "rfq_rival_offer_history"):
+            if type(d.get(k, False)) is not bool:
+                raise ValueError(f"{k} must be boolean")
         if d.get("final_offer_risk", "legacy") not in ("legacy", "opening_proxy"):
             raise ValueError("invalid final_offer_risk")
         if d.get("preference", "default") not in ("default", "standard_payment", "longer_tenor", "lower_chargeback"):
