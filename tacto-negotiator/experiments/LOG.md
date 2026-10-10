@@ -1201,3 +1201,69 @@ early cash + capacity opening (.3854, rejected), supplier-standard payment (iner
 Differs from previous: nothing; `configs/p05-rival-history.json` at HEAD. Purpose: confirm the
 72.08 from session-wide rival-price disclosure (70210 31.50 claim → "boss approval" → 29.00).
 Runner `async`, launched under nohup so the process survives the shell.
+
+## 2026-10-10 22:35 — Score-push integration: final combined config, ten-case confirmation (MEASURED HOSTED PRACTICE)
+
+- Branch `codex/score-push-integrate`, runtime commit `ed1474c` (clean). Merged current `origin/main`
+  (`b66b0b4`), `origin/codex/score-push-p18p08`, `origin/codex/score-push-p05` and the confirmed P05
+  rival-history commit `5dc584b`; ported only `standard_payment_types` from `score-push-p07p11`
+  (no P07 deep anchor, no P03 cost target, no longer-tenor).
+- Config `configs/score-push.json` (factory kwargs `configs/score-push-run.json`: `estimates={}`,
+  `meso=false`), agent `negotiator.agent:configured_agent`, runner `auto`. Changes vs the dead run's
+  config: **removed** `clause_variant_types: [raw_material]` (P18 measured .4196 x2 vs retained
+  package policy .4531 x2, runs `c5eb289f`/`0bbb404e` vs `b2922dc3`/historical `336d373e78ee87f1`);
+  added `standard_payment_types: [price_increase]` (P01 .9602 x2, `ca6a784`) and
+  `rfq_rival_offer` + `rfq_rival_offer_history` (P05 .7208 x3: `97f3fdbf`, `d1fea8bb`, `237f5adb`).
+  P11 .7902 (`0f657d76`, `957c300`) and P18 .4531 (`b2922dc3`, `d070c01`) came from the base/package-advice
+  policy on main-era code; both are compatible (no extra flags needed) and reproduced below.
+- Dead run `22b6c60b` (`score-push-confirm`, `ea4d7be`) preserved as evidence: P01 .9253, P02 .5993;
+  P03 session `a9ad60d5e055b7d9` verified owned (journal paths + manifest) and ended server-side by
+  `timeout`, score 0, no deal (worker killed after buyer round 4). Recovered outcome attached to that
+  one attempt; run marked `interrupted`; `lab sync` uploaded. P04–P18 never started. Not resumable.
+- Fresh run `b9ad733d-aae8-4b5d-a60e-8332948c403a` (`score-push-final-confirm`), 10 cases x 1, max 10.
+  All completed, deals, must-haves ok, 0 timeouts. Every transcript read.
+
+| case | session | score | best | delta | final |
+|---|---|---|---|---|---|
+| P01 | 7d3efa5162b9e0a7 | .9602 | .9602 | 0 | 133.70 / 30d / Apr-2027 |
+| P02 | ed797d2ca3d1b583 | .5993 | .5993 | 0 | 366.23 / 90d / CU 5% |
+| P03 | 5d313d36b827605e | .8998 | .8998 | 0 | 433.08 / 90d / 36m |
+| P04 | 334c334675927b2e | .8604 | .8604 | 0 | 4.94 / 90d / 24m |
+| P05 | 11640b125cc1400d | .7208 | .7208 | 0 | 70210 29.00 / 30d / 35d |
+| P07 | 5ff2286d148fec03 | .7430 | .7430 (.7470 n=1 bundling evidence, not included) | 0 | 5.38 / 60d / 24m |
+| P08 | db8a3177ce4a77fb | .5930 | .5930 | 0 | 5.31 / 90d / AS db0 |
+| P10 | bace291c141592a7 | .6551 | .6551 | 0 | 31.80 / 56d / 24m |
+| P11 | 65aaf739bbbc3c2c | .7902 | .7902 | 0 | 45.02 / 300ppm / cb0 |
+| P18 | 36322b9872ddc79d | .4531 | .4531 | 0 | 5.40 / 90d / AS db0 |
+
+- **Fresh ten-case mean .7275** (one repetition). Historical best-per-case mean is also .7275 with these
+  bests; this run is the first single fixed config to reach all of them together. Most sessions took
+  3–10 s: replies were identical to earlier sessions, likely deterministic/cached supplier behavior,
+  so this is reproduction, not independent stochastic confirmation.
+- Sandbox regression (free, `--runner auto`): combined `511a2526` D01 .9192 x2, D02 .5239 x2; recommended
+  baseline config (e1d931e4 kwargs on current code) `f8465f16` D01 .9192 x2, D02 .4609 x2. No regression.
+- Runner decision: one launch path, `--runner auto`: `rfq` cases use the async runner (needed by the P05
+  hold/rival levers); every other case uses serial (package advice, expected-C target). The package
+  adviser is detached only on async attempts whose case type is outside `package_advice_types`.
+  Limitation: package advice on an `rfq` case is still unsupported (async rejects it).
+- P02 requirement (choose indexed vs unindexed by expected C, indexed only if the supplier's stated
+  constraints exclude unindexed): implemented offline as an unindexed price floor at the supplier's own
+  lowest unindexed quote, then **reverted**. On P02's recorded opening (370.96/30d, no clause) the local
+  expected-C model ranks unindexed@370.96/90d (2,303,857) and even @373.6 (2,307,879) below the indexed
+  366.23 target (2,319,043), so it would abandon the measured clause deal. The server C for that deal is
+  2,254,487 vs local 2,299,891: the local relationship/index model is not calibrated enough to make this
+  choice. Kept `cost_target_index_clause` (risk-sharing mode, inert where no clause option, e.g. P01).
+- Overfitting guard: no case IDs or case-specific numbers in runtime code; behavior is derived from
+  term options, must-haves, quote standard terms, supplier sheets and computed costs. But each lever is
+  gated by case type and each type has one practice case, so these are single-case validations:
+  `standard_payment_types` (P01 only; P02 bypasses it via the cost target), `cost_target_types` +
+  `cost_target_index_clause` (P02 only), `rfq_rival_offer(_history)` + `rfq_nonleading_hold` (P05 only;
+  D02 sandbox +.063 is a second rfq observation), `package_advice_types: [capacity]` (P10 only).
+  `cost_neutral_lead_time` has P10 + D01/D02 neutral evidence. Final cases of the same types may differ.
+- Offline replay of recorded best threads (fetched owned threads, attachments re-read) with the combined
+  config: P01, P02, P04, P07, P08, P18 identical; P03/P11 diverge at one late move identically on their
+  own source commits (harness limitation: model/claims context not replayed); P10 diverges only because
+  the LLM adviser is stubbed. Tests: `pytest` 638 passed; `ruff` clean.
+- Sessions: 10 practice (this run), 8 sandbox. Live practice 161 used before, 174 after (other agents
+  share the key; a teammate P05 session was active at start). Decision: publish this config on the
+  branch; no main merge, no recommendation change.
