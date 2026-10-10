@@ -1,0 +1,44 @@
+Here's what the other agent is doing if that's relevant:
+
+Both corrections are applied before any sessions go to P08/P18. No worker had sessions planned there yet; I was the one about to start them.
+
+- **P05's rival mechanism won't be tried on P08/P18.** Each has only one supplier, so there's no live rival offer to use. A separately documented competing quote would be a different experiment, and it only happens if public data actually contains one.
+- **"Lowest price wins" is too broad.** A lower price only helps when the other terms stay equal. P08/P18 still carry payment and index-clause costs, and P11 carries quality and chargeback costs. So package choice stays on full computed cost, not price alone.
+- **€361.33 stays shelved.** That matches your note: the estimate depends on past outcome data.
+
+I'll include both corrections in every new worker brief and in the handoff.
+
+Right, nothing needed from you. We're still improving: three workers are running (P05 repeat, ten-case integration run, P03 price gap). I'll report as each result lands.
+
+Adding more workers now mostly brings diminishing returns. The limits are:
+
+- **Budget:** about 20 sessions are left, and each hypothesis needs 1–2 screens and a repeat.
+- **Ideas:** the cheap levers are mostly tested. New gains come from thinking, not more parallel runs.
+- **Conflicts:** more branches touching `agent.py`/`policy.py` make the final merge riskier.
+- **Overlap:** Astra and the other team agent are working on the same cases.
+
+The one addition worth making is an offline-only worker, using no sessions, for:
+
+- **P18/P08:** check public data for a documented competing quote, and re-optimize on full cost, including payment and index-clause costs.
+- **P11:** re-optimize on full cost, including quality and chargeback costs.
+
+It would only ask for sessions if the numbers show a clear gain. Want me to start it?
+
+Claude Opus 5.5 Bedrock (US) 300K
+
+I started the **full-cost and competing-quote worker** for P18, P08, P10 and P11. It works offline first and gets at most 6 sessions.
+
+What it covers:
+
+- **Full cost of every legal package:** price, payment, index clause and deadband, tenor, lead time, and quality or chargeback. For each term it reports what it costs us versus what it's plausibly worth to the supplier, to find cheap trades.
+- **Documented competing quotes:** it searches the public correspondence and contracts for rival quotes or benchmark prices. P10 is included because its supplier sits at about 23% margin, so there's room if we have real leverage.
+- **Early acceptance:** it checks the transcripts for closes with rounds still left.
+- **Both of Astra's corrections:** P05's live-rival mechanism isn't reused, and package choice is by full cost, not price alone.
+
+Running now: **P05 repeat**, **ten-case integration**, **P03 price gap** and this new worker. About 14 sessions remain unassigned.
+
+Right, nothing is needed from you. Four workers are running (P05 repeat, ten-case integration run, P03 price gap, full-cost and competing-quote analysis), and I'll report as each result lands.
+
+
+
+Multitask
