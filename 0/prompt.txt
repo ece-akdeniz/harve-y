@@ -1,0 +1,50 @@
+/goal So we're in a hackathon. Please read about what we're doing right now. Then please look at the different parts. We're currently 7th place and need to improve fast. So the goal is to improve our benchmark results, we're at 0.63. Here's the last conversation I had with claude opus 5.5. Please think about the improvements through the different conversations we had to make sure we're getting better. If you need help please let me know instead of hallucinating, here's the last conversation:
+
+Referenced pasted text files:
+- pasted text file: /Users/sametdegirmenci/.codex/attachments/b557097d-c693-4b22-8905-39838d3ac066/pasted-text-1.txt. Read this file before continuing.
+
+---
+
+<send_user_message_question_reply>
+[{"questionItemId":"[\"request_user_input_async\",\"call_Zhp0aAlEoQnUaSDaXI06862q\",0]","question":"Are Claude’s six agents still running, and what hosted practice budget should this chat use? The repo requires an explicit allowance and reserve before spending shared quota. I can inspect and validate existing work while you answer.","answer":"Take over; use up to 12 sessions, reserve 40"}]
+</send_user_message_question_reply>
+
+---
+
+# Files pasted by the user:
+
+## "10 October 2026 · Snapshot through the 14:58 experiment entry (Europe/Berlin) *…": /Users/sametdegirmenci/.codex/attachments/98a9bc45-cd98-4a00-ae4b-fdeb4d6261bf/Eingefügter Text.txt
+
+## My request:
+Here, think about the use of LLM calls instead of code, I think that can help and some mistakes we had, please also use the practice sessions sparsely. I'm sure we can beat him. Here's the notion page we had, push back if you don't think something is useful:
+
+---
+
+<send_user_message_question_reply>
+[{"questionItemId":"[\"request_user_input_async\",\"call_c4wgcGcO2U4KzGVmuWvxScBt\",0]","question":"Which model/provider should the negotiator use? Its project configuration currently has no model or LLM credentials. Please name the provider/model here and configure credentials locally in tacto-negotiator/.env; don’t paste secrets into chat.","answer":"Use an OpenAI-compatible endpoint; I’ll configure it locally"}]
+</send_user_message_question_reply>
+
+---
+
+And this can be interesting too:&#x20;
+```csharp
+Yes—this would help coding agents build on the team’s experiments instead of repeatedly rediscovering the same things. I’d make the shared memory evidence-backed, with the knowledge graph connecting suppliers, observations, experiments, and proposed improvements.
+We already have useful foundations: supplier dossiers, negotiation transcripts, experiment results, checkpoints, and findings with validated citations.
+I’d distinguish four kinds of knowledge:
+Kind	Example	How we treat it
+Documented fact	A contract requires 60 days’ notice	Cite the document and its version
+Supplier statement	“We need a longer commitment”	Record what was said, without assuming it is true
+```
+
+message.txt
+
+5 kB
+
+---
+
+Here the api key that is interesting for wiring, don't worry it will be rotated soon:
+REDACTED
+
+---
+
+So afterr every session you review it in order to improve our agent, right? I'm believing you will do that. Thank you very much man!
