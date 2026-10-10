@@ -1,0 +1,439 @@
+{
+  "source": "Tacto public practice case files, CC BY 4.0, retrieved 2026-10-10; regression inputs only",
+  "cases": {
+    "case:P04": {
+      "case_id": "case:P04",
+      "type": "renewal",
+      "title": "Renewal of the ball bearing 6306 agreement",
+      "parts": [
+        "part:360020"
+      ],
+      "suppliers": [
+        "sup:70620"
+      ],
+      "negotiable": [
+        "unit_price",
+        "payment_days",
+        "contract_months"
+      ],
+      "fixed_terms": {
+        "lead_time_days": 7,
+        "volume_per_year": 20000,
+        "effective_date": "2027-01-01",
+        "index_clause": null,
+        "incoterm": "DAP",
+        "tooling_eur": 0
+      },
+      "term_options": {
+        "payment_days": [
+          14,
+          30,
+          45,
+          60,
+          90
+        ],
+        "contract_months": [
+          12,
+          24,
+          36
+        ]
+      },
+      "buyer": {
+        "need_per_year": 20000,
+        "horizon_years": 2,
+        "current_unit_price": 4.39,
+        "fallback_unit_price": 4.7,
+        "interest_rate": 0.08,
+        "reference_payment_days": 60,
+        "need_lead_time_days": 7,
+        "category_goal": "routine",
+        "fallback_risk_pct": 5,
+        "index_risk_pct": 2,
+        "late_cost_per_day": 75,
+        "cost_per_defect": 95,
+        "freight_eur_per_unit": {
+          "EXW": 0.02,
+          "FCA": 0.02,
+          "DAP": 0.0
+        },
+        "index_paths": {},
+        "must_haves": [],
+        "alternative": {
+          "kind": "quote",
+          "ref": "quote:7200004",
+          "terms": {
+            "unit_price": 5.04,
+            "payment_days": 30,
+            "lead_time_days": 10,
+            "volume_per_year": 20000,
+            "contract_months": 24,
+            "effective_date": "2027-01-01",
+            "index_clause": null,
+            "incoterm": "DAP",
+            "tooling_eur": 0,
+            "ppm_commitment": 0
+          }
+        }
+      },
+      "round_limit": 10
+    },
+    "case:P08": {
+      "case_id": "case:P08",
+      "type": "raw_material",
+      "title": "Alloy surcharge and base price for 1.4404 bar",
+      "parts": [
+        "part:370010"
+      ],
+      "suppliers": [
+        "sup:70710"
+      ],
+      "negotiable": [
+        "unit_price",
+        "index_clause",
+        "payment_days",
+        "contract_months"
+      ],
+      "fixed_terms": {
+        "lead_time_days": 10,
+        "volume_per_year": 94800,
+        "effective_date": "2027-01-01",
+        "incoterm": "DAP",
+        "tooling_eur": 0
+      },
+      "term_options": {
+        "index_clause": [
+          null,
+          {
+            "series": "AS-14404",
+            "material_share": 0.45,
+            "deadband_pct": 0,
+            "base_month": "2026-08"
+          },
+          {
+            "series": "AS-14404",
+            "material_share": 0.45,
+            "deadband_pct": 3,
+            "base_month": "2026-08"
+          },
+          {
+            "series": "AS-14404",
+            "material_share": 0.45,
+            "deadband_pct": 5,
+            "base_month": "2026-08"
+          }
+        ],
+        "payment_days": [
+          14,
+          30,
+          45,
+          60,
+          90
+        ],
+        "contract_months": [
+          12,
+          24,
+          36
+        ]
+      },
+      "buyer": {
+        "need_per_year": 94800,
+        "horizon_years": 2,
+        "current_unit_price": 5.45,
+        "fallback_unit_price": 5.72,
+        "interest_rate": 0.08,
+        "reference_payment_days": 60,
+        "need_lead_time_days": 10,
+        "category_goal": "leverage",
+        "fallback_risk_pct": 3,
+        "index_risk_pct": 1,
+        "late_cost_per_day": 96,
+        "cost_per_defect": 0,
+        "freight_eur_per_unit": {
+          "EXW": 0.06,
+          "FCA": 0.05,
+          "DAP": 0.0
+        },
+        "index_paths": {
+          "AS-14404": 0.06
+        },
+        "must_haves": [],
+        "alternative": {
+          "kind": "quote",
+          "ref": "quote:7200008",
+          "terms": {
+            "unit_price": 6.06,
+            "payment_days": 30,
+            "lead_time_days": 14,
+            "volume_per_year": 94800,
+            "contract_months": 24,
+            "effective_date": "2027-01-01",
+            "index_clause": null,
+            "incoterm": "DAP",
+            "tooling_eur": 0,
+            "ppm_commitment": 32
+          }
+        }
+      },
+      "round_limit": 10
+    },
+    "case:P10": {
+      "case_id": "case:P10",
+      "type": "capacity",
+      "title": "Ravensteiner cuts the seal allocation",
+      "parts": [
+        "part:340010"
+      ],
+      "suppliers": [
+        "sup:70410"
+      ],
+      "negotiable": [
+        "unit_price",
+        "volume_per_year",
+        "contract_months",
+        "lead_time_days"
+      ],
+      "fixed_terms": {
+        "payment_days": 30,
+        "effective_date": "2027-01-01",
+        "index_clause": null,
+        "incoterm": "DAP",
+        "tooling_eur": 0
+      },
+      "term_options": {
+        "volume_per_year": [
+          16379,
+          19890,
+          23400
+        ],
+        "contract_months": [
+          12,
+          24,
+          36
+        ],
+        "lead_time_days": [
+          35,
+          42,
+          56
+        ]
+      },
+      "buyer": {
+        "need_per_year": 23400,
+        "horizon_years": 2,
+        "current_unit_price": 29.89,
+        "fallback_unit_price": 37.36,
+        "interest_rate": 0.08,
+        "reference_payment_days": 60,
+        "need_lead_time_days": 42,
+        "category_goal": "secure_supply",
+        "fallback_risk_pct": 25,
+        "index_risk_pct": 3,
+        "late_cost_per_day": 2400,
+        "cost_per_defect": 380,
+        "sustainable_margin_pct": 10,
+        "relationship_eur_per_point": 13990,
+        "freight_eur_per_unit": {
+          "EXW": 0.01,
+          "FCA": 0.01,
+          "DAP": 0.0
+        },
+        "index_paths": {},
+        "must_haves": [
+          {
+            "field": "volume_per_year",
+            "op": ">=",
+            "value": 22230
+          }
+        ],
+        "alternative": {
+          "kind": "none",
+          "ref": null,
+          "terms": {}
+        }
+      },
+      "round_limit": 10
+    },
+    "case:P11": {
+      "case_id": "case:P11",
+      "type": "quality",
+      "title": "Kalwisz: bearing brackets in red",
+      "parts": [
+        "part:310020"
+      ],
+      "suppliers": [
+        "sup:70140"
+      ],
+      "negotiable": [
+        "ppm_commitment",
+        "chargeback_eur_per_complaint",
+        "unit_price"
+      ],
+      "fixed_terms": {
+        "payment_days": 60,
+        "lead_time_days": 56,
+        "volume_per_year": 15900,
+        "contract_months": 12,
+        "effective_date": "2027-01-01",
+        "index_clause": null,
+        "incoterm": "FCA",
+        "tooling_eur": 0
+      },
+      "term_options": {
+        "ppm_commitment": [
+          300,
+          800,
+          1500,
+          2500
+        ],
+        "chargeback_eur_per_complaint": [
+          0,
+          150,
+          300,
+          500
+        ]
+      },
+      "buyer": {
+        "need_per_year": 15900,
+        "horizon_years": 1.0,
+        "current_unit_price": 45.15,
+        "fallback_unit_price": 47.86,
+        "interest_rate": 0.08,
+        "reference_payment_days": 60,
+        "need_lead_time_days": 58,
+        "category_goal": "quality_first",
+        "fallback_risk_pct": 8,
+        "index_risk_pct": 2,
+        "late_cost_per_day": 300,
+        "cost_per_defect": 450,
+        "freight_eur_per_unit": {
+          "EXW": 1.77,
+          "FCA": 1.54,
+          "DAP": 0.0
+        },
+        "index_paths": {},
+        "must_haves": [
+          {
+            "field": "ppm_commitment",
+            "op": "<=",
+            "value": 1500
+          }
+        ],
+        "alternative": {
+          "kind": "quote",
+          "ref": "quote:7200011",
+          "terms": {
+            "unit_price": 53.56,
+            "payment_days": 30,
+            "lead_time_days": 56,
+            "volume_per_year": 15900,
+            "contract_months": 12,
+            "effective_date": "2027-01-01",
+            "index_clause": null,
+            "incoterm": "FCA",
+            "tooling_eur": 7500,
+            "ppm_commitment": 715
+          }
+        }
+      },
+      "round_limit": 10
+    },
+    "case:P18": {
+      "case_id": "case:P18",
+      "type": "raw_material",
+      "title": "Alloy surcharge and base price for 1.4404 bar (Werdenfels)",
+      "parts": [
+        "part:370010"
+      ],
+      "suppliers": [
+        "sup:70740"
+      ],
+      "negotiable": [
+        "unit_price",
+        "index_clause",
+        "payment_days",
+        "contract_months"
+      ],
+      "fixed_terms": {
+        "lead_time_days": 14,
+        "volume_per_year": 23700,
+        "effective_date": "2027-01-01",
+        "incoterm": "DAP",
+        "tooling_eur": 0
+      },
+      "term_options": {
+        "index_clause": [
+          null,
+          {
+            "series": "AS-14404",
+            "material_share": 0.45,
+            "deadband_pct": 0,
+            "base_month": "2026-08"
+          },
+          {
+            "series": "AS-14404",
+            "material_share": 0.45,
+            "deadband_pct": 3,
+            "base_month": "2026-08"
+          },
+          {
+            "series": "AS-14404",
+            "material_share": 0.45,
+            "deadband_pct": 5,
+            "base_month": "2026-08"
+          }
+        ],
+        "payment_days": [
+          14,
+          30,
+          45,
+          60,
+          90
+        ],
+        "contract_months": [
+          12,
+          24,
+          36
+        ]
+      },
+      "buyer": {
+        "need_per_year": 23700,
+        "horizon_years": 2,
+        "current_unit_price": 5.84,
+        "fallback_unit_price": 6.13,
+        "interest_rate": 0.08,
+        "reference_payment_days": 60,
+        "need_lead_time_days": 14,
+        "category_goal": "leverage",
+        "fallback_risk_pct": 3,
+        "index_risk_pct": 1,
+        "late_cost_per_day": 96,
+        "cost_per_defect": 0,
+        "freight_eur_per_unit": {
+          "EXW": 0.06,
+          "FCA": 0.05,
+          "DAP": 0.0
+        },
+        "index_paths": {
+          "AS-14404": 0.06
+        },
+        "must_haves": [],
+        "alternative": {
+          "kind": "quote",
+          "ref": "quote:7200018",
+          "terms": {
+            "unit_price": 6.31,
+            "payment_days": 30,
+            "lead_time_days": 10,
+            "volume_per_year": 23700,
+            "contract_months": 24,
+            "effective_date": "2027-01-01",
+            "index_clause": null,
+            "incoterm": "DAP",
+            "tooling_eur": 0,
+            "ppm_commitment": 75
+          }
+        }
+      },
+      "round_limit": 10
+    }
+  }
+}

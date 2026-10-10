@@ -1,0 +1,803 @@
+{
+  "cycle_ceiling": 52,
+  "reserve": 46,
+  "spent_by_cycle": 24,
+  "screening": {
+    "before": {
+      "used": 21,
+      "left": 179,
+      "limit": 200,
+      "resets_at": "2026-10-11T11:39:03.056071+00:00"
+    },
+    "after": {
+      "used": 35,
+      "left": 165,
+      "limit": 200,
+      "resets_at": "2026-10-11T11:39:03.056071+00:00"
+    },
+    "source": "120558215629388579130703778ad60e6ac5dd84",
+    "rows": [
+      {
+        "job": {
+          "case": "P04",
+          "label": "packages",
+          "ref": "120558215629388579130703778ad60e6ac5dd84",
+          "config": "configs/packages.json"
+        },
+        "score": 0.8604451426623068,
+        "deal": true,
+        "error": null,
+        "timeouts": 0,
+        "session": "e2fcc134ecd03d17",
+        "must_haves_ok": true,
+        "terms": {
+          "payment_days": 90,
+          "lead_time_days": 7,
+          "volume_per_year": 20000,
+          "contract_months": 24,
+          "effective_date": "2027-01-01",
+          "index_clause": null,
+          "incoterm": "DAP",
+          "tooling_eur": 0.0,
+          "ppm_commitment": 150,
+          "chargeback_eur_per_complaint": 0.0,
+          "unit_price": 4.94
+        },
+        "c_open": 198846.33,
+        "c_deal": 196852.67,
+        "c_best": 196529.32,
+        "claim_results": [],
+        "elapsed_s": 48.2
+      },
+      {
+        "job": {
+          "case": "P04",
+          "label": "evidence",
+          "ref": "120558215629388579130703778ad60e6ac5dd84",
+          "config": "configs/packages-evidence.json"
+        },
+        "score": 0.8604451426623068,
+        "deal": true,
+        "error": null,
+        "timeouts": 0,
+        "session": "b71d601095c82d96",
+        "must_haves_ok": true,
+        "terms": {
+          "payment_days": 90,
+          "lead_time_days": 7,
+          "volume_per_year": 20000,
+          "contract_months": 24,
+          "effective_date": "2027-01-01",
+          "index_clause": null,
+          "incoterm": "DAP",
+          "tooling_eur": 0.0,
+          "ppm_commitment": 150,
+          "chargeback_eur_per_complaint": 0.0,
+          "unit_price": 4.94
+        },
+        "c_open": 198846.33,
+        "c_deal": 196852.67,
+        "c_best": 196529.32,
+        "claim_results": [
+          {
+            "index": 0,
+            "result": "verified"
+          }
+        ],
+        "elapsed_s": 74.4
+      },
+      {
+        "job": {
+          "case": "P11",
+          "label": "packages",
+          "ref": "120558215629388579130703778ad60e6ac5dd84",
+          "config": "configs/packages.json"
+        },
+        "score": 0.3143945632837383,
+        "deal": true,
+        "error": null,
+        "timeouts": 0,
+        "session": "cc9acf4242059a59",
+        "must_haves_ok": true,
+        "terms": {
+          "payment_days": 60,
+          "lead_time_days": 56,
+          "volume_per_year": 15900,
+          "contract_months": 12,
+          "effective_date": "2027-01-01",
+          "index_clause": null,
+          "incoterm": "FCA",
+          "tooling_eur": 0.0,
+          "ppm_commitment": 1500,
+          "chargeback_eur_per_complaint": 500.0,
+          "unit_price": 48.0
+        },
+        "c_open": 817578.0,
+        "c_deal": 787686.0,
+        "c_best": 722500.02,
+        "claim_results": [],
+        "elapsed_s": 149.8
+      },
+      {
+        "job": {
+          "case": "P11",
+          "label": "evidence",
+          "ref": "120558215629388579130703778ad60e6ac5dd84",
+          "config": "configs/packages-evidence.json"
+        },
+        "score": 0.3980101386251581,
+        "deal": true,
+        "error": null,
+        "timeouts": 0,
+        "session": "88f8a5d21a61c30f",
+        "must_haves_ok": true,
+        "terms": {
+          "payment_days": 60,
+          "lead_time_days": 56,
+          "volume_per_year": 15900,
+          "contract_months": 12,
+          "effective_date": "2027-01-01",
+          "index_clause": null,
+          "incoterm": "FCA",
+          "tooling_eur": 0.0,
+          "ppm_commitment": 800,
+          "chargeback_eur_per_complaint": 500.0,
+          "unit_price": 47.5
+        },
+        "c_open": 817578.0,
+        "c_deal": 779736.0,
+        "c_best": 722500.02,
+        "claim_results": [
+          {
+            "index": 0,
+            "result": "verified"
+          },
+          {
+            "index": 1,
+            "result": "verified"
+          }
+        ],
+        "elapsed_s": 149.3
+      }
+    ]
+  },
+  "human_benchmarks": [
+    {
+      "case_id": "case:P01",
+      "best": 0.928,
+      "holder": "y/agent",
+      "house": 0.9659
+    },
+    {
+      "case_id": "case:P02",
+      "best": 0.293,
+      "holder": "y/agent",
+      "house": 0.74
+    },
+    {
+      "case_id": "case:P03",
+      "best": 0.9,
+      "holder": "y/agent",
+      "house": 0.9249
+    },
+    {
+      "case_id": "case:P04",
+      "best": 0.86,
+      "holder": "makeAnother.md",
+      "house": 0.8604
+    },
+    {
+      "case_id": "case:P05",
+      "best": 0.403,
+      "holder": "Boo \ud83d\udc7e",
+      "house": 0.5552
+    },
+    {
+      "case_id": "case:P07",
+      "best": 0.743,
+      "holder": "y/agent",
+      "house": 0.7816
+    },
+    {
+      "case_id": "case:P08",
+      "best": 0.304,
+      "holder": "Boo \ud83d\udc7e",
+      "house": 0.7516
+    },
+    {
+      "case_id": "case:P10",
+      "best": 0.562,
+      "holder": "Boo \ud83d\udc7e",
+      "house": 0.6863
+    },
+    {
+      "case_id": "case:P11",
+      "best": 0.626,
+      "holder": "makeAnother.md",
+      "house": 0.3144
+    },
+    {
+      "case_id": "case:P18",
+      "best": 0.386,
+      "holder": "y/agent",
+      "house": 0.3861
+    }
+  ],
+  "decision": "User stopped practice after the successful free recovery check. Cycle used 24 sessions; last verified shared quota 140. Final 20-session comparison remains unrun and requires user instruction to resume. Candidate not promoted.",
+  "confirmation": {
+    "before": {
+      "used": 35,
+      "left": 165,
+      "limit": 200,
+      "resets_at": "2026-10-11T11:39:03.056071+00:00"
+    },
+    "after": {
+      "used": 39,
+      "left": 161,
+      "limit": 200,
+      "resets_at": "2026-10-11T11:39:03.056071+00:00"
+    },
+    "runs": [
+      {
+        "cmd": "uv run --locked negotiator play case:P04 --runner async",
+        "cwd": "/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-15511251-m_9fggm9/tacto-negotiator",
+        "run_dir": "experiments/runs/staged-b-20261010/1-P04-baseline",
+        "returncode": 0,
+        "timed_out": false,
+        "elapsed_s": 3.0,
+        "cases": {
+          "case:P04": {
+            "score": 0.05639164267740558,
+            "deal": true,
+            "error": null,
+            "timeouts": 0,
+            "session": "6a95b5d68d53a5d0",
+            "must_haves_ok": true
+          }
+        },
+        "stderr_tail": "e active environment instead\nUsing CPython 3.12.13\nCreating virtual environment at: .venv\n   Building tacto-negotiator @ file:///private/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-15511251-m_9fggm9/tacto-negotiator\n      Built tacto-negotiator @ file:///private/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-15511251-m_9fggm9/tacto-negotiator\nInstalled 37 packages in 90ms\n",
+        "job": {
+          "case": "P04",
+          "label": "baseline",
+          "ref": "1551125126acf6865bb0660cbcc84c66272ff301"
+        }
+      },
+      {
+        "cmd": "uv run --locked negotiator play case:P04 --runner async --policy-config configs/packages.json",
+        "cwd": "/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-12055821-0gnupfzb/tacto-negotiator",
+        "run_dir": "experiments/runs/staged-b-20261010/2-P04-packages",
+        "returncode": 0,
+        "timed_out": false,
+        "elapsed_s": 5.4,
+        "cases": {
+          "case:P04": {
+            "score": 0.8604451426623068,
+            "deal": true,
+            "error": null,
+            "timeouts": 0,
+            "session": "2d99044cccd0f46b",
+            "must_haves_ok": true
+          }
+        },
+        "stderr_tail": "e active environment instead\nUsing CPython 3.12.13\nCreating virtual environment at: .venv\n   Building tacto-negotiator @ file:///private/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-12055821-0gnupfzb/tacto-negotiator\n      Built tacto-negotiator @ file:///private/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-12055821-0gnupfzb/tacto-negotiator\nInstalled 37 packages in 76ms\n",
+        "job": {
+          "case": "P04",
+          "label": "packages",
+          "ref": "120558215629388579130703778ad60e6ac5dd84",
+          "config": "configs/packages.json"
+        }
+      },
+      {
+        "cmd": "uv run --locked negotiator play case:P11 --runner async --policy-config configs/packages-evidence.json",
+        "cwd": "/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-12055821-twbnu99i/tacto-negotiator",
+        "run_dir": "experiments/runs/staged-b-20261010/3-P11-evidence",
+        "returncode": 0,
+        "timed_out": false,
+        "elapsed_s": 4.7,
+        "cases": {
+          "case:P11": {
+            "score": 0.3980101386251581,
+            "deal": true,
+            "error": null,
+            "timeouts": 0,
+            "session": "321b3475cf3cf054",
+            "must_haves_ok": true
+          }
+        },
+        "stderr_tail": "e active environment instead\nUsing CPython 3.12.13\nCreating virtual environment at: .venv\n   Building tacto-negotiator @ file:///private/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-12055821-twbnu99i/tacto-negotiator\n      Built tacto-negotiator @ file:///private/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-12055821-twbnu99i/tacto-negotiator\nInstalled 37 packages in 80ms\n",
+        "job": {
+          "case": "P11",
+          "label": "evidence",
+          "ref": "120558215629388579130703778ad60e6ac5dd84",
+          "config": "configs/packages-evidence.json"
+        }
+      },
+      {
+        "cmd": "uv run --locked negotiator play case:P11 --runner async",
+        "cwd": "/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-15511251-6a3bvizd/tacto-negotiator",
+        "run_dir": "experiments/runs/staged-b-20261010/4-P11-baseline",
+        "returncode": 0,
+        "timed_out": false,
+        "elapsed_s": 2.9,
+        "cases": {
+          "case:P11": {
+            "score": 0.3143945632837383,
+            "deal": true,
+            "error": null,
+            "timeouts": 0,
+            "session": "a08f5e8f1f64df2e",
+            "must_haves_ok": true
+          }
+        },
+        "stderr_tail": "e active environment instead\nUsing CPython 3.12.13\nCreating virtual environment at: .venv\n   Building tacto-negotiator @ file:///private/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-15511251-6a3bvizd/tacto-negotiator\n      Built tacto-negotiator @ file:///private/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-15511251-6a3bvizd/tacto-negotiator\nInstalled 37 packages in 86ms\n",
+        "job": {
+          "case": "P11",
+          "label": "baseline",
+          "ref": "1551125126acf6865bb0660cbcc84c66272ff301"
+        }
+      }
+    ]
+  },
+  "refinement": {
+    "before": {
+      "used": 39,
+      "left": 161,
+      "limit": 200,
+      "resets_at": "2026-10-11T11:39:03.056071+00:00"
+    },
+    "after": {
+      "used": 43,
+      "left": 157,
+      "limit": 200,
+      "resets_at": "2026-10-11T11:39:03.056071+00:00"
+    },
+    "runs": [
+      {
+        "cmd": "uv run --locked negotiator play case:P11 --runner async --policy-config configs/quality-chargeback-1.json",
+        "cwd": "/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-37fe085f-7nmcijf2/tacto-negotiator",
+        "run_dir": "experiments/runs/staged-refinement-20261010/1-P11-chargeback-1-r1",
+        "returncode": 0,
+        "timed_out": false,
+        "elapsed_s": 111.2,
+        "cases": {
+          "case:P11": {
+            "score": 0.6338060610879618,
+            "deal": true,
+            "error": null,
+            "timeouts": 0,
+            "session": "2a2e85e2f0372c98",
+            "must_haves_ok": true
+          }
+        },
+        "stderr_tail": "e active environment instead\nUsing CPython 3.12.13\nCreating virtual environment at: .venv\n   Building tacto-negotiator @ file:///private/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-37fe085f-7nmcijf2/tacto-negotiator\n      Built tacto-negotiator @ file:///private/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-37fe085f-7nmcijf2/tacto-negotiator\nInstalled 37 packages in 71ms\n",
+        "job": {
+          "case": "P11",
+          "label": "chargeback-1-r1",
+          "ref": "37fe085f5a1e4863a7d606df583789abda6ad48d",
+          "config": "configs/quality-chargeback-1.json"
+        }
+      },
+      {
+        "cmd": "uv run --locked negotiator play case:P11 --runner async --policy-config configs/quality-chargeback-2.json",
+        "cwd": "/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-37fe085f-dgdpotav/tacto-negotiator",
+        "run_dir": "experiments/runs/staged-refinement-20261010/2-P11-chargeback-2-r1",
+        "returncode": 0,
+        "timed_out": false,
+        "elapsed_s": 115.4,
+        "cases": {
+          "case:P11": {
+            "score": 0.7098962346486538,
+            "deal": true,
+            "error": null,
+            "timeouts": 0,
+            "session": "c6869765602972cc",
+            "must_haves_ok": true
+          }
+        },
+        "stderr_tail": "e active environment instead\nUsing CPython 3.12.13\nCreating virtual environment at: .venv\n   Building tacto-negotiator @ file:///private/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-37fe085f-dgdpotav/tacto-negotiator\n      Built tacto-negotiator @ file:///private/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-37fe085f-dgdpotav/tacto-negotiator\nInstalled 37 packages in 83ms\n",
+        "job": {
+          "case": "P11",
+          "label": "chargeback-2-r1",
+          "ref": "37fe085f5a1e4863a7d606df583789abda6ad48d",
+          "config": "configs/quality-chargeback-2.json"
+        }
+      },
+      {
+        "cmd": "uv run --locked negotiator play case:P11 --runner async --policy-config configs/quality-chargeback-1.json",
+        "cwd": "/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-37fe085f-u5wi8fp1/tacto-negotiator",
+        "run_dir": "experiments/runs/staged-refinement-20261010/3-P11-chargeback-1-r2",
+        "returncode": 0,
+        "timed_out": false,
+        "elapsed_s": 4.4,
+        "cases": {
+          "case:P11": {
+            "score": 0.6338060610879618,
+            "deal": true,
+            "error": null,
+            "timeouts": 0,
+            "session": "49fc8d01470de13a",
+            "must_haves_ok": true
+          }
+        },
+        "stderr_tail": " active environment instead\nUsing CPython 3.12.13\nCreating virtual environment at: .venv\n   Building tacto-negotiator @ file:///private/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-37fe085f-u5wi8fp1/tacto-negotiator\n      Built tacto-negotiator @ file:///private/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-37fe085f-u5wi8fp1/tacto-negotiator\nInstalled 37 packages in 109ms\n",
+        "job": {
+          "case": "P11",
+          "label": "chargeback-1-r2",
+          "ref": "37fe085f5a1e4863a7d606df583789abda6ad48d",
+          "config": "configs/quality-chargeback-1.json"
+        }
+      },
+      {
+        "cmd": "uv run --locked negotiator play case:P11 --runner async --policy-config configs/quality-chargeback-2.json",
+        "cwd": "/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-37fe085f-jk83o5wz/tacto-negotiator",
+        "run_dir": "experiments/runs/staged-refinement-20261010/4-P11-chargeback-2-r2",
+        "returncode": 0,
+        "timed_out": false,
+        "elapsed_s": 3.0,
+        "cases": {
+          "case:P11": {
+            "score": 0.7098962346486538,
+            "deal": true,
+            "error": null,
+            "timeouts": 0,
+            "session": "f4b2804c5cfda349",
+            "must_haves_ok": true
+          }
+        },
+        "stderr_tail": "e active environment instead\nUsing CPython 3.12.13\nCreating virtual environment at: .venv\n   Building tacto-negotiator @ file:///private/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-37fe085f-jk83o5wz/tacto-negotiator\n      Built tacto-negotiator @ file:///private/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-37fe085f-jk83o5wz/tacto-negotiator\nInstalled 37 packages in 84ms\n",
+        "job": {
+          "case": "P11",
+          "label": "chargeback-2-r2",
+          "ref": "37fe085f5a1e4863a7d606df583789abda6ad48d",
+          "config": "configs/quality-chargeback-2.json"
+        }
+      }
+    ]
+  },
+  "broader": {
+    "before": {
+      "used": 43,
+      "left": 157,
+      "limit": 200,
+      "resets_at": "2026-10-11T11:39:03.056071+00:00"
+    },
+    "after": {
+      "used": 60,
+      "left": 140,
+      "limit": 200,
+      "resets_at": "2026-10-11T11:39:03.056071+00:00"
+    },
+    "runs": [
+      {
+        "cmd": "uv run --locked negotiator play case:P08 --runner async",
+        "cwd": "/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-15511251-pthzz4gp/tacto-negotiator",
+        "run_dir": "experiments/runs/staged-broader-20261010/1-P08-baseline-r1",
+        "returncode": 0,
+        "timed_out": false,
+        "elapsed_s": 2.8,
+        "cases": {
+          "case:P08": {
+            "score": 0.15618407664515943,
+            "deal": true,
+            "error": null,
+            "timeouts": 0,
+            "session": "190e869c6aa48b9f",
+            "must_haves_ok": true
+          }
+        },
+        "stderr_tail": "e active environment instead\nUsing CPython 3.12.13\nCreating virtual environment at: .venv\n   Building tacto-negotiator @ file:///private/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-15511251-pthzz4gp/tacto-negotiator\n      Built tacto-negotiator @ file:///private/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-15511251-pthzz4gp/tacto-negotiator\nInstalled 37 packages in 75ms\n",
+        "job": {
+          "case": "P08",
+          "label": "baseline-r1",
+          "ref": "1551125126acf6865bb0660cbcc84c66272ff301"
+        }
+      },
+      {
+        "cmd": "uv run --locked negotiator play case:P08 --runner async --policy-config configs/raw-material-packages.json",
+        "cwd": "/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-807aebb4-1d1u7vow/tacto-negotiator",
+        "run_dir": "experiments/runs/staged-broader-20261010/2-P08-candidate-r1",
+        "returncode": 0,
+        "timed_out": false,
+        "elapsed_s": 86.2,
+        "cases": {
+          "case:P08": {
+            "score": 0.5929541835976557,
+            "deal": true,
+            "error": null,
+            "timeouts": 0,
+            "session": "4451a15ec9934f23",
+            "must_haves_ok": true
+          }
+        },
+        "stderr_tail": "e active environment instead\nUsing CPython 3.12.13\nCreating virtual environment at: .venv\n   Building tacto-negotiator @ file:///private/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-807aebb4-1d1u7vow/tacto-negotiator\n      Built tacto-negotiator @ file:///private/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-807aebb4-1d1u7vow/tacto-negotiator\nInstalled 37 packages in 84ms\n",
+        "job": {
+          "case": "P08",
+          "label": "candidate-r1",
+          "ref": "807aebb4a5e5ed357d483314c091221086464c49",
+          "config": "configs/raw-material-packages.json"
+        }
+      },
+      {
+        "cmd": "uv run --locked negotiator play case:P08 --runner async --policy-config configs/raw-material-packages.json",
+        "cwd": "/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-807aebb4-yc2r_a8o/tacto-negotiator",
+        "run_dir": "experiments/runs/staged-broader-20261010/3-P08-candidate-r2",
+        "returncode": 0,
+        "timed_out": false,
+        "elapsed_s": 4.3,
+        "cases": {
+          "case:P08": {
+            "score": 0.5929541835976557,
+            "deal": true,
+            "error": null,
+            "timeouts": 0,
+            "session": "ebc8321509c623e7",
+            "must_haves_ok": true
+          }
+        },
+        "stderr_tail": "e active environment instead\nUsing CPython 3.12.13\nCreating virtual environment at: .venv\n   Building tacto-negotiator @ file:///private/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-807aebb4-yc2r_a8o/tacto-negotiator\n      Built tacto-negotiator @ file:///private/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-807aebb4-yc2r_a8o/tacto-negotiator\nInstalled 37 packages in 81ms\n",
+        "job": {
+          "case": "P08",
+          "label": "candidate-r2",
+          "ref": "807aebb4a5e5ed357d483314c091221086464c49",
+          "config": "configs/raw-material-packages.json"
+        }
+      },
+      {
+        "cmd": "uv run --locked negotiator play case:P08 --runner async",
+        "cwd": "/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-15511251-xgk2ogil/tacto-negotiator",
+        "run_dir": "experiments/runs/staged-broader-20261010/4-P08-baseline-r2",
+        "returncode": 0,
+        "timed_out": false,
+        "elapsed_s": 2.5,
+        "cases": {
+          "case:P08": {
+            "score": 0.15618407664515943,
+            "deal": true,
+            "error": null,
+            "timeouts": 0,
+            "session": "da3852810d0c6d3e",
+            "must_haves_ok": true
+          }
+        },
+        "stderr_tail": "e active environment instead\nUsing CPython 3.12.13\nCreating virtual environment at: .venv\n   Building tacto-negotiator @ file:///private/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-15511251-xgk2ogil/tacto-negotiator\n      Built tacto-negotiator @ file:///private/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-15511251-xgk2ogil/tacto-negotiator\nInstalled 37 packages in 86ms\n",
+        "job": {
+          "case": "P08",
+          "label": "baseline-r2",
+          "ref": "1551125126acf6865bb0660cbcc84c66272ff301"
+        }
+      },
+      {
+        "cmd": "uv run --locked negotiator play case:P02 --runner async",
+        "cwd": "/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-15511251-ruiha9hv/tacto-negotiator",
+        "run_dir": "experiments/runs/staged-broader-20261010/5-P02-baseline-r1",
+        "returncode": 0,
+        "timed_out": false,
+        "elapsed_s": 4.5,
+        "cases": {
+          "case:P02": {
+            "score": 0.29342218854638985,
+            "deal": true,
+            "error": null,
+            "timeouts": 0,
+            "session": "088af76fa044f175",
+            "must_haves_ok": true
+          }
+        },
+        "stderr_tail": "e active environment instead\nUsing CPython 3.12.13\nCreating virtual environment at: .venv\n   Building tacto-negotiator @ file:///private/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-15511251-ruiha9hv/tacto-negotiator\n      Built tacto-negotiator @ file:///private/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-15511251-ruiha9hv/tacto-negotiator\nInstalled 37 packages in 85ms\n",
+        "job": {
+          "case": "P02",
+          "label": "baseline-r1",
+          "ref": "1551125126acf6865bb0660cbcc84c66272ff301"
+        }
+      },
+      {
+        "cmd": "uv run --locked negotiator play case:P02 --runner async --policy-config configs/price-evidence.json",
+        "cwd": "/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-807aebb4-mcsbdnvv/tacto-negotiator",
+        "run_dir": "experiments/runs/staged-broader-20261010/6-P02-candidate-r1",
+        "returncode": 0,
+        "timed_out": false,
+        "elapsed_s": 58.6,
+        "cases": {
+          "case:P02": {
+            "score": 0.29342218854638985,
+            "deal": true,
+            "error": null,
+            "timeouts": 0,
+            "session": "0afc8adba4237ebd",
+            "must_haves_ok": true
+          }
+        },
+        "stderr_tail": "e active environment instead\nUsing CPython 3.12.13\nCreating virtual environment at: .venv\n   Building tacto-negotiator @ file:///private/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-807aebb4-mcsbdnvv/tacto-negotiator\n      Built tacto-negotiator @ file:///private/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-807aebb4-mcsbdnvv/tacto-negotiator\nInstalled 37 packages in 77ms\n",
+        "job": {
+          "case": "P02",
+          "label": "candidate-r1",
+          "ref": "807aebb4a5e5ed357d483314c091221086464c49",
+          "config": "configs/price-evidence.json"
+        }
+      },
+      {
+        "cmd": "uv run --locked negotiator play case:P02 --runner async --policy-config configs/price-evidence.json",
+        "cwd": "/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-807aebb4-w8zx6kxx/tacto-negotiator",
+        "run_dir": "experiments/runs/staged-broader-20261010/7-P02-candidate-r2",
+        "returncode": 0,
+        "timed_out": false,
+        "elapsed_s": 3.2,
+        "cases": {
+          "case:P02": {
+            "score": 0.29342218854638985,
+            "deal": true,
+            "error": null,
+            "timeouts": 0,
+            "session": "80775db22c442ea8",
+            "must_haves_ok": true
+          }
+        },
+        "stderr_tail": "e active environment instead\nUsing CPython 3.12.13\nCreating virtual environment at: .venv\n   Building tacto-negotiator @ file:///private/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-807aebb4-w8zx6kxx/tacto-negotiator\n      Built tacto-negotiator @ file:///private/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-807aebb4-w8zx6kxx/tacto-negotiator\nInstalled 37 packages in 86ms\n",
+        "job": {
+          "case": "P02",
+          "label": "candidate-r2",
+          "ref": "807aebb4a5e5ed357d483314c091221086464c49",
+          "config": "configs/price-evidence.json"
+        }
+      },
+      {
+        "cmd": "uv run --locked negotiator play case:P02 --runner async",
+        "cwd": "/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-15511251-38625pm4/tacto-negotiator",
+        "run_dir": "experiments/runs/staged-broader-20261010/8-P02-baseline-r2",
+        "returncode": 0,
+        "timed_out": false,
+        "elapsed_s": 2.7,
+        "cases": {
+          "case:P02": {
+            "score": 0.29342218854638985,
+            "deal": true,
+            "error": null,
+            "timeouts": 0,
+            "session": "dd249998698f1005",
+            "must_haves_ok": true
+          }
+        },
+        "stderr_tail": "e active environment instead\nUsing CPython 3.12.13\nCreating virtual environment at: .venv\n   Building tacto-negotiator @ file:///private/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-15511251-38625pm4/tacto-negotiator\n      Built tacto-negotiator @ file:///private/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-15511251-38625pm4/tacto-negotiator\nInstalled 37 packages in 80ms\n",
+        "job": {
+          "case": "P02",
+          "label": "baseline-r2",
+          "ref": "1551125126acf6865bb0660cbcc84c66272ff301"
+        }
+      },
+      {
+        "cmd": "uv run --locked negotiator play case:P05 --runner async",
+        "cwd": "/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-15511251-ra0egmsa/tacto-negotiator",
+        "run_dir": "experiments/runs/staged-broader-20261010/9-P05-baseline-r1",
+        "returncode": 0,
+        "timed_out": false,
+        "elapsed_s": 5.2,
+        "cases": {
+          "case:P05": {
+            "score": 0.3603959484559269,
+            "deal": true,
+            "error": null,
+            "timeouts": 0,
+            "session": "8c0c07188f0e46e3",
+            "must_haves_ok": true
+          }
+        },
+        "stderr_tail": "e active environment instead\nUsing CPython 3.12.13\nCreating virtual environment at: .venv\n   Building tacto-negotiator @ file:///private/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-15511251-ra0egmsa/tacto-negotiator\n      Built tacto-negotiator @ file:///private/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-15511251-ra0egmsa/tacto-negotiator\nInstalled 37 packages in 81ms\n",
+        "job": {
+          "case": "P05",
+          "label": "baseline-r1",
+          "ref": "1551125126acf6865bb0660cbcc84c66272ff301"
+        }
+      },
+      {
+        "cmd": "uv run --locked negotiator play case:P05 --runner async --policy-config configs/rfq-payment.json",
+        "cwd": "/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-807aebb4-0o07use1/tacto-negotiator",
+        "run_dir": "experiments/runs/staged-broader-20261010/10-P05-candidate-r1",
+        "returncode": 0,
+        "timed_out": false,
+        "elapsed_s": 156.8,
+        "cases": {
+          "case:P05": {
+            "score": 0.3603959484559269,
+            "deal": true,
+            "error": null,
+            "timeouts": 0,
+            "session": "833a5941d12cd20b",
+            "must_haves_ok": true
+          }
+        },
+        "stderr_tail": "e active environment instead\nUsing CPython 3.12.13\nCreating virtual environment at: .venv\n   Building tacto-negotiator @ file:///private/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-807aebb4-0o07use1/tacto-negotiator\n      Built tacto-negotiator @ file:///private/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-807aebb4-0o07use1/tacto-negotiator\nInstalled 37 packages in 81ms\n",
+        "job": {
+          "case": "P05",
+          "label": "candidate-r1",
+          "ref": "807aebb4a5e5ed357d483314c091221086464c49",
+          "config": "configs/rfq-payment.json"
+        }
+      },
+      {
+        "cmd": "uv run --locked negotiator play case:P05 --runner async --policy-config configs/rfq-payment.json",
+        "cwd": "/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-807aebb4-niejqne4/tacto-negotiator",
+        "run_dir": "experiments/runs/staged-broader-20261010/11-P05-candidate-r2",
+        "returncode": 0,
+        "timed_out": false,
+        "elapsed_s": 6.5,
+        "cases": {
+          "case:P05": {
+            "score": 0.3603959484559269,
+            "deal": true,
+            "error": null,
+            "timeouts": 0,
+            "session": "ffe38762834f5582",
+            "must_haves_ok": true
+          }
+        },
+        "stderr_tail": "e active environment instead\nUsing CPython 3.12.13\nCreating virtual environment at: .venv\n   Building tacto-negotiator @ file:///private/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-807aebb4-niejqne4/tacto-negotiator\n      Built tacto-negotiator @ file:///private/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-807aebb4-niejqne4/tacto-negotiator\nInstalled 37 packages in 82ms\n",
+        "job": {
+          "case": "P05",
+          "label": "candidate-r2",
+          "ref": "807aebb4a5e5ed357d483314c091221086464c49",
+          "config": "configs/rfq-payment.json"
+        }
+      },
+      {
+        "cmd": "uv run --locked negotiator play case:P05 --runner async",
+        "cwd": "/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-15511251-k2debdgl/tacto-negotiator",
+        "run_dir": "experiments/runs/staged-broader-20261010/12-P05-baseline-r2",
+        "returncode": 0,
+        "timed_out": false,
+        "elapsed_s": 8.4,
+        "cases": {
+          "case:P05": {
+            "score": 0.3603959484559269,
+            "deal": true,
+            "error": null,
+            "timeouts": 0,
+            "session": "b05d23e586ac9533",
+            "must_haves_ok": true
+          }
+        },
+        "stderr_tail": " active environment instead\nUsing CPython 3.12.13\nCreating virtual environment at: .venv\n   Building tacto-negotiator @ file:///private/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-15511251-k2debdgl/tacto-negotiator\n      Built tacto-negotiator @ file:///private/var/folders/r1/phn_369d5jv89t3lv7h1q2br0000gn/T/tacto-cmp-15511251-k2debdgl/tacto-negotiator\nInstalled 37 packages in 124ms\n",
+        "job": {
+          "case": "P05",
+          "label": "baseline-r2",
+          "ref": "1551125126acf6865bb0660cbcc84c66272ff301"
+        }
+      }
+    ]
+  },
+  "sandbox_recovery": {
+    "crash_injected": true,
+    "sessions": [
+      "ca71bef0a414bc54",
+      "e415cfd2dafb22ae"
+    ],
+    "problems": [],
+    "before": {
+      "used": 60,
+      "left": 140,
+      "limit": 200,
+      "resets_at": "2026-10-11T11:39:03.056071+00:00"
+    },
+    "after": {
+      "used": 60,
+      "left": 140,
+      "limit": 200,
+      "resets_at": "2026-10-11T11:39:03.056071+00:00"
+    },
+    "results": {
+      "case:D01": {
+        "score": 0.9192309491602684,
+        "deal": true,
+        "timeouts": 0,
+        "must_haves_ok": true,
+        "session": "ca71bef0a414bc54"
+      },
+      "case:D02": {
+        "score": 0.4608978682431153,
+        "deal": true,
+        "timeouts": 0,
+        "must_haves_ok": true,
+        "session": "e415cfd2dafb22ae"
+      }
+    }
+  }
+}
