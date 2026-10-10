@@ -1,0 +1,47 @@
+[
+  {
+    "case": "baseline-first",
+    "label": "baseline",
+    "ref": "1551125126acf6865bb0660cbcc84c66272ff301",
+    "cases": [
+      "case:P01",
+      "case:P03",
+      "case:P05",
+      "case:P08",
+      "case:P11"
+    ],
+    "parallel": 5
+  },
+  {
+    "case": "candidate-all",
+    "label": "candidate",
+    "ref": "ec56b38bb9c0f4446b232f8472219a4a0c6dddff",
+    "config": "configs/candidate.json",
+    "cases": [
+      "case:P01",
+      "case:P02",
+      "case:P03",
+      "case:P04",
+      "case:P05",
+      "case:P07",
+      "case:P08",
+      "case:P10",
+      "case:P11",
+      "case:P18"
+    ],
+    "parallel": 10
+  },
+  {
+    "case": "baseline-last",
+    "label": "baseline",
+    "ref": "1551125126acf6865bb0660cbcc84c66272ff301",
+    "cases": [
+      "case:P02",
+      "case:P04",
+      "case:P07",
+      "case:P10",
+      "case:P18"
+    ],
+    "parallel": 5
+  }
+]

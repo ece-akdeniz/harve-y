@@ -1,0 +1,22 @@
+.env
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+data/
+experiments/runs/*
+!experiments/runs/.gitkeep
+experiments/dossiers.json
+*.log
+.DS_Store
+.lab-secrets.env
+experiments/dashboard.sqlite3*
+experiments/lab-*.sqlite3*
+
+# Local checkpoint/campaign storage (never captured as source).
+experiments/loop/
+
+# Local derived feedback contains historical run evidence.
+experiments/feedback*.json
+experiments/knowledge-graph*.json

@@ -1,0 +1,7 @@
+{
+  "version": 1,
+  "package_types": [
+    "rfq"
+  ],
+  "preference": "standard_payment"
+}
