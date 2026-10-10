@@ -28,7 +28,7 @@ def supplier_id(run, supplier):
     return _id("supplier", *_scope(run), supplier)
 
 
-def export_graph(runs, reports=()):
+def export_graph(runs, reports=(), package=None):
     """Stable snapshot, suitable for idempotent upserts into a team's graph service."""
     nodes, edges = {}, {}
 
@@ -94,6 +94,27 @@ def export_graph(runs, reports=()):
                     sid = supplier_id(run, ref.get("supplier"))
                     if sid in nodes:
                         link(fid, "about_supplier", sid)
+    if package is not None:
+        version = (getattr(package, "manifest", None) or {}).get("sha256")
+        facts = getattr(package, "facts", None)
+        if not isinstance(version, str) or not version or not isinstance(facts, dict) or len(facts) > 10000:
+            raise ValueError("versioned public facts required for graph projection")
+        sources = getattr(package, "sources", {})
+        for ref, value in sorted(facts.items()):
+            if not isinstance(ref, str) or not isinstance(value, dict):
+                continue
+            provenance = {"data_sha256": version, "source_id": ref,
+                          "source_layer": sources.get(ref, "unknown")}
+            fact_id = node("public_fact", (version, ref), value, provenance)
+            nodes[fact_id]["scope"] = "current_public_data"
+            for field, kind in (("supplier", "supplier"), ("supplier_id", "supplier"),
+                                ("part", "part"), ("part_id", "part")):
+                identity = value.get(field)
+                if isinstance(identity, str) and identity:
+                    entity_id = node("current_" + kind, (version, identity),
+                                     {kind + "_id": identity}, {"data_sha256": version})
+                    nodes[entity_id]["scope"] = "current_public_data"
+                    link(fact_id, "describes_" + kind, entity_id)
     return {"schema_version": 1, "nodes": sorted(nodes.values(), key=lambda n: n["id"]),
             "edges": sorted(edges.values(), key=lambda e: e["id"]),
             "live_lessons_enabled": False}

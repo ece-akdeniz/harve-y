@@ -1,4 +1,5 @@
 from copy import deepcopy
+from types import SimpleNamespace
 
 from test_lab_server import snapshot
 
@@ -76,3 +77,33 @@ def test_historical_math_does_not_use_unmatched_data(monkeypatch):
     assert not checked and report["package_validation"].startswith("skipped")
     FeedbackAgent().review(run, case, data_sha256="b" * 64)
     assert len(checked) == 1
+
+
+def test_fresh_public_facts_change_graph_without_rewriting_conversation_memory():
+    run = recorded("prior")
+    first = SimpleNamespace(manifest={"sha256": "release-a"}, sources={"sc:A": "base"},
+                            facts={"sc:A": {"supplier": "sup:A", "otd_pct": 84}})
+    second = SimpleNamespace(manifest={"sha256": "release-b"}, sources={"sc:A": "release"},
+                             facts={"sc:A": {"supplier": "sup:A", "otd_pct": 92}})
+    old, new = export_graph([run], package=first), export_graph([run], package=second)
+    old_memory = {n["id"] for n in old["nodes"] if n["scope"] == "evaluation_only"}
+    new_memory = {n["id"] for n in new["nodes"] if n["scope"] == "evaluation_only"}
+    assert old_memory == new_memory
+    assert {n["id"] for n in old["nodes"] if n["kind"] == "public_fact"} != {
+        n["id"] for n in new["nodes"] if n["kind"] == "public_fact"
+    }
+    assert SnapshotMemory(old).supplier_history(
+        recorded("later", date="2026-10-10T13:00:00+00:00"), "sup:A", purpose="feedback"
+    )
+
+
+def test_feedback_separates_matching_public_data_from_past_supplier_memory():
+    run = recorded("current")
+    package = SimpleNamespace(manifest={"sha256": "release-a"}, sources={"sc:A": "base"},
+                              facts={"sc:A": {"supplier": "sup:A", "otd_pct": 84}})
+    graph = export_graph([run], package=package)
+    report = FeedbackAgent().review(run, data_sha256="b" * 64, public_graph=graph)
+    assert report["current_data_context"][0]["source_ids"] == ["sc:A"]
+    assert report["memory_context"] == []
+    mismatched = FeedbackAgent().review(run, data_sha256="c" * 64, public_graph=graph)
+    assert mismatched["current_data_context"] == []

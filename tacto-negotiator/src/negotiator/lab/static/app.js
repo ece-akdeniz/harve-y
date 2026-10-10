@@ -1,7 +1,7 @@
 "use strict";
 
 const $ = (id) => document.getElementById(id);
-const state = { runs: [], loggedIn: false, refreshPromise: null, detail: null, detailRequest: 0, comparison: null, table: { page: 1, pageSize: 25, sortKey: "updated_at", direction: "desc" } };
+const state = { runs: [], loggedIn: false, memoryGeneration: 0, refreshPromise: null, detail: null, detailRequest: 0, comparison: null, table: { page: 1, pageSize: 25, sortKey: "updated_at", direction: "desc" } };
 const number = new Intl.NumberFormat(undefined, { maximumFractionDigits: 1 });
 const euro = new Intl.NumberFormat(undefined, { style: "currency", currency: "EUR", maximumFractionDigits: 2 });
 const score = (value) => typeof value === "number" && Number.isFinite(value) ? number.format(value * 100) : "—";
@@ -63,6 +63,8 @@ async function api(path, options = {}) {
 }
 
 function showLogin() {
+  state.memoryGeneration++;
+  globalThis.MemoryDashboard?.reset();
   globalThis.LoopDashboard?.reset();
   globalThis.ScoreHistory?.reset();
   state.table.page = 1;
@@ -86,7 +88,7 @@ function showWorkspace() {
 }
 
 function switchView(view) {
-  for (const name of ["runs", "compare", "history"]) {
+  for (const name of ["runs", "compare", "history", "memory"]) {
     $(name + "-view").hidden = name !== view;
     $("nav-" + name).classList.toggle("active", name === view);
     $("nav-" + name).setAttribute("aria-current", name === view ? "page" : "false");
@@ -94,12 +96,14 @@ function switchView(view) {
   $("loop-view").hidden = view !== "runs";
   const titles = {runs: ["Experiments", "Experiment lab", "Small changes. Clear comparisons. Better negotiations."],
     compare: ["Compare runs", "Find the difference", "Understand where a change helped, and where it didn't."],
-    history: ["Score history", "Progress over time", "Follow each supplier and case, from the first attempt to the latest."]};
+    history: ["Score history", "Progress over time", "Follow each supplier and case, from the first attempt to the latest."],
+    memory: ["Memory", "Evidence into memory", "Inspect supplier history, candidate lessons and frozen discovery cohorts."]};
   const [crumb, title, description] = titles[view];
   $("breadcrumb").textContent = crumb;
   $("page-title").replaceChildren(document.createTextNode(title), element("span", ".", "title-dot"));
   $("page-description").textContent = description;
   if (view === "history") globalThis.ScoreHistory?.refresh();
+  if (view === "memory") globalThis.MemoryDashboard?.refresh();
 }
 
 function updateOptions(id, entries, placeholder) {
@@ -232,6 +236,7 @@ async function refreshWorkspace({ afterLogin }) {
     if (changed && state.comparison && !$("compare-view").hidden) await compare();
     await globalThis.LoopDashboard?.refresh();
     await globalThis.ScoreHistory?.refresh();
+    if (!$("memory-view").hidden) await globalThis.MemoryDashboard?.refresh();
   } catch (error) {
     if (afterLogin) {
       if (error.status === 401) throw new Error("The password was accepted, but the session cookie was not received. Open the public HTTPS link directly and allow cookies for this site, then sign in again.");
@@ -586,6 +591,7 @@ $("logout-mobile").addEventListener("click", logout);
 $("nav-runs").addEventListener("click", () => switchView("runs"));
 $("nav-compare").addEventListener("click", () => switchView("compare"));
 $("nav-history").addEventListener("click", () => switchView("history"));
+$("nav-memory").addEventListener("click", () => switchView("memory"));
 $("refresh").addEventListener("click", refresh);
 $("compare-button").addEventListener("click", compare);
 for (const id of ["search", "filter-author", "filter-environment", "filter-status"]) $(id).addEventListener("input", () => { state.table.page = 1; renderRuns(); });
@@ -605,4 +611,5 @@ setInterval(() => { if (state.loggedIn && !document.hidden) refresh(); }, 5000);
 document.addEventListener("visibilitychange", () => { if (!document.hidden && state.loggedIn) refresh(); });
 globalThis.LoopDashboard?.init();
 globalThis.ScoreHistory?.init();
+globalThis.MemoryDashboard?.init();
 refresh();

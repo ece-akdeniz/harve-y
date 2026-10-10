@@ -37,10 +37,10 @@ class RuntimeGuidance:
                 raise ValueError(f"invalid runtime {key}")
         return cls(settings, hashlib.sha256(raw).hexdigest())
 
-    def new_agent(self, *, tracer=None, policy=None):
+    def new_agent(self, *, tracer=None, policy=None, memory=None):
         from .agent import PackageAgent
 
-        agent = PackageAgent(tracer=tracer, policy=policy, **{
+        agent = PackageAgent(tracer=tracer, policy=policy, memory=memory, **{
             k: v for k, v in self.settings.items() if k not in ("version", "conditional_exchange")
         })
         agent.conditional_exchange = self.settings["conditional_exchange"]

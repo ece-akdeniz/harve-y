@@ -98,6 +98,7 @@ def parser():
     graph = sub.add_parser("graph-export", help="export a versioned evaluation graph for the shared lab")
     graph.add_argument("--db", type=Path, default=Path("experiments/dashboard.sqlite3"))
     graph.add_argument("--out", type=Path, default=Path("experiments/knowledge-graph.json"))
+    graph.add_argument("--data", type=Path, help="optional current public data package for a separate graph layer")
     history.add_argument(
         "--db",
         type=Path,
@@ -132,6 +133,7 @@ def main(argv=None) -> int:
         "campaign",
         "evidence",
         "findings",
+        "memory",
         "restore",
     ):
         from .loop_cli import main as loop_main
@@ -147,7 +149,16 @@ def main(argv=None) -> int:
             if not args.db.is_file():
                 raise ValueError("graph database does not exist")
             store = Store(args.db)
-            graph = export_graph(store.all(), review_store(store)["reports"])
+            package = None
+            if args.data:
+                from negotiator.dossiers import load_package
+
+                package = load_package(args.data)
+            try:
+                graph = export_graph(store.all(), review_store(store)["reports"], package=package)
+            finally:
+                if package and package.db:
+                    package.db.close()
             args.out.parent.mkdir(parents=True, exist_ok=True)
             args.out.write_text(json.dumps(graph, indent=2, allow_nan=False))
             print(json.dumps({"nodes": len(graph["nodes"]), "edges": len(graph["edges"]),
@@ -171,7 +182,7 @@ def main(argv=None) -> int:
 
                     overlay_hash = fingerprint_data(package.release)
                     data_hash = hashlib.sha256(f"base:{data_hash}\nrelease:{overlay_hash}".encode()).hexdigest()
-                result = review_store(Store(args.db), package.cases if package else None, data_hash)
+                result = review_store(Store(args.db), package.cases if package else None, data_hash, package)
             finally:
                 if package and package.db:
                     package.db.close()

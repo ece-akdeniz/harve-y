@@ -2,6 +2,22 @@
 
 Format and decision rule: `docs/04-experiments.md`. Newest on top. One entry per change.
 
+## Supplier memory merge and data/feedback separation — local integration, 10 October 2026
+
+- Hypothesis: Barış's cited, immutable supplier memory can coexist with bounded email
+  interpretation and current public-data graph projection, without allowing fresh data
+  to rewrite conversation history or automatically change negotiation policy.
+- Source/config: `codex/combined-latest-updates` merges `origin/codex/supplier-memory`
+  at `975c15e`; immutable memory and model assistance are separate explicit options.
+  Fresh facts are projected only when a versioned public package is supplied.
+- Cases: local synthetic graph, feedback, checkpoint and memory-policy tests. The data
+  projection test changes a supplier scorecard between releases and checks that episodic
+  node IDs remain stable. A terminal lab upload test checks persisted feedback and retained
+  original run data. Validation: 585 Python tests passed, Ruff clean; 21 lab Node
+  checks passed and nine DOM-dependent checks skipped in this local environment.
+- Hosted sessions/quota: 0. Model calls: 0. Scores: unmeasured. Decision: retain as an
+  opt-in integration candidate; no default policy promotion or main deployment.
+
 ## Combined latest-updates branch — local integration, 10 October 2026
 
 - Hypothesis: the verified evidence branch can retain its standalone index evidence while

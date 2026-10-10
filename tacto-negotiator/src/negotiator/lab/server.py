@@ -221,6 +221,14 @@ class Handler(BaseHTTPRequestHandler):
         except (ValidationError, ValueError, TypeError, RecursionError):
             self._error(400, "invalid run snapshot")
         else:
+            if accepted and run.status in {"completed", "failed", "interrupted"}:
+                from .feedback import review_one
+
+                try:
+                    review_one(self.server.store, run.run_id)
+                except (OSError, ValueError, TypeError):
+                    # Feedback is advisory; an accepted original run must remain saved.
+                    pass
             self._json(200, {"ok": True, "accepted": accepted})
 
     def do_GET(self):
@@ -273,6 +281,7 @@ class Handler(BaseHTTPRequestHandler):
             "/app.js": ("app.js", "application/javascript"),
             "/loop.js": ("loop.js", "application/javascript"),
             "/history.js": ("history.js", "application/javascript"),
+            "/memory.js": ("memory.js", "application/javascript"),
             "/app.css": ("app.css", "text/css"),
             "/static/app.js": ("app.js", "application/javascript"),
             "/static/app.css": ("app.css", "text/css"),

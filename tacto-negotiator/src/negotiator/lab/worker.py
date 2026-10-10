@@ -10,7 +10,8 @@ import time
 from pathlib import Path
 from types import SimpleNamespace
 
-from .checkpoints import _data_hash, requires_data
+from ..memory import normalize_arena
+from .checkpoints import _data_hash, _git, requires_data, resolve_config
 from .runner import RecordingTable, collect_session, sanitize
 
 
@@ -56,11 +57,27 @@ def prepare_environment(manifest, data_paths, root):
 
 def validate_runtime(request):
     manifest = request["checkpoint"]
+    # Validate structured lessons before any agent or session can execute.
+    resolve_config(manifest['config'])
+    memory = manifest['config'].get('memory')
+    if memory is not None:
+        if (normalize_arena(request.get('arena_url')) != memory['arena_url']
+                or request.get('environment') != memory['environment']):
+            raise ValueError('memory scope differs from campaign arena/environment')
     project = Path(request["project"]).resolve()
     if Path(__file__).resolve().parents[2] != project / "src":
         raise ValueError("worker source does not match checkpoint project")
     if hashlib.sha256((project / "uv.lock").read_bytes()).hexdigest() != manifest["lock_sha256"]:
         raise ValueError("checkpoint lock mismatch")
+    if 'source_tree' in manifest:
+        if _git(project, 'rev-parse', manifest['commit'] + '^{tree}') != manifest['source_tree']:
+            raise ValueError('checkpoint source tree mismatch')
+        from .checkpoints import _verify_checkout_bytes
+
+        repo = Path(_git(project, 'rev-parse', '--show-toplevel'))
+        _verify_checkout_bytes(repo, manifest['commit'])
+        for path, sha in manifest['submodules'].items():
+            _verify_checkout_bytes(repo / path, sha)
     prepare_environment(manifest, request.get("data_paths", {}), request["attempt_root"])
     if requires_data(manifest["config"]):
         from negotiator.dossiers import load_package
@@ -72,6 +89,7 @@ def validate_runtime(request):
 def execute(request):
     from negotiator.agent import PackageAgent
     from negotiator.play import play_case
+    from negotiator.trace import Tracer
 
     manifest = validate_runtime(request)
     root = Path(request["attempt_root"])

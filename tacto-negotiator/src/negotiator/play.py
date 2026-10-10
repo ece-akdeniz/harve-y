@@ -83,7 +83,9 @@ def run_config(agent, runner="serial-play_case", facts="data/package/facts.json"
             hashlib.sha256(Path(memory_path).read_bytes()).hexdigest()
             if memory_path and Path(memory_path).is_file() else None
         )
+    from .memory import validate_memory
     return {
+        **({"memory": validate_memory(agent.memory)} if getattr(agent, "memory", None) is not None else {}),
         "commit": commit,
         "src_dirty": dirty,
         "agent": AGENT_NAME,

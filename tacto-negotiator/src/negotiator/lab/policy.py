@@ -3,6 +3,9 @@
 import math
 import statistics
 
+from ..memory import identifier, normalize_arena, supplier_author_matches, validate_memory
+from .loop_models import Outcome
+
 
 def default_suite(arena_url="https://arena.tacto.ai", environment="sandbox"):
     return dict(
@@ -34,6 +37,7 @@ def evaluate_campaign(suite, baseline, candidate, attempts):
         ),
         "Published checkpoints and identical declared runner/data required",
     )
+    _memory_gates(suite, baseline, candidate, attempts, gate)
     planned = {
         (arm, case, repeat)
         for arm in ("baseline", "candidate")
@@ -99,3 +103,119 @@ def evaluate_campaign(suite, baseline, candidate, attempts):
         metrics=metrics,
         evidence_gaps=gaps,
     )
+
+
+def _memory_gates(suite, baseline, candidate, attempts, gate):
+    left, right = [checkpoint.get('config', {}).get('memory') for checkpoint in (baseline, candidate)]
+    if left == right or not any(isinstance(memory, dict) and memory.get('lessons') for memory in (left, right)):
+        return
+    comparable_fields = ('lock_sha256', 'runner', 'data', 'project_path', 'submodules', 'harness_version', 'agent')
+    differences = [field for field in comparable_fields
+                   if field not in baseline or field not in candidate or baseline[field] != candidate[field]]
+    if {k: v for k, v in baseline['config'].items() if k != 'memory'} != {
+        k: v for k, v in candidate['config'].items() if k != 'memory'
+    }:
+        differences.append('config')
+    # Capturing an identical tree deliberately produces unique checkpoint commits.
+    # Legacy manifests have no verified tree identity: require the exact commit.
+    if 'source_tree' in baseline and 'source_tree' in candidate:
+        same_source = baseline['source_tree'] == candidate['source_tree']
+    else:
+        same_source = bool(baseline.get('commit')) and baseline.get('commit') == candidate.get('commit')
+    if not same_source:
+        differences.append('source')
+    gate('memory_comparability', not differences, dict(differing_inputs=differences))
+    try:
+        memories = [validate_memory(memory) for memory in (left, right) if memory is not None]
+        arena = normalize_arena(suite['arena_url'])
+    except (ValueError, TypeError, KeyError):
+        gate('memory_holdout', False, dict(reasons=['invalid_snapshot_or_scope']))
+        return
+    discovery = {name: {value for memory in memories for value in memory[name]}
+                 for name in ('source_cases', 'source_suppliers', 'source_sessions')}
+    reasons = set()
+    if any(memory['arena_url'] != arena or memory['environment'] != suite['environment'] for memory in memories):
+        reasons.add('discovery_scope_mismatch')
+    cases = set(suite['cases'])
+    if len(cases) < 2:
+        reasons.add('fewer_than_two_cases')
+    if cases & discovery['source_cases']:
+        reasons.add('discovery_case_overlap')
+    planned = {(arm, case, repeat) for arm in ('baseline', 'candidate') for case in cases
+               for repeat in range(1, suite['repetitions'] + 1)}
+    cohorts, sessions, suppliers = {}, set(), set()
+    for attempt in attempts:
+        cell = (attempt.get('arm'), attempt.get('case_id'), attempt.get('repeat'))
+        if cell in cohorts or cell not in planned:
+            reasons.add('unexpected_or_duplicate_attempt')
+        cohort, failures = _original_cohort(attempt)
+        reasons.update(failures)
+        cohorts[cell] = cohort
+        suppliers.update(cohort)
+        session = attempt.get('session_id')
+        if not identifier(session):
+            reasons.add('unknown_session')
+        elif session in sessions:
+            reasons.add('duplicate_session')
+        else:
+            sessions.add(session)
+        if session in discovery['source_sessions']:
+            reasons.add('discovery_session_overlap')
+    if set(cohorts) != planned:
+        reasons.add('missing_planned_transcripts')
+    if len(suppliers) < 3:
+        reasons.add('fewer_than_three_suppliers')
+    if suppliers & discovery['source_suppliers']:
+        reasons.add('discovery_supplier_overlap')
+    for case in cases:
+        for repeat in range(1, suite['repetitions'] + 1):
+            if cohorts.get(('baseline', case, repeat)) != cohorts.get(('candidate', case, repeat)):
+                reasons.add('comparison_supplier_cohorts_differ')
+    gate('memory_holdout', not reasons, dict(
+        reasons=sorted(reasons), supplier_count=len(suppliers), case_count=len(cases),
+        discovery_supplier_overlap=sorted(suppliers & discovery['source_suppliers']),
+        discovery_case_overlap=sorted(cases & discovery['source_cases']),
+        discovery_session_overlap=sorted(sessions & discovery['source_sessions']),
+    ))
+
+
+def _original_cohort(attempt):
+    """Only immutable original outcomes establish a complete supplier cohort."""
+    reasons = set()
+    try:
+        original = Outcome.model_validate(attempt.get('outcome')).model_dump()
+    except (ValueError, TypeError):
+        return set(), {'missing_original_outcome'}
+    for key in ('attempt_id', 'checkpoint_id', 'session_id', 'status', 'result', 'threads', 'score', 'timeouts'):
+        if original[key] != attempt.get(key):
+            reasons.add('original_outcome_mismatch')
+    if original['status'] != 'completed' or original['result'].get('ended') is not True:
+        reasons.add('original_outcome_not_ended')
+    result, threads = original['result'], original['threads']
+    if result.get('session_id', original['session_id']) != original['session_id']:
+        reasons.add('session_identity_mismatch')
+    if result.get('case_id', attempt.get('case_id')) != attempt.get('case_id'):
+        reasons.add('case_identity_mismatch')
+    suppliers = set(threads)
+    if not suppliers or any(not identifier(supplier) for supplier in suppliers):
+        reasons.add('missing_supplier_transcripts')
+    # The owned ended session response supplies the full roster, including losers.
+    # Without it, an omitted thread cannot be distinguished from a complete cohort.
+    roster = result.get('threads')
+    if not isinstance(roster, dict) or not roster or set(roster) != suppliers:
+        reasons.add('incomplete_supplier_roster')
+    if result.get('supplier_id') is not None and result['supplier_id'] not in suppliers:
+        reasons.add('selected_supplier_absent')
+    for supplier, thread in threads.items():
+        if isinstance(thread, dict):
+            if thread.get('supplier_id', supplier) != supplier:
+                reasons.add('thread_identity_mismatch')
+            messages = thread.get('messages')
+        else:
+            messages = thread
+        if (not isinstance(messages, list) or not messages
+                or any(not isinstance(message, dict) for message in messages)
+                or not any(supplier_author_matches(message.get('from'), supplier) for message in messages
+                           if isinstance(message, dict))):
+            reasons.add('missing_known_supplier_messages')
+    return suppliers, reasons

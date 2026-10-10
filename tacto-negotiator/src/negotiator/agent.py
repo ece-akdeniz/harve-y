@@ -25,6 +25,8 @@ from .evaluator import (
     supplier_for,
 )
 from .guards import leaks
+from .memory import validate_memory
+from .memory_policy import prefer_package
 from .optimizer import alternative_cost, best_terms
 
 log = logging.getLogger("negotiator")
@@ -93,6 +95,7 @@ class PackageAgent:
         model_assist=False,
         model_provider=None,
         model_name=None,
+        memory=None,
     ):
         self.anchor, self.rounds, self.close_gap, self.tracer = anchor, rounds, close_gap, tracer
         if isinstance(policy, dict):
@@ -105,6 +108,8 @@ class PackageAgent:
             from .package_advisor import PackageAdvisor
 
             self.package_advisor = PackageAdvisor()
+        self.memory = validate_memory(memory) if memory is not None else None
+        self._memory_seen = set()
         self.conditional_exchange = False
         self.trades = None
         if policy:
@@ -299,7 +304,14 @@ class PackageAgent:
             if on_prev and min(on_prev) > ref_c + 1e-6:
                 n = nonprice(case, complete_offer(case, closing_terms(case, ref_terms, std)))
                 self._log(case, "package_switch", sid, prev=prev, new=n, c_prev=min(on_prev), c_new=ref_c)
-        return self._free_concessions(case, n, ref_terms, std, sup) if eligible else n
+        n = self._free_concessions(case, n, ref_terms, std, sup) if eligible else n
+        identity = (case['case_id'], sid)
+        if prev is None and not self._ours(events) and identity not in self._memory_seen:
+            self._memory_seen.add(identity)
+            n, trace = prefer_package(case, n, ref_terms['unit_price'], std, sup, memory=self.memory)
+            if trace:
+                self._log(case, 'memory_package', sid, **trace)
+        return n
 
     def _free_concessions(self, case, n, theirs, std, sup):
         price = theirs["unit_price"]

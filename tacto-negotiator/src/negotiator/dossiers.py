@@ -39,7 +39,7 @@ def load_package(data_dir=None, release=None) -> DataPackage:
     explicit = data_dir or os.environ.get("ARENA_DATA")
     for c in ([explicit] if explicit else DATA_CANDIDATES):
         if c and (Path(c).expanduser() / "facts.json").is_file():
-            return VersionedPackage(c, release=release)
+            return VersionedPackage(c, release=release or os.environ.get("ARENA_RELEASE"))
     raise FileNotFoundError("data package not found: pass data_dir, set ARENA_DATA or run `uv run arena data`")
 
 

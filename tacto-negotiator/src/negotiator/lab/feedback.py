@@ -5,10 +5,11 @@ from ..ingestion import fingerprint
 
 
 class FeedbackAgent:
-    def review(self, run, cases=None, memory=None, data_sha256=None):
+    def review(self, run, cases=None, memory=None, data_sha256=None, public_graph=None):
         body = run.model_dump() if hasattr(run, "model_dump") else run
-        findings, memory_context = [], []
+        findings, memory_context, current_data_context = [], [], []
         data_matches = bool(data_sha256 and data_sha256 == (body.get("provenance") or {}).get("data_sha256"))
+        public_nodes = (public_graph or {}).get("nodes", []) if data_matches else []
 
         def add(attempt, category, observation, next_test, supplier=None, message=None):
             ref = {"run_id": body["run_id"], "attempt_id": attempt["attempt_id"]}
@@ -45,6 +46,13 @@ class FeedbackAgent:
                     "Compare feasible tenors/volumes over the same horizon; longer is not automatically better.")
             case = (cases or {}).get(attempt["case_id"]) if data_matches else None
             for sid, thread in (attempt.get("threads") or {}).items():
+                related = [node for node in public_nodes if node["kind"] == "public_fact"
+                           and sid in {node["data"].get("supplier"), node["data"].get("supplier_id")}]
+                if related:
+                    current_data_context.append({"supplier_id": sid, "attempt_id": attempt["attempt_id"],
+                                                 "source_ids": sorted(n["provenance"]["source_id"] for n in related),
+                                                 "data_sha256": related[0]["provenance"]["data_sha256"],
+                                                 "limitation": "Current public facts; not past conversation memory."})
                 if memory is not None:
                     prior = memory.supplier_history(body, sid, purpose="feedback")
                     memory_context.append({"supplier_id": sid, "attempt_id": attempt["attempt_id"],
@@ -88,19 +96,21 @@ class FeedbackAgent:
         return {"schema_version": 1, "run_id": body["run_id"], "source_sha256": fingerprint(body),
                 "findings": findings, "limitation": limitation,
                 "policy_changed": False, "model_calls": 0, "memory_context": memory_context,
+                "current_data_context": current_data_context,
                 "package_validation": "matched public data; session overrides unknown" if data_matches else
                 "skipped: no matching historical data fingerprint"}
 
 
-def review_store(store, cases=None, data_sha256=None):
+def review_store(store, cases=None, data_sha256=None, package=None):
     """Persist audits separately from immutable original attempts; safe to rerun after imports."""
     from .knowledge import SnapshotMemory, export_graph
 
     agent, reports = FeedbackAgent(), []
     runs = store.all()
-    memory = SnapshotMemory(export_graph(runs))
+    graph = export_graph(runs, package=package)
+    memory = SnapshotMemory(graph)
     for run in runs:
-        report = agent.review(run, cases, memory, data_sha256)
+        report = agent.review(run, cases, memory, data_sha256, graph)
         reports.append(report)
     import json
 
@@ -121,3 +131,21 @@ def review_store(store, cases=None, data_sha256=None):
                "status": "observations_only; not an approved runtime rule"}
               for item in recurring.values() if len(item["run_ids"]) > 1]
     return {"schema_version": 1, "runs": len(reports), "reports": reports, "shared_observations": memory}
+
+
+def review_one(store, run_id):
+    """Refresh a terminal run's descriptive feedback after an accepted lab upload."""
+    import json
+
+    from .knowledge import SnapshotMemory, export_graph
+
+    runs = store.all()
+    run = next((item for item in runs if item.run_id == run_id), None)
+    if run is None or run.status not in {"completed", "failed", "interrupted"}:
+        return None
+    report = FeedbackAgent().review(run, memory=SnapshotMemory(export_graph(runs)))
+    with store._connect() as db:
+        db.execute("CREATE TABLE IF NOT EXISTS feedback (source_sha256 TEXT PRIMARY KEY, run_id TEXT, body TEXT)")
+        db.execute("INSERT OR REPLACE INTO feedback VALUES (?, ?, ?)",
+                   (report["source_sha256"], report["run_id"], json.dumps(report, allow_nan=False)))
+    return report
