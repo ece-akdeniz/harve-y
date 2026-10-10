@@ -979,3 +979,30 @@ early cash + capacity opening (.3854, rejected), supplier-standard payment (iner
 Differs from previous: nothing; `configs/p05-rival-history.json` at HEAD. Purpose: confirm the
 72.08 from session-wide rival-price disclosure (70210 31.50 claim → "boss approval" → 29.00).
 Runner `async`, launched under nohup so the process survives the shell.
+
+## 2026-10-10 — P05 screens by parallel worker (same worktree; recorded here for completeness)
+
+A second agent shared this worktree and `/tmp/p05` from ~22:05; its runs are part of this P05 budget:
+- `57b90d1e` `p05-rival-history-3`, session `09f597f13bebed64`: launched 22:05 then abandoned
+  (process gone); ended `timeout`, score 0.00, no deal; 70210 was at 32.00 after the first claim.
+  Reconciled for this one verified owned, ended session; `lab sync` uploaded.
+- `d1fea8bb` `p05-rival-history-4`, session `2b8fbe3260167f15`: **72.08**, 70210 29.00/35/30, 0 timeouts.
+- `237f5adb` `p05-rival-history-4`, session `69acb4ae63e23c8c` (mine): **72.08**, 70210 29.00/35/30,
+  9.8 s, 0 timeouts. Identical 70210 path: 31.50 claim → 32.00 + "clarify internally" → 29.00.
+- `376427e0` `p05-undercut-reanchor-1` (hypothesis E, commit 5770caf), session `2ffdd9c5ee8c2b9d`:
+  **72.08**, 0 timeouts. Counter 27.26 after 29.00 → "I already gave you a massive drop … stay
+  there" → final 29.00, accepted. Anchor line: 1 miss. 29.00 looks like 70210's floor under rival
+  pressure alone.
+Replicated 3/3 (plus 2 expired). Lever confirmed.
+
+## 2026-10-10 — P05 screen 10 plan: one verified data fact on counters with no rival claim (F)
+
+Differs from previous: D config + `rfq_data_claims` (`configs/p05-data-claims.json`). Until now
+RFQ cases sent no data claims at all: `evidence_types` excludes rfq and `EvidencePolicy` gates to
+single-supplier cases. Only rival-offer citations went out. Once 70210 led at 29.00, no rival
+undercut it, so later counters carried no argument and it held 29.00 (E showed that a lower
+ask without new information fails). Category goal names "competition **and data**"; 70210 itself
+responded to "your data on the market was solid". F appends exactly one fresh verified public or
+supplier-own fact (scorecard OTD/PPM, latest index windows) to an RFQ counter only when no rival
+claim was added. Should-cost (internal estimate) excluded; no hidden outcomes are used.
+Offline replay: at 70210's 29.00 the counter carries scorecard sc:70210@2026Q3 OTD 80.8 %.

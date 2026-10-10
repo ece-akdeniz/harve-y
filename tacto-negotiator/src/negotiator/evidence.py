@@ -51,9 +51,15 @@ class EvidencePolicy:
         if self.tracer:
             self.tracer.log("evidence_fallback", case=case["case_id"], error_type=type(exc).__name__)
 
-    def enrich(self, case, threads, sid, move, context=None):
+    def enrich(self, case, threads, sid, move, context=None, rfq_claims=0):
+        """`rfq_claims` > 0 enables RFQ (multi-supplier) decoration with at most that many claims,
+        excluding our internal should-cost; the single-supplier gate stays for every other path."""
         message = move.get("message")
-        if not self.eligible(case, move):
+        rfq = rfq_claims > 0 and case.get("type") == "rfq"
+        if rfq:
+            if not message or not message.get("term_sheets") or message.get("action"):
+                return move
+        elif not self.eligible(case, move):
             return move
         cid = case["case_id"]
         try:
@@ -76,10 +82,13 @@ class EvidencePolicy:
             priorities, reasons = index_relevance(bank, case, self.package, threads.get(sid, []))
             # Each pre-existing ref conservatively consumes one checked-claim slot.
             budget = max(0, MAX_CHECKED - len(existing))
+            if rfq:
+                budget = min(budget, rfq_claims)
             chosen = pick(
                 bank, used, max_claims=budget, supplier_id=sid,
                 case_type="renewal_trade" if case["type"] == "renewal" else case["type"],
                 index_priorities=priorities,
+                skip_kinds=frozenset({"should_cost"}) if rfq else frozenset(),
             )
         except DATA_ERRORS as exc:
             self.fallback(case, exc)

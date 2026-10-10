@@ -368,7 +368,18 @@ class PackageAgent:
             self.final_counters[supplier_id] = count
         move = self._propose(case, threads, supplier_id)
         if self.policy and self.policy.rfq_rival_offer and case["type"] == "rfq":
+            before = move
             move = self._rival_offer_claim(case, threads, supplier_id, move)
+            if self.policy.rfq_data_claims and self.evidence and move is before:
+                # No rival undercuts this supplier: back the counter with one fresh verified fact.
+                from .context import DATA_ERRORS
+
+                try:
+                    context = self.evidence.context_for(case)
+                except DATA_ERRORS as exc:
+                    self.evidence.fallback(case, exc)
+                    return move
+                return self.evidence.enrich(case, threads, supplier_id, move, context=context, rfq_claims=1)
         if self.evidence and self.evidence.eligible(case, move):
             from .context import DATA_ERRORS
 
