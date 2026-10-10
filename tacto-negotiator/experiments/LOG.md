@@ -1206,3 +1206,23 @@ counter once with its own non-price terms (30/35) at −2 % (27.93), instead of 
 price, our terms" check (which always passed as accept-safe). If it re-issues 28.50 we accept
 (one counter max). Downside if it walks: 70250's 31.50 final (~.52). Tests whether "final" is a
 hard floor.
+
+## 2026-10-10 — P05 screen 18 result: N final pushback = 41.88 (miss; final is hard)
+
+Run `8cd3d761` / `e3b616eb3c970afd`: .4188. 70210 final 28.50 → our 27.93/30/35 → **walked_away**
+("since you cannot meet this price"); closed on 70250 32.00/30/35. 0 timeouts.
+
+## 2026-10-10 — P05 rethink verdict
+
+Sessions this round: 5 of 6 (J ede99fc7 .7723, K dc37e2b4 .7723, L 467e9094 .4829, M 8861e3e3
+.7723, N e3b616eb .4188); 1 held back. Found:
+- 70210's r2 boss step is fixed at 28.50 under every honest evidence/give mix we can send;
+  later claims, reciprocity and award text don't reopen it; pushing on its final makes it walk.
+- Giving its payment term before the step (L) makes it agree to our ask: the 90 d ask is what
+  makes it name its own step. Keep asking 90 d.
+- Rivals' finals: 70240 32.50–33.00/45, 70250 31.50/30; no route to < 28.50 from them.
+- Its stated price levers are out of bounds for us: faster payment (14 d) and a binding higher
+  volume (volume is fixed at 4200 = need; more is uncovered buying in C).
+Keep `configs/p05-data-claims.json` (F). New flags all opt-in/off: `rfq_data_claims_burst`,
+`rfq_burst_best_windows`, `rfq_reciprocal_reanchor`, `rfq_reciprocal_r2`, `rfq_final_pushback`.
+The .96 gap most plausibly needs the 14-day lever, which our rules forbid; not tested.
