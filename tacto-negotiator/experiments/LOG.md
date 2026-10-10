@@ -930,3 +930,18 @@ Hypothesis C (screen 7, `configs/p05-supplier-payment.json` = hold + `rfq_suppli
 70210 refused 90 d in all four replies ("need the cash in 30 days"); deals close at its 30 d
 anyway. Concede to the supplier's stated payment (never < 30 d) so the concession counts as
 our move and later rounds are price-only. Offline: 70210 counters 31.78/30 d, 31.88/30 d.
+
+## 2026-10-10 — P05 screen 6: rival-offer disclosure (hypothesis B, on A + hold)
+
+Run `ebd84380-7d68-49d1-9fd9-2ff3d3059b91`, session `914b145b75d7015a`. Score **41.19** (no
+change): sup:70210 32.00/35/30 final, 56.6 s, zero timeouts. Two claims sent, both to sup:70250
+(offer:70210-0 @36.00, offer:70210-1 @33.00), both **verified**; 70250 acknowledged ("checked
+the rival quote data you cited; it holds") but stayed 34.50 → 34.00 exactly as without claims.
+No claim reached 70210 (it always led) or 70240 (its 42 d prices never exceeded a valid rival
+standing price strictly). 70240 path identical to screen 5. Disclosure does not move floors here.
+Lead-time line: 2 non-improving (screens 5, 6) → dropped. Disclosure: 1 non-improving.
+
+Hypothesis C (screen 7, `configs/p05-supplier-payment.json` = hold + `rfq_supplier_payment`):
+70210 refused 90 d in all four replies ("need the cash in 30 days"); deals close at its 30 d
+anyway. Concede to the supplier's stated payment (never < 30 d) so the concession counts as
+our move and later rounds are price-only. Offline: 70210 counters 31.78/30 d, 31.88/30 d.
