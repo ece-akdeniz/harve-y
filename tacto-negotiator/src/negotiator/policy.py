@@ -28,6 +28,10 @@ class PolicyConfig:
     # Case types whose opening and later packages keep the supplier's standard (quote PDF)
     # payment days when that is a listed option; price is still scheduled by buyer C.
     standard_payment_types: tuple[str, ...] = ()
+    rfq_supplier_lead_time: bool = False
+    rfq_rival_offer: bool = False
+    rfq_supplier_payment: bool = False
+    rfq_rival_offer_history: bool = False
 
     @classmethod
     def load(cls, path):
@@ -52,7 +56,8 @@ class PolicyConfig:
             if not isinstance(v, list) or any(not isinstance(x, str) or x not in TYPES for x in v):
                 raise ValueError(f"invalid {k}")
             d[k] = tuple(sorted(set(v)))
-        for k in ("cost_neutral_lead_time", "cost_target_index_clause", "rfq_nonleading_hold", "rfq_final_guard"):
+        for k in ("cost_neutral_lead_time", "cost_target_index_clause", "rfq_nonleading_hold", "rfq_final_guard",
+                  "rfq_supplier_lead_time", "rfq_rival_offer", "rfq_supplier_payment", "rfq_rival_offer_history"):
             if type(d.get(k, False)) is not bool:
                 raise ValueError(f"{k} must be boolean")
         if d.get("final_offer_risk", "legacy") not in ("legacy", "opening_proxy"):

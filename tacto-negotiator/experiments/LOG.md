@@ -1102,3 +1102,102 @@ that preserves D01 while targeting D02, under a separately approved held-out bud
 The proposed 99/100 target is aspirational; these two fixed sandbox cases do not
 establish generalization. Local evidence remains in ignored `experiments/loop/`;
 original hosted outcomes and gates are in the shared lab.
+
+## 2026-10-10 — P05 offline cost decomposition (no session)
+
+Session `ef13f675` deal sup:70210 32.00/35 d/30 d: C = 271,720.96 (price 268,800; payment
+financing 1,792; quality 1,129). Scoring: c_open 305,544.96, c_best 223,424.17, so score/EUR
+of unit price = **0.103** (EUR 8,456 per EUR 1). Levers at fixed price: 90 d payment −3,584
+(+0.044), 60 d −1,792, 45 d −896; lead 28 d = 0, 42 d +1,400 (−0.017). Score 1.0 needs
+≈EUR 26.70 at 35/90. **Price dominates** (gap ≈ EUR 5.3/unit); payment ≤0.044; lead time is
+cost, not value, except as a trade for price. Supplier choice: sup:70240 (Hrvelec) opened
+31.50 at 52 d and explicitly priced 35 d as "expensive overtime" (+3.50); it alone offered 90 d.
+70240 at 42 d/90 d scores 0.50 @31.50, 0.55 @31.00, 0.66 @30.00 — the bolder lever. Every
+prior run countered 70240 at 35 d (overtime premium), so it never got below 33.50.
+Lever verification: payment options {14,30,45,60,90} (90 legal, 14 banned by rule); lead
+{28,35,42,56} with must-have ≤42 → 42 allowed, 56 never; awarding 70240 legal; rival
+disclosure would require claim plumbing for RFQ (not built; held for later screens).
+
+Hypothesis A (`rfq_supplier_lead_time`, `configs/p05-supplier-lead.json`): when a supplier
+quotes a lead time beyond ours, counter at the longest legal option ≤ its quote (42 d for
+70240), so it can drop its overtime premium. Offline first counters: 70240 27.72/90/42; others
+unchanged. Unit test added; suite 378 passed + known preflight failure; ruff clean.
+
+## 2026-10-10 — P05 screen 5: supplier-fit 42-day lead time (hypothesis A)
+
+Run `f42acd21-85d2-4840-9c01-2a2a9e5c96f3`, session `fee923108e98924c`, commit after `rfq_supplier_lead_time`.
+Score **41.19** (no change): sup:70210 32.00/35/30 final, 96.5 s, zero timeouts. Transcript:
+70240 accepted 42 d at once ("happy to speed up the lead time to 42 days") and dropped its
+opening from 35.00@35 d to 33.00@42 d, then 32.50/90 d, alt 32.00/60 d (C 271,517 ≈ +0.002,
+countered rather than taken), final 32.50/42/90 (score-equivalent 0.401). 70240's floor at
+42 d ≈ 70210's; no overtime-premium windfall. 56 d never offered. Line: 1 non-improving.
+
+Hypothesis B (screen 6, `configs/p05-rival-offer.json` = A + `rfq_rival_offer`): category
+goal is leverage; cite the cheapest must-have-valid standing rival offer from this session
+("Another supplier has offered part at EUR X per unit (offer:id)") to a supplier whose own
+standing price is higher, once per offer ID per supplier. Code takes figure and ID from the
+live sheet (verifiable). Unit test added; suite + ruff clean except the known preflight test.
+
+## 2026-10-10 — P05 screen 6: rival-offer disclosure (hypothesis B, on A + hold)
+
+Run `ebd84380-7d68-49d1-9fd9-2ff3d3059b91`, session `914b145b75d7015a`. Score **41.19** (no
+change): sup:70210 32.00/35/30 final, 56.6 s, zero timeouts. Two claims sent, both to sup:70250
+(offer:70210-0 @36.00, offer:70210-1 @33.00), both **verified**; 70250 acknowledged ("checked
+the rival quote data you cited; it holds") but stayed 34.50 → 34.00 exactly as without claims.
+No claim reached 70210 (it always led) or 70240 (its 42 d prices never exceeded a valid rival
+standing price strictly). 70240 path identical to screen 5. Disclosure does not move floors here.
+Lead-time line: 2 non-improving (screens 5, 6) → dropped. Disclosure: 1 non-improving.
+
+Hypothesis C (screen 7, `configs/p05-supplier-payment.json` = hold + `rfq_supplier_payment`):
+70210 refused 90 d in all four replies ("need the cash in 30 days"); deals close at its 30 d
+anyway. Concede to the supplier's stated payment (never < 30 d) so the concession counts as
+our move and later rounds are price-only. Offline: 70210 counters 31.78/30 d, 31.88/30 d.
+
+## 2026-10-10 — P05 screen 7: concede to supplier-stated payment (hypothesis C) — worse
+
+The tool retried the launch command, so **two** sessions ran with the same config/commit:
+- Run `cfdafb15-9300-484f-8950-cd6a3d92e137`, session `a18a4bbf41f3245b`: **21.28**. 70250
+  *agreed* to our 34.00/30 d counter (we had conceded to its 30 d); the coordinator closed on
+  "sup:70250 agreed" while 70210's reply (32.50) was in flight, so it accepted 34.00.
+- Run `826f495d-3a81-4247-b40e-4e58c95f533d`, session `ad9529ebb8e766b5`: **36.04**, 70210
+  32.50/35/30. Once we offered 30 d, 70210 said "I can drop to 32.50, but that's where it
+  stops" and went final at 32.50 after three replies (vs 32.00 after five when we kept asking 90 d).
+Zero timeouts in both. The refused 90 d request was effectively a trade chip: 70210 compensated
+with price ("if we agree on 30 days, I'll drop the price to 32.00"). Hypothesis C dropped.
+Robustness finding: an "agreed" non-leader can still close the case on its own price while the
+leader is in flight (same in-flight exclusion as screen 1); harmless on the hold base so far.
+
+Hypothesis D (screen 8, `configs/p05-rival-history.json` = hold + `rfq_rival_offer` +
+`rfq_rival_offer_history`): disclosure line, second try aimed at the leader. Cite the lowest
+priced rival sheet from anywhere in this session (e.g. offer:70240-0 @31.50) when it
+undercuts the receiving supplier's standing price; figure and ID taken from the sheet.
+
+## 2026-10-10 — P05 screen 8: session-wide rival-price disclosure (hypothesis D) — WIN
+
+Run `97f3fdbf-7c78-4be3-a19b-1bfe13408d17`, session `d52efd4374aaf110`, commit `9c5f6ed`. Score
+**72.08** (vs 41.19; arena best .4168): sup:70210 EUR **29.00** / 35 d / 30 d, 167.8 s.
+Six claims, all **verified**. To 70210: offer:70240-0 @31.50 → "We did not know that - a fair
+point … come down to €32.00", "need to clarify this internally" (boss approval), then "Your
+data on the market was solid … 29.00 EUR"; we matched 29.00, gap closed, accepted. 70250 went
+34.00 → 32.00 → 31.00 under the same claims; 70240 34.50 → final 34.00. Timeouts: one on the
+losing 70240 (its send waited behind a 58 s POST in the soft send slot); none on the winner.
+Must-haves held (35 d), no 56 d, no 14 d. Next: repeat once.
+
+## 2026-10-10 — P05: reconcile interrupted repeat `p05-rival-history-2`
+
+Run `704039ed-9bd6-4b42-95a0-8df15e33c6bb`, session `6c3717e8dc3eaed5` (journalled in the run;
+owned). The worker process was killed ~9 s after start (last journal record 19:21:29 UTC, buyer
+counter 29.00 to 70210 sent as intent). Arena status: `ended`, `end_reason: timeout`, no deal,
+score 0.00. Replay: 70210 again reached **29.00/35/30** (round 3), then final, then withdrew;
+70250 33.00/30 final, 70240 34.00/90 final; all withdrew after unanswered timeouts. Partial
+replication of the 29.00 floor. Recovered outcome attached with `save_reconciliation` for this
+one session only (no blanket import); original attempt evidence preserved; `lab sync` uploaded.
+Expired attempt counts as one session; not resumable.
+Teammate P05 work read (main LOG/BENCHMARK_HANDOFF, origin/codex/benchmark-goal-20261010): 14-day
+early cash + capacity opening (.3854, rejected), supplier-standard payment (inert). Not repeated.
+
+## 2026-10-10 — P05 screen 9 plan: replicate screen 8 config (no change)
+
+Differs from previous: nothing; `configs/p05-rival-history.json` at HEAD. Purpose: confirm the
+72.08 from session-wide rival-price disclosure (70210 31.50 claim → "boss approval" → 29.00).
+Runner `async`, launched under nohup so the process survives the shell.

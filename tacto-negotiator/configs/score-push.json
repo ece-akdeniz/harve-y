@@ -22,8 +22,10 @@
     "price_increase"
   ],
   "cost_target_index_clause": true,
-  "clause_variant_types": [
-    "raw_material"
+  "standard_payment_types": [
+    "price_increase"
   ],
-  "rfq_nonleading_hold": true
+  "rfq_nonleading_hold": true,
+  "rfq_rival_offer": true,
+  "rfq_rival_offer_history": true
 }

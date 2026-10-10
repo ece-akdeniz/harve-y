@@ -357,6 +357,8 @@ class PackageAgent:
             if (self._standard_payment(case) and "payment_days" in n and std.get("payment_days") in pay_options
                     and must_haves_ok(case, {**ref_terms, **n, "payment_days": std["payment_days"]}, std)):
                 n["payment_days"] = std["payment_days"]
+            if self.policy and self.policy.rfq_supplier_lead_time and case["type"] == "rfq":
+                n = self._supplier_lead_time(case, sid, events, n, std)
         elif not eligible:
             return prev
         else:
@@ -369,6 +371,8 @@ class PackageAgent:
                     new["payment_days"] = prev["payment_days"]
                 n = new
                 self._log(case, "package_switch", sid, prev=prev, new=n, c_prev=min(on_prev), c_new=ref_c)
+        if self.policy and self.policy.rfq_supplier_payment and case["type"] == "rfq":
+            n = self._supplier_payment(case, sid, events, n, std)
         n = self._free_concessions(case, n, ref_terms, std, sup) if eligible else n
         identity = (case['case_id'], sid)
         if prev is None and not self._ours(events) and identity not in self._memory_seen:
@@ -380,6 +384,44 @@ class PackageAgent:
 
     def _standard_payment(self, case):
         return bool(self.policy and case["type"] in self.policy.standard_payment_types)
+
+    def _supplier_payment(self, case, sid, events, n, std):
+        """Concede payment to the supplier's own stated term (never below 30 days) so that every
+        later round negotiates price only, instead of re-asking a payment term it keeps refusing."""
+        if "payment_days" not in n:
+            return n
+        stated = [s["terms"]["payment_days"] for m in events if m.get("from") != "buyer"
+                  for s in (m.get("term_sheets") or [])[:1] if (s.get("terms") or {}).get("payment_days") is not None]
+        if not stated:
+            return n
+        pay = stated[-1]
+        options = (case.get("term_options") or {}).get("payment_days", [])
+        if pay < 30 or pay >= n["payment_days"] or pay not in options:
+            return n
+        out = {**n, "payment_days": pay}
+        if not must_haves_ok(case, complete_offer(case, {**out, "unit_price": 1.0}), std):
+            return n
+        self._log(case, "supplier_payment", sid, prev=n["payment_days"], new=pay)
+        return out
+
+    def _supplier_lead_time(self, case, sid, events, n, std):
+        """A supplier quoting a longer lead time than ours gets the longest legal option up to its
+        quote: its capacity premium for short lead times can exceed our late-delivery cost."""
+        if "lead_time_days" not in n:
+            return n
+        quoted = [s["terms"]["lead_time_days"] for m in events if m.get("from") != "buyer"
+                  for s in m.get("term_sheets") or [] if (s.get("terms") or {}).get("lead_time_days") is not None]
+        if not quoted or max(quoted) <= n["lead_time_days"]:
+            return n
+        legal = [v for v in (case.get("term_options") or {}).get("lead_time_days", [])
+                 if n["lead_time_days"] < v <= max(quoted)
+                 and must_haves_ok(case, complete_offer(case, {**n, "lead_time_days": v, "unit_price": 1.0}), std)]
+        if not legal:
+            return n
+        out = {**n, "lead_time_days": max(legal)}
+        self._log(case, "supplier_lead_time", sid, quoted=max(quoted), prev=n["lead_time_days"],
+                  new=out["lead_time_days"])
+        return out
 
     def _free_concessions(self, case, n, theirs, std, sup):
         price = theirs["unit_price"]
@@ -570,6 +612,8 @@ class PackageAgent:
                     count += 1
             self.final_counters[supplier_id] = count
         move = self._propose(case, threads, supplier_id)
+        if self.policy and self.policy.rfq_rival_offer and case["type"] == "rfq":
+            move = self._rival_offer_claim(case, threads, supplier_id, move)
         if self.evidence and self.evidence.eligible(case, move):
             from .context import DATA_ERRORS
 
@@ -580,6 +624,44 @@ class PackageAgent:
                 return move
             return self.evidence.enrich(case, threads, supplier_id, move, context=context)
         return move
+
+    def _rival_offer_claim(self, case, threads, sid, move):
+        """Cite the lowest-priced must-have-valid standing rival offer from this session when it
+        undercuts this supplier's standing price. Figure and ID come from the live sheet; each
+        offer ID is cited at most once per receiving supplier (citing reveals it)."""
+        from .claims import offer_claim
+
+        message = move.get("message") or {}
+        if not message.get("term_sheets") or message.get("action") or len(case.get("parts") or []) != 1:
+            return move
+        own = [t["unit_price"] for _, _, t in eligible_sheets(case, threads[sid], None, alternatives=True)]
+        if not own:
+            return move
+        cited = {r for e in threads[sid] if e.get("from") == "buyer" for r in e.get("refs") or []}
+        best = None
+        for s in live_threads(threads):
+            if s == sid:
+                continue
+            if self.policy.rfq_rival_offer_history:
+                sheets = [(sh.get("term_sheet_id"), sh.get("terms") or {}) for m in threads[s]
+                          if m.get("from") != "buyer" for sh in m.get("term_sheets") or []]
+            else:
+                sheets = [(i, t) for _, i, t in eligible_sheets(case, threads[s], None, alternatives=True)]
+            for offer_id, terms in sheets:
+                p = terms.get("unit_price")
+                if not offer_id:
+                    continue
+                if offer_id in cited or p is None or p >= min(own) - 1e-6:
+                    continue
+                if best is None or (p, offer_id) < (best[0], best[1]):
+                    best = (p, offer_id, s)
+        if best is None:
+            return move
+        claim = offer_claim(best[1], best[0], best[2], sid, case["parts"][0])
+        refs = list(dict.fromkeys([*(message.get("refs") or []), best[1]]))
+        self._log(case, "rival_offer_claim", sid, offer_id=best[1], figure=best[0], rival=best[2])
+        return {**move, "message": {**message, "body": message.get("body", "") + "\n\n" + claim.sentence,
+                                     "refs": refs}}
 
     def _propose(self, case, threads, supplier_id):
         """The proposal for one thread given the whole snapshot: an offer move

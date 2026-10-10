@@ -1,9 +1,9 @@
 """configs/score-push.json reproduces each screened per-case config's decisions offline.
 
 Scripted supplier histories (fixture cases, no network): at every step the combined agent's move
-must equal the screened agent's move on the same history. P08 is raw_material like P18, so the
-P18 clause variants apply to it once the supplier makes the clause mandatory (unmeasured; see
-test_p08_clause_variants_are_the_only_divergence).
+must equal the screened agent's move on the same history. Screened sources: P01 standard
+payment (.9602 x2), P02 expected-C target (.5993 x3), P05 rival-price history (.7208 x3), P18
+retained package policy (.4531 x2); other cases the package-advice baseline (P11 .7902 x2).
 """
 import copy
 import json
@@ -18,16 +18,16 @@ ROOT = Path(__file__).parents[1]
 CASES = {c["case_id"]: c for c in json.loads((ROOT / "tests/fixtures/practice_cases.json").read_text())}
 COMBINED = "score-push.json"
 SCREENED = {
-    "case:P01": "package-advice.json",
+    "case:P01": "p01-standard-payment.json",
     "case:P02": "p02-cost-target.json",
     "case:P03": "package-advice.json",
     "case:P04": "package-advice.json",
-    "case:P05": "p05-nonleading-hold.json",
+    "case:P05": "p05-rival-history.json",
     "case:P07": "package-advice.json",
     "case:P08": "package-advice.json",
     "case:P10": "package-advice.json",
     "case:P11": "package-advice.json",
-    "case:P18": "p18-clause-variants.json",
+    "case:P18": "retained-package-policy.json",
 }
 # Public-dossier-shaped estimates so the expected-C target is active where the case allows it.
 EST = {
@@ -37,7 +37,8 @@ EST = {
 
 
 def agent(name, case):
-    a = configured_agent(json.loads((ROOT / "configs" / name).read_text()), estimates={}, meso=False)
+    cfg = json.loads((ROOT / "configs" / name).read_text())
+    a = configured_agent(cfg.get("policy_config", cfg), estimates={}, meso=False)
     if a.package_advisor is not None:
         a.package_advisor = PackageAdvisor(lambda *_: {"package_id": "none"})  # deterministic fallback
     if case["case_id"] in EST:
@@ -101,7 +102,7 @@ def play_serial(case, a, b, clause=False):
 @pytest.mark.parametrize("cid", [c for c in SCREENED if c != "case:P05"])
 def test_combined_matches_screened_serial(cid):
     case = copy.deepcopy(CASES[cid])
-    for clause in ((False, True) if cid != "case:P08" else (False,)):
+    for clause in (False, True):
         moves, diverged = play_serial(case, agent(SCREENED[cid], case), agent(COMBINED, case), clause)
         assert diverged is None, f"{cid} clause={clause}: diverged at step {diverged and diverged[0]}"
         assert moves
@@ -124,16 +125,11 @@ def test_p01_cost_target_inert_without_index_clause_option():
     assert ct.active(case, est) and ct.target(case, {"payment_days": 30}, est, index_clause=True) is None
 
 
-def test_p08_clause_variants_are_the_only_divergence():
-    """Unmeasured interference: on P08 a mandatory supplier clause triggers the P18 deadband probe."""
+def test_raw_material_has_no_clause_variants():
+    """P18 .4531 came from the retained policy without clause variants (variants measured .4196)."""
     case = copy.deepcopy(CASES["case:P08"])
-    _, diverged = play_serial(case, agent("package-advice.json", case), agent(COMBINED, case), clause=True)
-    p18 = agent("p18-clause-variants.json", case)
-    _, vs_p18 = play_serial(case, p18, agent(COMBINED, case), clause=True)
-    assert vs_p18 is None  # combined == the measured P18 behaviour on the same history
-    if diverged is not None:
-        _, _, mb = diverged
-        assert len(mb["message"]["term_sheets"]) > 1  # the divergence is the deadband probe
+    moves, diverged = play_serial(case, agent("package-advice.json", case), agent(COMBINED, case), clause=True)
+    assert diverged is None and all(len(m["message"].get("term_sheets") or [1]) <= 1 for m in moves)
 
 
 def test_p05_combined_matches_nonleading_hold_async_and_serial():
