@@ -3,14 +3,26 @@
   "checkpoint_id": "01M4KNGRYQR7F1DRD3T5ZS3CHS",
   "strategy": "manual-commit",
   "branch": "codex/p18-retained-policy",
-  "checkpoints_count": 10,
-  "files_touched": null,
+  "checkpoints_count": 11,
+  "files_touched": [
+    "tacto-negotiator/configs/retained-package-policy.json",
+    "tacto-negotiator/experiments/LOG.md",
+    "tacto-negotiator/tests/fixtures/p18_retained_thread.json",
+    "tacto-negotiator/tests/test_retained_package_replay.py"
+  ],
   "sessions": [
     {
       "metadata": "/0/metadata.json",
       "transcript": "/0/full.jsonl",
       "compact_transcript": "/0/transcript.jsonl",
       "content_hash": "/0/content_hash.txt",
+      "prompt": ""
+    },
+    {
+      "metadata": "/1/metadata.json",
+      "transcript": "/1/full.jsonl",
+      "compact_transcript": "/1/transcript.jsonl",
+      "content_hash": "/1/content_hash.txt",
       "prompt": ""
     }
   ],
