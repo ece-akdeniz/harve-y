@@ -5,7 +5,6 @@ import json
 import logging
 import os
 import statistics
-import sys
 import time
 from pathlib import Path
 
@@ -38,11 +37,18 @@ def main(argv=None) -> int:
     r.add_argument("-v", "--verbose", action="store_true")
     rep = sub.add_parser("report", help="summarise a run directory")
     rep.add_argument("run_dir")
+    rep.add_argument("--json", action="store_true")
     args = ap.parse_args(argv)
 
-    if args.cmd in ("prep", "report"):
-        print(f"negotiator {args.cmd}: not implemented yet", file=sys.stderr)
-        return 2
+    if args.cmd == "report":
+        from .report import main as report_main
+
+        return report_main([args.run_dir, *(["--json"] if args.json else [])])
+    if args.cmd == "prep":
+        from .claims import prep
+
+        print(json.dumps(prep()))
+        return 0
 
     logging.basicConfig(
         level=logging.INFO if args.verbose else logging.WARNING, format="%(asctime)s %(message)s", datefmt="%H:%M:%S"
@@ -71,7 +77,8 @@ def main(argv=None) -> int:
     scores = {}
     for case_id, result in out.items():
         row = repr(result) if isinstance(result, Exception) else summary(result)
-        tracer.log("result", case=case_id, result=row)
+        full = None if isinstance(result, Exception) else result  # keeps cost_breakdown
+        tracer.log("result", case=case_id, result=row, full=full)
         print(case_id, json.dumps(row))
         if isinstance(result, dict) and result.get("score") is not None:
             scores[case_id] = result["score"]

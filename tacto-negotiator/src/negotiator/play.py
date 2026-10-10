@@ -8,6 +8,7 @@ estimates). `play_case` closes through `evaluator.close_decision` with the agent
 import functools
 import hashlib
 import logging
+import os
 import subprocess
 import threading
 import time
@@ -70,6 +71,10 @@ def play_case(table, case_id, agent, deadline=None):
     """Play one case to its end. `deadline` (time.time(), or a function returning it): a Live Final
     wave's cap - shortly before it, `close_decision` closes the case."""
     case, threads = table.open(case_id)
+    if (tracer := getattr(agent, "tracer", None)) and getattr(table, "session_id", None):
+        base = os.environ.get("ARENA_URL", "").rstrip("/")
+        replay = f"{base}/replay/{table.session_id}"
+        tracer.log("session", session_id=table.session_id, case_id=case_id, replay_url=replay)
     if getattr(table, "done", None):
         return table.done
     for events in threads.values():
