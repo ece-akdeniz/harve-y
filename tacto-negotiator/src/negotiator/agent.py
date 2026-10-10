@@ -129,7 +129,7 @@ class PackageAgent:
         self.p_walk = p_walk  # chance a supplier walks when its final offer is countered (D02: 2 of 9)
         self.claims = os.environ.get("NEGOTIATOR_CLAIMS") == "1" if claims is None else claims
         if policy is not None:
-            self.claims = bool(policy.evidence_types)
+            self.claims = bool(policy.evidence_types or policy.recent_index_window_types)
         self.evidence = None
         self.model_context = {}
         self.model_seen = {}
@@ -145,11 +145,16 @@ class PackageAgent:
         if self.claims:
             from .evidence import EvidencePolicy
 
-            self.evidence = EvidencePolicy(tracer=tracer, case_types=policy.evidence_types if policy else None,
-                                           interpretation=self.model_context)
+            self.evidence = EvidencePolicy(
+                tracer=tracer, case_types=policy.evidence_types if policy else None,
+                interpretation=self.model_context,
+                recent_window_types=policy.recent_index_window_types if policy else (),
+                rival_quote_types=policy.rival_quote_types if policy else (),
+                index_window_types=policy.index_window_types if policy else ())
         self.prev = {}  # supplier -> non-price terms of our last offer
         self.final_counters = {}  # supplier -> counters sent to its final offers (at most one)
         self.beat_asked = {}  # rival supplier -> final-offer sheet id we asked it to beat
+        self.reanchored = set()  # rfq suppliers re-anchored after undercutting our own ask
         self.final_seen = {}  # final-offer sheet id -> monotonic time first seen
         if estimates is None and os.environ.get("NEGOTIATOR_ESTIMATES") != "1":
             estimates = {}  # dossier estimates are opt-in until calibrated (docs: experiments/LOG.md)
@@ -347,6 +352,8 @@ class PackageAgent:
 
     def _anchor_for(self, case):
         """Freeze the scope to the case roster; changing live thread status cannot change the schedule."""
+        if self.policy and case["type"] in self.policy.anchor_by_type:
+            return self.policy.anchor_by_type[case["type"]]
         if self.multi_supplier_anchor is not None and len(set(case.get("suppliers") or ())) > 1:
             return self.multi_supplier_anchor
         return self.anchor
@@ -367,6 +374,7 @@ class PackageAgent:
             n = nonprice(case, best_terms(
                 case, ref_terms["unit_price"], std, sup,
                 prefer_longer_lead=bool(self.policy and self.policy.cost_neutral_lead_time),
+                prefer_longer_tenor=self._longer_tenor(case),
             ))
             pay_options = (case.get("term_options") or {}).get("payment_days") or []
             if (self._standard_payment(case) and "payment_days" in n and std.get("payment_days") in pay_options
@@ -438,6 +446,17 @@ class PackageAgent:
                   new=out["lead_time_days"])
         return out
 
+    def _anchor(self, case):
+        return self._anchor_for(case)
+
+    def _rounds(self, case):
+        if self.policy and case["type"] in self.policy.rounds_by_type:
+            return self.policy.rounds_by_type[case["type"]]
+        return self.rounds
+
+    def _longer_tenor(self, case):
+        return bool(self.policy and case["type"] in self.policy.longer_tenor_types)
+
     def _free_concessions(self, case, n, theirs, std, sup):
         price = theirs["unit_price"]
         for f, v in theirs.items():
@@ -450,6 +469,8 @@ class PackageAgent:
             previous_c = total_cost(case, {**n, "unit_price": price}, std, sup)
             if (self.policy and case['type'] in self.policy.package_advice_types and f == "contract_months"
                     and v < n[f] and trial_c == previous_c):
+                continue
+            if f == "contract_months" and self._longer_tenor(case) and v < n[f] and trial_c >= previous_c - 1e-6:
                 continue
             if f == "payment_days" and self._standard_payment(case) and n[f] == std.get("payment_days"):
                 continue
@@ -531,6 +552,10 @@ class PackageAgent:
             self._log(case, "cost_target_close", sid, c=standing_c, target_c=tc, c_alt=c_alt, reason=reason)
             return accept if standing_c < c_alt else walk
 
+        s_max = getattr(self.policy, "cost_target_posterior", 0.0)
+        if s_max > 0:
+            return self._posterior_move(case, sid, events, msg, status, std, sup, tterms, sheets, c_alt, ours, left,
+                                        accept, close, s_max)
         on_ours = same_package(case, standing_terms, ours[-1] if ours else tterms, std)
         if on_ours and standing_c <= mark + 1.0:
             return close("standing sheet meets our offer by expected C")
@@ -555,6 +580,54 @@ class PackageAgent:
             price = min(price, cap)
         terms = {**tterms, "unit_price": round(min(price, ask), 2)}
         return self._target_offer(case, sid, terms, std, sup, c_alt, ec(terms), "expected-C concession")
+
+    def _posterior_move(self, case, sid, events, msg, status, std, sup, tterms, sheets, c_alt, ours, left,
+                        accept, close, s_max):
+        """In-session supplier-cost posterior on the target package. Every offer of ours that drew
+        any reply other than an agreement is a refusal. We offer the self-consistent price p with
+        p = argmin E[C | refusals so far, p accepted]: the price we would still be happy with if the
+        supplier took it at once. Refusals raise the posterior, so offers rise only as the supplier
+        reveals that its cost is higher; we never offer above its own sheet on that package."""
+        from . import cost_target as ct
+
+        package = {**tterms, "unit_price": 0}
+        refusals = [(t, False) for t in ours if same_package(case, t, package, std)]
+        grid = ct.posterior(case, std, sup, refusals, s_max)
+
+        def ec(t, g=grid):
+            return ct.expected_cost(case, t, std, sup, g)
+
+        p = tterms["unit_price"]
+        for _ in range(8):  # fixed point of p -> argmin E[C | refusals, p accepted]
+            g = ct.posterior(case, std, sup, [*refusals, ({**tterms, "unit_price": p}, True)], s_max)
+            q = ct.min_price(case, tterms, std, sup, g)
+            if abs(q - p) < 0.01:
+                break
+            p = q
+        if ours and same_package(case, ours[-1], package, std):
+            p = max(p, ours[-1]["unit_price"])  # never retreat below our own last offer
+        # A counter is partly bargaining, not only cost: refusals may lift us back to the prior
+        # optimum, never above it (the prior-target behaviour is the ceiling of this probe).
+        p = min(p, tterms["unit_price"])
+        opt = min(ct.min_price(case, tterms, std, sup, grid), tterms["unit_price"])
+        asks = [t["unit_price"] for _, _, t in sheets if same_package(case, t, package, std)]
+        ask = min(asks) if asks else None
+        standing_c, standing_id, _ = sheets[0]
+        mark_c = ec({**tterms, "unit_price": max(p, opt)})
+        self._log(case, "cost_posterior", sid, offer=round(p, 2), opt=opt, ask=ask, refusals=len(refusals),
+                  e_fc=round(sum(s["_w"] * s["full_cost"] for s in grid) / sum(s["_w"] for s in grid), 2)
+                  if all("_w" in s for s in grid) else None, standing_c=standing_c, mark_c=mark_c)
+        if same_package(case, sheets[0][2], package, std) and sheets[0][2]["unit_price"] <= max(p, opt) + 0.005:
+            return close("posterior: standing sheet meets the posterior target")
+        if status == "final_offer" or left <= 1:
+            countered = sum(1 for i, e in enumerate(events) if e.get("from") == "buyer" and e.get("term_sheets")
+                            and any(x.get("status") == "final_offer" for x in events[:i] if x.get("from") != "buyer"))
+            if status == "final_offer" and left > 1 and countered < 1 and (ask is None or p < ask):
+                return self._target_offer(case, sid, {**tterms, "unit_price": round(p, 2)}, std, sup, c_alt,
+                                          ec({**tterms, "unit_price": p}), "posterior: one counter to final offer")
+            return close("posterior: final offer or last move")
+        terms = {**tterms, "unit_price": round(min(p, ask) if ask is not None else p, 2)}
+        return self._target_offer(case, sid, terms, std, sup, c_alt, ec(terms), "posterior: self-consistent price")
 
     def _target_offer(self, case, sid, terms, std, sup, c_alt, expected_c, reason):
         self._log(case, "cost_target", sid, terms=terms, expected_c=expected_c, reason=reason)
@@ -627,8 +700,21 @@ class PackageAgent:
                     count += 1
             self.final_counters[supplier_id] = count
         move = self._propose(case, threads, supplier_id)
+        move = self._bundle_volume(case, threads, supplier_id, move)
         if self.policy and self.policy.rfq_rival_offer and case["type"] == "rfq":
+            before = move
             move = self._rival_offer_claim(case, threads, supplier_id, move)
+            stack = self.policy.rfq_data_claims_stack
+            if (self.policy.rfq_data_claims or stack) and self.evidence and (move is before or stack):
+                # No rival undercuts this supplier: back the counter with one fresh verified fact.
+                from .context import DATA_ERRORS
+
+                try:
+                    context = self.evidence.context_for(case)
+                except DATA_ERRORS as exc:
+                    self.evidence.fallback(case, exc)
+                    return move
+                return self.evidence.enrich(case, threads, supplier_id, move, context=context, rfq_claims=1)
         if self.evidence and self.evidence.eligible(case, move):
             from .context import DATA_ERRORS
 
@@ -677,6 +763,41 @@ class PackageAgent:
         self._log(case, "rival_offer_claim", sid, offer_id=best[1], figure=best[0], rival=best[2])
         return {**move, "message": {**message, "body": message.get("body", "") + "\n\n" + claim.sentence,
                                      "refs": refs}}
+
+    def _bundle_volume(self, case, threads, sid, move):
+        """Opt-in: add the kit's volume facts (cited once, in the first offer; a reminder later)."""
+        if not (self.policy and case["type"] in self.policy.bundle_volume_types):
+            return move
+        msg = move.get("message")
+        if not msg or msg.get("action") or not msg.get("term_sheets"):
+            return move
+        from . import bundle_volume
+        from .context import DATA_ERRORS
+        from .dossiers import build_one, load_package
+
+        try:
+            package = load_package()
+            dossier = build_one(package, sid)
+            p = bundle_volume.plan(case, package, sid, dossier)
+        except DATA_ERRORS:
+            p = dossier = None
+        if not p:
+            return move
+        if self._ours(threads[sid]):
+            if case["type"] in self.policy.bundle_commitment_types:
+                sheet = (msg.get("term_sheets") or [{}])[0]
+                text = bundle_volume.commitment(p, case, sheet.get("terms") or sheet,
+                                                bundle_volume.committee_threshold(dossier))
+            else:
+                text = bundle_volume.reminder(p)
+            ids = []
+        else:
+            text, ids = bundle_volume.first_paragraph(p)
+        body = msg["body"] + "\n\n" + text
+        assert not leaks(body), "body would leak internal information"
+        refs = list(dict.fromkeys([*(msg.get("refs") or []), *ids]))
+        self._log(case, "bundle_volume", sid, new=p["new"], total=p["total"], refs=ids)
+        return {**move, "message": {**msg, "body": body, **({"refs": refs} if refs else {})}}
 
     def _propose(self, case, threads, supplier_id):
         """The proposal for one thread given the whole snapshot: an offer move
@@ -839,6 +960,22 @@ class PackageAgent:
         last_p = price_for_cost(case, {**n, "unit_price": p}, last_c, std, sup) if last_c is not None else None
 
         if last_p is not None and p - last_p <= p * self.close_gap and cap_c is None:
+            if (
+                self.policy
+                and self.policy.rfq_undercut_reanchor
+                and case["type"] == "rfq"
+                and sid not in self.reanchored
+                and latest(events).get("status") == "open"
+                and moves_left(case, events) > 2
+                and p < last_p * (1 - self.anchor / 2)
+            ):
+                # The supplier jumped well below our own ask: its floor is lower than our schedule
+                # assumed, so counter once more below its new price instead of matching it.
+                self.reanchored.add(sid)
+                price = math.floor(p * (1 - self.anchor / 2) * 100) / 100
+                self._log(case, "undercut_reanchor", sid, their=p, ours_last=last_p, counter=price)
+                terms = complete_offer(case, {**n, "unit_price": price})
+                return self._offer(case, sid, terms, std, sup, c_alt, "undercut our ask: re-anchor")
             match = {**n, "unit_price": p}
             if total_cost(case, match, std, sup) < ref_c - 1e-6 and ours[-1] != match:
                 return self._offer(case, sid, match, std, sup, c_alt, "gap closed: their price, our terms")
@@ -857,7 +994,7 @@ class PackageAgent:
             return {"close": True, "reason": "gap closed"}
 
         floor = p_open * (1 - self._anchor_for(case))
-        price = floor + (p - floor) * min(1.0, k / self.rounds)
+        price = floor + (p - floor) * min(1.0, k / self._rounds(case))
         if last_p is not None:
             price = max(price, _ceil2(last_p))  # no backtracking on our own concessions (by C)
         price = min(price, p)

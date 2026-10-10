@@ -11,7 +11,7 @@ prefer the longest payment term. Offers never go below the target price; no hidd
 import itertools
 import math
 
-from arena_kit.cost import RELATIONSHIP_GOALS, complete_offer, must_haves_ok, total_cost
+from arena_kit.cost import RELATIONSHIP_GOALS, complete_offer, must_haves_ok, supplier_value, total_cost
 
 GRID = 41
 
@@ -38,7 +38,10 @@ def scenarios(supplier, n=GRID):
 def expected_cost(case, terms, standard, supplier, grid=None):
     grid = grid or scenarios(supplier)
     costs = [total_cost(case, terms, standard, s) for s in grid]
-    return math.inf if not all(math.isfinite(c) for c in costs) else sum(costs) / len(costs)
+    if not all(math.isfinite(c) for c in costs):
+        return math.inf
+    w = [s.get("_w", 1.0) for s in grid]  # posterior weights (uniform prior: all 1)
+    return sum(wi * c for wi, c in zip(w, costs, strict=True)) / sum(w)
 
 
 def min_price(case, terms, standard, supplier, grid=None):
@@ -83,10 +86,10 @@ def target(case, standard, supplier, tie_pct=0.05, index_clause=False):
     return min(near, key=lambda x: (-(x[1].get("payment_days") or 0), x[0]))
 
 
-def ceiling(case, terms, cap_c, standard, supplier):
+def ceiling(case, terms, cap_c, standard, supplier, grid=None):
     """Highest EUR 0.01 price above the target price on `terms`' package whose expected C stays
     at or below `cap_c`; None when even the minimum costs more."""
-    grid = scenarios(supplier)
+    grid = grid or scenarios(supplier)
     lo = min_price(case, terms, standard, supplier, grid)
 
     def c(p):
@@ -101,3 +104,29 @@ def ceiling(case, terms, cap_c, standard, supplier):
         mid = (lo + hi) / 2
         lo, hi = (mid, hi) if c(mid) <= cap_c else (lo, mid)
     return math.floor(lo * 100 + 1e-6) / 100
+
+
+# -- in-session supplier-cost posterior (opt-in: PolicyConfig.cost_target_posterior) -------------
+# Likelihood: the supplier accepts an offer worth v to it (supplier_value) iff v >= fc * (1 - s),
+# s ~ U[0, s_max] = how far below its full cost it is willing to sell. Only the supplier's own
+# replies in this session enter (agreed -> accept, any other reply -> refusal); nothing hidden.
+
+
+def accept_prob(case, terms, standard, supplier, s_max):
+    v = supplier_value(case, terms, {**supplier, "standard": {**(supplier.get("standard") or {}), **(standard or {})}})
+    gap = 1 - v / supplier["full_cost"]  # share below full cost the offer asks it to sell at
+    return min(1.0, max(0.0, (s_max - gap) / s_max))
+
+
+def posterior(case, standard, supplier, observations, s_max, grid=None):
+    """Grid with `_w` weights after `observations` = [(terms, accepted)]; uniform prior. Falls back
+    to the prior when the evidence has zero likelihood everywhere."""
+    grid = grid or scenarios(supplier)
+    out = []
+    for s in grid:
+        w = s.get("_w", 1.0)
+        for terms, accepted in observations:
+            p = accept_prob(case, terms, standard, s, s_max)
+            w *= p if accepted else 1 - p
+        out.append({**s, "_w": w})
+    return out if sum(s["_w"] for s in out) > 1e-12 else grid
