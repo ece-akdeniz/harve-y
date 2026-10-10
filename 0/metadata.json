@@ -1,0 +1,80 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4K9EAR7JWRRY2WVCK0YT1N7",
+  "session_id": "01a12673-71fc-74e1-b397-e276186161e5",
+  "strategy": "manual-commit",
+  "created_at": "2026-10-10T16:13:25.101495Z",
+  "branch": "codex/async-practice",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "tacto-negotiator/experiments/LOG.md",
+    "tacto-negotiator/src/negotiator/lab/cli.py",
+    "tacto-negotiator/src/negotiator/lab/runner.py",
+    "tacto-negotiator/src/negotiator/runner.py",
+    "tacto-negotiator/tests/test_lab_runner.py",
+    "tacto-negotiator/tests/test_runner.py"
+  ],
+  "agent": "Codex",
+  "model": "gpt-6-astra",
+  "turn_id": "775d11fce452",
+  "checkpoint_transcript_start": 1063,
+  "transcript_lines_at_start": 1063,
+  "compact_transcript_start": 132,
+  "token_usage": {
+    "input_tokens": 20832,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 2639438,
+    "output_tokens": 8234,
+    "api_call_count": 46,
+    "subagent_tokens_complete": false
+  },
+  "skill_events_version": 1,
+  "skill_events": [
+    {
+      "id": "prompt-skill-codex-goal-2026-10-10T15:36:01.630974Z",
+      "event_type": "prompt_invocation",
+      "skill": {
+        "name": "goal"
+      },
+      "source": {
+        "agent": "codex",
+        "signal": "prompt_slash_command",
+        "confidence": "explicit"
+      },
+      "turn_id": "8a12e8c2f6de",
+      "timestamp": "2026-10-10T15:36:01.630974Z",
+      "native": {
+        "command": "/goal"
+      },
+      "collapse": {
+        "target": "user_message",
+        "label": "/goal",
+        "default_collapsed": true
+      }
+    }
+  ],
+  "session_metrics": {
+    "turn_count": 1
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-10-10T16:13:24.985468Z",
+    "agent_lines": 705,
+    "agent_removed": 31,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 705,
+    "total_lines_changed": 736,
+    "agent_percentage": 100,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    }
+  ]
+}
