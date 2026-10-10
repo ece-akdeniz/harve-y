@@ -513,7 +513,11 @@ def history_claims(case: dict, package=None) -> list[Claim]:
 
     `po_history`: the supplier's most recent `po:` lines for the case part (2-8 count as one argument)
     priced at or below our current price. `own_quote`: the supplier's latest own quote for the part,
-    not older than HISTORY_QUOTE_DAYS at the trigger date, at or below our current price. Both
+    not older than HISTORY_QUOTE_DAYS at the trigger date, at or below our current price - and only
+    when the quote id is in the case refs or is the buyer's alternative. api.md counts a quote only when
+    it is "of this case (in its refs or your alternative)"; hosted run 9a4fbb93 (P08) cited the
+    supplier's own quote:7300008 outside the refs, the arena rated it `irrelevant` and the supplier
+    read it as a rival quote. `po` carries no such qualifier, so order lines stay unrestricted. Both
     disclose nothing the supplier does not have (its own quote, our orders with it). Callers compare
     the figure with the supplier's standing ask before citing; verification is `verify`."""
     facts = case_facts(case, package)
@@ -524,6 +528,8 @@ def history_claims(case: dict, package=None) -> list[Claim]:
         return []
     trigger = facts.get(case.get("trigger_doc") or "") or {}
     refs = set(case.get("refs") or [])
+    alt_ref = ((case.get("buyer") or {}).get("alternative") or {}).get("ref")
+    case_quotes = refs | ({alt_ref} if isinstance(alt_ref, str) and alt_ref.startswith("quote:") else set())
     try:
         as_of = date.fromisoformat(trigger["date"])
     except (KeyError, TypeError, ValueError):
@@ -550,8 +556,8 @@ def history_claims(case: dict, package=None) -> list[Claim]:
             out.append(replace(claim, sentence=render(claim, facts)))
         quotes = []
         for ref, f in facts.items():
-            if not (ref.startswith("quote:") and isinstance(f, dict) and f.get("supplier") == target
-                    and f.get("part") == part):
+            if not (ref.startswith("quote:") and ref in case_quotes and isinstance(f, dict)
+                    and f.get("supplier") == target and f.get("part") == part):
                 continue
             price = _unit_price(f)
             try:
@@ -568,7 +574,7 @@ def history_claims(case: dict, package=None) -> list[Claim]:
             claim = Claim(kind="own_quote", ids=(ref,), figure=round(price, 2), unit="EUR", sentence="",
                           supplier_id=target, part_id=part, disclosure="supplier_own", subject=target,
                           strength=round((current - price) / current * 100, 2), in_case_refs=ref in refs,
-                          note=f"own quote of {quoted}" + ("" if ref in refs else "; not in case refs"))
+                          note=f"own quote of {quoted}" + ("" if ref in refs else "; buyer alternative"))
             out.append(replace(claim, sentence=render(claim, facts)))
     return [c for c in out if verify(c, facts, package, case)]
 

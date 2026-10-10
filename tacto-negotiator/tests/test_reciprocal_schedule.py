@@ -132,7 +132,8 @@ def test_flag_on_steps_follow_the_supplier_then_token_steps_while_it_holds(case_
     gap = {r["price"]: max(r["ask"] * agent.close_gap, 0.01) for r in recip}
     for r in recip:
         assert r["price"] <= round(r["ask"] - gap[r["price"]], 2) + 1e-9  # never within the gap of its ask
-        assert r["price"] <= r["scheduled"] + 1e-9  # never above the default schedule
+        # never above the default schedule - except the one cent that keeps us from resending our last sheet
+        assert r["price"] <= r["scheduled"] + (0.01 if r["held_by_schedule"] else 0.0) + 1e-9
         if not r["held"]:
             assert r["step"] <= r["their_step"] + 1e-6  # our step <= its last step while it moves
         else:
@@ -238,3 +239,80 @@ def test_rfq_beat_final_cap_path_is_unaffected():
     assert _price(first_on) < terms["unit_price"]
     assert on.beat_asked == off.beat_asked == {rival: "offer:lead-2"}
     assert not [r for r in trace.rows if r.get("kind") == "reciprocal"]
+
+
+# ---------------------------------------------------------------- hosted run 9a4fbb93 (P08, sup:70710)
+
+P08_OPENING_TERMS = {"unit_price": 6.05, "payment_days": 30, "index_clause": None, "contract_months": 12}
+
+
+def _clause(deadband):
+    return {"series": "AS-14404", "material_share": 0.45, "deadband_pct": deadband, "base_month": "2026-08"}
+
+
+def _p08_sheet(i, price, deadband, suffix=""):
+    terms = {"unit_price": price, "payment_days": 90, "contract_months": 24,
+             "index_clause": _clause(deadband) if deadband is not None else None}
+    return {"term_sheet_id": f"offer:70710-{i}{suffix}", "terms": terms}
+
+
+def _p08_run(agent, replies):
+    """Opening 6.05 / 30d / 12m, then the supplier's `replies` (lists of sheets, standing first);
+    returns our prices (or the closing action) and the final event list."""
+    case, sid = CASES["case:P08"], "sup:70710"
+    opening = copy.deepcopy(OPENING)
+    opening["term_sheets"][0]["terms"] = dict(P08_OPENING_TERMS)
+    events, out = [opening], []
+    for sheets in replies:
+        message = agent.decide(case, {sid: events})["message"]
+        out.append(message["action"] if message.get("action") else _price({"message": message}))
+        if message.get("action"):
+            return out, events
+        events += [{"from": "buyer", **message}, {"from": "sales", "status": "open", "term_sheets": sheets}]
+    message = agent.decide(case, {sid: events})["message"]
+    out.append(message["action"] if message.get("action") else _price({"message": message}))
+    return out, events
+
+
+def test_p08_hosted_sequence_measures_the_standing_sheet_and_never_resends_an_identical_sheet():
+    """Run 9a4fbb93: 6.05 -> we 5.31 -> 5.43 db0 standing + 5.55 db5 variant -> we 5.36 -> 5.39 db0 -> we
+    sent 5.36 AGAIN and drew "letztes Angebot" at 5.39 after 4 rounds. The supplier's step was measured on
+    the equal-cost variant (0.48 / 0.16) instead of the standing sheet (nominal 0.62 / 0.04)."""
+    replies = [[_p08_sheet(1, 5.43, 0), _p08_sheet(1, 5.55, 5, "-a")],
+               [_p08_sheet(2, 5.39, 0)], [_p08_sheet(3, 5.39, 0)]]
+    trace = Trace()
+    prices, _ = _p08_run(_agent(True, tracer=trace), replies)
+    recip = [r for r in trace.rows if r.get("kind") == "reciprocal"]
+    assert len(recip) == 2
+    # the supplier's asks on our terms come from its standing sheet: opening 6.05/30d/12m maps to 6.03 on
+    # 90d/24m, then 5.43 db0 (not the 5.55 db5 variant) and 5.39 db0: steps 0.60 and 0.04, not 0.48 / 0.16
+    assert [r["their_step"] for r in recip] == [0.60, 0.04]
+    assert [r["scheduled"] for r in recip] == [5.36, 5.36]  # the k/rounds schedule plateaued at 5.36
+    assert recip[0]["held_by_schedule"] is False and recip[1]["held_by_schedule"] is True
+    # round 3: 5.37 would be inside the closing gap of 5.39 (gap 0.027 -> cap 5.36), so instead of resending
+    # 5.36 we match its price on our terms and the gap-closed logic closes next round
+    assert recip[1]["reason"] == "no non-identical price outside the gap: match"
+    assert prices[:3] == [5.31, 5.36, 5.39]
+    assert prices[2] != prices[1] and 5.37 <= prices[2] <= 5.39
+    assert prices[3] == {"type": "accept", "term_sheet_id": "offer:70710-3"}
+    # `decide_thread`'s own `p` still comes from every sheet (the cheaper variant on our terms: 5.55)
+    assert recip[0]["ask"] == 5.55 and recip[1]["ask"] == 5.39
+    # flag off: today's schedule verbatim, including the repeated 5.36 the hosted run sent
+    prices_off, _ = _p08_run(_agent(False), replies[:2])
+    assert prices_off == [5.31, 5.36, 5.36]
+
+
+def test_plateaued_schedule_steps_one_cent_instead_of_repeating_the_sheet():
+    # a supplier that jumps a lot early makes the k/rounds schedule plateau below our own last price
+    replies = [[_p08_sheet(1, 5.70, None)], [_p08_sheet(2, 5.50, None)], [_p08_sheet(3, 5.45, None)]]
+    trace = Trace()
+    prices_on, _ = _p08_run(_agent(True, tracer=trace), replies)
+    prices_off, _ = _p08_run(_agent(False), replies)
+    assert prices_off == [5.31, 5.39, 5.39, 5.39]  # flag off repeats the identical sheet while it is open
+    assert prices_on == [5.31, 5.39, 5.40, 5.41]
+    recip = [r for r in trace.rows if r.get("kind") == "reciprocal"]
+    assert [r["held_by_schedule"] for r in recip] == [False, True, True]
+    assert all(r["price"] == round(r["scheduled"] + 0.01, 2) for r in recip if r["held_by_schedule"])
+    assert all("reason" not in r for r in recip)  # a strictly higher price fit under the gap every time
+    for r in recip:
+        assert r["price"] <= round(r["ask"] - max(r["ask"] * 0.005, 0.01), 2) + 1e-9

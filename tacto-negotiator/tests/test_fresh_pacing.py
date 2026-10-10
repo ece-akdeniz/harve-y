@@ -42,6 +42,7 @@ def test_history_claims_verify_against_facts_and_stay_below_current_price(packag
         facts = case_facts(case, package)
         claims = history_claims(case, package)
         assert claims, cid
+        case_quotes = set(case["refs"]) | {case["buyer"]["alternative"]["ref"]}
         for c in claims:
             assert check(c, facts, package, case) is None
             assert c.disclosure == "supplier_own" and c.supplier_id in case["suppliers"]
@@ -51,8 +52,28 @@ def test_history_claims_verify_against_facts_and_stay_below_current_price(packag
                 assert 2 <= len(c.ids) <= 8 and all(i.startswith("po:") for i in c.ids)
                 assert all(facts[i]["part"] == case["parts"][0] for i in c.ids)
             else:
-                assert c.kind == "own_quote" and c.ids[0].startswith("quote:")
+                assert c.kind == "own_quote" and c.ids[0].startswith("quote:") and c.ids[0] in case_quotes
+    # the supplier's own quotes of these cases (quote:7300008, quote:7300001) are outside the refs: a quote
+    # counts only when it is "of this case (in its refs or your alternative)" - hosted run 9a4fbb93 had
+    # quote:7300008 rated `irrelevant` and read as a rival quote
+    for cid in ("case:P08", "case:P01"):
+        assert [c.kind for c in history_claims(CASES[cid], package)] == ["po_history"], cid
     assert history_claims(CASES["case:P05"], package) == []  # no orders with the RFQ bidders
+
+
+def test_own_quote_only_when_the_quote_is_a_case_ref_or_the_alternative(package):
+    base = CASES["case:P08"]
+    assert not [c for c in history_claims(base, package) if c.kind == "own_quote"]
+    in_refs = {**base, "refs": [*base["refs"], "quote:7300008"]}
+    [own] = [c for c in history_claims(in_refs, package) if c.kind == "own_quote"]
+    assert own.ids == ("quote:7300008",) and own.figure == 5.45 and own.in_case_refs
+    assert check(own, case_facts(in_refs, package), package, in_refs) is None
+    as_alt = {**base, "buyer": {**base["buyer"], "alternative": {"kind": "quote", "ref": "quote:7300008", "terms": {}}}}
+    [own] = [c for c in history_claims(as_alt, package) if c.kind == "own_quote"]
+    assert own.ids == ("quote:7300008",) and not own.in_case_refs and "buyer alternative" in own.note
+    # order lines carry no such qualifier (api.md lists `po` plainly): unchanged either way
+    assert [c.ids for c in history_claims(base, package) if c.kind == "po_history"] \
+        == [c.ids for c in history_claims(in_refs, package) if c.kind == "po_history"]
 
 
 def test_history_claim_checks_fail_closed():
@@ -141,4 +162,6 @@ def test_p08_hedged_supplier_gets_history_not_index_claims(package):
         refs = out["message"].get("refs") or []
         kinds += sorted({r.split(":")[0] for r in refs})
         events = [*events, {"from": "buyer", **out["message"]}, _supplier(6.0)]
-    assert "idx" not in kinds and "quote" in kinds and "po" in kinds
+    # order history and the scorecard, never an index window (hedged) and never the supplier's own
+    # quote:7300008 (not a case ref: the arena rated it `irrelevant` in run 9a4fbb93)
+    assert "idx" not in kinds and "quote" not in kinds and "po" in kinds

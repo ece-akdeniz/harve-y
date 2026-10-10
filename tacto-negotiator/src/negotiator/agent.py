@@ -1126,14 +1126,26 @@ class PackageAgent:
         self.final_counters[sid] = self.final_counters.get(sid, 0) + 1
         return self._offer(case, sid, complete_offer(case, terms), std, sup, c_alt, reason)
 
+    def _standing_sheet(self, case, events, sup):
+        """[(C, id, terms)] of the first sheet of the supplier's latest message - the standing offer
+        the arena lets us accept - or [] when it is unpriced. Variants ("offer:...-a") are left out."""
+        standing = eligible_sheets(case, events, sup)
+        if standing:
+            return standing
+        sheets = latest(events).get("term_sheets") or []
+        first_id = sheets[0].get("term_sheet_id") if sheets else None
+        return [x for x in _priced(case, events, sup) if x[1] == first_id]
+
     def _supplier_asks(self, case, events, n, std, sup):
-        """The supplier's successive asks on our non-price terms `n` (one per priced supplier message)."""
+        """The supplier's successive asks on our non-price terms `n` (one per priced supplier message),
+        each measured on its STANDING sheet only. Hosted run 9a4fbb93 (P08) priced the step on an
+        equal-cost variant (5.55 db5) instead of the standing 5.43 db0 and read 0.48/0.16 for what was
+        0.62/0.04; `decide_thread`'s own `p` keeps using every sheet and is unaffected."""
         asks = []
         for i, m in enumerate(events):
             if m.get("from") == "buyer" or not m.get("term_sheets"):
                 continue
-            prefix = events[: i + 1]
-            cands = eligible_sheets(case, prefix, sup, alternatives=True) or _priced(case, prefix, sup)
+            cands = self._standing_sheet(case, events[: i + 1], sup)
             if cands:
                 asks.append(self._ask_on(case, n, cands, std, sup))
         return asks
@@ -1144,7 +1156,13 @@ class PackageAgent:
         its last concession (a token step when it held), and we stay outside the closing gap of its
         ask - the fixed k/rounds convergence only applies from round N-2 on or when the supplier is
         already within the gap (then today's closing logic runs). Keyed on supplier moves and our own
-        cost mapping only; no case-type gate and no constant fitted to results."""
+        cost mapping only; no case-type gate and no constant fitted to results.
+
+        Never resends an identical sheet while the supplier is open: the price is at least one cent
+        above our last one even when the k/rounds schedule has plateaued (`held_by_schedule`; hosted
+        run 9a4fbb93 repeated 5.36 and drew a "letztes Angebot" at 5.39). When no strictly higher price
+        fits under the closing gap of its ask, the supplier is within about three cents on our terms:
+        we return its price on our terms so the gap-closed logic closes the deal next round."""
         if not (self.policy and self.policy.reciprocal_schedule):
             return scheduled
         if latest(events).get("status") != "open" or moves_left(case, events) <= 2:
@@ -1158,12 +1176,21 @@ class PackageAgent:
         sched_step = max(0.0, scheduled - last_p)
         step = min(sched_step, their_step) if their_step > 0.005 else min(sched_step, token)
         outside_gap = math.floor(round((p - gap) * 100, 6)) / 100  # floor: never within the gap of its ask
+        at_least = round(_ceil2(last_p) + 0.01, 2)  # the smallest sheet that is not our last one again
+        held_by_schedule = round(scheduled, 2) < at_least - 1e-9
+        if at_least > outside_gap + 1e-9:
+            self._log(case, "reciprocal", sid, ask=p, last=last_p, their_step=round(their_step, 4),
+                      scheduled=round(scheduled, 2), step=round(p - last_p, 4), price=p,
+                      moves_left=moves_left(case, events), held=their_step <= 0.005,
+                      held_by_schedule=held_by_schedule, reason="no non-identical price outside the gap: match")
+            return p
         price = min(round(last_p + step, 2), outside_gap)
-        price = max(price, _ceil2(last_p))  # no backtracking wins over the gap when the two conflict
-        price = min(price, round(scheduled, 2))
+        price = max(price, at_least)  # no backtracking, no identical sheet: wins over the gap when they conflict
+        price = min(price, max(round(scheduled, 2), at_least))  # the schedule caps, but may not force a repeat
         self._log(case, "reciprocal", sid, ask=p, last=last_p, their_step=round(their_step, 4),
                   scheduled=round(scheduled, 2), step=round(price - last_p, 4), price=price,
-                  moves_left=moves_left(case, events), held=their_step <= 0.005)
+                  moves_left=moves_left(case, events), held=their_step <= 0.005,
+                  held_by_schedule=held_by_schedule)
         return price
 
     def decide_thread(self, case, threads, sid, c_alt, cap_c=None, why=None):
