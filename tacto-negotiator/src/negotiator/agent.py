@@ -657,7 +657,8 @@ class PackageAgent:
         order = sorted(workable, key=lambda s: (status[s] != "final_offer", self._key(case, threads, s)))
         reason = "no moves left"
         for sid in order or live_threads(threads)[:1]:
-            move = self.propose(case, threads, sid)
+            advising = bool(self.package_advisor and case["type"] in self.policy.package_advice_types)
+            move = self.propose(case, threads, sid, defer_evidence=advising)
             if move.get("close"):
                 return self._close(case, threads, move.get("reason", ""))
             if not move.get("hold"):
@@ -680,11 +681,11 @@ class PackageAgent:
                     selected = move['message']['term_sheets'][0]['terms']
                     self.prev[sid] = nonprice(case, selected)
                     self._log(case, 'package_advice', sid, **advice, original=original, selected=selected)
-                return move
+                return self._enrich_evidence(case, threads, sid, move) if advising else move
             reason = move.get("reason", reason)
         return self._close(case, threads, reason)
 
-    def propose(self, case, threads, supplier_id):
+    def propose(self, case, threads, supplier_id, *, defer_evidence=False):
         if supplier_id not in self.model_seen:
             self.prepare_email(case, threads, supplier_id)
         if self.policy:
@@ -715,6 +716,9 @@ class PackageAgent:
                     self.evidence.fallback(case, exc)
                     return move
                 return self.evidence.enrich(case, threads, supplier_id, move, context=context, rfq_claims=1)
+        return move if defer_evidence else self._enrich_evidence(case, threads, supplier_id, move)
+
+    def _enrich_evidence(self, case, threads, supplier_id, move):
         if self.evidence and self.evidence.eligible(case, move):
             from .context import DATA_ERRORS
 

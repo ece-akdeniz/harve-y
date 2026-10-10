@@ -1774,3 +1774,31 @@ P10: no session (see the offline note above).
   P04 .8604, P05 .7723, P07 .7600, P08 .5930, P10 .6551, P11 .7902, P18 .5200. Mean .7522 = best-per-case mean.
 - Risks: bundle commitment untested on P15 (bundling, not practice); every v2 lever validated on one case;
   supplier side appears deterministic so repeats test reproducibility, not robustness.
+
+## 2026-10-10 — Close mean85 experiment branches; retain ordering fix only
+
+User requested merging or closing this chat's branches. Seven hosted sessions were used
+from the authorized 50: one P08 open-book probe and six P10 screens. All have original
+completed outcomes and zero timeouts. No P04/P11 hosted session was started.
+
+- P08 open-book run5b7c832f/sessionba461b3457a3773f:0.4822863008 versus0.5929541836.
+  Supplier declined detailed cost disclosure and settled5.41 instead of5.31; reject.
+- P10 evidence run e52fa461/sessionaa60cb837f218a98:0.5546564482. A real integration
+  bug put evidence refs on a move before the advisor; refs caused package advice to skip,
+  leaving42-day delivery. Source7442289 defers serial evidence until after package selection.
+- P10 corrected-order run f0195237/session06fe3a0014016d96:0.6550995999, restored
+  baseline31.80/56days/24months; the verified delivery fact itself produced no gain.
+- Committee request1c06d18576134bd7, moderate anchorb962151bc046a5fb, and binding
+  clarificationc52f869e9ac3cbad each tied0.6550995999; reject strategy changes.
+- One final-counter screen46270b1deaea0d4a ended with score0.0; reject that risk policy.
+
+Merge only the evidence/advice ordering fix and its regression test onto current main.
+No new strategy flag or experimental config is promoted; existing v2 settings remain intact.
+Close codex/mean85, codex/mean85-capacity and codex/mean85-quality. Their source bundle,
+original runs, journals, traces, budget and logs are preserved outside the archived worktrees
+in experiments/loop/mean85-closed-20261010 in the primary checkout. The 0.85 goal is not achieved.
+
+Cleanup merge validation on current main: 686 passed, 2 skipped in90.38s; Ruff passed.
+No new hosted sessions were consumed for cleanup. All seven owned sessions were confirmed
+ended through the owned-session API. The retained fix restores supported feature composition;
+it is not a new score improvement or a fresh full-suite evaluation.

@@ -204,3 +204,34 @@ def test_config_activates_only_measured_capacity_type_and_default_is_off():
     base = json.loads(Path('configs/cost-neutral-delivery.json').read_text())
     configured = json.loads(Path('configs/package-advice.json').read_text())
     assert configured == {**base, 'package_advice_types': ['capacity']}
+
+
+def test_serial_package_selection_precedes_single_evidence_decoration():
+    case, threads, move = fixture()
+    sid = move['supplier_id']
+    policy = PolicyConfig(package_advice_types=('capacity',), evidence_types=('capacity',),
+                          cost_neutral_lead_time=True)
+    agent = PackageAgent(policy=policy)
+    agent.package_advisor = PackageAdvisor(select_36)
+    agent.package_notes[sid] = []
+    agent.trades.deadlines[sid] = time.time() + 60
+    decorated = []
+
+    class Evidence:
+        def eligible(self, case, move):
+            return bool(move.get('message', {}).get('term_sheets'))
+
+        def context_for(self, case):
+            return None
+
+        def enrich(self, case, threads, supplier_id, move, context=None):
+            decorated.append(copy.deepcopy(move))
+            return {**move, 'message': {**move['message'], 'refs': ['sc:verified'],
+                    'body': move['message']['body'] + ' Verified supplier delivery record.'}}
+
+    agent.evidence = Evidence()
+    result = agent.decide(case, threads)
+    assert len(decorated) == 1
+    assert decorated[0]['message']['term_sheets'][0]['terms']['contract_months'] == 36
+    assert result['message']['refs'] == ['sc:verified']
+    assert result['message']['body'].endswith('Verified supplier delivery record.')
