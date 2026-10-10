@@ -931,17 +931,21 @@ Hypothesis C (screen 7, `configs/p05-supplier-payment.json` = hold + `rfq_suppli
 anyway. Concede to the supplier's stated payment (never < 30 d) so the concession counts as
 our move and later rounds are price-only. Offline: 70210 counters 31.78/30 d, 31.88/30 d.
 
-## 2026-10-10 — P05 screen 6: rival-offer disclosure (hypothesis B, on A + hold)
+## 2026-10-10 — P05 screen 7: concede to supplier-stated payment (hypothesis C) — worse
 
-Run `ebd84380-7d68-49d1-9fd9-2ff3d3059b91`, session `914b145b75d7015a`. Score **41.19** (no
-change): sup:70210 32.00/35/30 final, 56.6 s, zero timeouts. Two claims sent, both to sup:70250
-(offer:70210-0 @36.00, offer:70210-1 @33.00), both **verified**; 70250 acknowledged ("checked
-the rival quote data you cited; it holds") but stayed 34.50 → 34.00 exactly as without claims.
-No claim reached 70210 (it always led) or 70240 (its 42 d prices never exceeded a valid rival
-standing price strictly). 70240 path identical to screen 5. Disclosure does not move floors here.
-Lead-time line: 2 non-improving (screens 5, 6) → dropped. Disclosure: 1 non-improving.
+The tool retried the launch command, so **two** sessions ran with the same config/commit:
+- Run `cfdafb15-9300-484f-8950-cd6a3d92e137`, session `a18a4bbf41f3245b`: **21.28**. 70250
+  *agreed* to our 34.00/30 d counter (we had conceded to its 30 d); the coordinator closed on
+  "sup:70250 agreed" while 70210's reply (32.50) was in flight, so it accepted 34.00.
+- Run `826f495d-3a81-4247-b40e-4e58c95f533d`, session `ad9529ebb8e766b5`: **36.04**, 70210
+  32.50/35/30. Once we offered 30 d, 70210 said "I can drop to 32.50, but that's where it
+  stops" and went final at 32.50 after three replies (vs 32.00 after five when we kept asking 90 d).
+Zero timeouts in both. The refused 90 d request was effectively a trade chip: 70210 compensated
+with price ("if we agree on 30 days, I'll drop the price to 32.00"). Hypothesis C dropped.
+Robustness finding: an "agreed" non-leader can still close the case on its own price while the
+leader is in flight (same in-flight exclusion as screen 1); harmless on the hold base so far.
 
-Hypothesis C (screen 7, `configs/p05-supplier-payment.json` = hold + `rfq_supplier_payment`):
-70210 refused 90 d in all four replies ("need the cash in 30 days"); deals close at its 30 d
-anyway. Concede to the supplier's stated payment (never < 30 d) so the concession counts as
-our move and later rounds are price-only. Offline: 70210 counters 31.78/30 d, 31.88/30 d.
+Hypothesis D (screen 8, `configs/p05-rival-history.json` = hold + `rfq_rival_offer` +
+`rfq_rival_offer_history`): disclosure line, second try aimed at the leader. Cite the lowest
+priced rival sheet from anywhere in this session (e.g. offer:70240-0 @31.50) when it
+undercuts the receiving supplier's standing price; figure and ID taken from the sheet.

@@ -98,21 +98,10 @@ def test_rfq_supplier_payment_adopts_stated_term_but_never_below_30_days():
     case = next(c for c in json.loads((Path(__file__).parent / 'fixtures/practice_cases.json').read_text())
                 if c['case_id'] == 'case:P05')
     a, b = case['suppliers'][:2]
-    agent = PackageAgent(policy=PolicyConfig(rfq_supplier_payment=True))
     for stated, expected in ((30, 30), (14, 90)):
+        agent = PackageAgent(policy=PolicyConfig(rfq_supplier_payment=True))
         threads = {a: [msg('open', ('offer:a', {'unit_price': 33.0, 'payment_days': stated, 'lead_time_days': 35}))],
                    b: [msg('open', ('offer:b', {'unit_price': 36.0}))]}
         terms = agent.propose(case, threads, a)['message']['term_sheets'][0]['terms']
         assert terms['payment_days'] == expected
 
-
-def test_rfq_supplier_payment_adopts_stated_term_but_never_below_30_days():
-    case = next(c for c in json.loads((Path(__file__).parent / 'fixtures/practice_cases.json').read_text())
-                if c['case_id'] == 'case:P05')
-    a, b = case['suppliers'][:2]
-    agent = PackageAgent(policy=PolicyConfig(rfq_supplier_payment=True))
-    for stated, expected in ((30, 30), (14, 90)):
-        threads = {a: [msg('open', ('offer:a', {'unit_price': 33.0, 'payment_days': stated, 'lead_time_days': 35}))],
-                   b: [msg('open', ('offer:b', {'unit_price': 36.0}))]}
-        terms = agent.propose(case, threads, a)['message']['term_sheets'][0]['terms']
-        assert terms['payment_days'] == expected

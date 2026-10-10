@@ -396,8 +396,15 @@ class PackageAgent:
         for s in live_threads(threads):
             if s == sid:
                 continue
-            for _, offer_id, terms in eligible_sheets(case, threads[s], None, alternatives=True):
+            if self.policy.rfq_rival_offer_history:
+                sheets = [(sh.get("term_sheet_id"), sh.get("terms") or {}) for m in threads[s]
+                          if m.get("from") != "buyer" for sh in m.get("term_sheets") or []]
+            else:
+                sheets = [(i, t) for _, i, t in eligible_sheets(case, threads[s], None, alternatives=True)]
+            for offer_id, terms in sheets:
                 p = terms.get("unit_price")
+                if not offer_id:
+                    continue
                 if offer_id in cited or p is None or p >= min(own) - 1e-6:
                     continue
                 if best is None or (p, offer_id) < (best[0], best[1]):
