@@ -2,6 +2,36 @@
 
 Format and decision rule: `docs/04-experiments.md`. Newest on top. One entry per change.
 
+## 2026-10-10 15:14 — Pre-meeting targeted retest (MEASURED HOSTED)
+
+- Candidate revision `25fe977`: package/final-offer fixes, trade packages, and
+  supplier-cost estimates. Exactly one session each for five cases; no replacement sessions.
+- Comparison with previous `ba1b242` sweep (unpaired, single runs; not a causal estimate):
+- case:P04: 5.64 -> **86.04/100**, session `79050b92d7a60489`.
+- case:P08: 15.62 -> **52.71/100**, session `0d5ecfc4055c87af`.
+- case:P10: 0.00 -> **45.32/100**, session `79c3a047f6c4a906`.
+- case:P11: 31.44 -> **40.64/100**, session `ac9fe2be921b9ed3`.
+- case:P18: 0.00 -> **40.62/100**, session `14b3fbcb0087b661`.
+
+- Reconciled five-case mean **53.07/100**, five deals,
+  all must-haves satisfied, zero recorded timeouts (including recovered P10).
+- P10 was NOT an uninterrupted autonomous success. The API returned HTTP 422 when
+  accepting `offer:70410-1-a` despite the alternative being shown in the supplier email.
+  Operator-assisted reconciliation fetched current session state and accepted its primary
+  standing offer `offer:70410-1` in the SAME session. This closed at 45.32/100.
+  The initial script exit status was 1; raw error and recovered state are both retained.
+- Added GuardedRemoteTable after this incident: on rejected alternative acceptance,
+  fetch authoritative state, stop if ended, find the current primary offer, resolve documents,
+  recheck must-haves and alternative cost, and only then submit a new acceptance action.
+  This new recovery code is locally tested, not separately arena-tested. It is wired into
+  play, sandbox/practice run, and practice_sweep; final play_waves remains kit-managed.
+- Tests after recovery fix: **43 pass**, Ruff passes. Regression coverage includes both
+  valid recovery and rejection of a primary offer above the alternative. No extra quota.
+- Raw run: `runs/20261010T131141Z-practice-a04138/`. `summary.json` preserves the initial
+  P10 failure; `summary-reconciled.json` explicitly labels its recovery.
+- Team quota after: 60 used, 140 left; this sweep created exactly five sessions.
+- Stop here for the team meeting. Next architecture/scope decisions come from the team.
+
 ## 2026-10-10 14:58 — One pass over all hosted practice cases (MEASURED HOSTED)
 
 - Policy revision `ba1b242`: favorable, recipient-aware index evidence enabled; same

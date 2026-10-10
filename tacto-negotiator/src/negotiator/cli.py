@@ -12,9 +12,10 @@ from pathlib import Path
 from arena_kit.cli import load_env, summary
 from arena_kit.client import ArenaClient, ArenaError
 from arena_kit.data import DataPackage
-from arena_kit.play import RemoteTable, hosted, play, play_all, play_waves
+from arena_kit.play import hosted, play, play_all, play_waves
 
 from .agent import PackageAgent
+from .closing import GuardedRemoteTable
 from .evidence import cost_driver_series
 from .supplier_costs import load_estimates
 from .trace import Tracer
@@ -71,7 +72,7 @@ def main(argv=None) -> int:
                             series_by_part=series_by_part, supplier_estimates=estimates)
 
     if args.cmd == "play":
-        table = RemoteTable(client)
+        table = GuardedRemoteTable(client, new_agent())
         try:
             out = {args.case_id: play(table, args.case_id, new_agent())}
         except ArenaError as e:
@@ -80,7 +81,7 @@ def main(argv=None) -> int:
         out = play_waves(client, new_agent, args.waves, min(args.parallel, 10))
     else:
         ids = [c["case_id"] for c in hosted(client.cases(args.set_))]
-        out = play_all(lambda: RemoteTable(client), ids, new_agent, min(args.parallel, 10))
+        out = play_all(lambda: GuardedRemoteTable(client, new_agent()), ids, new_agent, min(args.parallel, 10))
 
     scores = {}
     for case_id, result in out.items():

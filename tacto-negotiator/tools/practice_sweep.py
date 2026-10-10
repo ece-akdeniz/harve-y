@@ -11,10 +11,11 @@ from uuid import uuid4
 
 from arena_kit.cli import load_env
 from arena_kit.data import DataPackage
-from arena_kit.play import RemoteTable, hosted, play
+from arena_kit.play import hosted, play
 from sandbox_baseline import RecordedClient
 
 from negotiator.agent import PackageAgent
+from negotiator.closing import GuardedRemoteTable
 from negotiator.evidence import cost_driver_series
 from negotiator.supplier_costs import load_estimates
 from negotiator.trace import Tracer
@@ -56,10 +57,10 @@ def main():
 
     def run(case):
         case_id = case['case_id']
-        table = RemoteTable(client)
         start = time.time()
         agent = PackageAgent(evidence=True, facts=facts, series_by_part=links, supplier_estimates=estimates,
                              tracer=Tracer(root / case_id.replace(':', '-')))
+        table = GuardedRemoteTable(client, agent, case)
         print('START', case_id, flush=True)
         try:
             result = play(table, case_id, agent, deadline=start + 480)

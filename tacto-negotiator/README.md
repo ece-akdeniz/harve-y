@@ -145,3 +145,9 @@ cost without a health estimate. This is not knowledge of hidden supplier costs; 
 price anchoring and relationship-sensitive package optimization remain limited.
 
 Target a subset with repeated `--case case:P04` arguments to `tools/practice_sweep.py`.
+
+A hosted test rejected an alternative-sheet ID with HTTP 422. `play`, non-final `run`,
+and `practice_sweep` now reconcile that error against authoritative session state and
+recheck a primary offer before accepting it. The final kit-managed wave runner does
+not yet use this adapter. The recorded P10 recovery was operator-assisted in the same
+session; the automatic recovery path has local tests but no separate hosted validation.

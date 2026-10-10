@@ -38,6 +38,7 @@ class PackageAgent:
         self.supplier_estimates = supplier_estimates or {}
         self.series_by_part = series_by_part or {}
         self.evidence, self.facts = evidence, dict(facts or {})
+
     def _package(self, case, sid, price, std):
         # Pure calculation: inspecting an offer must never lock future proposals.
         return best_terms(case, price, std)

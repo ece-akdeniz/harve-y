@@ -81,3 +81,67 @@ def test_relationship_estimate_is_scoped_to_supplier_and_part():
     plain = total_cost(c, terms, std)
     assert estimated_cost(c, 'sup:70410', terms, std, {('other', 'part:340010'): estimate}) == plain
     assert estimated_cost(c, 'sup:70410', terms, std, {('sup:70410', 'part:340010'): estimate}) > plain
+
+
+def test_rejected_alternative_reconciles_primary_without_new_session():
+    from arena_kit.client import ArenaError
+
+    from negotiator.closing import GuardedRemoteTable
+
+    c = case('P18')
+    primary = {'unit_price': 5.5, 'payment_days': 90, 'contract_months': 24,
+               'index_clause': c['term_options']['index_clause'][1]}
+
+    class Client:
+        def __init__(self):
+            self.actions = []
+
+        def send_message(self, session, supplier, message):
+            self.actions.append(message['action']['term_sheet_id'])
+            if len(self.actions) == 1:
+                raise ArenaError(422, 'alternative ID not accepted')
+            return {'result': {'ended': True, 'deal': True}}
+
+        def session(self, session):
+            return {'status': 'open', 'threads': {c['suppliers'][0]: {'offer_id': 'offer:0'}}}
+
+        def thread(self, session, supplier):
+            return {'messages': thread(c, [primary], 'final_offer')[supplier]}
+
+    client = Client()
+    table = GuardedRemoteTable(client, PackageAgent(), c)
+    table.session_id = 'existing'
+    result = table.close(c['suppliers'][0], {'action': {'type': 'accept', 'term_sheet_id': 'offer:0-a'}})
+    assert result['deal'] is True
+    assert client.actions == ['offer:0-a', 'offer:0']
+
+    # A rejected valid primary ID must not trigger another acceptance.
+    client = Client()
+    table = GuardedRemoteTable(client, PackageAgent(), c)
+    table.session_id = 'existing'
+    with pytest.raises(ArenaError):
+        table.close(c['suppliers'][0], {'action': {'type': 'accept', 'term_sheet_id': 'offer:0'}})
+    assert client.actions == ['offer:0']
+
+
+def test_reconciliation_does_not_accept_primary_over_alternative():
+    from arena_kit.client import ArenaError
+
+    from negotiator.closing import GuardedRemoteTable
+
+    c = case('P18')
+
+    class Client:
+        def send_message(self, session, supplier, message):
+            raise ArenaError(422, 'invalid alternative')
+
+        def session(self, session):
+            return {'status': 'open', 'threads': {c['suppliers'][0]: {'offer_id': 'offer:0'}}}
+
+        def thread(self, session, supplier):
+            return {'messages': thread(c, [{'unit_price': 100}], 'final_offer')[supplier]}
+
+    table = GuardedRemoteTable(Client(), PackageAgent(), c)
+    table.session_id = 'existing'
+    with pytest.raises(ArenaError):
+        table.close(c['suppliers'][0], {'action': {'type': 'accept', 'term_sheet_id': 'offer:0-a'}})
