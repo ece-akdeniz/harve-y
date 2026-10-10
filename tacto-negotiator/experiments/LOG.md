@@ -833,3 +833,34 @@ in the preceding entry; the same failure reproduces with the unchanged current
   4. P18: early equal-cost index_clause deadband variants, adopt supplier-revealed spread. Est.
      +0.03-0.06, weak-medium.
   P11 "faster payment" ask is not executable (payment_days not negotiable). Decision: implement 1-2 first.
+
+## 2026-10-10 — Score push P18/P08 screens (branch `codex/score-push-p18p08`)
+
+Legal-options check: P18/P08 fixtures list index_clause ∈ {none, AS-14404 db 0/3/5}, payment
+{14..90}, tenor {12,24,36}. No cap and no index-start deferral, so neither was used.
+Code: `8eb3138` adds opt-in `clause_variant_types` (equal-cost deadband sheets after the supplier makes the clause
+mandatory; adopt the supplier's clause) and the `longer_tenor` cost-neutral tie-break in `TradePolicy.initial`.
+Configs: `configs/p18-clause-variants.json`, `configs/p08-longer-tenor.json`. Both are opt-in; defaults unchanged.
+
+| run | session | case | hypothesis | score | terms | timeouts |
+|---|---|---|---|---|---|---|
+| 6eff2557 | 3acf459143f4acdd | P18 | H18 clause variants | 0.0 (invalid: process killed by shell exit after probe) | walked | 2 (harness) |
+| 1f8908d4 | 53a3d0a1b793c038 | P08 | H08 longer tenor | none (process killed; session left open) | — | — |
+| c5eb289f | 41f9ee98996b79bb | P18 | H18 clause variants | **0.4196** | 5.45 / db0 / 90d / 24m | 0 |
+| dc8e0a8c | 6ddf266d690d2113 | P08 | H08 longer tenor | 0.5376 | 5.36 / db0 / 90d / 36m | 0 |
+| 0bbb404e | 32e38ffae33fe908 | P18 | H18 repeat | **0.4196** | 5.45 / db0 / 90d / 24m | 0 |
+| f5c5c311 | b1c606cf7453017d | P18 | H18c follow revealed db5 track (e40b120, reverted 6b8dc1e) | 0.3191 | 5.60 / db0 / 90d / 24m | 0 |
+| 415974c2 | 195209b411efcbe0 | P18 | H18d clause variants + rounds=7 | 0.3191 | 5.60 / db0 / 90d / 24m | 0 |
+| b39c09c4 | 16bc0e15a9cf938c | P08 | H08b package-advice + rounds=7 | 0.5598 | 5.34 / db0 / 90d / 24m | 0 |
+
+Findings:
+- P18: the supplier always makes the clause mandatory at 24m and quotes db0 5.60 / db5 5.70. Our 3-sheet probe at
+  equal cost (db5 5.43 / db3 5.38 / db0 5.31) gets a hold at db0 5.60. In both repeats it then accepted our db0
+  counter at 5.45 (+0.0134 vs local .4062 best). If we stay on db5 (5.46) or counter lower on db0 (5.42), it goes
+  final at 5.60 and we take it (.3191). Its accept threshold is about 5.45 db0 / 90d. Hosted best .4531
+  (= 5.40 db0 90d 24m) is not in local runs.
+- P08: 36m makes the supplier insist on the clause too and concede more slowly (5.36 vs 5.31). With rounds=7 it
+  stops at 5.34. Dropped both (2 non-improving).
+- Sessions: 8 practice sessions; quota 103 -> ~119 used/600 because other agents share it.
+Decision: P18 `configs/p18-clause-variants.json` is a measured win vs local .4062 (n=2, identical), but below the hosted
+best .4531. It is mergeable as an opt-in config only. P08: no change.
