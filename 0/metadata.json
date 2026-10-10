@@ -1,0 +1,41 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4KA92PE4GJ1WH9K7DMXB83P",
+  "session_id": "01a1263d-b2a2-74d1-b9cf-292be07f4e2b",
+  "strategy": "manual-commit",
+  "created_at": "2026-10-10T16:28:01.470265815Z",
+  "branch": "codex/supplier-memory",
+  "checkpoints_count": 5,
+  "save_step_count": 1,
+  "files_touched": [
+    "tacto-negotiator/src/negotiator/lab/memory.py",
+    "tacto-negotiator/src/negotiator/memory.py",
+    "tacto-negotiator/tests/test_lab_memory.py"
+  ],
+  "agent": "Codex",
+  "model": "gpt-6-astra",
+  "turn_id": "c53df92d487c",
+  "compact_transcript_start": 0,
+  "token_usage": {
+    "input_tokens": 1361481,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 80557304,
+    "output_tokens": 220889,
+    "api_call_count": 116
+  },
+  "session_metrics": {
+    "turn_count": 6
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-10-10T16:28:01.390966225Z",
+    "agent_lines": 206,
+    "agent_removed": 0,
+    "human_added": 788,
+    "human_modified": 72,
+    "human_removed": 0,
+    "total_committed": 1066,
+    "total_lines_changed": 1066,
+    "agent_percentage": 19.324577861163228,
+    "metric_version": 2
+  }
+}
