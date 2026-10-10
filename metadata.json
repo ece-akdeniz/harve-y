@@ -1,0 +1,24 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4KSNY9S63HMQFRE6EF8NW6N",
+  "strategy": "manual-commit",
+  "branch": "codex/mean85-capacity",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "tacto-negotiator/configs/mean85-capacity-binding.json",
+    "tacto-negotiator/experiments/LOG.md",
+    "tacto-negotiator/src/negotiator/agent.py",
+    "tacto-negotiator/src/negotiator/approval_request.py",
+    "tacto-negotiator/src/negotiator/policy.py",
+    "tacto-negotiator/tests/test_approval_request.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": ""
+    }
+  ]
+}
