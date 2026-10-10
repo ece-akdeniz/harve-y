@@ -7,14 +7,15 @@ skipping an unsent claim is preferable to consuming the same fact twice.
 
 from dataclasses import asdict
 
-from .claims import MAX_CHECKED, case_facts, claim_keys, index_relevance, pick, verify
+from .claims import MAX_CHECKED, case_facts, claim_keys, index_relevance, pick, recent_index_claims, verify
 from .context import DATA_ERRORS, build_context, content_hash
 from .dossiers import load_package
 
 
 class EvidencePolicy:
-    def __init__(self, package=None, tracer=None, case_types=None):
-        self.case_types = set(case_types if case_types is not None else ["price_increase"])
+    def __init__(self, package=None, tracer=None, case_types=None, recent_window_types=()):
+        self.recent_window_types = set(recent_window_types)
+        self.case_types = set(case_types if case_types is not None else ["price_increase"]) | self.recent_window_types
         self.package = package
         self.tracer = tracer
         self.banks = {}
@@ -73,13 +74,17 @@ class EvidencePolicy:
             existing = set(message.get("refs") or [])
             used.update(existing)
             bank = [c for c in context.candidates if verify(c, facts, self.package, case)]
+            recent = case["type"] in self.recent_window_types
+            if recent:  # only public index claims over windows ending at the latest month
+                bank = [c for c in recent_index_claims(case, self.package, facts)
+                        if verify(c, facts, self.package, case)]
             priorities, reasons = index_relevance(bank, case, self.package, threads.get(sid, []))
             # Each pre-existing ref conservatively consumes one checked-claim slot.
             budget = max(0, MAX_CHECKED - len(existing))
             chosen = pick(
                 bank, used, max_claims=budget, supplier_id=sid,
                 case_type="renewal_trade" if case["type"] == "renewal" else case["type"],
-                index_priorities=priorities,
+                index_priorities=priorities, allow_cherry_pick=recent,
             )
         except DATA_ERRORS as exc:
             self.fallback(case, exc)

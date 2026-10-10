@@ -2,6 +2,31 @@
 
 Format and decision rule: `docs/04-experiments.md`. Newest on top. One entry per change.
 
+## P18 recent buyer-favourable index windows on retained package — PRE-REGISTRATION, 10 October 2026
+
+- Baseline/comparator: retained P18 policy `configs/retained-package-policy.json`,
+  0.4530612521 (`b2922dc3`, session `e7f60b71102745a0`; 5.40 / 90d / 24m / deadband 0).
+- Single change: the first buyer counter adds two verified public index claims over windows
+  ending at the latest published month: AS-14404 2026-06→2026-09 (-5.5%) and PPI-C2431
+  2026-06→2026-08 (-2.3%). Packages, prices, clause and message order are otherwise identical.
+  No scorecard, quote, PO, scope or internal-estimate claims.
+- What differs from earlier attempts: P18 evidence screens cited the scorecard (verified,
+  no movement, 0.3861), a public quote (irrelevant) or scope (0.3861); none cited falling
+  index windows, because the default picker drops rising 12-month windows and cherry-pick was
+  off. The P08 alloy-hedge letter (`aaac8af4`, tie) is a different lever. P08's index-window
+  test (`7fdf0fce`) ran on the full-cost policy, not this package, and its AS-14404 claim was
+  rejected only because P08's supplier says it is hedged until 03/2027. P18's supplier 70740
+  has no such hedge in its notice or case documents, and its own breakdown attributes 45% of
+  cost to AS-14404 and 38% to PPI-C2431.
+- Why it could work: the supplier justifies +11% with 12-month rises. Latest-month windows
+  show both drivers now falling, which is current, public and checkable. Unlike a stale
+  cherry-picked window, it disputes the trend the supplier is pricing forward.
+- Fairness: the windows use only public index facts. No hidden outcomes, `C_best` or other
+  teams' prices are used in pricing.
+- Plan: offline replay (only first counter body/refs may change), then one hosted P18 run.
+  Keep if > 0.4531 and the claims are verified/used; otherwise preserve as failed. Budget: up to
+  2 sessions (1 run + 1 replacement only if it expires), reserve 40 untouched.
+
 ## Packaged runtime negotiation guidance — local integration, 10 October 2026
 
 - Hypothesis: explicit conditional package wording communicates the exchange more clearly

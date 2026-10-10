@@ -21,7 +21,7 @@ class PolicyConfig:
     cost_neutral_lead_time: bool = False
     package_advice_types: tuple[str, ...] = ()
     clause_variant_types: tuple[str, ...] = ()
-
+    recent_index_window_types: tuple[str, ...] = ()
     @classmethod
     def load(cls, path):
         return cls.from_dict(json.loads(Path(path).read_text()))
@@ -33,7 +33,8 @@ class PolicyConfig:
             raise ValueError("unknown policy fields")
         if type(d.get("version")) is not int or d["version"] != 1:
             raise ValueError("policy version must be 1")
-        for k in ("package_types", "evidence_types", "package_advice_types", "clause_variant_types"):
+        for k in ("package_types", "evidence_types", "package_advice_types", "clause_variant_types",
+                  "recent_index_window_types"):
             v = d.get(k, [])
             if not isinstance(v, list) or any(not isinstance(x, str) or x not in TYPES for x in v):
                 raise ValueError(f"invalid {k}")
