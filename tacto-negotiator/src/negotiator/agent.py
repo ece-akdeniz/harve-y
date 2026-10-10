@@ -349,6 +349,7 @@ class PackageAgent:
                     count += 1
             self.final_counters[supplier_id] = count
         move = self._propose(case, threads, supplier_id)
+        move = self._bundle_volume(case, threads, supplier_id, move)
         if self.evidence and self.evidence.eligible(case, move):
             from .context import DATA_ERRORS
 
@@ -359,6 +360,34 @@ class PackageAgent:
                 return move
             return self.evidence.enrich(case, threads, supplier_id, move, context=context)
         return move
+
+    def _bundle_volume(self, case, threads, sid, move):
+        """Opt-in: add the kit's volume facts (cited once, in the first offer; a reminder later)."""
+        if not (self.policy and case["type"] in self.policy.bundle_volume_types):
+            return move
+        msg = move.get("message")
+        if not msg or msg.get("action") or not msg.get("term_sheets"):
+            return move
+        from . import bundle_volume
+        from .context import DATA_ERRORS
+        from .dossiers import build_one, load_package
+
+        try:
+            package = load_package()
+            p = bundle_volume.plan(case, package, sid, build_one(package, sid))
+        except DATA_ERRORS:
+            p = None
+        if not p:
+            return move
+        if self._ours(threads[sid]):
+            text, ids = bundle_volume.reminder(p), []
+        else:
+            text, ids = bundle_volume.first_paragraph(p)
+        body = msg["body"] + "\n\n" + text
+        assert not leaks(body), "body would leak internal information"
+        refs = list(dict.fromkeys([*(msg.get("refs") or []), *ids]))
+        self._log(case, "bundle_volume", sid, new=p["new"], total=p["total"], refs=ids)
+        return {**move, "message": {**msg, "body": body, **({"refs": refs} if refs else {})}}
 
     def _propose(self, case, threads, supplier_id):
         """The proposal for one thread given the whole snapshot: an offer move

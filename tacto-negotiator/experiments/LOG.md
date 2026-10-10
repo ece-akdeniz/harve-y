@@ -865,3 +865,21 @@ in the preceding entry; the same failure reproduces with the unchanged current
   **0.7470** (5.41, 90d, 24m, final at r5, 0 timeouts). That is +0.004 vs 0.7430 at n=1, within noise; not repeated.
 - Previous worker total: 8 practice sessions. Branch is behind origin/main (memory/model_assist), so
   rebase before any merge. Merge candidate: `p01-standard-payment` only (0.9602 x2).
+
+## 2026-10-10 22:xx — P07 bundle-volume argument (hypothesis, before screen 1)
+
+- Prior P07 work reviewed (read-only): main `LOG.md`/runs (imports `af00461c` 0.7340, `d1b5e17f`
+  0.7430), `origin/codex/benchmark-goal-20261010` (no P07 entries), this branch (anchor 0.7015,
+  tenor 0.7405, std-pay 0.7430, OTD evidence 0.7470). Teammate MESO/estimates/evidence not repeated.
+- Diagnosis: every run concedes ~0.04-0.08/round from 5.59-5.60 to a round-5 final at 5.38-5.43,
+  whatever the terms. Our messages never mention the bundle itself; the only cited fact (OTD) was
+  "verified, does not change our calculation". Post-hoc only (never used at runtime): 0.81 implies
+  a final ≈EUR 0.10/unit lower (≈5.31 at 90d/24m).
+- Difference: new opt-in `bundle_volume_types` adds a cited, deterministic volume argument from
+  public data only: kit memo quantities x need (2.07 M pcs/yr), supplier's current `sourcing` quota
+  -> 1.308 M pcs/yr moved from other suppliers, latest `fc:` forecasts for the two parts moving most,
+  and the supplier's own `idle_capacity` note (doc M3). Terms/prices/closing unchanged (unit test).
+- Why it could work: a volume/capacity reason is the bundling lever (playbook; trait idle_capacity
+  "volume fills capacity -> price"); the supplier responds to verified data it values, OTD is not it.
+- Config `configs/p07-bundle-volume.json` = candidate + `bundle_volume_types: ["bundling"]`.
+  Pass: > 0.7470 with 0 contradicted claims, 0 timeouts. Budget: 10 sessions for this line.
