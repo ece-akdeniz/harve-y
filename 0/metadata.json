@@ -1,0 +1,73 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4KS3G43QKD33F7Q6ZY6CP4H",
+  "session_id": "01a12781-3d1b-7082-a7e4-1162c9764c80",
+  "strategy": "manual-commit",
+  "created_at": "2026-10-10T20:47:06.662733Z",
+  "branch": "codex/score-push-p05",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "tacto-negotiator/experiments/LOG.md",
+    "tacto-negotiator/src/negotiator/policy.py",
+    "tacto-negotiator/tests/test_rfq_final_guard.py"
+  ],
+  "agent": "Codex",
+  "model": "gpt-6-astra",
+  "turn_id": "10016436eac3",
+  "checkpoint_transcript_start": 430,
+  "transcript_lines_at_start": 430,
+  "compact_transcript_start": 51,
+  "token_usage": {
+    "input_tokens": 2121,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 359638,
+    "output_tokens": 262,
+    "api_call_count": 9
+  },
+  "skill_events_version": 1,
+  "skill_events": [
+    {
+      "id": "prompt-skill-codex-goal-2026-10-10T20:31:04.900524Z",
+      "event_type": "prompt_invocation",
+      "skill": {
+        "name": "goal"
+      },
+      "source": {
+        "agent": "codex",
+        "signal": "prompt_slash_command",
+        "confidence": "explicit"
+      },
+      "turn_id": "821f1dce452d",
+      "timestamp": "2026-10-10T20:31:04.900524Z",
+      "native": {
+        "command": "/goal"
+      },
+      "collapse": {
+        "target": "user_message",
+        "label": "/goal",
+        "default_collapsed": true
+      }
+    }
+  ],
+  "initial_attribution": {
+    "calculated_at": "2026-10-10T20:47:06.609885Z",
+    "agent_lines": 486,
+    "agent_removed": 24,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 486,
+    "total_lines_changed": 510,
+    "agent_percentage": 100,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    }
+  ]
+}
