@@ -996,6 +996,46 @@ class PackageAgent:
         self.final_counters[sid] = self.final_counters.get(sid, 0) + 1
         return self._offer(case, sid, complete_offer(case, terms), std, sup, c_alt, reason)
 
+    def _supplier_asks(self, case, events, n, std, sup):
+        """The supplier's successive asks on our non-price terms `n` (one per priced supplier message)."""
+        asks = []
+        for i, m in enumerate(events):
+            if m.get("from") == "buyer" or not m.get("term_sheets"):
+                continue
+            prefix = events[: i + 1]
+            cands = eligible_sheets(case, prefix, sup, alternatives=True) or _priced(case, prefix, sup)
+            if cands:
+                asks.append(self._ask_on(case, n, cands, std, sup))
+        return asks
+
+    def _reciprocal_price(self, case, sid, events, n, std, sup, p, last_p, scheduled):
+        """Opt-in `reciprocal_schedule`: while the supplier is open, keeps more than two of our moves
+        ahead and still asks more than our last price plus the closing gap, our concession is at most
+        its last concession (a token step when it held), and we stay outside the closing gap of its
+        ask - the fixed k/rounds convergence only applies from round N-2 on or when the supplier is
+        already within the gap (then today's closing logic runs). Keyed on supplier moves and our own
+        cost mapping only; no case-type gate and no constant fitted to results."""
+        if not (self.policy and self.policy.reciprocal_schedule):
+            return scheduled
+        if latest(events).get("status") != "open" or moves_left(case, events) <= 2:
+            return scheduled
+        gap = max(p * self.close_gap, 0.01)
+        if p - last_p <= gap:
+            return scheduled
+        asks = self._supplier_asks(case, events, n, std, sup)
+        their_step = max(0.0, asks[-2] - asks[-1]) if len(asks) >= 2 else 0.0
+        token = max(0.01, round(p * 0.002, 2))
+        sched_step = max(0.0, scheduled - last_p)
+        step = min(sched_step, their_step) if their_step > 0.005 else min(sched_step, token)
+        outside_gap = math.floor(round((p - gap) * 100, 6)) / 100  # floor: never within the gap of its ask
+        price = min(round(last_p + step, 2), outside_gap)
+        price = max(price, _ceil2(last_p))  # no backtracking wins over the gap when the two conflict
+        price = min(price, round(scheduled, 2))
+        self._log(case, "reciprocal", sid, ask=p, last=last_p, their_step=round(their_step, 4),
+                  scheduled=round(scheduled, 2), step=round(price - last_p, 4), price=price,
+                  moves_left=moves_left(case, events), held=their_step <= 0.005)
+        return price
+
     def decide_thread(self, case, threads, sid, c_alt, cap_c=None, why=None):
         events = threads[sid]
         std, sup = standard_terms(events), self._sup(case, threads, sid)
@@ -1084,6 +1124,8 @@ class PackageAgent:
         if last_p is not None:
             price = max(price, _ceil2(last_p))  # no backtracking on our own concessions (by C)
         price = min(price, p)
+        if cap_c is None and last_p is not None:
+            price = self._reciprocal_price(case, sid, events, n, std, sup, p, last_p, price)
         if cap_c is not None:
             cap_p = math.floor(price_for_cost(case, {**n, "unit_price": p}, cap_c, std, sup) * 100) / 100 - 0.01
             if last_p is not None and cap_p < last_p - 1e-6:

@@ -71,10 +71,11 @@ class PolicyConfig:
     # from the deeper bank (latest index windows, scorecards, the supplier's own quote, our order
     # history with it). Keyed on supplier status (never on final/agreed), not on case type.
     claim_pacing: bool = False
-    # Replace the fixed k/rounds convergence by a reciprocal schedule: our price step is at most the
-    # supplier's last step while it is open and moving, and we do not close the gap to its ask while it
-    # still has more than two moves and we still hold unused verified claims. From round N-2 on, and on
-    # any final offer, behaviour is today's.
+    # Replace the fixed k/rounds convergence by a reciprocal schedule: while the supplier is open, has
+    # more than two of our moves ahead and still asks more than our last price plus the closing gap, our
+    # price step is at most its last step (a token step when it held) and we stay outside the closing gap
+    # of its ask. From round N-2 on, on any final offer, and once it is within the gap, behaviour is
+    # today's (same close/accept logic). No case-type gate.
     reciprocal_schedule: bool = False
     # Any case type: when the supplier signals a payment trade (reply text) or is cash-short by its
     # public dossier (traits incl. a skonto in master data), the main sheet moves to the supplier's
