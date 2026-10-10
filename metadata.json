@@ -3,9 +3,40 @@
   "checkpoint_id": "01M4KNXBNYYFV4HBP8Y8SWPMAW",
   "strategy": "manual-commit",
   "branch": "codex-negotiator-v2-t1-1a-2026-10-10",
-  "checkpoints_count": 6,
+  "checkpoints_count": 8,
   "files_touched": [
-    "tacto-negotiator/docs/README.md"
+    "tacto-negotiator/docs/21-negotiation-v2-plan-2026-10-10.md",
+    "tacto-negotiator/docs/README.md",
+    "tacto-negotiator/docs/v2/A-current-architecture.md",
+    "tacto-negotiator/docs/v2/B-architecture.md",
+    "tacto-negotiator/docs/v2/C-interfaces.md",
+    "tacto-negotiator/docs/v2/D-roadmap.md",
+    "tacto-negotiator/docs/v2/E-evaluation.md",
+    "tacto-negotiator/docs/v2/F-research-backlog.md",
+    "tacto-negotiator/tests/v2/__init__.py",
+    "tacto-negotiator/tests/v2/acceptance/__init__.py",
+    "tacto-negotiator/tests/v2/acceptance/test_behavior.py",
+    "tacto-negotiator/tests/v2/acceptance/test_model_budget.py",
+    "tacto-negotiator/tests/v2/acceptance/test_recovery.py",
+    "tacto-negotiator/tests/v2/builders.py",
+    "tacto-negotiator/tests/v2/catalog.py",
+    "tacto-negotiator/tests/v2/conftest.py",
+    "tacto-negotiator/tests/v2/contracts/__init__.py",
+    "tacto-negotiator/tests/v2/contracts/test_boundaries.py",
+    "tacto-negotiator/tests/v2/contracts/test_economics.py",
+    "tacto-negotiator/tests/v2/contracts/test_evidence.py",
+    "tacto-negotiator/tests/v2/contracts/test_foundation.py",
+    "tacto-negotiator/tests/v2/contracts/test_guardrails.py",
+    "tacto-negotiator/tests/v2/contracts/test_interpretation.py",
+    "tacto-negotiator/tests/v2/contracts/test_preparation.py",
+    "tacto-negotiator/tests/v2/contracts/test_selection.py",
+    "tacto-negotiator/tests/v2/contracts/test_state.py",
+    "tacto-negotiator/tests/v2/contracts/test_validation.py",
+    "tacto-negotiator/tests/v2/fakes.py",
+    "tacto-negotiator/tests/v2/integration/__init__.py",
+    "tacto-negotiator/tests/v2/integration/test_pipeline.py",
+    "tacto-negotiator/tests/v2/replay_v1_baseline.py",
+    "tacto-negotiator/tests/v2/support.py"
   ],
   "sessions": [
     {
@@ -21,14 +52,21 @@
       "compact_transcript": "/1/transcript.jsonl",
       "content_hash": "/1/content_hash.txt",
       "prompt": "/1/prompt.txt"
+    },
+    {
+      "metadata": "/2/metadata.json",
+      "transcript": "/2/full.jsonl",
+      "compact_transcript": "/2/transcript.jsonl",
+      "content_hash": "/2/content_hash.txt",
+      "prompt": "/2/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 549613,
+    "input_tokens": 1004283,
     "cache_creation_tokens": 0,
-    "cache_read_tokens": 8686592,
-    "output_tokens": 77338,
-    "api_call_count": 79,
+    "cache_read_tokens": 19140864,
+    "output_tokens": 250378,
+    "api_call_count": 169,
     "subagent_tokens_complete": false
   }
 }
