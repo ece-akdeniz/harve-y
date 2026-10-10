@@ -19,17 +19,23 @@ class PolicyConfig:
     chargeback_steps: int = 1
     preferences: dict[str, str] = field(default_factory=dict)
     response_types: tuple[str, ...] = ()
+    refusal_types: tuple[str, ...] = ()
+    cost_trade_types: tuple[str, ...] = ()
     free_concessions: bool = False
     rfq_close_guard: bool = False
 
     @classmethod
     def load(cls, path):
-        d = json.loads(Path(path).read_text())
+        return cls.from_dict(json.loads(Path(path).read_text()))
+
+    @classmethod
+    def from_dict(cls, data):
+        d = dict(data) if isinstance(data, dict) else data
         if not isinstance(d, dict) or set(d) - set(cls.__dataclass_fields__):
             raise ValueError("unknown policy fields")
         if type(d.get("version")) is not int or d["version"] != 1:
             raise ValueError("policy version must be 1")
-        for k in ("package_types", "evidence_types", "response_types"):
+        for k in ("package_types", "evidence_types", "response_types", "refusal_types", "cost_trade_types"):
             v = d.get(k, [])
             if not isinstance(v, list) or any(not isinstance(x, str) or x not in TYPES for x in v):
                 raise ValueError(f"invalid {k}")

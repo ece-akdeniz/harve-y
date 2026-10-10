@@ -68,12 +68,13 @@ class Supplier:
         return message
 
 
-def trajectory(name, supplier, field):
+def trajectory(name, supplier, field, refusal=False):
     snapshot = copy.deepcopy(SNAPSHOTS[name])
     case = copy.deepcopy(CASES[snapshot["case_id"]])
     sid, threads = snapshot["supplier_id"], snapshot["threads"]
     policy = PolicyConfig(**{**snapshot["policy"], "evidence_types": (),
-                             "response_types": (case["type"],)})
+                             "response_types": (case["type"],),
+                             "refusal_types": (case["type"],) if refusal else ()})
     sent = []
     for _ in range(8):
         # Every decision restarts the agent: history, not private in-memory state, is authoritative.
@@ -146,3 +147,68 @@ def test_historical_chargeback_package_reconfirmed_or_refused(withdraw_old_packa
     assert history(CASES["case:P11"], events)[2] <= 2
     assert action["type"] == "accept"
     assert action["term_sheet_id"] != "offer:70140-1-a"
+
+
+class ExplicitSupplier(Supplier):
+    """Separate hidden acceptance threshold from quote; truthful, explicit refusal category."""
+
+    def __init__(self, floors, rejected_shapes=(), accepts_from=None):
+        super().__init__(floors, rejected_shapes)
+        self.accepts_from = accepts_from or floors
+
+    def reply(self, proposed, field):
+        shape = proposed[field]
+        if (shape in self.accepts_from and shape not in self.rejected_shapes
+                and proposed['unit_price'] >= self.accepts_from[shape]):
+            # Use the same protocol builder, accepting at the submitted price.
+            original = self.floors
+            self.floors = {**self.floors, shape: self.accepts_from[shape]}
+            try:
+                return super().reply(proposed, field)
+            finally:
+                self.floors = original
+        reply = super().reply(proposed, field)
+        if reply['status'] == 'open':
+            reply['body'] = (
+                'The previous package is no longer available.'
+                if shape in self.rejected_shapes or shape not in self.floors else
+                'We cannot accept your proposed price. The package remains available at our quoted price.'
+            )
+        return reply
+
+
+def compare_payment_threshold(threshold):
+    outcomes = {}
+    for arm in (False, True):
+        supplier = ExplicitSupplier({30: 370, 90: 374.07}, accepts_from={30: threshold, 90: 374.07})
+        case, events, sent, action = trajectory('p02-priced-payment', supplier, 'payment_days', refusal=arm)
+        assert action['type'] == 'accept'
+        final = events[-1]['term_sheets'][0]['terms']
+        outcomes['candidate' if arm else 'baseline'] = {
+            'sent': sent, 'accepted': final, 'cost': total_cost(case, final), 'supplier_replies': supplier.replies,
+        }
+    return outcomes
+
+
+@pytest.mark.parametrize('threshold', [340, 345, 355, 370])
+def test_price_refusal_sweep_includes_easy_and_stubborn_suppliers(threshold):
+    """Synthetic thresholds test both gains and overconcession, not a guaranteed win."""
+    outcomes = compare_payment_threshold(threshold)
+    baseline, candidate = outcomes['baseline'], outcomes['candidate']
+    assert candidate['sent'][1]['unit_price'] > baseline['sent'][1]['unit_price']
+    if threshold == 340:
+        assert candidate['cost'] > baseline['cost']  # Stronger concession overpays an easy supplier.
+    if threshold == 345:
+        assert candidate['cost'] < baseline['cost']  # Earlier agreement avoids the final quoted ask.
+
+
+def test_withdrawal_response_avoids_unquoted_liability_exploration():
+    paths = {}
+    for arm in (False, True):
+        supplier = ExplicitSupplier({150: 46.5, 500: 48.5}, rejected_shapes=(150,))
+        _, _, sent, action = trajectory('p11-remember-alternative', supplier,
+                                        'chargeback_eur_per_complaint', refusal=arm)
+        assert action['type'] == 'accept'
+        paths[arm] = sent
+    assert paths[False][1]['chargeback_eur_per_complaint'] == 0
+    assert paths[True][1]['chargeback_eur_per_complaint'] == 500

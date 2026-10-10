@@ -498,22 +498,65 @@ class PackageAgent:
                 return {"close": True, "reason": "rival cannot beat the final offer without backtracking"}
             price = min(price, cap_p)
         terms = complete_offer(case, {**n, "unit_price": round(price, 2)})
-        response = None
-        if self.policy and case["type"] in self.policy.response_types and not free_switch:
+        cost_trade = None
+        if self.policy and case["type"] in self.policy.cost_trade_types:
+            from .cost_trade import propose
+
+            terms, cost_trade = propose(case, events, terms, std, sup, self.trades.deadlines.get(sid, 0), cap_c)
+            if cost_trade:
+                self._log(case, "cost_driver_trade", sid, **cost_trade)
+                why = cost_trade["reason"]
+        response, refusal = None, None
+        if self.policy and case["type"] in self.policy.refusal_types and cost_trade is None:
+            from .refusals import adjust
+
+            terms, refusal = adjust(case, events, terms, std, sup, self.trades.deadlines.get(sid, 0), cap_c)
+            if refusal:
+                self._log(case, "refusal_response", sid, refusal=refusal)
+                if refusal["close"]:
+                    return {"close": True, "reason": "refusal response: no bounded executable counter"}
+                why = refusal.get("reason", "recognized refusal; retain bounded schedule")
+        if (self.policy and case["type"] in self.policy.response_types and not free_switch
+                and refusal is None and cost_trade is None):
             from .responses import respond
 
-            terms, response = respond(case, events, terms, std, sup, self.trades.deadlines.get(sid, 0))
+            terms, response = respond(case, events, terms, std, sup, self.trades.deadlines.get(sid, 0), cap_c)
             if response:
                 self._log(case, "supplier_response", sid, **response)
                 why = response["reason"]
-        if self.trades and case["type"] in self.policy.package_types and response is None and not free_switch:
+        if (self.trades and case["type"] in self.policy.package_types
+                and response is None and refusal is None and cost_trade is None and not free_switch):
             terms, trade_reason = self.trades.switch(case, sid, events, terms, std, sup)
             why = trade_reason or why
         variants = self._payment_variants(case, terms, cands[0][2], std, sup) if self.meso else []
         move = self._offer(case, sid, terms, std, sup, c_alt, why or f"round {k + 1} schedule", variants)
+        if cost_trade:
+            from .cost_trade import MARKER as COST_MARKER
+
+            move["message"]["body"] += " " + COST_MARKER
+        if refusal and refusal["revised"]:
+            from .refusals import MARKER
+
+            move["message"]["body"] += (
+                " " + MARKER if refusal["kind"] == "price_refused" else
+                " We have revised the proposal to use your newly quoted terms. Please confirm the complete package."
+            )
         if response:
             move["message"]["body"] += (
                 " We have considered the package you proposed. We can offer these terms in exchange for"
                 " the attached unit price; please confirm this complete package in a new standing offer."
             )
         return move
+
+
+def configured_agent(policy_config, trace_dir=None, **kwargs):
+    """Lab-compatible factory retaining the full validated policy in the run manifest."""
+    from .policy import PolicyConfig
+
+    if trace_dir is not None:
+        from pathlib import Path
+
+        from .trace import Tracer
+
+        kwargs["tracer"] = Tracer(Path(trace_dir))
+    return PackageAgent(policy=PolicyConfig.from_dict(policy_config), **kwargs)

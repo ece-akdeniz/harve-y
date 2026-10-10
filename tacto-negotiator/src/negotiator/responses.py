@@ -46,7 +46,7 @@ def package_memory(case, events, standard, supplier=None):
     return sorted(out, key=lambda p: (p["quoted_cost"], -p["message_index"]))
 
 
-def respond(case, events, proposed, standard, supplier, deadline):
+def respond(case, events, proposed, standard, supplier, deadline, cap_c=None):
     """One bounded, cost-neutral-or-better counter on a supplier-supported package.
 
 Consider a cheaper historical package, a freshly priced single-field concession, or a
@@ -62,6 +62,8 @@ concession schedule in buyer-cost space; do not assume a lower nominal price is 
         return proposed, None
     standing_c, _, standing_t = standing[0]
     target = min(total_cost(case, proposed, standard), standing_c)
+    if cap_c is not None:
+        target = min(target, cap_c - 0.01)
     current = latest(events)
     current_index = max(i for i, m in enumerate(events) if m is current)
     body = current.get("body", "").lower()

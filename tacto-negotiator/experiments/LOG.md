@@ -652,3 +652,21 @@ and 60 practice; 24 audited sessions match saved results and all 316 messages ex
   P11 liability exploration after withdrawal. Safety passes do not establish economic benefit.
   No production policy change or hosted validation authorized/performed in this step.
 - Final validation: 307 tests passed (45.84s); Ruff clean.
+
+
+## P02 cost-driver package screen — exactly one hosted session authorized
+
+- User explicitly stopped synthetic expansion, kept refusal flag off and authorized one P02.
+- Hosted metadata read: index clauses CU-NOTATION/material share0.2/base2026-08 with deadbands
+  0/3/5 are negotiable; contract12months and annualvolume6110 are fixed. Quota60used/140left.
+- General opt-in cost_trade_types rule: after cost-driver/price-resistance language, enumerate
+  permitted index/contract switches, select least complete cost at the scheduled price, then
+  compensate any added buyer cost through inverse pricing. One such proposal per thread,
+  reconstructed from buyer history; preserve schema, moves, deadline and rival cap.
+- Runtime config configs/p02-cost-driver-screen.json keeps refusal_types and response_types
+  empty. Existing evidence policy preserved; estimates and MESOs off. No case target prices.
+- Diagnostic screen only: no fresh baseline session and no automatic follow-up. Compare with
+  prior29.34 descriptively, then inspect all messages, claims and final terms before deciding.
+- Separate refusal prototype remains disabled. Its synthetic price sweep won/lost/tied/tied
+  across four invented thresholds, so it is not promoted or included in this hosted screen.
+- Preflight: 338 tests passed (44.87s); Ruff clean; six case-specific guard checks pass.
