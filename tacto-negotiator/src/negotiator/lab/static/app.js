@@ -18,7 +18,8 @@ function element(tag, text, className) {
 }
 
 function badge(text, kind = text) {
-  const known = new Set(["running", "completed", "failed", "interrupted", "imported"]);
+  const known = new Set(["running", "completed", "failed", "interrupted", "imported",
+    "rejected", "promoted", "awaiting_review", "insufficient_evidence", "baseline_superseded"]);
   return element("span", label(text), `badge ${known.has(kind) ? kind : ""}`);
 }
 
@@ -93,7 +94,6 @@ function switchView(view) {
     $("nav-" + name).classList.toggle("active", name === view);
     $("nav-" + name).setAttribute("aria-current", name === view ? "page" : "false");
   }
-  $("loop-view").hidden = view !== "runs";
   const titles = {runs: ["Experiments", "Experiment lab", "Small changes. Clear comparisons. Better negotiations."],
     compare: ["Compare runs", "Find the difference", "Understand where a change helped, and where it didn't."],
     history: ["Score history", "Progress over time", "Follow each supplier and case, from the first attempt to the latest."],
@@ -130,9 +130,30 @@ function renderSummary(payload) {
   $("quota-caption").title = quota?.checked_at ? `Snapshot: ${dateText(quota.checked_at)}. All laptops share this quota.` : "Import history or run a hosted experiment to record quota.";
   const authors = [...new Set(state.runs.map((r) => r.author || "Unknown"))].sort();
   updateOptions("filter-author", authors.map((a) => [a, a]), "All teammates");
-  const options = state.runs.map((r) => [r.run_id, `${r.name} · ${r.author} · ${r.environment}`]);
+  const options = state.runs.filter((r) => r.kind !== "campaign")
+    .map((r) => [r.run_id, `${r.name} · ${r.author} · ${r.environment}`]);
   updateOptions("baseline-select", options, "Choose a baseline…");
   updateOptions("candidate-select", options, "Choose a candidate…");
+}
+
+function campaignRows(payload) {
+  const suites = new Map((payload.suites || []).map((suite) => [suite.suite_id, suite]));
+  return (payload.campaigns || []).map((campaign) => {
+    const cases = campaign.completion?.evaluation?.cases || [];
+    const mean = (arm) => cases.length && cases.every((row) => Number.isFinite(row[arm]?.mean))
+      ? cases.reduce((sum, row) => sum + row[arm].mean, 0) / cases.length / 100 : null;
+    const counts = campaign.attempt_counts || {};
+    return {
+      kind: "campaign", source: "campaign", run_id: `campaign:${campaign.campaign_id}`,
+      campaign_id: campaign.campaign_id, name: campaign.campaign_id,
+      hypothesis: campaign.hypothesis, agent: "Paired lab comparison",
+      author: campaign.author, environment: suites.get(campaign.suite_id)?.environment || "sandbox",
+      status: campaign.status, updated_at: new Date(campaign.created_at * 1000).toISOString(),
+      metrics: {mean_score: mean("candidate"), baseline_mean: mean("baseline"),
+        gain_points: campaign.completion?.evaluation?.metrics?.gain ?? null,
+        completed: counts.completed ?? 0, planned: counts.total ?? 0, failed: counts.failed ?? 0},
+    };
+  });
 }
 
 const runColumns = ["name", "author", "environment", "score", "attempts", "status", "updated_at"];
@@ -186,8 +207,10 @@ function renderRuns() {
     const nameCell = element("td");
     const name = element("button", run.name, "run-name");
     name.title = run.hypothesis || run.name;
-    name.addEventListener("click", () => openDetail(run.run_id));
-    nameCell.append(name, element("span", `${run.agent || "Unknown agent"} · ${run.source === "imported" ? "Imported history" : run.provenance?.dirty ? "Uncommitted changes" : run.provenance?.commit?.slice(0, 7) || "Unknown revision"}`, "run-meta"));
+    name.addEventListener("click", () => run.kind === "campaign"
+      ? globalThis.LoopDashboard?.openCampaign(run.campaign_id) : openDetail(run.run_id));
+    nameCell.append(name, element("span", run.kind === "campaign" ? "Paired lab comparison · inspect all attempts"
+      : `${run.agent || "Unknown agent"} · ${run.source === "imported" ? "Imported history" : run.provenance?.dirty ? "Uncommitted changes" : run.provenance?.commit?.slice(0, 7) || "Unknown revision"}`, "run-meta"));
     const ownerCell = element("td");
     const owner = element("span", null, "owner");
     owner.append(element("span", (run.author || "?").slice(0, 2).toUpperCase(), "owner-initial"), document.createTextNode(run.author || "Unknown"));
@@ -196,10 +219,13 @@ function renderRuns() {
     const metrics = run.metrics || {};
     const partial = metrics.mean_score == null && metrics.observed_mean != null;
     const scoreCell = element("td");
-    scoreCell.append(element("span", score(metrics.mean_score ?? metrics.observed_mean), `score${partial ? " partial" : ""}`), element("span", partial ? `Partial · ${metrics.scored}/${metrics.planned} scored` : metrics.mean_score == null ? "Awaiting outcome" : "out of 100", "subline"));
+    scoreCell.append(element("span", score(metrics.mean_score ?? metrics.observed_mean), `score${partial ? " partial" : ""}`), element("span", run.kind === "campaign"
+      ? metrics.baseline_mean == null ? "Awaiting paired outcome" : `Candidate vs ${score(metrics.baseline_mean)} baseline · ${signed(metrics.gain_points / 100)} points`
+      : partial ? `Partial · ${metrics.scored}/${metrics.planned} scored` : metrics.mean_score == null ? "Awaiting outcome" : "out of 100", "subline"));
     if (metrics.recovered) scoreCell.append(element("span", `${metrics.recovered} recovered outcome${metrics.recovered === 1 ? "" : "s"}`, "subline"));
     const attempts = element("td", `${metrics.completed ?? 0} / ${metrics.planned ?? "?"}`);
-    if (metrics.failed) attempts.append(element("span", `${metrics.failed} failed`, "subline negative"));
+    if (metrics.failed) attempts.append(element("span", run.kind === "campaign"
+      ? `${metrics.failed} need attention` : `${metrics.failed} failed`, "subline negative"));
     const status = element("td"); status.append(badge(run.status));
     const updated = element("td", relative(run.updated_at)); updated.title = dateText(run.updated_at);
     row.append(nameCell, ownerCell, env, scoreCell, attempts, status, updated);
@@ -222,8 +248,9 @@ async function refreshWorkspace({ afterLogin }) {
   try {
     const payload = await api("/api/runs");
     showWorkspace();
-    const changed = JSON.stringify(payload.runs) !== JSON.stringify(state.runs);
-    state.runs = payload.runs || [];
+    const allRuns = [...(payload.runs || []), ...campaignRows(payload)];
+    const changed = JSON.stringify(allRuns) !== JSON.stringify(state.runs);
+    state.runs = allRuns;
     renderSummary(payload);
     if (changed || !$("runs-body").children.length) renderRuns();
     $("global-error").hidden = true;
@@ -234,7 +261,6 @@ async function refreshWorkspace({ afterLogin }) {
       if (summary && (changed || summary.revision !== state.detail.revision)) await openDetail(summary.run_id, { background: true });
     }
     if (changed && state.comparison && !$("compare-view").hidden) await compare();
-    await globalThis.LoopDashboard?.refresh();
     await globalThis.ScoreHistory?.refresh();
     if (!$("memory-view").hidden) await globalThis.MemoryDashboard?.refresh();
   } catch (error) {

@@ -559,7 +559,7 @@ class LoopStore:
                             "attempt_counts": {
                                 "total": len(c["attempts"]),
                                 "completed": sum(a["status"] == "completed" for a in c["attempts"]),
-                                "failed": sum(a["status"] in {"failed", "interrupted", "recovered"}
+                                "failed": sum(a["status"] in {"failed", "interrupted", "recovered", "ambiguous"}
                                               for a in c["attempts"]),
                             },
                         } for c in campaigns

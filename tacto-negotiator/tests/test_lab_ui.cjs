@@ -77,6 +77,29 @@ test('report summary preserves incomplete outcomes and unknown timeouts', () => 
   assert.equal(value.duration, 15);
 });
 
+test('lab campaigns become sortable experiment rows with paired scores and attempt counts', () => {
+  const { context } = page(async () => {});
+  context.payload = {suites: [{suite_id: 'async', environment: 'sandbox'}], campaigns: [
+    {campaign_id: 'comparison', suite_id: 'async', author: 'ece', status: 'rejected',
+      hypothesis: 'conditional anchor', created_at: 1791663600,
+      attempt_counts: {completed: 12, total: 12, failed: 0},
+      completion: {evaluation: {cases: [
+        {baseline: {mean: 90}, candidate: {mean: 90}},
+        {baseline: {mean: 40}, candidate: {mean: 50}},
+      ], metrics: {gain: 5}}}},
+  ]};
+  const rows = vm.runInContext('campaignRows(payload)', context);
+  assert.equal(rows.length, 1);
+  assert.equal(rows[0].run_id, 'campaign:comparison');
+  assert.equal(rows[0].environment, 'sandbox');
+  assert.equal(rows[0].metrics.mean_score, 0.7);
+  assert.equal(rows[0].metrics.baseline_mean, 0.65);
+  assert.equal(rows[0].metrics.completed, 12);
+  assert.equal(rows[0].metrics.gain_points, 5);
+  context.rows = rows;
+  assert.equal(vm.runInContext('experimentPage(rows, {query: "comparison"}).total', context), 1);
+});
+
 test('readable fields distinguish units, disabled options, zero and missing values', () => {
   const { context } = page(async () => {});
   for (const [key, value, expected] of [

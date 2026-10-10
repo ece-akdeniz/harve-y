@@ -618,15 +618,15 @@ tbody tr:last-child td {
   background:#f0f3ed;
   color:#72806a;
 }
-.badge.completed {
+.badge.completed,.badge.promoted {
   background:#eaf4ec;
   color:#408254;
 }
-.badge.running {
+.badge.running,.badge.awaiting_review {
   background:#e8f0f8;
   color:#4f7b9d;
 }
-.badge.failed,.badge.interrupted {
+.badge.failed,.badge.interrupted,.badge.rejected,.badge.insufficient_evidence,.badge.baseline_superseded {
   background:#f9eaea;
   color:#af6566;
 }

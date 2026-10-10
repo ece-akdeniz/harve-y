@@ -99,7 +99,7 @@ globalThis.LoopDashboard = (() => {
     for(const c of [...(data.campaigns||[])].sort((a,b)=>(b.created_at||0)-(a.created_at||0))){
       const card=section(c.campaign_id);
       const counts=c.attempt_counts||{};
-      card.append(node('p',`${c.author} · ${c.status} · ${c.suite_id}`),node('p',`${counts.completed??'?'} of ${counts.total??'?'} attempts completed${counts.failed?` · ${counts.failed} failed or recovered`:''}`,'muted'),node('p',c.hypothesis),node('p',campaignView(c).message));
+      card.append(node('p',`${c.author} · ${c.status} · ${c.suite_id}`),node('p',`${counts.completed??'?'} of ${counts.total??'?'} attempts completed${counts.failed?` · ${counts.failed} need attention`:''}`,'muted'),node('p',c.hypothesis),node('p',campaignView(c).message));
       const button=node('button','View attempts, scores and gates','button secondary');
       button.addEventListener('click',()=>openCampaign(c.campaign_id));
       card.append(button);

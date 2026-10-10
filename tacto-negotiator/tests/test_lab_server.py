@@ -79,7 +79,9 @@ def test_api_authentication_and_cookie_is_read_only(dashboard):
     assert response.status_code == 200
     assert "HttpOnly" in response.headers["set-cookie"]
     assert "SameSite=Strict" in response.headers["set-cookie"]
-    assert client.get("/api/runs").json() == {"runs": [], "quota": None, "team": "y/agent"}
+    assert client.get("/api/runs").json() == {
+        "runs": [], "quota": None, "team": "y/agent", "campaigns": [], "suites": [],
+    }
     assert client.put("/api/runs/run-one", json=snapshot()).status_code == 401
     assert (
         client.put("/api/runs/run-one", json=snapshot(), headers={"Authorization": "Bearer test-token"}).json()[
@@ -89,6 +91,28 @@ def test_api_authentication_and_cookie_is_read_only(dashboard):
     )
     assert client.post("/api/logout").status_code == 200
     assert client.get("/api/runs").status_code == 401
+
+
+def test_campaign_summaries_are_in_experiments_listing(dashboard):
+    from test_lab_loop_store import campaign, checkpoint
+
+    from negotiator.lab.loop_store import LoopStore
+    from negotiator.lab.policy import default_suite
+
+    client, store = dashboard
+    loop = LoopStore(store.path)
+    for name in ("base", "one"):
+        loop.write("checkpoint", checkpoint(name))
+    loop.write("suite", default_suite())
+    loop.write("family", {"family_id": "f", "max_sessions": 12})
+    loop.write("seed", {"suite_id": default_suite()["suite_id"], "checkpoint_id": "base", "author": "tester"})
+    campaign(loop)
+    client.post("/api/login", json={"password": "test-password"})
+    listing = client.get("/api/runs").json()
+    assert listing["runs"] == []
+    assert listing["campaigns"][0]["campaign_id"] == "c"
+    assert listing["campaigns"][0]["attempt_counts"]["total"] == 12
+    assert "threads" not in str(listing["campaigns"])
 
 
 def test_feedback_requires_auth_and_preserves_original_record(dashboard):
