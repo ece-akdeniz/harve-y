@@ -949,3 +949,14 @@ Hypothesis D (screen 8, `configs/p05-rival-history.json` = hold + `rfq_rival_off
 `rfq_rival_offer_history`): disclosure line, second try aimed at the leader. Cite the lowest
 priced rival sheet from anywhere in this session (e.g. offer:70240-0 @31.50) when it
 undercuts the receiving supplier's standing price; figure and ID taken from the sheet.
+
+## 2026-10-10 — P05 screen 8: session-wide rival-price disclosure (hypothesis D) — WIN
+
+Run `97f3fdbf-7c78-4be3-a19b-1bfe13408d17`, session `d52efd4374aaf110`, commit `9c5f6ed`. Score
+**72.08** (vs 41.19; arena best .4168): sup:70210 EUR **29.00** / 35 d / 30 d, 167.8 s.
+Six claims, all **verified**. To 70210: offer:70240-0 @31.50 → "We did not know that - a fair
+point … come down to €32.00", "need to clarify this internally" (boss approval), then "Your
+data on the market was solid … 29.00 EUR"; we matched 29.00, gap closed, accepted. 70250 went
+34.00 → 32.00 → 31.00 under the same claims; 70240 34.50 → final 34.00. Timeouts: one on the
+losing 70240 (its send waited behind a 58 s POST in the soft send slot); none on the winner.
+Must-haves held (35 d), no 56 d, no 14 d. Next: repeat once.
