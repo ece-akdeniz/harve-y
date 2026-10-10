@@ -952,3 +952,20 @@ Accepting a clause early (variants) produced `agreed` at our higher counter inst
   produced an extra -0.20 step at round 3 versus the retained run; P08 has never been screened
   with it. Success: close below 5.31 db0 or 5.31 db3+. Runner launched as a tool-managed
   background job (not nohup/disown). Budget: session 3 of 12.
+
+### Screen R2 result — P08 anchor16: **lost** (0.5819 vs 0.5930)
+
+- Run `1c61779c-cecc-44d3-9cee-918f0536d997`, session `7670359df300db9d`. Ours 5.07/5.16/5.26/5.32
+  no clause; supplier db0 5.55/5.42/5.37/**5.32**, accepted 5.32 db0/90/24 (C 1,033,720.69).
+  One cent worse than baseline 5.31. Sessions used: **3** of 12.
+
+### Ranking after R1/R1b/R2 (no further screens planned)
+
+- Both suppliers converge to a db0 floor regardless of opening depth: P18 5.30 (R1, R1b, and
+  the index-window baseline .5200), P08 5.31-5.32 (baseline, R2). Deadband alternatives are priced
+  cost-equivalently by the supplier (P18: 5.30 db0 = 5.467 effective vs 5.40 db5 = 5.473).
+  Remaining legal levers are maxed (90 days, 24 months; 36 adds nothing within the 2-year horizon).
+- Stacking anchor16 on index-window for P18: both reach the same 5.30 floor; no evidence it
+  would go lower, so not worth a session. Volume and index-timing: not legal (fixed terms).
+- Recommendation: retain P08 0.5930 config and P18 index-window 0.5200; stop spending sessions
+  on raw_material. 9 of 12 sessions unused.
