@@ -1,0 +1,18 @@
+Perform any necessary follow-up actions in response to the subagent completion above. If no follow-up work is needed, no further action is required. If you mention an agent or subagent in your response, link it with the `[Name](id)` Don't use generic label such as `[agent]`, `[worker]`, or `[subagent]`. For cloud subagents, when the agent has edited code, link to `[Review](bc-id#changes)`, or, if you know the exact added and deleted line counts, `[Review +A −D](bc-id#changes)`, replacing A and D with those counts. Never write A or D literally. Use `[Try Live](bc-id#desktop)` only when the agent used computer use. Don't repeat the same confirmation every time.
+
+---
+
+Briefly inform the user about the task result and perform any follow-up actions (if needed).
+
+---
+
+[Image]
+<image_files>
+The following images were provided by the user and saved to disk for future use:
+1. /Users/sametdegirmenci/.cursor/projects/Users-sametdegirmenci-Downloads-ysamet/assets/image-e050da5b-d1c2-4438-b7f2-6b1c5efd319e.png
+
+These files can be read with tools, copied to other locations, or attached to subagents using the file_attachments parameter.
+</image_files>
+<timestamp>Saturday, Oct 10, 2026, 9:49 PM (UTC+2)</timestamp>
+
+Are you sure for P03? Because the team NoIdea has 0.94, that doesn't seem to make sense. They should think more deeply maybe.
