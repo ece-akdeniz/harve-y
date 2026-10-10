@@ -1,0 +1,5 @@
+So nothing to do right now, right? Lets improve it to 0.83, I think we'll be able to do this, right?
+
+---
+
+But we're also not overfitting to the specific cases right?
