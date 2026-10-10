@@ -879,3 +879,33 @@ in the preceding entry; the same failure reproduces with the unchanged current
 ### Lab sync
 - `negotiator lab sync` retried at 21:10: uploaded 0, failed 4. The `LAB_URL` dev tunnel times out (curl 000 after 15 s).
   Local run snapshots and reconciliations are intact; rerun sync when the host is back.
+
+### Cost-target generalisation (branch codex/score-push-costgen) — offline only, 0 sessions
+- Tool: `tools/expected_cost_report.py` (+ `tests/test_expected_cost_report.py`, 2). Feature-gated exactly like
+  `cost_target.active` (relationship goal + `relationship_eur_per_point` + `sustainable_margin_pct` + dossier fc);
+  public fixture + dossier only, no c_best / revealed breakdowns.
+- Structural finding: the non-monotone term (relationship) exists only for `stabilise`/`secure_supply` goals.
+  P18, P08 (raw_material), P11 (quality), P05 (rfq) are `leverage`/`quality_first`: relationship = 0, C is
+  monotone in price, so the expected-C target degenerates to "lowest price" — the insight cannot raise them.
+  | case | closed (best) | E[C]/notes | expected-optimal | predicted gain |
+  |---|---|---|---|---|
+  | P18 .4196 | 5.45 / db0 / 90d / 24m, C 264,745 | no relationship term; equal-C: db5 5.572, db3 5.523, none 5.623 | lowest legal price (db0 cheapest per € price) | 0 from this lever (supplier rejects db5 ≤5.46, LOG H18c) |
+  | P08 .5930 | 5.31 / db0 / 90d / 24m, C 1,031,778 | no relationship term; equal-C: db5 5.429, db3 5.381 | same as P18 | 0 from this lever |
+  | P10 .6551 | 31.80 / 56d / 24m, C 1,537,097, rel 0 | margin at 31.80 ≈ +23 % ≫ 10 % sustainable; penalty only below ≈27 | 26.36 / 35d / 24m (E[C] 1,274,360) | not reachable: supplier final 31.80; target is a price floor, not a structural package — 0 |
+  | P11 .7099 | 45.50 / ppm300 / cb0 | quality_first: no relationship term | n/a | 0 |
+  | P05 .4119 (.7208 on p05 branch) | 32.00 → 29.00 | leverage rfq: no relationship term | n/a | 0 |
+  | P02 .5993 | 366.23 / 90d / CU db5 | E[C] 2,320,234 (= target) | clause pkg 366.23 already optimal | 0 |
+- Other relationship-goal cases (not in scope; candidates for later): P03 closed 433.08 vs E[C]-target 423.79
+  (ΔE[C] −14k, relationship already ~0 → pure price gap), P01 133.70 vs 132.57/14d (−5k). No runs for P06/P09/P14/P17.
+- P02 reconciliation (teammate's 361.33 / −6,443): reproduced exactly as a POINT estimate at fc = 366.73.
+  That fc is back-solved from the hosted breakdown (relationship 12,647 at 366.23) = hidden-model leakage,
+  not the public estimate. Public point fc 374.95 → min-C price 369.17; public expected (uniform 356.20–393.70)
+  → 366.23. E[C](361.33) − E[C](366.23) = +3,231 (worse). Per-fc ΔC(361.33 vs 366.23): −29k @356.2, −11k @365,
+  +1.8k @370, +13k @374.95, +17k @393.7 — penalty side is long. Same penalty formula; the difference is the fc
+  assumption (revealed vs public). Verdict: no screen; 361.33 would be a hidden-data-tuned target.
+- P02 no-clause 366.41 has lower E[C] (2,301,137, no index risk) but price-only bargaining floors at 373.65
+  (6 sessions); the clause is what buys the lower price. Not screened.
+- Overfitting guard: no flags/configs added; nothing keyed by case ID. `cost_target_types` remains validated on
+  one case only (P02, n=3+1). Suite: 376 passed + known preflight failure + 1 timing flake
+  (`test_two_thread_rfq_slow_replies_no_timeouts[1]`, passes on rerun). Ruff clean.
+- Sessions used: 0 / 8. Merge verdict: merge tool + tests (harmless); no policy change.
