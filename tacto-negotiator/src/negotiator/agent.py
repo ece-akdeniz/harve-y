@@ -514,6 +514,10 @@ class PackageAgent:
         best = best_close(case, threads, self.estimates_for(case)) if finals else None
         leading_final = best is not None and best[1] in finals
 
+        if leading_final and self.policy and self.policy.rfq_final_guard and case["type"] == "rfq":
+            # A rival HTTP call can outlast the held offer's 60s response window.
+            return {"close": True, "reason": "preserve leading final offer before blocking rival call"}
+
         if supplier_id in finals:
             counter = self._final_counter(case, threads, supplier_id, c_alt)
             if counter:
@@ -655,6 +659,14 @@ class PackageAgent:
                 # only the standing sheet can be accepted: counter with the cheaper alternative
                 alt = complete_offer(case, cands[0][2])
                 return self._offer(case, sid, alt, std, sup, c_alt, "gap closed: take alternative")
+            if self.policy and self.policy.rfq_nonleading_hold and case["type"] == "rfq":
+                best = best_close(case, threads, self.estimates_for(case))
+                if (best and best[1] != sid and latest(threads[best[1]]).get("status") == "open"
+                        and moves_left(case, threads[best[1]]) > 1):
+                    # A losing rival converging must not end the case while the leader is workable;
+                    # letting the loser's window lapse is cheaper than closing on its sheet.
+                    self._log(case, "nonleading_convergence", sid, leading_supplier=best[1], leading_cost=best[0])
+                    return {"hold": True, "reason": "nonleading supplier converged; leader still workable"}
             return {"close": True, "reason": "gap closed"}
 
         floor = p_open * (1 - self.anchor)

@@ -929,3 +929,70 @@ Findings:
 - Sessions: 8 practice sessions; quota 103 -> ~119 used/600 because other agents share it.
 Decision: P18 `configs/p18-clause-variants.json` is a measured win vs local .4062 (n=2, identical), but below the hosted
 best .4531. It is mergeable as an opt-in config only. P08: no change.
+- Next hypothesis: break ties between EXACT equal-cost contract commitments toward 36 months.
+  P10 and P18 have 24/36-month equal modeled buyer cost; retain must-haves and the delivery gain.
+  configs/cost-neutral-commitment.json changes only this choice from the delivery config. One P10
+  screen planned after checks and publication; LLM and supplier-fit behavior stay off.
+- New PackageAdvisor prototype lets the model select one code-approved, costed package. It checks
+  an exact supplier quote, legal options, must-haves and cost ceiling, and limits switches/time.
+  Offline P10 chose legal 56 days / EUR27.62 vs 42 days / EUR28.34, compensating late cost; P18
+  kept its scheduled package. Wiring checks only, no hosted efficacy. Not activated yet.
+- Relationship helpers handle the nonmonotonic cost curve and report public-estimate sensitivity;
+  latest quote defaults override master data per field. P02's central target EUR363.05 at 14 days
+  is uncertain (public-range optima EUR345.44–380.62), not a hard floor or score forecast.
+- Rival evidence decorator validates current-session standing offers and exact qualifiers, with
+  no hidden costs/targets. Prototypes remain unactivated pending integration and review.
+- Integrated validation before publication: 453 tests passed; Ruff and git diff checks clean.
+
+## 2026-10-10 — tracked async RFQ runtime preparation (no hosted sessions)
+
+Hypothesis: independent supplier workers and a bounded coordinator close can preserve an RFQ final offer while another supplier POST takes longer than its 60-second response window. This addresses the observed P05 run `663873a0-ff50-4f24-a4bb-e08919e5149b`, where a 65.58-second rival call preceded a failed acceptance and supplier withdrawal.
+
+Added `negotiator lab run --runner async` for exactly one explicitly budgeted attempt, preserving the configured agent factory, policy config, source/data fingerprint, quota checks, publisher and owned-session evidence collection. Runner selection is recorded as reserved `_lab_runner` metadata. Session identity is journalled and saved before documents or buyer moves; a failed or ambiguous attempt is not automatically restarted. Existing serial runs remain the default. Campaign/checkpoint schemas are unchanged.
+
+Local regressions use real `PackageAgent` plus the simulator with a 66-second rival response and check timely final acceptance under both soft single-send and concurrent execution. A separate regression exposed acceptance of a stale cheaper offer from an in-flight supplier after the close wait; closing now excludes those sheets. When every reply is pending at the wave-cap close, the coordinator waits within its reserved closing window for a current sheet. Both model adviser attributes are rejected before async session creation.
+
+Validation: `uv run --locked pytest -q` passed 461 tests with the main public package data; `uv run --locked ruff check .` passed. Budget used: zero practice and zero sandbox sessions. This is runtime preparation, not a measured score improvement or a promotion; full hosted async RFQ behavior still needs the planned single-session experiment and complete replay review.
+
+## 2026-10-10 — P05 screen 1: non-leading convergence hold (async)
+
+Run `74d3bf74-b5c5-48db-86ce-c109c9bffe0d`, session `a9a16a1231994e51`, commit `8e6a7fa`,
+config `configs/p05-nonleading-hold.json` (cost-neutral-delivery + `rfq_nonleading_hold`),
+`--runner async`. Score **21.28** (worse than 36.04 baseline): accepted sup:70250 EUR 34.00 /
+35 d / 30 d payment, 113 s, zero timeouts. Transcript: sup:70210 led (32.50, then 32.00 in its
+next reply); hold fired correctly on sup:70250 for ~40 s, but the `>20 s own deadline` fallback
+then let 70250's "gap closed" through while 70210's reply was in flight; the coordinator
+excludes in-flight sheets, so the only live sheet was the losing 34.00. Fix (`agent.py`): keep
+holding while the leader is open and has moves left, regardless of the loser's deadline.
+Regression updated. Tests 377 passed + known preflight failure; ruff clean.
+
+## 2026-10-10 — P05 screen 2: non-leading hold without own-deadline fallback (async)
+
+Run `ca2cade9-a914-4c6c-b556-4fe39a06ce1d`, session `ef13f675e65e7676`, commit `0bd7080`, same
+config. Score **41.19** (vs 36.04 traced baseline, ties prior best .4119): sup:70210 EUR 32.00 /
+35 d / 30 d, 50.7 s, zero timeouts. sup:70250's 34.00 convergence held; 70210 went 32.50 → 32.00
+→ final 32.00; 70240 final 33.50/45 d; coordinator accepted 70210's final at once. Lead time
+35 d (<= 42), no 56-day counter, no early payment. Next: repeat once for replication.
+
+## 2026-10-10 — P05 screen 3: replicate non-leading hold (async)
+
+Run `bee8da3d-93be-417e-93bf-fb79f7ec55c8`, session `e7dd5622c1234a45`. Score **41.19** again:
+sup:70210 EUR 32.00 / 35 d / 30 d final accepted, 12.3 s, zero timeouts; identical transcript.
+Replicated 2/2 after fix. Next: hold + `preferences.rfq = standard_payment`
+(`configs/p05-hold-standard-payment.json`) — earlier standard-payment screens were masked
+by the gap-closed exit.
+
+## 2026-10-10 — P05 screen 4: hold + rfq standard_payment (inert)
+
+Run `046127b6-2113-49dc-ac7b-2247ac95cb45`, session `2b9eb01f4eb4f8ec`. Score **41.19**, identical
+transcript (still 90-day counters): the preference only applies to `package_types`, which
+excluded rfq. Not a test of the hypothesis. Next: same config with `rfq` in package_types.
+- Follow-up (no session): even with rfq in package_types, `standard_payment` resolves to the
+  buyer's standard (90 d), so offline the first counter stays 31.68/90 d; the line cannot test
+  supplier-standard payment and is dropped. The earlier "supplier-standard payment 36.04"
+  result on the goal branch was likewise inert and masked by the gap-closed exit.
+- Decision: merge candidate = async runner + `rfq_nonleading_hold` (2/2 at 41.19, +5.15 vs
+  36.04 traced baseline, zero timeouts, 35 d lead, 30 d payment). Remaining gap to arena best
+  .4168 is ~EUR 400 (consistent with 32.00 at 45 d), ~0.0005 on the ten-case mean; not pursued.
+  `rfq_final_guard` stays off (serial-only protection; async covers the 65 s rival case).
+  Sessions consumed by this P05 work: 4.

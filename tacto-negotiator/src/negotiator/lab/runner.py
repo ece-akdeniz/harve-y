@@ -1,5 +1,6 @@
-"""Serial experiment instrumentation around the existing official play interface."""
+"""Tracked serial and async experiments using the existing negotiation runners."""
 
+import asyncio
 import difflib
 import hashlib
 import importlib
@@ -198,6 +199,7 @@ def plan_run(
     arena_url,
     provenance,
     baseline_id=None,
+    runner="serial",
 ) -> Run:
     if (
         type(repetitions) is not int
@@ -210,6 +212,10 @@ def plan_run(
         or len(cases) * repetitions > max_sessions
     ):
         raise ValueError("case/repetition plan exceeds the explicit session ceiling")
+    if runner not in {"serial", "async"}:
+        raise ValueError("unsupported runner")
+    if runner == "async" and len(cases) * repetitions != 1:
+        raise ValueError("async standalone runs require exactly one attempt")
     assert_simulator_is_local(environment, arena_url)
     check_json(config)
     if any(secret in json.dumps(config) for secret in _secret_values()):
@@ -227,9 +233,10 @@ def plan_run(
     model_environment = {
         key: os.environ[key] for key in ("LLM_PROVIDER", "LLM_MODEL", "LLM_EFFORT") if os.environ.get(key)
     }
-    if "_lab_environment" in config:
+    if any(k in config for k in ("_lab_environment", "_lab_runner")):
         raise ValueError("configuration uses a reserved metadata field")
-    recorded_config = {**config, **({"_lab_environment": model_environment} if model_environment else {})}
+    recorded_config = {**config, "_lab_runner": runner,
+                       **({"_lab_environment": model_environment} if model_environment else {})}
     check_json(recorded_config)
     if any(secret in json.dumps(recorded_config) for secret in _secret_values()):
         raise ValueError("configuration contains private credentials")
@@ -357,9 +364,45 @@ def collect_session(client, attempt, arena_url, *, budget):
             attempt.error = "session detail unavailable; outcome retained"
 
 
+def play_async_attempt(run, attempt, root, agent, changed):
+    """One journalled session; failures retain its identity and never start a replacement."""
+    from negotiator.client import AsyncArena
+    from negotiator.runner import CaseRunner
+    from negotiator.state import Journal
+
+    class RecordingJournal(Journal):
+        def session(self, case_id, session_id, case=None):
+            record = super().session(case_id, session_id, case)
+            attempt.session_id = session_id
+            changed()  # before documents or the first buyer move
+            return record
+
+    journal = RecordingJournal(root / run.run_id / f"async-{attempt.repeat}-{attempt.case_id.replace(':', '-')}.jsonl")
+    # Reinvoking run_experiment is not an implicit resume/new-session mechanism.
+    if journal.records:
+        attempt.session_id = journal.session_for(attempt.case_id)
+        changed()
+        raise ValueError("async attempt already journalled; reconcile the existing session")
+
+    async def execute():
+        arena = AsyncArena(base_url=run.arena_url, retries=0, calls_per_s=2)
+        try:
+            runner = CaseRunner(arena, attempt.case_id, agent, journal, tracer=getattr(agent, "tracer", None))
+            return await runner.run()
+        finally:
+            attempt.session_id = journal.session_for(attempt.case_id)
+            changed()
+            await arena.aclose()
+
+    return asyncio.run(execute())
+
+
 def run_experiment(
     run: Run, root: Path, client, create_agent, *, publisher: Publisher | None = None, patch: str | None = None
 ) -> Run:
+    if run.status != "running" or any(a.status != "pending" for a in run.attempts):
+        raise ValueError("run already attempted; reconcile or sync its existing records")
+
     def persist():
         run.revision += 1
         run.updated_at = utc_now()
@@ -395,7 +438,10 @@ def run_experiment(
             agent = None
             try:
                 agent = create_agent()
-                result = play(table, attempt.case_id, agent)
+                if run.config.get("_lab_runner", "serial") == "async":
+                    result = play_async_attempt(run, attempt, root, agent, persist)
+                else:
+                    result = play(table, attempt.case_id, agent)
                 score = result.get("score")
                 if score is not None and (
                     isinstance(score, bool)
@@ -424,8 +470,9 @@ def run_experiment(
                     except Exception:
                         attempt.result["agent_metrics"] = {"unavailable": True}
                 attempt.elapsed_s = min(604800.0, time.monotonic() - started)
-                attempt.rounds = table.rounds
-                attempt.threads = sanitize(table.seen_threads, budget=budget)
+                if run.config.get("_lab_runner", "serial") == "serial":
+                    attempt.rounds = table.rounds
+                    attempt.threads = sanitize(table.seen_threads, budget=budget)
                 # Persist the outcome immediately before ancillary read calls.
                 persist()
             collect_session(client, attempt, run.arena_url, budget=budget)

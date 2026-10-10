@@ -322,3 +322,66 @@ def test_propose_adapter(move, kind):
 
 def test_fallback_close_matches_shape():
     assert runner.resolve_close_fn() is close_decision
+
+
+@pytest.mark.parametrize("slots", [1, None])
+async def test_package_agent_preserves_final_during_66_second_rival_call(tmp_path, slots):
+    """Regression for P05's final withdrawal while a rival POST blocked for 65.6s."""
+    from negotiator.policy import PolicyConfig
+
+    clock = ScaledClock()
+
+    final_at, accepted_at = [], []
+
+    class FinalArena(SimArena):
+        async def send(self, session_id, supplier_id, message, move_id):
+            if message.get("action"):
+                accepted_at.append(self.clock.time())
+            reply = await super().send(session_id, supplier_id, message, move_id)
+            if supplier_id == "sup:70340" and not message.get("action") and "result" not in reply:
+                final_at.append(self.clock.time())
+                reply["status"] = "final_offer"
+                self.sim.sessions[session_id]["threads"][supplier_id]["status"] = "final_offer"
+            return reply
+
+    arena = FinalArena(clock, {"sup:70340": 2, "sup:70360": 66})
+    agent = PackageAgent(policy=PolicyConfig(rfq_final_guard=True), estimates={}, meso=False)
+    result = await CaseRunner(arena, "case:S02", agent, Journal(tmp_path / "journal.jsonl"),
+                              clock=clock, send_slots=slots).run()
+    assert result["deal"] and result["supplier_id"] == "sup:70340"
+    assert accepted_at[0] - final_at[0] < 60
+    assert result["thread_timeouts"]["sup:70340"] == 0
+    assert any(sid == "sup:70360" and not msg.get("action") for _, sid, msg in arena.posts)
+
+
+async def test_closer_excludes_stale_offer_of_in_flight_supplier(tmp_path):
+    from negotiator.state import CaseState, ThreadState
+
+    class ClosingArena:
+        async def send(self, session_id, supplier_id, message, move_id):
+            assert supplier_id == "sup:70340", "must not accept the pending rival's stale cheaper sheet"
+            return {"result": {"ended": True, "deal": True, "supplier_id": supplier_id}}
+
+    clock = ScaledClock()
+    case = load_cases()["case:S02"]
+    def event(sid, price, status):
+        return {"from": "supplier", "status": status, "term_sheets": [
+            {"term_sheet_id": f"offer:{sid}-1", "terms": {"unit_price": price}}]}
+    running = CaseRunner(ClosingArena(), case["case_id"], PackageAgent(estimates={}),
+                         Journal(tmp_path / "journal.jsonl"), clock=clock)
+    running.st = CaseState(case, "s", threads={
+        "sup:70340": ThreadState("sup:70340", [event("70340", 15, "final_offer")],
+                                 deadline_utc=clock.time() + 30),
+        "sup:70360": ThreadState("sup:70360", [event("70360", 10, "open")],
+                                 in_flight="pending", deadline_utc=clock.time() + 30)})
+    await running._close("deadline", wait=False)
+    assert running.st.ended
+
+
+@pytest.mark.parametrize("attribute", ["package_advisor"])
+def test_async_rejects_model_advisers_before_open(tmp_path, attribute):
+    from types import SimpleNamespace
+
+    agent = SimpleNamespace(**{attribute: object()})
+    with pytest.raises(ValueError, match="serial runner"):
+        CaseRunner(object(), "case:S02", agent, Journal(tmp_path / "journal.jsonl"))
