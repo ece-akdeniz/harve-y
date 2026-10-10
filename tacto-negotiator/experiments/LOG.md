@@ -2,6 +2,20 @@
 
 Format and decision rule: `docs/04-experiments.md`. Newest on top. One entry per change.
 
+## 2026-10-10 18:16 — Current-branch P01 smoke run (MEASURED HOSTED)
+
+- Hypothesis: the current `codex/verified-negotiation-evidence` checkout with verified index
+  evidence can complete one hosted P01 negotiation. Commit `1311523`, locked dependencies,
+  `--evidence`, PackageAgent v0, official data package, one case and one repetition; no model.
+- One practice session `1137759cc20e3263`: deal, **72.28/100**. The accepted terms were
+  EUR 133.50/unit, 30-day payment, FCA, 2026-11-01 effective date. The negotiation trace is
+  `experiments/runs/20261010-181623/trace.jsonl` (ignored local file).
+- Team practice quota: 132 left before, 131 left after. No retry, timeout or runner error was
+  reported. The lab record is `ece-p01-1137759cc20e3263`; it contains only score, deal flag,
+  session ID and commit provenance, without thread text or term details.
+- Decision: keep as a smoke result only. This single case does not support promotion or a
+  general score claim; it is below the earlier P01 result of 87.49/100 from `ba1b242`.
+
 ## 2026-10-10 15:14 — Pre-meeting targeted retest (MEASURED HOSTED)
 
 - Candidate revision `25fe977`: package/final-offer fixes, trade packages, and
