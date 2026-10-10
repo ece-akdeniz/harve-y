@@ -69,6 +69,11 @@ Hosted timing is measured. Then scale to multiple cases.
 
 ## Sources and evidence labels
 
+The custom arena runner loads [runtime negotiation guidance](../src/negotiator/AGENTS.md)
+through `guidance.py` on every `negotiator play/run` launch. Its structured settings
+are executed and hashed in the run trace; research prose alone does not implement
+a new policy. See the root README for the distinction from the starter `arena` agent.
+
 Audited kit and current lockfile: `1b5516bb95ef28e37f69aa446dc62168864bca53`.
 [Source snapshot](https://github.com/tacto-ai/negotiation-arena-kit/tree/1b5516bb95ef28e37f69aa446dc62168864bca53).
 Start with `brief/api.md`, `brief/brief.md`, `brief/submission.md`, `data/company.md`,

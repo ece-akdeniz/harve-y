@@ -3,6 +3,10 @@
 Read `docs/README.md`, then `docs/10-implementation-checklist.md`. PackageAgent uses shared closing
 checks, custom serial/async runners and opt-in claims. Final rehearsal remains outstanding. Do not report target behavior as implemented.
 
+Runtime strategy settings live in `src/negotiator/AGENTS.md` and are loaded by both
+custom CLI runners. Keep that packaged file consistent with `guidance.py`; prose alone
+does not change runtime policy. Test the CLI launch path and installed-package resource.
+
 ## Invariants
 
 - Numbers and term sheets come from code. The model interprets replies and words approved moves.

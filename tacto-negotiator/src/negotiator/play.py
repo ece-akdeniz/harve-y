@@ -88,6 +88,7 @@ def run_config(agent, runner="serial-play_case", facts="data/package/facts.json"
         "facts_sha256": data,
         "data_provenance": provenance,
         "policy": agent.policy.record() if getattr(agent, "policy", None) else None,
+        "runtime_guidance": getattr(agent, "runtime_guidance", None),
     }
 
 

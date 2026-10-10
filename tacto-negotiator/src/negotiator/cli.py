@@ -13,7 +13,7 @@ from arena_kit.cli import load_env, summary
 from arena_kit.client import ArenaClient, ArenaError
 from arena_kit.play import RemoteTable, hosted
 
-from .agent import PackageAgent
+from .guidance import RuntimeGuidance
 from .play import play_all, play_case, play_waves, run_config
 from .runner import run_async, runtime_config
 from .trace import Tracer
@@ -74,12 +74,13 @@ def main(argv=None) -> int:
     from .policy import PolicyConfig
 
     try:
+        guidance = RuntimeGuidance.load()
         policy = PolicyConfig.load(args.policy_config) if args.policy_config else None
     except (OSError, ValueError, TypeError) as exc:
         ap.error(str(exc))
 
     def new_agent():
-        return PackageAgent(tracer=tracer, policy=policy)
+        return guidance.new_agent(tracer=tracer, policy=policy)
 
     if args.runner == "async":
         cfg = {**run_config(new_agent(), runner="async"), **runtime_config(getattr(args, "parallel", 1))}
