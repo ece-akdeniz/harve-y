@@ -1,14 +1,24 @@
 """Strict immutable V2 value objects for contracts, terms, and evidence refs."""
 
+import json
 import re
 from datetime import date
 from decimal import Decimal
 from typing import Annotated, Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, field_validator, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    PrivateAttr,
+    ValidationInfo,
+    field_serializer,
+    field_validator,
+    model_validator,
+)
 
-from .serialization import semantic_hash
+from .serialization import decimal_text, semantic_hash
 
 SCHEMA_VERSION = "negotiator-v2/1"
 TermField = Literal[
@@ -31,6 +41,23 @@ class FrozenModel(BaseModel):
 
     model_config = ConfigDict(strict=True, frozen=True, extra="forbid", allow_inf_nan=False)
     schema_version: Literal["negotiator-v2/1"] = SCHEMA_VERSION
+
+    @field_serializer("*", when_used="json")
+    def canonical_decimal_fields(self, value):
+        return decimal_text(value) if isinstance(value, Decimal) else value
+
+    @field_validator("*")
+    @classmethod
+    def strict_identity_fields(cls, value, info: ValidationInfo):
+        name = info.field_name
+        if name.endswith(("_id", "_hash", "_fingerprint")) or name in {"fingerprint", "context_version"}:
+            if value is not None and isinstance(value, str):
+                if not value.strip() or value != value.strip():
+                    raise ValueError(f"{name} must be a nonempty unpadded identifier")
+                if name.endswith(("_hash", "_fingerprint")) or name == "fingerprint":
+                    if not re.fullmatch(r"[0-9a-f]{64}", value):
+                        raise ValueError(f"{name} must be a SHA-256 hex digest")
+        return value
 
 
 def _finite_decimal(value: Decimal) -> Decimal:
@@ -60,10 +87,12 @@ class PriceBasis(FrozenModel):
             raise ValueError("domain collections must be immutable tuples")
         return value
 
-    @field_validator("part_ids")
+    @field_validator("part_ids", "source_refs")
     @classmethod
-    def require_parts(cls, value):
-        if not value or any(not item for item in value):
+    def require_parts(cls, value, info: ValidationInfo):
+        if (info.field_name == "part_ids" and not value) or any(
+            not item.strip() or item != item.strip() for item in value
+        ):
             raise ValueError("part_ids must be nonempty")
         return value
 
@@ -160,7 +189,7 @@ class IndexClause(FrozenModel):
     @field_validator("base_month")
     @classmethod
     def real_month(cls, value):
-        if not re.fullmatch(r"\d{4}-(0[1-9]|1[0-2])", value):
+        if not re.fullmatch(r"[0-9]{4}-(0[1-9]|1[0-2])", value) or value.startswith("0000-"):
             raise ValueError("base_month must be YYYY-MM")
         return value
 
@@ -180,6 +209,9 @@ class TermBinding(FrozenModel):
         if field in integer_fields:
             if isinstance(value, bool) or not isinstance(value, int):
                 raise ValueError(f"{field} must be an integer")
+            minimum = 1 if field in {"volume_per_year", "contract_months"} else 0
+            if value < minimum:
+                raise ValueError(f"{field} must be >= {minimum}")
         elif field in decimal_fields:
             if isinstance(value, bool) or not isinstance(value, (Decimal, str)):
                 raise ValueError(f"{field} must be a Decimal")
@@ -192,6 +224,8 @@ class TermBinding(FrozenModel):
                     raise ValueError(f"{field} must be a decimal string") from exc
                 data = {**data, "value": value}
             _finite_decimal(value)
+            if field != "unit_price" and value < 0:
+                raise ValueError(f"{field} must be nonnegative")
             if field == "unit_price" and value <= 0:
                 raise ValueError("unit_price must be positive")
         elif field == "effective_date":
@@ -203,7 +237,7 @@ class TermBinding(FrozenModel):
                 if parsed.isoformat() != value:
                     raise ValueError("effective_date must be a real ISO date")
                 data = {**data, "value": parsed}
-            elif not isinstance(value, date):
+            elif type(value) is not date:
                 raise ValueError("effective_date must be a date")
         elif field == "index_clause":
             if value is not None and not isinstance(value, IndexClause) and not (
@@ -219,7 +253,17 @@ class TermBinding(FrozenModel):
 class Package(FrozenModel):
     bindings: tuple[TermBinding, ...]
     price_basis: PriceBasis
-    fingerprint: str
+    fingerprint: str = ""
+
+    @model_validator(mode="after")
+    def verify_fingerprint(self):
+        projection = {"bindings": sorted(self.bindings, key=lambda binding: binding.field),
+                      "price_basis": self.price_basis}
+        expected = semantic_hash(projection)
+        if self.fingerprint and self.fingerprint != expected:
+            raise ValueError("package_fingerprint_mismatch")
+        object.__setattr__(self, "fingerprint", expected)
+        return self
 
     @field_validator("bindings")
     @classmethod
@@ -350,6 +394,16 @@ class ReportedConstraint(FrozenModel):
     citations: tuple[Citation, ...]
     authority: Literal["supplier_reported"]
     status: Literal["active", "stale", "superseded"]
+
+    @field_validator("value", mode="before")
+    @classmethod
+    def structured_reported_value(cls, value, info: ValidationInfo):
+        if "dimension" not in info.data:
+            return value
+        raw = {"field": info.data["dimension"], "value": value}
+        binding = (TermBinding.model_validate_json(json.dumps(raw)) if info.mode == "json"
+                   else TermBinding.model_validate(raw))
+        return binding.value
 
     @field_validator("constraint_id")
     @classmethod
@@ -722,6 +776,16 @@ class DecisionRecord(FrozenModel):
 
 
 class EffectiveConfig(FrozenModel):
+    _verified_hash: str | None = PrivateAttr(default=None)
+    _verified_strategy_ids: tuple[str, ...] = PrivateAttr(default=())
+
+    @field_validator("retry_limit", mode="before")
+    @classmethod
+    def strict_retry_limit(cls, value):
+        if type(value) is not int:
+            raise ValueError("retry_limit must be an integer")
+        return value
+
     schema_version: Literal["negotiator-v2/1"]
     strategy_id: str
     selection_id: Literal["deterministic-v1"]

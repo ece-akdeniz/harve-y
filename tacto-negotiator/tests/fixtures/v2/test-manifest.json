@@ -2,7 +2,7 @@
   "fixture_version": "negotiator-v2-fixtures/1",
   "contract_version": "negotiator-v2/1",
   "generated_from": "pytest collection and Python assertion AST; regenerate after test edits",
-  "test_count": 241,
+  "test_count": 281,
   "tests": [
     {
       "test_id": "tests/v2/acceptance/test_behavior.py::test_meaningful_preference_flip_changes_intent_direction",
@@ -3307,6 +3307,733 @@
         "pytest.raises(ValueError)"
       ],
       "source_line": 148,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_hardening.py::test_decimal_identity[28.3400-28.34]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b/T1.1c hardening",
+      "fixture_arguments": [
+        "left",
+        "right"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "a.amount.as_tuple() == Decimal(left).as_tuple()",
+        "semantic_hash(a) == semantic_hash(b)",
+        "semantic_hash({'amount': Decimal(left)}) == semantic_hash({'amount': Decimal(right)})",
+        "models.Money.model_validate_json(a.model_dump_json()) == a",
+        "semantic_hash(a) != semantic_hash(models.Money(amount=Decimal(right) + 1))"
+      ],
+      "expected_exceptions": [],
+      "source_line": 15,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_hardening.py::test_decimal_identity[1E+3-1000]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b/T1.1c hardening",
+      "fixture_arguments": [
+        "left",
+        "right"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "a.amount.as_tuple() == Decimal(left).as_tuple()",
+        "semantic_hash(a) == semantic_hash(b)",
+        "semantic_hash({'amount': Decimal(left)}) == semantic_hash({'amount': Decimal(right)})",
+        "models.Money.model_validate_json(a.model_dump_json()) == a",
+        "semantic_hash(a) != semantic_hash(models.Money(amount=Decimal(right) + 1))"
+      ],
+      "expected_exceptions": [],
+      "source_line": 15,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_hardening.py::test_decimal_identity[-0.00-0]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b/T1.1c hardening",
+      "fixture_arguments": [
+        "left",
+        "right"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "a.amount.as_tuple() == Decimal(left).as_tuple()",
+        "semantic_hash(a) == semantic_hash(b)",
+        "semantic_hash({'amount': Decimal(left)}) == semantic_hash({'amount': Decimal(right)})",
+        "models.Money.model_validate_json(a.model_dump_json()) == a",
+        "semantic_hash(a) != semantic_hash(models.Money(amount=Decimal(right) + 1))"
+      ],
+      "expected_exceptions": [],
+      "source_line": 15,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_hardening.py::test_package_identity",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b/T1.1c hardening",
+      "fixture_arguments": [],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "models.Package.model_validate_json(json.dumps(raw)).fingerprint == package.fingerprint",
+        "models.Package.model_validate_json(package.model_dump_json()) == package"
+      ],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)",
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 24,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_hardening.py::test_invalid_terms[lead_time_days--1]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b/T1.1c hardening",
+      "fixture_arguments": [
+        "field",
+        "value"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 42,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_hardening.py::test_invalid_terms[volume_per_year-0]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b/T1.1c hardening",
+      "fixture_arguments": [
+        "field",
+        "value"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 42,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_hardening.py::test_invalid_terms[contract_months-0]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b/T1.1c hardening",
+      "fixture_arguments": [
+        "field",
+        "value"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 42,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_hardening.py::test_invalid_terms[tooling_eur--1]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b/T1.1c hardening",
+      "fixture_arguments": [
+        "field",
+        "value"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 42,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_hardening.py::test_invalid_terms[effective_date-2026-02-30]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b/T1.1c hardening",
+      "fixture_arguments": [
+        "field",
+        "value"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 42,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_hardening.py::test_invalid_terms[effective_date-20261010]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b/T1.1c hardening",
+      "fixture_arguments": [
+        "field",
+        "value"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 42,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_hardening.py::test_invalid_terms[payment_days-True]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b/T1.1c hardening",
+      "fixture_arguments": [
+        "field",
+        "value"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 42,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_hardening.py::test_invalid_snapshot[run_id- ]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b/T1.1c hardening",
+      "fixture_arguments": [
+        "field",
+        "value"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 49,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_hardening.py::test_invalid_snapshot[session_id-]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b/T1.1c hardening",
+      "fixture_arguments": [
+        "field",
+        "value"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 49,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_hardening.py::test_invalid_snapshot[context_version- ]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b/T1.1c hardening",
+      "fixture_arguments": [
+        "field",
+        "value"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 49,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_hardening.py::test_invalid_snapshot[config_hash-no]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b/T1.1c hardening",
+      "fixture_arguments": [
+        "field",
+        "value"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 49,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_hardening.py::test_invalid_snapshot[case_contract_hash-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b/T1.1c hardening",
+      "fixture_arguments": [
+        "field",
+        "value"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 49,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_hardening.py::test_invalid_snapshot[state_version-True]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b/T1.1c hardening",
+      "fixture_arguments": [
+        "field",
+        "value"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 49,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_hardening.py::test_invalid_reported_values[lead_time_days-maybe 30]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b/T1.1c hardening",
+      "fixture_arguments": [
+        "field",
+        "value"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 58,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_hardening.py::test_invalid_reported_values[unit_price-True]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b/T1.1c hardening",
+      "fixture_arguments": [
+        "field",
+        "value"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 58,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_hardening.py::test_invalid_reported_values[incoterm-UNKNOWN]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b/T1.1c hardening",
+      "fixture_arguments": [
+        "field",
+        "value"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 58,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_hardening.py::test_invalid_reported_values[effective_date-2026-02-30]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b/T1.1c hardening",
+      "fixture_arguments": [
+        "field",
+        "value"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 58,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_hardening.py::test_invalid_reported_values[index_clause-none]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b/T1.1c hardening",
+      "fixture_arguments": [
+        "field",
+        "value"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 58,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_hardening.py::test_reported_roundtrip",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b/T1.1c hardening",
+      "fixture_arguments": [],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "result.value == Decimal('28.34')",
+        "result.authority == 'supplier_reported'",
+        "models.ReportedConstraint.model_validate_json(result.model_dump_json()) == result"
+      ],
+      "expected_exceptions": [],
+      "source_line": 65,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_hardening.py::test_config_trust",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b/T1.1c hardening",
+      "fixture_arguments": [
+        "p10"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "config.require_verified_config(resolved) is resolved",
+        "config.require_verified_config(config.resolve_config(json.loads(parsed.model_dump_json())))"
+      ],
+      "expected_exceptions": [
+        "pytest.raises(ValueError)",
+        "pytest.raises(ValueError)"
+      ],
+      "source_line": 74,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_hardening.py::test_boolean_config[retry_limit]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b/T1.1c hardening",
+      "fixture_arguments": [
+        "p10",
+        "field"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValueError)"
+      ],
+      "source_line": 87,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_hardening.py::test_boolean_config[candidate_limit]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b/T1.1c hardening",
+      "fixture_arguments": [
+        "p10",
+        "field"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValueError)"
+      ],
+      "source_line": 87,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_hardening.py::test_boolean_config[compute_limit_s]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b/T1.1c hardening",
+      "fixture_arguments": [
+        "p10",
+        "field"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValueError)"
+      ],
+      "source_line": 87,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_hardening.py::test_valid_term_roundtrips[effective_date-2026-10-10]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b/T1.1c hardening",
+      "fixture_arguments": [
+        "field",
+        "value"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "models.TermBinding.model_validate_json(binding.model_dump_json()) == binding"
+      ],
+      "expected_exceptions": [],
+      "source_line": 94,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_hardening.py::test_valid_term_roundtrips[payment_days-0]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b/T1.1c hardening",
+      "fixture_arguments": [
+        "field",
+        "value"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "models.TermBinding.model_validate_json(binding.model_dump_json()) == binding"
+      ],
+      "expected_exceptions": [],
+      "source_line": 94,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_hardening.py::test_valid_term_roundtrips[volume_per_year-1]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b/T1.1c hardening",
+      "fixture_arguments": [
+        "field",
+        "value"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "models.TermBinding.model_validate_json(binding.model_dump_json()) == binding"
+      ],
+      "expected_exceptions": [],
+      "source_line": 94,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_hardening.py::test_valid_term_roundtrips[index_clause-None]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b/T1.1c hardening",
+      "fixture_arguments": [
+        "field",
+        "value"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "models.TermBinding.model_validate_json(binding.model_dump_json()) == binding"
+      ],
+      "expected_exceptions": [],
+      "source_line": 94,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_hardening.py::test_valid_term_roundtrips[incoterm-FCA]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b/T1.1c hardening",
+      "fixture_arguments": [
+        "field",
+        "value"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "models.TermBinding.model_validate_json(binding.model_dump_json()) == binding"
+      ],
+      "expected_exceptions": [],
+      "source_line": 94,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_hardening.py::test_valid_term_roundtrips[tooling_eur-0.00]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b/T1.1c hardening",
+      "fixture_arguments": [
+        "field",
+        "value"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "models.TermBinding.model_validate_json(binding.model_dump_json()) == binding"
+      ],
+      "expected_exceptions": [],
+      "source_line": 94,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_hardening.py::test_raw_ambiguous_statement_remains_evidence",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b/T1.1c hardening",
+      "fixture_arguments": [],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "models.GroundedObservation.model_validate_json(observation.model_dump_json()) == observation"
+      ],
+      "expected_exceptions": [],
+      "source_line": 99,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_hardening.py::test_config_decimal_identity_and_untrusted_construction",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b/T1.1c hardening",
+      "fixture_arguments": [
+        "p10"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "config.resolve_config(raw).config_hash == resolved.config_hash"
+      ],
+      "expected_exceptions": [
+        "pytest.raises(ValueError)",
+        "pytest.raises(ValueError)"
+      ],
+      "source_line": 107,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_hardening.py::test_invalid_index_months[0000-01]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b/T1.1c hardening",
+      "fixture_arguments": [
+        "month"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 118,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_hardening.py::test_invalid_index_months[2026-13]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b/T1.1c hardening",
+      "fixture_arguments": [
+        "month"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 118,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_hardening.py::test_invalid_index_months[2026-00]",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b/T1.1c hardening",
+      "fixture_arguments": [
+        "month"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 118,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_hardening.py::test_decimal_normalization_does_not_round_to_context",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b/T1.1c hardening",
+      "fixture_arguments": [],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "json.loads(models.Money(amount=value).model_dump_json())['amount'] == '12345678901234567890.1234'",
+        "semantic_hash(models.Money(amount=value)) == expected"
+      ],
+      "expected_exceptions": [],
+      "source_line": 125,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_hardening.py::test_reported_nested_index_roundtrip",
+      "group": "contracts",
+      "task": "T1.1a/T1.1b/T1.1c hardening",
+      "fixture_arguments": [],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "isinstance(result.value, models.IndexClause)",
+        "models.ReportedConstraint.model_validate_json(result.model_dump_json()) == result"
+      ],
+      "expected_exceptions": [],
+      "source_line": 136,
       "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
     },
     {

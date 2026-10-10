@@ -659,3 +659,36 @@ ResolvedCostInput is the narrow typed projection returned by EvidenceProjections
 For validate_wire tests, RecordedInputs.wire_payload is the UTF-8 **internal action frame**, not a recipient-free Arena message: `{supplier_id, snapshot, kind, decision_ref, close_ref, template_version, claim_ids, message}`. The codec binds the raw wire_message under message and trusted source metadata separately; wrong-recipient/stale variants alter the relevant frame/state input. validate_wire parses that frame without snapping, then calls the same validate_action checks. Its successful certificate payload_bytes_ref/hash identifies only the exact outgoing Arena message bytes, not the internal frame. Render hash is recomputed from raw contents in fixture assembly so a generic hash mismatch cannot mask the intended invalid price/field/privacy assertion. Live renderer output follows the typed RenderedAction path; raw parse convenience never adds transmission authority.
 
 IssueCode additionally contains not_applicable for a deliberately skipped stage; it is a reason, not a successful execution. Missing critical economic data or unsupported required scenario inputs block closing with ContractViolation/recovery_required rather than manufacturing a walk-away based on unevaluable costs. A walk-away is valid when known evaluable/legally unusable offers fail the closing policy; failed arithmetic is recorded explicitly.
+
+### T1.1a–c foundation hardening decisions — 10 October 2026
+
+These clarifications apply to `negotiator-v2/1`; no Protocol signature changes or golden
+fixture revisions are required.
+
+- Decimal identity uses finite, non-scientific strings without insignificant fractional
+  zeroes; signed zero becomes `0`. Normalization must not round through the ambient Decimal
+  context. Typed Decimal values retain their original coefficient/exponent in memory for
+  provenance; JSON is canonical. Raw supplier quotes remain in MessageSpan/source artifacts.
+  Ordinary text strings are never interpreted as numbers by the generic hash function.
+- Package construction derives the fingerprint from field-sorted typed bindings and the
+  declared PriceBasis, excluding the fingerprint. A supplied fingerprint must match. Binding
+  order and equivalent Decimal representations do not change package identity; explicit null
+  remains distinct from an omitted binding. Basis source references remain in the projection.
+- Structured terms require real ISO calendar dates, real base months (years 0001–9999),
+  nonnegative payment/lead/ppm values and charges, positive volume/contract duration and price.
+  Identifiers must be nonempty and unpadded; content hashes are lowercase SHA-256 hex.
+  Booleans never stand in for numeric values, including retry_limit=0.
+- Raw supplier statements may be incomplete, ambiguous or malformed. Preserve those statements
+  as cited observations/ambiguities/unknowns. ReportedConstraint is a structured assertion:
+  its dimension/value must meet the same field typing and validity as TermBinding, even when
+  stale or superseded. This validation conveys no legal or binding authority. Its authority
+  remains supplier_reported; it cannot change case options, must-haves or contractual terms.
+- EffectiveConfig parsing establishes schema validity only. `resolve_config` validates the
+  explicit supported-strategy registry and verifies or derives the canonical config hash,
+  marking the resulting immutable object as verified in private, nonserialized metadata.
+  `require_verified_config` is the mandatory gate before future executable construction:
+  reject parsed/reloaded-only objects, revalidate schema/registry/hash and reject copies whose
+  contents changed after verification. Reloaded configuration must pass through resolve_config.
+  No runtime constructor exists in T1.1a–c; future factory/composition must call this gate.
+  This is a Python application trust boundary, not a security sandbox against arbitrary code
+  that deliberately mutates private internals or bypasses model validation.

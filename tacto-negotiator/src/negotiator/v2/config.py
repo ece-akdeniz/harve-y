@@ -27,6 +27,8 @@ def resolve_config(
 
     values = dict(raw)
     supplied_hash = values.pop("config_hash", None)
+    if "config_hash" in raw and not isinstance(supplied_hash, str):
+        raise ValueError("config_hash must be a SHA-256 digest")
     values["config_hash"] = "0" * 64
     try:
         encoded = json.dumps(values, ensure_ascii=False, allow_nan=False, separators=(",", ":"))
@@ -39,4 +41,19 @@ def resolve_config(
     config_hash = semantic_hash(candidate.model_dump(mode="json", exclude={"config_hash"}))
     if supplied_hash is not None and supplied_hash != config_hash:
         raise ValueError("config_hash_mismatch")
-    return candidate.model_copy(update={"config_hash": config_hash})
+    result = candidate.model_copy(update={"config_hash": config_hash})
+    result._verified_hash = config_hash
+    result._verified_strategy_ids = supported_strategy_ids
+    return result
+
+
+def require_verified_config(config: EffectiveConfig) -> EffectiveConfig:
+    """Executable construction gate; parsing alone never grants execution trust."""
+    if not isinstance(config, EffectiveConfig) or config._verified_hash is None:
+        raise ValueError("configuration is not registry verified")
+    # Revalidate even model_copy/model_construct inputs before using them.
+    checked = resolve_config(config.model_dump(mode="json"),
+                             supported_strategy_ids=config._verified_strategy_ids)
+    if checked.config_hash != config._verified_hash:
+        raise ValueError("verified configuration was changed")
+    return config

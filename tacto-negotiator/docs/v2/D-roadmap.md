@@ -222,3 +222,40 @@ No calendar commitment is made. Count delivered verified tasks rather than assum
 The architecture has approval in principle. [Task specifications](task-specs.md), [test catalog](test-catalog.md), [coding guide](implementation-guide.md), [review checklist](compliance-checklist.md) and [first three prompts](first-three-prompts.md) are normative handoff details. They refine these parent task IDs rather than opening another architecture. All production tasks remain planned.
 
 After core contracts/codec merge, evidence, economics, interpreter-with-fake, validator-with-fake-ports, and store/projector work can proceed independently. Integration owner runs the milestone suite; acceptance owner runs metamorphic/recovery tests. Add the catalog's explicitly pending test bindings before implementing their feature. No missing component, passing mock or inherited V1 failure can be silently relabelled as implementation completion.
+
+#### T1.1a–c foundation hardening evidence — 10 October 2026
+
+**Scope / base:** separate hardening of existing V2 branch at `7e861cd`; T1.1d remains
+planned. No V1 implementation, Protocol signatures, dependencies, golden payloads or golden
+hashes changed. The generated test manifest was refreshed with the additional regressions.
+
+**Contract decisions:** C §“T1.1a–c foundation hardening decisions” records Decimal semantic
+identity/provenance, derived and verified package fingerprints, strict structured fields,
+raw supplier ambiguity versus valid supplier-reported structured assertions, and parsed
+versus registry/hash-verified executable configuration. These are clarifications of version 1;
+no versioned golden correction was needed. Future composition must use require_verified_config;
+this task does not introduce a runtime factory or claim runtime integration exists.
+
+**Regression-first evidence:** before implementation, the initial 27 cases produced **19 failed,
+8 passed**, reproducing all five gaps. Expanded coverage adds valid/invalid/round-trip terms,
+raw ambiguity, configuration reconstruction/copies/hash/registry enforcement, nested index
+clauses and Decimal context independence. Final hardening regressions: **40 passed**.
+
+**Verification:** complete V2 contract, acceptance and integration suites, with core/config
+required: **161 passed, 120 expected UNIMPLEMENTED xfails**, zero failures. T1.1a–c foundation,
+guardrails, boundary and hardening selector: **160 passed, 2 expected xfails**. Every expected
+failure is an absent deferred component: validation (33), interpreter (25), factory (19),
+evidence context (12), official economics (8), preparation (6), selection (6), recorded adapter
+(3), SQLite adapter (3), candidate generation (2), state (2), claims (1). Implemented components
+cannot be hidden by these xfails. V2 source/tests Ruff and git diff whitespace checks pass.
+
+**Environment / broader baseline limits:** uv is unavailable on PATH or the usual local install
+path; checks used the existing Python 3.12 .venv directly without dependency changes.
+Repository-wide Ruff was run and reports four unchanged V1 findings (evaluator B905,
+guards I001, runner E501 twice). A full repository pytest run was attempted, exposed V1
+failures/errors and stalled; it was interrupted. A bounded V1 rerun stopped at the first
+failure (**52 passed, 12 skipped, 1 failed**): test_context's empty supplier thread raises
+KeyError in PackageAgent.propose. The identical failure was reproduced from an untouched
+`git archive 7e861cd` source/test copy. V1 source has no diff; no V1 green-suite claim is made.
+No hosted quota or model calls were consumed. Full repository readiness remains outside this
+foundation gate; all required V2 suites are green apart from explicitly deferred modules.
