@@ -1,7 +1,9 @@
 # Supplier knowledge and memory integration
 
-Status: local candidate on `codex/combined-latest-updates`, 10 October 2026. No hosted score
-improvement or live-policy promotion has been measured.
+Status: local candidate on `codex/combined-latest-updates`, 10 October 2026. The local
+event-driven lab projection and reviewed proposal path are described in
+[19 — Supplier learning loop](19-supplier-learning-loop.md). No hosted score improvement or
+live-policy promotion has been measured.
 
 ## Two records with different lifecycles
 
@@ -10,7 +12,8 @@ projects facts as `current_public_data` nodes with source IDs, base/release laye
 and supplier/part links when those identities are present. A new release creates new fact
 identities; it does not edit old conversation evidence. This is the adapter boundary for
 Uğur's future ingestion pipeline. News, company updates and revised performance data should
-enter through the same typed, dated, source-linked boundary. No live news collector exists yet.
+enter through the same typed, dated, source-linked boundary. `lab learn ingest` now records supplied
+data on the lab host and refreshes matching feedback; it does not collect external news.
 
 **Episodic memory** records original owned sessions, messages, offers and outcomes. Barış's
 `lab.memory.MemoryStore` projects cited supplier observations, records contradictions and
@@ -26,7 +29,8 @@ given a matching public package, `lab feedback --data PATH` additionally reports
 fact IDs in a separate `current_data_context`; mismatched data never revalidates historical
 offers. Feedback does not approve a lesson, change a checkpoint, or send a negotiation move.
 Barış's immutable discovery snapshots and the feedback reports are still separate inputs;
-there is no automatic feedback-to-memory promotion.
+there is no automatic feedback-to-memory promotion. A limited config-draft registry and explicit
+review gate now connect feedback to a candidate comparison without changing a live checkpoint.
 
 ## Next interfaces
 

@@ -99,6 +99,12 @@ def parser():
     graph.add_argument("--db", type=Path, default=Path("experiments/dashboard.sqlite3"))
     graph.add_argument("--out", type=Path, default=Path("experiments/knowledge-graph.json"))
     graph.add_argument("--data", type=Path, help="optional current public data package for a separate graph layer")
+    learn = sub.add_parser("learn", help="update or retry lab-owned learning projections")
+    learn.add_argument("action", choices=("ingest", "retry", "status"))
+    learn.add_argument("--db", type=Path, default=Path("experiments/dashboard.sqlite3"))
+    learn.add_argument("--data", type=Path)
+    learn.add_argument("--release", type=Path)
+    learn.add_argument("--run-id")
     history.add_argument(
         "--db",
         type=Path,
@@ -134,6 +140,7 @@ def main(argv=None) -> int:
         "evidence",
         "findings",
         "memory",
+        "learning",
         "restore",
     ):
         from .loop_cli import main as loop_main
@@ -142,6 +149,24 @@ def main(argv=None) -> int:
     load_env()
     args = parse_args(argv)
     try:
+        if args.command == "learn":
+            from .learning import LearningStore
+
+            if args.action == "ingest":
+                if not args.data:
+                    raise ValueError("learn ingest requires --data")
+                result = LearningStore(args.db).ingest(args.data, args.release)
+            elif args.action == "retry":
+                if not args.run_id:
+                    raise ValueError("learn retry requires --run-id")
+                report = LearningStore(args.db).review(args.run_id)
+                result = {"run_id": report["run_id"], "state": "ready"}
+            else:
+                if not args.run_id:
+                    raise ValueError("learn status requires --run-id")
+                result = LearningStore(args.db).status(args.run_id)
+            print(json.dumps(result))
+            return 0
         if args.command == "graph-export":
             from .feedback import review_store
             from .knowledge import export_graph

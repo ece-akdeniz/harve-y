@@ -2,6 +2,32 @@
 
 Format and decision rule: `docs/04-experiments.md`. Newest on top. One entry per change.
 
+## 2026-10-10 — Supplier learning loop, local integration (UNPROMOTED)
+
+- Hypothesis: versioned supplied data and terminal run uploads can refresh separate public-fact and episodic stores, produce cited feedback, and create a reviewable configuration candidate without changing active sessions or the recommended checkpoint.
+- Source: `codex/combined-latest-updates` based on `883a272`; local uncommitted implementation in `src/negotiator/lab/learning.py`, `knowledge.py`, `loop_store.py`, and related API/CLI/tests. Configuration changes are registry-bounded; code-change findings remain engineering work.
+- Evidence: kit-data ingest projected 10,356 public facts; offline replay of saved practice run `385bee17-1dac-45a4-bb88-25477127355a` produced one ready report and no candidate proposal (zero recorded timeouts). The explicit async local simulator rehearsal used 12 sessions, zero timeouts, and completed its temporary comparison; toy scores are not hosted evidence. Focused learning tests, full Python/Node tests, and Ruff are recorded in the development report. No Arena sessions or practice quota consumed; no real provider calls or cost estimate.
+- Decision: retain as a local integration candidate. No shared-lab deployment, recommended-checkpoint promotion, or memory/model policy enablement. Hosted lab feedback/learning endpoints still return 404 on the deployed revision. Next: deploy after team review, verify migration/endpoints, then authorize a budgeted held-out async hosted comparison and inspect every gate.
+
+Follow-up on the same local candidate: the prior practice run's P02, P05, P10 and P18 each
+had a valid deal, zero recorded timeouts, a score below 50/100 and price cost above 75% of
+the recorded deal cost. Objective feedback now cites those four attempts and proposes one
+bounded `anchor=0.16` comparison. This is a price-opening hypothesis, not an identified
+cause or measured improvement. It does not change the recommended checkpoint. Supplier
+memory retrieval now excludes other cases, stale source revisions cannot register or
+promote a proposal, and teammate review must use a different author. The shared lab's
+authenticated feedback/learning routes were rechecked and still returned 404. No additional
+hosted sessions or practice quota were used.
+
+## 2026-10-10 — Combined branch, all hosted practice suppliers (MEASURED HOSTED)
+
+- Hypothesis: the combined package/evidence policy completes every currently hosted practice supplier with valid outcomes and measurable scores. This is one unpaired exploratory sweep, not promotion evidence.
+- Source: `codex/combined-latest-updates` at `883a272`; `configs/candidate.json` passed as `PackageAgent(policy=...)`; pinned kit data `1b5516b`; serial `negotiator lab run`. Model assistance and optional supplier-memory snapshot were off. Run: `experiments/runs/385bee17-1dac-45a4-bb88-25477127355a/run.json` (also uploaded to the team lab).
+- Arena returned 19 practice case IDs, of which exactly ten were marked `hosted: true`: P01–P05, P07–P08, P10–P11, P18. An initial 19-case lab plan was rejected before any session opened (`f1fd4e45-bae7-4fd6-90a9-432e6deab557`); the actual run used a strict ten-session ceiling and one repetition.
+- Scores (/100): P01 92.53, P02 29.47, P03 89.98, P04 86.04, P05 36.04, P07 74.30, P08 59.30, P10 45.32, P11 79.02, P18 45.31. Mean 63.73; sum 637.31. All ten attempts completed with deals, must-haves satisfied, session IDs, no recorded attempt errors and zero recorded timeouts. Practice quota moved from 88 used / 512 left to 98 used / 502 left (limit 600) during this sweep.
+- The initial publisher left a stale `running` lab revision; an idempotent upload of the final saved snapshot was acknowledged and GET verified `completed`. Hosted `/api/feedback/<run-id>` returned 404, so automatic hosted feedback could not be verified. The run file is the primary outcome evidence.
+- Next: inspect low-scoring P02, P05, P10 and P18 against the full saved transcripts, then test a single specific change in a paired, repeated comparison before promotion. This run does not validate async execution, model interpretation, or supplier memory.
+
 ## Supplier memory merge and data/feedback separation — local integration, 10 October 2026
 
 - Hypothesis: Barış's cited, immutable supplier memory can coexist with bounded email

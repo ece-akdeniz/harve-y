@@ -117,6 +117,7 @@ def execute(request):
         body["session_id"] = record.session_id
         durable_json(path, body)
 
+    agent = None
     try:
         from negotiator.trace import Tracer
 
@@ -147,6 +148,8 @@ def execute(request):
         # No retry of an uncertain open. Preserve durable identity and any already journaled session.
         body["status"] = "ambiguous"
     finally:
+        if agent is not None and hasattr(agent, "experiment_metrics"):
+            body["result"]["agent_metrics"] = sanitize(agent.experiment_metrics(), budget=10000)
         body["elapsed_s"] = time.monotonic() - started
         durable_json(path, body)
         if record.session_id:

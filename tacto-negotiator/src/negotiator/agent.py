@@ -171,6 +171,11 @@ class PackageAgent:
         self.model_seen[sid] = token
         self._log(case, "model_interpretation", sid, interpretation=result)
 
+    def experiment_metrics(self):
+        return {"model": self.model_assist.metrics() if self.model_assist is not None else
+                {"calls": 0, "fallbacks": 0, "latency_s": [], "input_tokens": 0, "output_tokens": 0},
+                "memory_snapshot_id": self.memory["snapshot_id"] if self.memory else None}
+
     # -- estimates ----------------------------------------------------------------------------
     def estimates_for(self, case):
         """{supplier_id: estimate}: the injected estimates, else `dossiers.supplier_estimate`

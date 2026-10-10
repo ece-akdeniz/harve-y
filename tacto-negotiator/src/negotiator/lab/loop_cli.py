@@ -46,6 +46,7 @@ def configure(parser=None, *, groups=None):
         "evidence": ("show",),
         "findings": ("add", "list"),
         "memory": ("graph", "snapshots", "show", "build"),
+        "learning": ("proposals", "prepare", "register", "review"),
     }.items():
         parent = groups.add_parser(group)
         parent.set_defaults(loop_group=group)
@@ -66,6 +67,11 @@ def configure(parser=None, *, groups=None):
                 leaf.add_argument("--arena-url", required=True)
                 leaf.add_argument("--environment", choices=("sandbox", "practice", "simulator"), required=True)
                 leaf.add_argument("--source-case", action="append", required=True)
+            if group == "learning" and action in {"register", "review"}:
+                leaf.add_argument("--body", required=True, help="public JSON request or @file")
+            if group == "learning" and action == "prepare":
+                leaf.add_argument("--proposal", required=True)
+                leaf.add_argument("--suite", required=True)
             if action in ("create", "seed", "restore", "add") and group != "checkpoint":
                 leaf.add_argument("--body", help="public JSON object or @file")
             if group == "family" and action == "create":
@@ -186,6 +192,30 @@ def dispatch(args):
                 })
             resource = "memory" if action == "graph" else "memory-snapshots"
             return client.read(resource, getattr(args, "identity", None))
+        if group == "learning":
+            if action == "proposals":
+                return client.read("learning-proposals")
+            if action == "prepare":
+                from .checkpoints import _git
+
+                proposal = client.read("learning-proposals", args.proposal)
+                if proposal["status"] != "draft":
+                    raise ValueError("learning proposal is not a draft")
+                recommended = client.read("recommended", args.suite)
+                baseline = client.read("checkpoints", recommended["checkpoint_id"])
+                if _git(args.repo, "status", "--porcelain"):
+                    raise ValueError("config candidate source checkout must be clean")
+                if baseline.get("source_tree") != _git(args.repo, "rev-parse", "HEAD^{tree}"):
+                    raise ValueError("restore the recommended source tree before preparing a config candidate")
+                config = {**baseline["config"], **proposal["config_patch"]}
+                if config == baseline["config"]:
+                    raise ValueError("bounded proposal does not change the recommended configuration")
+                return create_checkpoint(
+                    args.repo, config=config, runner=baseline["runner"], author=args.author,
+                    description=proposal["hypothesis"], parent_id=baseline["checkpoint_id"],
+                    data=baseline["data"], root=args.root / "checkpoints",
+                )
+            return client.write("learning-" + action, public_json(args.body))
         if group == "suite":
             if action == "create":
                 return client.write("suite", public_json(args.body) if args.body else default_suite())

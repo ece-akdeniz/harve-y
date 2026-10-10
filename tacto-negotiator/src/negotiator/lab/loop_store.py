@@ -5,6 +5,7 @@ import sqlite3
 import time
 from pathlib import Path
 
+from ..ingestion import fingerprint
 from .checkpoints import validate_checkpoint
 from .evidence import validate_references
 from .loop_models import (
@@ -22,7 +23,7 @@ from .loop_models import (
 from .memory import MemoryStore
 from .ordering import campaign_order
 from .policy import evaluate_campaign
-from .store import Conflict
+from .store import Conflict, Store
 
 
 class LoopStore:
@@ -108,6 +109,8 @@ class LoopStore:
             if not isinstance(body, dict) or set(body) != {'arena_url', 'environment', 'source_cases'}:
                 raise ValueError('invalid memory snapshot request')
             return MemoryStore(self.path).build(**body)
+        if operation in {"learning-register", "learning-review"}:
+            return self._learning_decision(operation, body)
         models = {
             "suite": Suite,
             "family": Family,
@@ -342,17 +345,25 @@ class LoopStore:
                 if old["generation"] != campaign["generation"] or old["checkpoint_id"] != campaign["baseline_id"]:
                     status = "baseline_superseded"
                 elif evaluation["eligible"]:
-                    status = "promoted"
-                    self._recommend(
-                        db,
-                        suite,
-                        campaign["candidate_id"],
-                        old,
-                        "promotion:" + campaign["campaign_id"],
-                        "promotion",
-                        campaign_id=campaign["campaign_id"],
-                        evaluation=evaluation,
-                    )
+                    proposal = db.execute(
+                        "SELECT proposal_id,body FROM learning_proposals WHERE "
+                        "json_extract(body,'$.checkpoint_id')=?",
+                        (campaign["candidate_id"],),
+                    ).fetchone() if self._has_table(db, "learning_proposals") else None
+                    if proposal:
+                        draft = json.loads(proposal[1])
+                        status = "awaiting_review" if draft.get("status") == "registered" else "proposal_unavailable"
+                        if status == "awaiting_review":
+                            draft.update(status=status, campaign_id=campaign["campaign_id"])
+                            db.execute("UPDATE learning_proposals SET body=? WHERE proposal_id=?",
+                                       (json.dumps(draft, sort_keys=True), proposal[0]))
+                    else:
+                        status = "promoted"
+                        self._recommend(
+                            db, suite, campaign["candidate_id"], old,
+                            "promotion:" + campaign["campaign_id"], "promotion",
+                            campaign_id=campaign["campaign_id"], evaluation=evaluation,
+                        )
                 else:
                     status = (
                         "insufficient_evidence"
@@ -373,6 +384,81 @@ class LoopStore:
                 validate_references(body["evidence"], campaign["attempts"])
                 return self._put(db, "findings", body["finding_id"], body, immutable=True)
         raise ValueError("unknown operation")
+
+    @staticmethod
+    def _has_table(db, name):
+        return db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", (name,)).fetchone() is not None
+
+    def _proposal_current(self, proposal):
+        if proposal.get("run_id") and proposal.get("source_sha256"):
+            source = Store(self.path).get(proposal["run_id"])
+            if not source or fingerprint(source) != proposal["source_sha256"]:
+                raise Conflict("learning proposal source changed")
+
+    def _learning_decision(self, operation, body):
+        if not isinstance(body, dict):
+            raise ValueError("invalid learning request")
+        with self._connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            if not self._has_table(db, "learning_proposals"):
+                raise ValueError("learning proposal not found")
+            if operation == "learning-register":
+                if set(body) != {"proposal_id", "checkpoint_id"}:
+                    raise ValueError("invalid learning registration")
+                row = db.execute("SELECT body FROM learning_proposals WHERE proposal_id=?",
+                                 (body["proposal_id"],)).fetchone()
+                if not row:
+                    raise ValueError("learning proposal not found")
+                proposal = json.loads(row[0])
+                if proposal.get("checkpoint_id") == body["checkpoint_id"]:
+                    return proposal
+                if proposal["status"] != "draft":
+                    raise Conflict("learning proposal already registered")
+                self._proposal_current(proposal)
+                checkpoint = self._get(db, "checkpoints", body["checkpoint_id"])
+                if not checkpoint["published"] or not checkpoint["parent_id"]:
+                    raise ValueError("published child checkpoint required")
+                baseline = self._get(db, "checkpoints", checkpoint["parent_id"])
+                expected = {**baseline["config"], **proposal["config_patch"]}
+                if checkpoint["config"] != expected:
+                    raise ValueError("checkpoint differs from bounded proposal")
+                proposal.update(checkpoint_id=body["checkpoint_id"], status="registered")
+                db.execute("UPDATE learning_proposals SET body=? WHERE proposal_id=?",
+                           (json.dumps(proposal, sort_keys=True), body["proposal_id"]))
+                return proposal
+            if set(body) != {"proposal_id", "campaign_id", "author", "approve"} or (
+                not isinstance(body["author"], str) or not body["author"] or type(body["approve"]) is not bool
+            ):
+                raise ValueError("invalid learning review")
+            row = db.execute("SELECT body FROM learning_proposals WHERE proposal_id=?",
+                             (body["proposal_id"],)).fetchone()
+            if not row:
+                raise ValueError("learning proposal not found")
+            proposal = json.loads(row[0])
+            self._proposal_current(proposal)
+            if proposal.get("review") == body:
+                return proposal
+            if proposal.get("status") != "awaiting_review" or proposal.get("campaign_id") != body["campaign_id"]:
+                raise Conflict("proposal is not awaiting this review")
+            campaign = self._get(db, "campaigns", body["campaign_id"])
+            if body["author"] == campaign["author"]:
+                raise ValueError("teammate review requires a different author")
+            if (campaign["candidate_id"] != proposal["checkpoint_id"]
+                    or not campaign["completion"]["evaluation"]["eligible"]):
+                raise ValueError("campaign is not an eligible comparison")
+            suite = self._get(db, "suites", campaign["suite_id"])
+            rec = self._get(db, "recommended", suite["suite_id"])
+            if rec["generation"] != campaign["generation"] or rec["checkpoint_id"] != campaign["baseline_id"]:
+                raise Conflict("baseline was superseded before review")
+            if body["approve"]:
+                self._recommend(db, suite, campaign["candidate_id"], rec,
+                                "reviewed-promotion:" + body["campaign_id"], "reviewed_promotion",
+                                campaign_id=body["campaign_id"], author=body["author"],
+                                evaluation=campaign["completion"]["evaluation"])
+            proposal.update(status="approved" if body["approve"] else "rejected", review=body)
+            db.execute("UPDATE learning_proposals SET body=? WHERE proposal_id=?",
+                       (json.dumps(proposal, sort_keys=True), body["proposal_id"]))
+            return proposal
 
     def _attempt(self, db, key):
         for campaign in self._all(db, "campaigns"):
@@ -403,6 +489,18 @@ class LoopStore:
         return rec
 
     def read(self, resource: str, key: str | None = None) -> dict:
+        if resource == "learning-proposals":
+            with self._connect() as db:
+                if not self._has_table(db, "learning_proposals"):
+                    return {"learning-proposals": []}
+                if key is not None:
+                    row = db.execute("SELECT body FROM learning_proposals WHERE proposal_id=?", (key,)).fetchone()
+                    if not row:
+                        raise ValueError("learning proposal not found")
+                    return json.loads(row[0])
+                return {"learning-proposals": [json.loads(row[0]) for row in db.execute(
+                    "SELECT body FROM learning_proposals ORDER BY proposal_id"
+                )]}
         if resource == 'memory':
             if key is not None:
                 raise ValueError('memory graph does not take a key')

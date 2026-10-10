@@ -198,6 +198,25 @@ class Handler(BaseHTTPRequestHandler):
                 self._error(400, "invalid loop request")
             else:
                 self._json(200, result)
+        elif path.startswith("/api/learning/retry/"):
+            if not self._authenticated(write=True):
+                return
+            request = self._body()
+            if request is None:
+                return
+            if request != {}:
+                self._error(400, "empty JSON body required")
+                return
+            from .learning import LearningStore
+
+            try:
+                report = LearningStore(self.server.store.path).review(unquote(path[len("/api/learning/retry/"):]))
+            except (ValueError, TypeError):
+                self._error(400, "terminal run or learning inputs unavailable")
+            except Exception:
+                self._error(503, "learning projection failed; retry later")
+            else:
+                self._json(200, {"run_id": report["run_id"], "state": "ready"})
         else:
             self._error(404, "route not found")
 
@@ -222,11 +241,11 @@ class Handler(BaseHTTPRequestHandler):
             self._error(400, "invalid run snapshot")
         else:
             if accepted and run.status in {"completed", "failed", "interrupted"}:
-                from .feedback import review_one
+                from .learning import LearningStore
 
                 try:
-                    review_one(self.server.store, run.run_id)
-                except (OSError, ValueError, TypeError):
+                    LearningStore(self.server.store.path).review(run.run_id)
+                except Exception:
                     # Feedback is advisory; an accepted original run must remain saved.
                     pass
             self._json(200, {"ok": True, "accepted": accepted})
@@ -258,13 +277,57 @@ class Handler(BaseHTTPRequestHandler):
             elif path.startswith("/api/feedback/"):
                 from .feedback import FeedbackAgent
                 from .knowledge import SnapshotMemory, export_graph
+                from .learning import LearningStore
 
-                body = self.server.store.get(unquote(path[len("/api/feedback/"):]))
-                if body:
+                run_id = unquote(path[len("/api/feedback/"):])
+                learning = LearningStore(self.server.store.path)
+                saved = learning.report(run_id)
+                body = self.server.store.get(run_id)
+                if saved:
+                    self._json(200, saved)
+                elif body and body["status"] not in {"completed", "failed", "interrupted"}:
                     memory = SnapshotMemory(export_graph(self.server.store.all()))
                     self._json(200, FeedbackAgent().review(body, memory=memory))
+                elif body and learning.status(run_id)["state"] == "failed":
+                    self._error(503, "learning projection failed; retry available")
                 else:
                     self._error(404, "run not found")
+            elif path.startswith("/api/learning/status/"):
+                from .learning import LearningStore
+
+                self._json(200, LearningStore(self.server.store.path).status(
+                    unquote(path[len("/api/learning/status/"):])
+                ))
+            elif path == "/api/learning/proposals":
+                from .learning import LearningStore
+
+                self._json(200, {"proposals": LearningStore(self.server.store.path).proposals()})
+            elif path == "/api/learning/context":
+                from .learning import LearningStore
+
+                params = parse_qs(parts.query)
+                try:
+                    context = LearningStore(self.server.store.path).context(
+                        supplier=params["supplier"][0], case_id=params["case_id"][0],
+                        arena_url=params["arena_url"][0], environment=params["environment"][0],
+                        data_sha256=params["data_sha256"][0], before=params["before"][0],
+                        purpose=params.get("purpose", ["feedback"])[0],
+                        limit=int(params.get("limit", ["20"])[0]),
+                    )
+                except (KeyError, IndexError, ValueError, TypeError, AttributeError):
+                    self._error(400, "invalid learning context")
+                else:
+                    self._json(200, context)
+            elif path == "/api/learning/graph":
+                from .learning import LearningStore
+
+                params = parse_qs(parts.query)
+                try:
+                    self._json(200, LearningStore(self.server.store.path).graph(
+                        params.get("data_sha256", [None])[0]
+                    ))
+                except (ValueError, TypeError):
+                    self._error(400, "learning graph unavailable")
             elif path.startswith("/api/runs/"):
                 body = self.server.store.get(unquote(path[len("/api/runs/") :]))
                 self._json(200, body) if body else self._error(404, "run not found")

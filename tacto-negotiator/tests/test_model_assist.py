@@ -45,8 +45,10 @@ def test_model_timeout_falls_back_to_rules_and_only_cited_signal_vetoes_argument
         raise TimeoutError
 
     events = [{"from": "supplier", "body": "We are hedged."}]
-    result = ModelAssist(complete=fail).read({"type": "renewal"}, events, "sup:A")
+    model = ModelAssist(complete=fail)
+    result = model.read({"type": "renewal"}, events, "sup:A")
     assert result["source"] == "rules"
+    assert model.metrics()["calls"] == model.metrics()["fallbacks"] == 1
     assert "index_change" in evidence_constraints(events, result)[1]
     assert result["terms"] == []
 
