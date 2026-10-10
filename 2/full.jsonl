@@ -3,3 +3,6 @@
 {"role":"user","message":{"content":[{"type":"text","text":"<timestamp>Saturday, Oct 10, 2026, 8:28 PM (UTC+2)</timestamp>\n<user_query>\nHello?\n</user_query>"}]}}
 {"type":"turn_ended","status":"error","error":"composer_abort_controller_aborted"}
 {"role":"user","message":{"content":[{"type":"text","text":"<timestamp>Saturday, Oct 10, 2026, 8:28 PM (UTC+2)</timestamp>\n<user_query>\nHello?\n</user_query>"}]}}
+{"role":"user","message":{"content":[{"type":"text","text":"<timestamp>Saturday, Oct 10, 2026, 8:32 PM (UTC+2)</timestamp>\n<user_query>\nHello?\n</user_query>"}]}}
+{"role":"assistant","message":{"content":[{"type":"text","text":"Hey, I'm here. What do you need?"}]}}
+{"type":"turn_ended","status":"success"}

@@ -1,3 +1,5 @@
 {"v":1,"agent":"cursor","cli_version":"0.11.4","type":"user","content":[{"text":"Helo?"}]}
 {"v":1,"agent":"cursor","cli_version":"0.11.4","type":"user","content":[{"text":"Hello?"}]}
 {"v":1,"agent":"cursor","cli_version":"0.11.4","type":"user","content":[{"text":"Hello?"}]}
+{"v":1,"agent":"cursor","cli_version":"0.11.4","type":"user","content":[{"text":"Hello?"}]}
+{"v":1,"agent":"cursor","cli_version":"0.11.4","type":"assistant","content":[{"text":"Hey, I'm here. What do you need?","type":"text"}]}
