@@ -25,9 +25,11 @@ def supplier_for(estimates, supplier_id, standard):
     return {**est, "standard": est.get("standard") or standard or {}}
 
 
-def eligible_sheets(case, events, supplier=None):
+def eligible_sheets(case, events, supplier=None, alternatives=False):
     """[(C, term_sheet_id, terms)] of the supplier's latest message, cheapest first: priced,
-    must-haves kept with standard terms resolved, thread not ended."""
+    must-haves kept with standard terms resolved, thread not ended. Only the first sheet is the
+    standing offer the arena lets us accept ("offer:...-a" alternatives give HTTP 422); with
+    `alternatives` the other sheets are included as packages to counter with."""
     if not events:
         return []
     msg = latest(events)
@@ -35,7 +37,8 @@ def eligible_sheets(case, events, supplier=None):
         return []
     std = standard_terms(events)
     out = []
-    for sheet in msg.get("term_sheets") or []:
+    sheets = msg.get("term_sheets") or []
+    for sheet in sheets if alternatives else sheets[:1]:
         sheet_id, terms = sheet.get("term_sheet_id"), sheet.get("terms") or {}
         if not sheet_id or closing_terms(case, terms, std).get("unit_price") is None:
             continue

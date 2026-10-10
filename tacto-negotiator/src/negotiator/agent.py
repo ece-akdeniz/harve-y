@@ -33,7 +33,7 @@ log = logging.getLogger("negotiator")
 def standing(case, events, supplier=None):
     """(term_sheet_id, terms) of the cheapest eligible sheet in the supplier's latest message, else
     of its cheapest priced sheet, else (None, {})."""
-    cands = eligible_sheets(case, events, supplier) or _priced(case, events, supplier)
+    cands = eligible_sheets(case, events, supplier, alternatives=True) or _priced(case, events, supplier)
     if cands:
         return cands[0][1], cands[0][2]
     sheets = latest(events).get("term_sheets") or [] if events else []
@@ -281,11 +281,20 @@ class PackageAgent:
         events, std, sup = threads[sid], standard_terms(threads[sid]), self._sup(case, threads, sid)
         cands = eligible_sheets(case, events, sup)
         if not cands:
+            alts = eligible_sheets(case, events, sup, alternatives=True)
+            best = best_close(case, threads, self.estimates_for(case))
+            if alts and alts[0][0] < min(c_alt, best[0] if best else math.inf):
+                self.final_counters[sid] = self.final_counters.get(sid, 0) + 1
+                reason = "final offer breaks a must-have: take its valid alternative"
+                return self._offer(case, sid, complete_offer(case, alts[0][2]), std, sup, c_alt, reason)
             return None
         c_f, _, terms_f = cands[0]
         n = self.prev.get(sid) or nonprice(case, best_terms(case, terms_f["unit_price"], std, sup))
         best = best_close(case, threads, self.estimates_for(case))
-        if best is None:
+        alts = [x for x in eligible_sheets(case, events, sup, alternatives=True) if x[1] != cands[0][1]]
+        if best is None and alts and alts[0][0] < c_alt:
+            terms, reason = complete_offer(case, alts[0][2]), "final offer above alternative: take its alternative"
+        elif best is None:
             if not math.isfinite(c_alt):
                 return None
             price = price_for_cost(case, {**n, "unit_price": terms_f["unit_price"]}, c_alt * 0.998, std, sup)
@@ -293,6 +302,9 @@ class PackageAgent:
             terms, reason = {**n, "unit_price": price}, "final offer above alternative: one counter"
         elif best[1] == sid:
             terms, reason = {**n, "unit_price": terms_f["unit_price"]}, "final offer: same price, our terms"
+            c_alt_sheet, alt_id, alt_terms = eligible_sheets(case, events, sup, alternatives=True)[0]
+            if alt_id != cands[0][1] and c_alt_sheet < total_cost(case, terms, std, sup):
+                terms, reason = complete_offer(case, alt_terms), "final offer: its own cheaper alternative"
             gain = c_f - total_cost(case, terms, std, sup)
             rivals = [
                 c for s in live_threads(threads) if s != sid
@@ -313,11 +325,12 @@ class PackageAgent:
     def decide_thread(self, case, threads, sid, c_alt, cap_c=None, why=None):
         events = threads[sid]
         std, sup = standard_terms(events), self._sup(case, threads, sid)
-        cands = eligible_sheets(case, events, sup)
+        cands = eligible_sheets(case, events, sup, alternatives=True)
         eligible = bool(cands)
         cands = cands or _priced(case, events, sup)
         if not cands:
             return {"close": True, "reason": "no price quoted"}
+        standing_id = ((latest(events).get("term_sheets") or [{}])[0]).get("term_sheet_id")
         if deltas := revealed_deltas(case, latest(events).get("term_sheets") or [], std):
             self._log(case, "revealed", sid, deltas=deltas)
 
@@ -328,7 +341,7 @@ class PackageAgent:
         p_open = p
         if first is not None:
             first_events = events[: first + 1]
-            open_cands = eligible_sheets(case, first_events, sup) or _priced(case, first_events, sup)
+            open_cands = eligible_sheets(case, first_events, sup, alternatives=True) or _priced(case, first_events, sup)
             if open_cands:
                 p_open = self._ask_on(case, n, open_cands, std, sup)
 
@@ -341,6 +354,10 @@ class PackageAgent:
             match = {**n, "unit_price": p}
             if total_cost(case, match, std, sup) < ref_c - 1e-6 and ours[-1] != match:
                 return self._offer(case, sid, match, std, sup, c_alt, "gap closed: their price, our terms")
+            if eligible and cands[0][1] != standing_id and complete_offer(case, cands[0][2]) != ours[-1]:
+                # only the standing sheet can be accepted: counter with the cheaper alternative
+                alt = complete_offer(case, cands[0][2])
+                return self._offer(case, sid, alt, std, sup, c_alt, "gap closed: take alternative")
             return {"close": True, "reason": "gap closed"}
 
         floor = p_open * (1 - self.anchor)

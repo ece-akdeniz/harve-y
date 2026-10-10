@@ -87,9 +87,10 @@ BAD = {"unit_price": 14.0, "payment_days": 45, "lead_time_days": 49, "incoterm":
 GOOD = {"unit_price": 16.0, "payment_days": 45, "lead_time_days": 35, "incoterm": "EXW"}
 
 
-def test_eligible_sheets_drop_must_have_break_then_rank_by_c():
-    events = [msg("open", ("offer:bad", BAD), ("offer:good", GOOD), ("offer:dear", {**GOOD, "unit_price": 17.0}))]
-    out = eligible_sheets(RFQ, events)
+def test_eligible_sheets_standing_only_unless_alternatives():
+    events = [msg("open", ("offer:dear", {**GOOD, "unit_price": 17.0}), ("offer:bad", BAD), ("offer:good", GOOD))]
+    assert [s for _, s, _ in eligible_sheets(RFQ, events)] == ["offer:dear"]
+    out = eligible_sheets(RFQ, events, alternatives=True)
     assert [s for _, s, _ in out] == ["offer:good", "offer:dear"]
     assert out[0][0] == total_cost(RFQ, GOOD)
 
@@ -98,12 +99,19 @@ def test_eligible_sheets_empty_for_ended_thread():
     assert eligible_sheets(RFQ, [msg("walked_away", ("offer:good", GOOD))]) == []
 
 
-def test_invalid_cheapest_plus_valid_alternative_accepts_alternative():
-    threads = {"sup:J": [msg("agreed", ("offer:bad", BAD), ("offer:good", GOOD))]}
+def test_valid_standing_sheet_accepted_despite_cheaper_invalid_alternative():
+    threads = {"sup:J": [msg("agreed", ("offer:good", GOOD), ("offer:bad-a", BAD))]}
     move = close_decision(RFQ, threads)
     assert move == {"supplier_id": "sup:J", "message": {"action": {"type": "accept", "term_sheet_id": "offer:good"}}}
     move = PackageAgent().decide(RFQ, threads)
     assert move["message"]["action"] == {"type": "accept", "term_sheet_id": "offer:good"}
+
+
+def test_alternative_sheet_is_never_accepted_but_countered():
+    threads = {"sup:J": [msg("final_offer", ("offer:bad", BAD), ("offer:good-a", GOOD))]}
+    assert close_decision(RFQ, threads)["message"]["action"] == {"type": "walk_away"}
+    move = PackageAgent().decide(RFQ, threads)
+    assert move["message"]["term_sheets"][0]["terms"] == GOOD
 
 
 def test_close_decision_picks_best_across_threads():
@@ -116,20 +124,27 @@ def test_close_decision_picks_best_across_threads():
 
 def test_walk_when_nothing_beats_alternative():
     dear = {**GOOD, "unit_price": 25.0}
-    threads = {"sup:J": [msg("agreed", ("offer:bad", BAD), ("offer:dear", dear))]}
+    threads = {"sup:J": [msg("agreed", ("offer:dear", dear), ("offer:bad", BAD))]}
     assert close_decision(RFQ, threads)["message"]["action"] == {"type": "walk_away"}
     assert PackageAgent().decide(RFQ, threads)["message"]["action"] == {"type": "walk_away"}
 
 
+TWO = {**STABILISE, "suppliers": ["sup:F", "sup:G"]}
+EST2 = {**ESTIMATE, "sup:G": ESTIMATE["sup:F"]}
+LOW, FAIR = {"unit_price": 45.0, "payment_days": 60}, {"unit_price": 47.5, "payment_days": 60}
+
+
 def test_estimates_change_the_ranking():
-    low, fair = {"unit_price": 45.0, "payment_days": 60}, {"unit_price": 47.5, "payment_days": 60}
-    threads = {"sup:F": [msg("agreed", ("offer:low", low), ("offer:fair", fair))]}
-    assert close_decision(STABILISE, threads)["message"]["action"]["term_sheet_id"] == "offer:low"
-    move = close_decision(STABILISE, threads, ESTIMATE)
+    events = [msg("open", ("offer:low", LOW), ("offer:fair", FAIR))]
+    assert eligible_sheets(STABILISE, events, alternatives=True)[0][1] == "offer:low"
+    sup = {**ESTIMATE["sup:F"]}
+    assert eligible_sheets(STABILISE, events, sup, alternatives=True)[0][1] == "offer:fair"
+    threads = {"sup:F": [msg("agreed", ("offer:low", LOW))], "sup:G": [msg("open", ("offer:fair", FAIR))]}
+    assert close_decision(TWO, threads)["message"]["action"]["term_sheet_id"] == "offer:low"
+    move = close_decision(TWO, threads, EST2)
+    assert move["supplier_id"] == "sup:G" and move["message"]["action"]["term_sheet_id"] == "offer:fair"
+    move = PackageAgent(estimates=EST2).decide(TWO, threads)
     assert move["message"]["action"]["term_sheet_id"] == "offer:fair"
-    assert PackageAgent(estimates=ESTIMATE).decide(STABILISE, threads)["message"]["action"]["term_sheet_id"] == (
-        "offer:fair"
-    )
 
 
 class FakeTable:
@@ -157,17 +172,18 @@ class NoDecide(PackageAgent):
 
 
 def test_play_case_deadline_uses_close_decision_with_estimates():
-    low, fair = {"unit_price": 45.0, "payment_days": 60}, {"unit_price": 47.5, "payment_days": 60}
-    table = FakeTable(STABILISE, {"sup:F": [msg("open", ("offer:low", low), ("offer:fair", fair))]})
-    play_case(table, "case:T01", NoDecide(estimates=ESTIMATE), deadline=time.time())
-    assert table.closed == [("sup:F", {"action": {"type": "accept", "term_sheet_id": "offer:fair"}})]
+    threads = {"sup:F": [msg("open", ("offer:low", LOW))], "sup:G": [msg("open", ("offer:fair", FAIR))]}
+    table = FakeTable(TWO, threads)
+    play_case(table, "case:T01", NoDecide(estimates=EST2), deadline=time.time())
+    assert table.closed == [("sup:G", {"action": {"type": "accept", "term_sheet_id": "offer:fair"}})]
     assert not table.sent
 
 
-def test_play_case_deadline_skips_invalid_first_sheet():
-    table = FakeTable(RFQ, {"sup:J": [msg("open", ("offer:bad", BAD), ("offer:good", GOOD))]})
+def test_play_case_deadline_skips_invalid_sheet():
+    threads = {"sup:J": [msg("open", ("offer:bad", BAD))], "sup:C": [msg("open", ("offer:good", GOOD))]}
+    table = FakeTable(RFQ, threads)
     play_case(table, "case:T02", NoDecide(), deadline=lambda: time.time())
-    assert table.closed == [("sup:J", {"action": {"type": "accept", "term_sheet_id": "offer:good"}})]
+    assert table.closed == [("sup:C", {"action": {"type": "accept", "term_sheet_id": "offer:good"}})]
 
 
 def test_price_for_cost_inverts_total_cost():
