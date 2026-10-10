@@ -91,6 +91,9 @@ class PackageAgent:
         p_walk=0.25,
         claims=None,
         policy=None,
+        model_assist=False,
+        model_provider=None,
+        model_name=None,
     ):
         self.anchor, self.rounds, self.close_gap, self.tracer = anchor, rounds, close_gap, tracer
         if isinstance(policy, dict):
@@ -110,10 +113,22 @@ class PackageAgent:
         if policy is not None:
             self.claims = bool(policy.evidence_types)
         self.evidence = None
+        self.model_context = {}
+        self.model_seen = {}
+        self.model_assist = None
+        if model_assist:
+            from .model_assist import ModelAssist
+
+            self.model_assist = model_assist if isinstance(model_assist, ModelAssist) else ModelAssist(
+                memory_path=os.environ.get("NEGOTIATOR_APPROVED_MEMORY"),
+                data_sha256=os.environ.get("NEGOTIATOR_DATA_SHA256"),
+                provider=model_provider, model=model_name,
+            )
         if self.claims:
             from .evidence import EvidencePolicy
 
-            self.evidence = EvidencePolicy(tracer=tracer, case_types=policy.evidence_types if policy else None)
+            self.evidence = EvidencePolicy(tracer=tracer, case_types=policy.evidence_types if policy else None,
+                                           interpretation=self.model_context)
         self.prev = {}  # supplier -> non-price terms of our last offer
         self.final_counters = {}  # supplier -> counters sent to its final offers (at most one)
         self.beat_asked = {}  # rival supplier -> final-offer sheet id we asked it to beat
@@ -121,6 +136,30 @@ class PackageAgent:
         if estimates is None and os.environ.get("NEGOTIATOR_ESTIMATES") != "1":
             estimates = {}  # dossier estimates are opt-in until calibrated (docs: experiments/LOG.md)
         self._estimates, self._est_case, self._est_cache = estimates, None, {}
+
+    def prepare_email(self, case, threads, sid):
+        """Call the model at most once per supplier message; async runner calls outside its lock."""
+        if self.model_assist is None:
+            return
+        events = threads.get(sid, [])
+        latest_supplier = next(((i, e) for i, e in reversed(list(enumerate(events)))
+                                if e.get("from") != "buyer"), None)
+        if latest_supplier is None:
+            return
+        from .ingestion import fingerprint
+
+        token = (latest_supplier[0], fingerprint(latest_supplier[1]))
+        if self.model_seen.get(sid) == token:
+            return
+        try:
+            result = self.model_assist.read(case, events, sid)
+        except Exception:
+            from .replies import interpret
+
+            result = {**interpret(events), "terms": [], "questions": [], "lessons": [], "source": "rules"}
+        self.model_context[sid] = result
+        self.model_seen[sid] = token
+        self._log(case, "model_interpretation", sid, interpretation=result)
 
     # -- estimates ----------------------------------------------------------------------------
     def estimates_for(self, case):
@@ -183,6 +222,20 @@ class PackageAgent:
             body += (
                 " This is a conditional exchange: we can commit to this package in return for the proposed unit price."
             )
+        context = self.model_context.get(sid, {})
+        signals = [x for x in context.get("signals", [])
+                   if x.get("message_index") == self.model_seen.get(sid, (-1,))[0]]
+        latest_signal = next(
+            (x for x in reversed(signals) if x.get("kind") in
+             {"payment_trade", "quality_objection", "delivery_constraint", "capacity_constraint"}), None
+        )
+        if latest_signal:
+            body += {
+                "payment_trade": " We can consider payment terms as part of the full package.",
+                "quality_objection": " We can discuss the quality requirements as part of this package.",
+                "delivery_constraint": " Please clarify which delivery requirement is difficult to meet.",
+                "capacity_constraint": " Please clarify the capacity you can commit to.",
+            }[latest_signal["kind"]]
         assert not leaks(body), "body would leak internal information"
         self.prev[sid] = {k: v for k, v in terms.items() if k != "unit_price"}
         c = total_cost(case, terms, std, sup)
@@ -289,6 +342,8 @@ class PackageAgent:
         return self._close(case, threads, reason)
 
     def propose(self, case, threads, supplier_id):
+        if supplier_id not in self.model_seen:
+            self.prepare_email(case, threads, supplier_id)
         if self.policy:
             ours = self._ours(threads[supplier_id])
             if ours:
@@ -488,5 +543,9 @@ class PackageAgent:
         if self.trades and case["type"] in self.policy.package_types:
             terms, trade_reason = self.trades.switch(case, sid, events, terms, std, sup)
             why = trade_reason or why
-        variants = self._payment_variants(case, terms, cands[0][2], std, sup) if self.meso else []
+        model_payment = any(
+            s.get("kind") == "payment_trade" and s.get("message_index") == self.model_seen.get(sid, (-1,))[0]
+            for s in self.model_context.get(sid, {}).get("signals", [])
+        )
+        variants = self._payment_variants(case, terms, cands[0][2], std, sup) if self.meso or model_payment else []
         return self._offer(case, sid, terms, std, sup, c_alt, why or f"round {k + 1} schedule", variants)

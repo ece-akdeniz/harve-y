@@ -73,6 +73,16 @@ def run_config(agent, runner="serial-play_case", facts="data/package/facts.json"
     data = hashlib.sha256(path.read_bytes()).hexdigest()[:12] if path.exists() else None
     keys = ("anchor", "rounds", "close_gap", "final_hold_s", "meso", "p_walk", "claims")
     params = {k: getattr(agent, k) for k in keys if hasattr(agent, k)}
+    assist = getattr(agent, "model_assist", None)
+    params["model_assist"] = bool(assist)
+    if assist:
+        params["model_provider"] = assist.provider or os.environ.get("LLM_PROVIDER", "anthropic")
+        params["model_name"] = assist.model or os.environ.get("LLM_MODEL")
+        memory_path = getattr(assist, "memory_path", None)
+        params["approved_memory_sha256"] = (
+            hashlib.sha256(Path(memory_path).read_bytes()).hexdigest()
+            if memory_path and Path(memory_path).is_file() else None
+        )
     return {
         "commit": commit,
         "src_dirty": dirty,
@@ -127,6 +137,9 @@ def play_case(table, case_id, agent, deadline=None):
             if hasattr(agent, "log_close"):
                 agent.log_close(case, threads, decision, "deadline")
         else:
+            if getattr(agent, "model_assist", None):
+                for sid in live_threads(threads):
+                    agent.prepare_email(case, threads, sid)
             decision = agent.decide(case, threads)
         if (took := time.monotonic() - t0) > MOVE_LIMIT_S * 0.75:
             log.warning("decision took %.1fs - the limit is %ss per message", took, MOVE_LIMIT_S)

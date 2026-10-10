@@ -344,6 +344,9 @@ class CaseRunner:
         t = self.st.threads[sid]
         while not self.closing and not self.st.ended and not t.closed and not t.parked:
             t0 = self.clock.time()
+            if getattr(self.agent, "model_assist", None):
+                snap = self._live_snapshot()
+                await asyncio.to_thread(self.agent.prepare_email, self.st.case, snap, sid)
             async with self.lock:  # decide + journal only; no HTTP under the lock
                 if self.closing or self.st.ended:
                     return

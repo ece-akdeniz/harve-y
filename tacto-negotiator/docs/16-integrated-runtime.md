@@ -92,3 +92,30 @@ are not enabled. Feedback proposes experiments; the lab's paired gates and expli
 decide policy adoption. New-release and final wave/host rehearsal remain release gates. The bounded
 relationship search may reject an unsampled narrow feasible interval; it never fabricates a price.
 General web news is not attached to fictional arena suppliers.
+
+## Opt-in model interpretation candidate
+
+`--model-assist` enables a short model read of each new supplier email. Set `LLM_PROVIDER`
+(`anthropic` or `openai`), `LLM_MODEL`, and that provider's API key. The lab checkpoint stores
+the provider and model name in its resolved configuration. A provider error, malformed JSON or
+uncited extraction falls back to the existing deterministic parser. The async runner does the
+bounded call outside its case decision lock; calls are cached per supplier message.
+
+The model may extract objections, constraints, questions and proposed terms only when it cites
+verbatim text from the current supplier email. Extracted terms carry `sheet_matched` or
+`prose_only_unverified`; only the actual structured term sheet can be accepted. A cited index
+objection can suppress that argument and select another verified claim. Template wording can
+acknowledge selected concerns, but offers, prices, refs and closing decisions remain in code.
+
+Optional live memory is read from `NEGOTIATOR_APPROVED_MEMORY` with
+`NEGOTIATOR_DATA_SHA256` set to the lab data fingerprint. The snapshot must contain version 1
+`lessons` with an exact supplier, case type, environment and data hash, valid-from/expiry,
+approver, campaign, confidence and cited run/attempt evidence. Only explicitly approved lessons
+are sent to the model; raw graph history and scores are never sent to the live agent. Barış's
+graph service can replace this file adapter while retaining those filters. The model can cite
+an approved lesson and summarize it as an observation; only its approved `avoid_claim_kind` may
+change claim selection. No automatic lesson approval is implemented.
+
+This candidate has local tests, including a full async simulator case. It has not passed a
+hosted baseline/candidate campaign. Model quality, latency and token cost need measurement on
+the actual provider before selection for a final run.

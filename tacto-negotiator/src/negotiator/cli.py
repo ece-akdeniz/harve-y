@@ -49,6 +49,7 @@ def main(argv=None) -> int:
     for sp in (p, r):
         sp.add_argument("--policy-config", help="versioned JSON experiment policy")
         sp.add_argument("--runner", choices=["serial", "async"], default="serial")
+        sp.add_argument("--model-assist", action="store_true", help="bounded supplier-email model interpretation")
     rep = sub.add_parser("report", help="summarise a run directory")
     rep.add_argument("run_dir")
     rep.add_argument("--json", action="store_true")
@@ -79,7 +80,7 @@ def main(argv=None) -> int:
         ap.error(str(exc))
 
     def new_agent():
-        return PackageAgent(tracer=tracer, policy=policy)
+        return PackageAgent(tracer=tracer, policy=policy, model_assist=args.model_assist)
 
     if args.runner == "async":
         cfg = {**run_config(new_agent(), runner="async"), **runtime_config(getattr(args, "parallel", 1))}

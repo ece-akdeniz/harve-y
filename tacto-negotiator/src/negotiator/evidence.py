@@ -14,12 +14,13 @@ from .replies import evidence_constraints
 
 
 class EvidencePolicy:
-    def __init__(self, package=None, tracer=None, case_types=None):
+    def __init__(self, package=None, tracer=None, case_types=None, interpretation=None):
         self.case_types = set(case_types if case_types is not None else ["price_increase"])
         self.package = package
         self.tracer = tracer
         self.banks = {}
         self.reserved = {}
+        self.interpretation = interpretation
 
     def enrich(self, case, threads, sid, move):
         message = move.get("message")
@@ -50,7 +51,10 @@ class EvidencePolicy:
                 for event in events:
                     if event.get("from") == "buyer":
                         used.update(event.get("refs") or [])
-            interpretation, skip_kinds = evidence_constraints(events)
+            context = self.interpretation.get(sid) if self.interpretation else None
+            interpretation, skip_kinds = evidence_constraints(events, context)
+            skip_kinds.update(lesson["avoid_claim_kind"] for lesson in interpretation.get("lessons", [])
+                              if lesson.get("avoid_claim_kind"))
             rejected = set(interpretation["rejected_refs"])
             if self.tracer:
                 self.tracer.log("reply_interpretation", case=cid, supplier=sid, **interpretation)

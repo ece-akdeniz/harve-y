@@ -61,7 +61,7 @@ def interpret(events):
             "truncated": truncated}
 
 
-def evidence_constraints(events):
-    result = interpret(events)
+def evidence_constraints(events, result=None):
+    result = result or interpret(events)
     kinds = {s["kind"] for s in result["signals"]}
     return result, ({"index_change"} if "index_objection" in kinds or result["truncated"] else set())

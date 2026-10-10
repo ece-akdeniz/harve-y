@@ -2,6 +2,24 @@
 
 Format and decision rule: `docs/04-experiments.md`. Newest on top. One entry per change.
 
+## 2026-10-10 — Bounded model email reading and approved memory (LOCAL CANDIDATE)
+
+- Hypothesis: verbatim-cited model interpretation will catch supplier objections missed by
+  regex rules, letting the verified claim selector avoid weak arguments without changing prices
+  or contract validity. Exact-scope approved lessons may improve relevance on repeated suppliers.
+- Candidate: `codex/bounded-model-memory` from `0fb3989`; `--model-assist` opt-in. Provider/model
+  are explicit in a resolved lab checkpoint. Memory requires approved, cited, version-matched,
+  time-bounded lessons. No raw shared graph records enter live policy.
+- Local evidence: a mocked supplier objection absent from regex suppresses the index claim,
+  selects a verified scorecard claim, and leaves the offer sheet unchanged. An async kit-simulator
+  S01 case with the model path enabled completes with zero recorded thread timeouts. A cited
+  payment request adds a deterministic, no-more-expensive payment variant. Malformed,
+  unsupported and uncited model outputs fall back or are discarded. Full suite: 308 passed;
+  Ruff clean.
+- Quota/provider: zero hosted sessions, zero real provider calls, zero practice sessions. No
+  score-gain or latency conclusion. Decision: candidate only; compare in a separate bounded
+  D01/D02 lab campaign after the shared lab endpoint and provider configuration are healthy.
+
 ## 2026-10-10 — Readable experiment reports (UI VALIDATION)
 
 - Hypothesis: outcome summaries, labeled terms, cost bars and per-supplier conversations make

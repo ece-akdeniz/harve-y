@@ -73,10 +73,13 @@ def _secrets(value):
 
 
 def resolve_config(config):
-    if not isinstance(config, dict) or set(config) - (set(DEFAULTS) | {'meso', 'claims', 'estimates', 'policy'}):
+    allowed = set(DEFAULTS) | {'meso', 'claims', 'estimates', 'policy', 'model_assist',
+                               'model_provider', 'model_name'}
+    if not isinstance(config, dict) or set(config) - allowed:
         raise ValueError('unknown checkpoint config option')
     out = {**DEFAULTS, 'meso': os.environ.get('NEGOTIATOR_MESO') == '1',
-           'claims': os.environ.get('NEGOTIATOR_CLAIMS') == '1',
+           'claims': os.environ.get('NEGOTIATOR_CLAIMS') == '1', 'model_assist': False,
+           'model_provider': None, 'model_name': None,
            'estimates': None if os.environ.get('NEGOTIATOR_ESTIMATES') == '1' else {}, **config}
     for key in DEFAULTS:
         value = out[key]
@@ -86,8 +89,16 @@ def resolve_config(config):
         raise ValueError('invalid rounds')
     if any(out[key] > 1 for key in ('anchor', 'close_gap', 'p_walk')):
         raise ValueError('invalid fraction')
-    if any(type(out[key]) is not bool for key in ('meso', 'claims')):
+    if any(type(out[key]) is not bool for key in ('meso', 'claims', 'model_assist')):
         raise ValueError('unresolved feature switch')
+    if out['model_assist']:
+        out['model_provider'] = out['model_provider'] or os.environ.get('LLM_PROVIDER', 'anthropic')
+        out['model_name'] = out['model_name'] or os.environ.get('LLM_MODEL')
+        if (out['model_provider'] not in {'anthropic', 'openai'}
+                or not isinstance(out['model_name'], str) or not out['model_name']):
+            raise ValueError('model assistance requires provider and model name')
+    elif out['model_provider'] is not None or out['model_name'] is not None:
+        raise ValueError('model settings require model assistance')
     if out['estimates'] is not None and not isinstance(out['estimates'], dict):
         raise ValueError('invalid estimates')
     if 'policy' in out:
@@ -136,7 +147,8 @@ def validate_checkpoint(body):
     if body['agent'] != 'package' or body['runner'] not in {'serial', 'async'}:
         raise ValueError('unsupported agent or runner')
     if (not isinstance(body['config'], dict)
-            or set(body['config']) - {'policy'} != set(DEFAULTS) | {'meso', 'claims', 'estimates'}):
+            or set(body['config']) - {'policy', 'model_assist', 'model_provider', 'model_name'}
+            != set(DEFAULTS) | {'meso', 'claims', 'estimates'}):
         raise ValueError('config must be resolved')
     resolve_config(body['config'])
     if not isinstance(body['data'], dict) or len(body['data']) > 100:
