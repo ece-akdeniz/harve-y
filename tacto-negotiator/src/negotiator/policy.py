@@ -26,6 +26,7 @@ class PolicyConfig:
     rfq_rival_offer: bool = False
     rfq_supplier_payment: bool = False
     rfq_rival_offer_history: bool = False
+    rfq_undercut_reanchor: bool = False
 
     @classmethod
     def load(cls, path):
@@ -45,7 +46,7 @@ class PolicyConfig:
             d[k] = tuple(sorted(set(v)))
         for k in ("cost_neutral_lead_time", "rfq_nonleading_hold", "rfq_final_guard", "rfq_supplier_lead_time",
                   "rfq_rival_offer", "rfq_supplier_payment",
-                  "rfq_rival_offer_history"):
+                  "rfq_rival_offer_history", "rfq_undercut_reanchor"):
             if type(d.get(k, False)) is not bool:
                 raise ValueError(f"{k} must be boolean")
         if d.get("final_offer_risk", "legacy") not in ("legacy", "opening_proxy"):
