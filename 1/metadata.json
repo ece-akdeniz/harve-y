@@ -1,0 +1,43 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4KQD5HTVKJ1BZHW4906VR8C",
+  "session_id": "be17b514-9f71-455c-b5b2-4e6c34bedc4f",
+  "strategy": "manual-commit",
+  "created_at": "2026-10-10T20:17:26.598067Z",
+  "branch": "codex/score-push-fullcost",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "tacto-negotiator/src/negotiator/evidence.py",
+    "tacto-negotiator/tests/test_rival_quote.py"
+  ],
+  "agent": "Cursor",
+  "model": "unknown",
+  "turn_id": "7538598da1db",
+  "checkpoint_transcript_start": 239,
+  "transcript_lines_at_start": 239,
+  "compact_transcript_start": 133,
+  "session_metrics": {
+    "turn_count": 22
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-10-10T20:17:26.576229Z",
+    "agent_lines": 150,
+    "agent_removed": 3,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 150,
+    "total_lines_changed": 153,
+    "agent_percentage": 100,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+Briefly inform the user about the task result and perform any follow-up actions (if needed).
+
+---
+
+Astra isn't working, so you can focus on P07
+
+---
+
+Here if that's als relevant for you:
+’d push back on four points:
+- “We never enabled these features” is inaccurate. Multi-option offers, supplier estimates and several evidence arguments have been tested. P08’s hedge evidence tied the baseline; some multi-offer experiments lost. The explorer should read those results before spending sessions.
+- Its baseline table is stale. We’ve verified P18 0.4531 and P11 0.7902, above the figures shown. Incorrect baselines can make regressions look like wins.
+- Expired sessions cannot be resumed into successful deals. Restarting the workers is fine, but they must preserve the failed attempts and explicitly budget replacement sessions.
+- Other teams’ scores identify opportunities; they don’t prove a transferable strategy. Keep hidden outcomes out of runtime pricing and supplier-cost estimates.
+The focus on P05/P08/P18/P02 makes sense. Protect ten sessions for final confirmation, reconcile actual spending centrally, and require every proposed experiment to explain what differs from previous attempts and why it could work.
+The decisive result remains: one published configuration completing all ten cases, with its actual mean and failures reported.
