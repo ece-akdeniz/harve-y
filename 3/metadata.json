@@ -1,0 +1,128 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4KNXBNYYFV4HBP8Y8SWPMAW",
+  "session_id": "01a12755-4541-7553-9440-d3afccc8025c",
+  "strategy": "manual-commit",
+  "created_at": "2026-10-10T19:51:21.406309426Z",
+  "branch": "codex-negotiator-v2-t1-1a-2026-10-10",
+  "checkpoints_count": 4,
+  "save_step_count": 4,
+  "files_touched": [
+    "tacto-negotiator/docs/21-negotiation-v2-plan-2026-10-10.md",
+    "tacto-negotiator/docs/README.md",
+    "tacto-negotiator/docs/v2/D-roadmap.md",
+    "tacto-negotiator/src/negotiator/v2/__init__.py",
+    "tacto-negotiator/src/negotiator/v2/core/__init__.py",
+    "tacto-negotiator/src/negotiator/v2/core/errors.py",
+    "tacto-negotiator/src/negotiator/v2/core/models.py",
+    "tacto-negotiator/src/negotiator/v2/core/serialization.py"
+  ],
+  "agent": "Codex",
+  "model": "gpt-6-luna",
+  "turn_id": "17764edf75a3",
+  "compact_transcript_start": 0,
+  "token_usage": {
+    "input_tokens": 84935,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 2003200,
+    "output_tokens": 12502,
+    "api_call_count": 35,
+    "subagent_tokens_complete": true
+  },
+  "session_metrics": {
+    "turn_count": 4
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-10-10T19:51:21.382087849Z",
+    "agent_lines": 317,
+    "agent_removed": 0,
+    "human_added": 0,
+    "human_modified": 3,
+    "human_removed": 9,
+    "total_committed": 317,
+    "total_lines_changed": 329,
+    "agent_percentage": 96.35258358662614,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 11387,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0,
+      "user_added_per_file": {
+        "tacto-negotiator/docs/18-main-branch-audit-2026-10-10.md": 702,
+        "tacto-negotiator/docs/19-main-branch-remediation-plan-2026-10-10.md": 597,
+        "tacto-negotiator/docs/20-remediation-branch-review-2026-10-10.md": 321,
+        "tacto-negotiator/docs/21-negotiation-v2-plan-2026-10-10.md": 118,
+        "tacto-negotiator/docs/README.md": 16,
+        "tacto-negotiator/docs/v2/A-current-architecture.md": 171,
+        "tacto-negotiator/docs/v2/B-architecture.md": 262,
+        "tacto-negotiator/docs/v2/C-interfaces.md": 661,
+        "tacto-negotiator/docs/v2/D-roadmap.md": 192,
+        "tacto-negotiator/docs/v2/E-evaluation.md": 155,
+        "tacto-negotiator/docs/v2/F-research-backlog.md": 91,
+        "tacto-negotiator/docs/v2/compliance-checklist.md": 29,
+        "tacto-negotiator/docs/v2/first-three-prompts.md": 83,
+        "tacto-negotiator/docs/v2/implementation-guide.md": 59,
+        "tacto-negotiator/docs/v2/task-specs.md": 99,
+        "tacto-negotiator/docs/v2/test-catalog.md": 78,
+        "tacto-negotiator/tests/fixtures/v2/decision-record.json": 139,
+        "tacto-negotiator/tests/fixtures/v2/p10.json": 728,
+        "tacto-negotiator/tests/fixtures/v2/relationship.json": 114,
+        "tacto-negotiator/tests/fixtures/v2/test-manifest.json": 4801,
+        "tacto-negotiator/tests/fixtures/v2/v1-baseline.json": 52,
+        "tacto-negotiator/tests/v2/__init__.py": 1,
+        "tacto-negotiator/tests/v2/acceptance/test_behavior.py": 106,
+        "tacto-negotiator/tests/v2/acceptance/test_model_budget.py": 47,
+        "tacto-negotiator/tests/v2/acceptance/test_recovery.py": 139,
+        "tacto-negotiator/tests/v2/builders.py": 57,
+        "tacto-negotiator/tests/v2/catalog.py": 66,
+        "tacto-negotiator/tests/v2/conftest.py": 34,
+        "tacto-negotiator/tests/v2/contracts/test_boundaries.py": 105,
+        "tacto-negotiator/tests/v2/contracts/test_economics.py": 121,
+        "tacto-negotiator/tests/v2/contracts/test_evidence.py": 96,
+        "tacto-negotiator/tests/v2/contracts/test_foundation.py": 178,
+        "tacto-negotiator/tests/v2/contracts/test_guardrails.py": 160,
+        "tacto-negotiator/tests/v2/contracts/test_interpretation.py": 128,
+        "tacto-negotiator/tests/v2/contracts/test_preparation.py": 50,
+        "tacto-negotiator/tests/v2/contracts/test_selection.py": 47,
+        "tacto-negotiator/tests/v2/contracts/test_state.py": 75,
+        "tacto-negotiator/tests/v2/contracts/test_validation.py": 75,
+        "tacto-negotiator/tests/v2/fakes.py": 133,
+        "tacto-negotiator/tests/v2/integration/test_pipeline.py": 140,
+        "tacto-negotiator/tests/v2/replay_v1_baseline.py": 66,
+        "tacto-negotiator/tests/v2/support.py": 95
+      }
+    },
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 11713,
+      "agent_lines_removed": 0
+    },
+    {
+      "checkpoint_number": 3,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 11713,
+      "agent_lines_removed": 0
+    },
+    {
+      "checkpoint_number": 4,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 11713,
+      "agent_lines_removed": 0
+    },
+    {
+      "checkpoint_number": 5,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 11713,
+      "agent_lines_removed": 0
+    }
+  ]
+}
