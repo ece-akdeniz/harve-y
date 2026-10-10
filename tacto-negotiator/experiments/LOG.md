@@ -1774,3 +1774,30 @@ P10: no session (see the offline note above).
   P04 .8604, P05 .7723, P07 .7600, P08 .5930, P10 .6551, P11 .7902, P18 .5200. Mean .7522 = best-per-case mean.
 - Risks: bundle commitment untested on P15 (bundling, not practice); every v2 lever validated on one case;
   supplier side appears deterministic so repeats test reproducibility, not robustness.
+
+## 2026-10-10 23:30 — behavior levers: P11 value swap, P03 committee, P04 regression (MEASURED HOSTED PRACTICE, 6 sessions)
+
+- Branch codex/score-push-behavior. Budget approved: ≤ 7 sessions; P02 probe skipped by instruction.
+- Lever 1 (opt-in `value_swap_types`, `value_swap_holds`, `value_swap_split`; src/negotiator/value_swap.py):
+  open at the highest chargeback; after the supplier holds its standing sheet once, drop the chargeback to the
+  lowest option at a price set from `arena_kit.cost.supplier_value` using only the supplier's own quote
+  (standard terms, quoted ppm 6400) — ceiling = standing − 6400/1e6 × Δchargeback. No score breakdowns used.
+  - `4b4967ce` / `456abd57e36ed15f`: **.6530** (45.30, 1500 ppm, cb 0). Swap at the full ceiling kept the
+    opening's 1500 ppm (+€8.6k quality cost) and was accepted at once: the ceiling exceeded the floor.
+  - `a275eba9` / `8ee98f23fca8d9bf`: **.7099** (45.50, 300 ppm, cb 0), split 0.5 + cheapest ppm.
+  - Both runs above had no ARENA_DATA in the agent process (`--data` only fingerprints), so no claims were
+    sent and dossier traits were empty: not comparable with the v2 baseline (which cited scorecard/index data).
+  - `290a50b7` / `6bea5bb66429f2cc`: **.8771** (44.50, 300 ppm, cb 0), same config with ARENA_DATA set.
+    Supplier held 47.50 @1500/500; swap offered 43.45 @300/0 (half-way 42.59 → ceiling 44.30); it countered
+    44.50 and held to a final offer, accepted. +.0869 vs .7902.
+  - Repeat `da5cf8d0` / `6ff98b09fb46168a`: **.8771**, identical path. Validated.
+- Lever 2 (opt-in `committee_escalation_types`; src/negotiator/escalation.py) + renewal evidence:
+  - `1c76eb08` / `b7ebbebfe8971707`: **.8998** (433.08, 90 d, 36 m) = baseline. The OTD claim was "checked,
+    holds, does not change our calculation"; after escalation the committee "confirmed the group-wide price
+    freeze until December 2027 is absolute". No winner, no repeat; not in the validated config.
+- P04 regression on the validated config: `d85ec9af` / `bac90a7d75eca127` **.8604** (4.94, 90 d, 24 m) = v2.
+- Lever 3 (P07 term swap) skipped: one session left, and a winner could not be repeated within the cap.
+- Validated config: configs/score-push-v3-l1b.json (v2 − quality `lower_chargeback` preference +
+  value_swap_types [quality], holds 1, split 0.5). configs/score-push-v3.json adds the unvalidated lever 2.
+- Sessions: 6 of 7 (4 P11, 1 P03, 1 P04). Implied ten-case mean with P11 .8771: .7609 (from .7522).
+- Runner note: export ARENA_DATA to the data package for every `lab run`; otherwise evidence silently drops.
