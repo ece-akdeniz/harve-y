@@ -227,7 +227,8 @@ class PackageAgent:
         if self.trades and case["type"] in self.policy.package_types:
             if prev is not None:
                 return prev
-            return self.trades.initial(case, sid, ref_terms["unit_price"], self.anchor, std, sup, reference=ref_terms)
+            return self.trades.initial(case, sid, ref_terms["unit_price"], self._anchor(case), std, sup,
+                                       reference=ref_terms)
         if prev is None:
             n = nonprice(case, best_terms(
                 case, ref_terms["unit_price"], std, sup,
@@ -253,6 +254,11 @@ class PackageAgent:
                 n = new
                 self._log(case, "package_switch", sid, prev=prev, new=n, c_prev=min(on_prev), c_new=ref_c)
         return self._free_concessions(case, n, ref_terms, std, sup) if eligible else n
+
+    def _anchor(self, case):
+        if self.policy and case["type"] in self.policy.anchor_by_type:
+            return self.policy.anchor_by_type[case["type"]]
+        return self.anchor
 
     def _longer_tenor(self, case):
         return bool(self.policy and case["type"] in self.policy.longer_tenor_types)
@@ -520,7 +526,7 @@ class PackageAgent:
                 return self._offer(case, sid, alt, std, sup, c_alt, "gap closed: take alternative")
             return {"close": True, "reason": "gap closed"}
 
-        floor = p_open * (1 - self.anchor)
+        floor = p_open * (1 - self._anchor(case))
         price = floor + (p - floor) * min(1.0, k / self.rounds)
         if last_p is not None:
             price = max(price, _ceil2(last_p))  # no backtracking on our own concessions (by C)

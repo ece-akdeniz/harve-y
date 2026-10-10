@@ -62,3 +62,30 @@ def test_p07_evidence_config_only_adds_bundling():
     cfg = json.loads(Path("configs/p07-evidence.json").read_text())
     assert cfg == {**base, "evidence_types": base["evidence_types"] + ["bundling"]}
     assert "bundling" in PolicyConfig.load("configs/p07-evidence.json").evidence_types
+
+
+def test_anchor_by_type_only_moves_listed_type_opening():
+    from test_evaluator import msg
+
+    from negotiator.agent import PackageAgent
+
+    c = case("case:P07")
+    sid = c["suppliers"][0]
+    events = {sid: [msg("open", ("offer:0", {"unit_price": 5.74, "payment_days": 30, "contract_months": 12}))]}
+    base = PackageAgent(policy=PolicyConfig.load("configs/candidate.json"), claims=False)
+    deep = PackageAgent(policy=PolicyConfig.load("configs/p07-deep-anchor.json"), claims=False)
+    p_base = base.propose(c, events, sid)["message"]["term_sheets"][0]["terms"]["unit_price"]
+    p_deep = deep.propose(c, events, sid)["message"]["term_sheets"][0]["terms"]["unit_price"]
+    assert p_base == 5.05 and p_deep == 4.59
+    q = case("case:P01")
+    qs = q["suppliers"][0]
+    qe = {qs: [msg("open", ("offer:0", {"unit_price": 138.55, "effective_date": "2026-11-01"}))]}
+    assert base.propose(q, qe, qs) == deep.propose(q, qe, qs)
+
+
+@pytest.mark.parametrize("value", [{"bundling": 0.5}, {"nope": 0.1}, {"bundling": "0.2"}])
+def test_anchor_by_type_validation(tmp_path, value):
+    p = tmp_path / "p.json"
+    p.write_text(json.dumps({"version": 1, "anchor_by_type": value}))
+    with pytest.raises(ValueError):
+        PolicyConfig.load(p)

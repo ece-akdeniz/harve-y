@@ -26,6 +26,8 @@ class PolicyConfig:
     # Case types whose opening and later packages keep the supplier's standard (quote PDF)
     # payment days when that is a listed option; price is still scheduled by buyer C.
     standard_payment_types: tuple[str, ...] = ()
+    # Per case type opening anchor (fraction below the supplier's price); others use the agent's.
+    anchor_by_type: dict[str, float] = field(default_factory=dict)
 
     @classmethod
     def load(cls, path):
@@ -59,6 +61,12 @@ class PolicyConfig:
             k not in TYPES or not isinstance(v, str) or v not in allowed for k, v in preferences.items()
         ):
             raise ValueError("invalid case-type preferences")
+        anchors = d.get("anchor_by_type", {})
+        if not isinstance(anchors, dict) or any(
+            k not in TYPES or type(v) not in (int, float) or not 0 <= v <= 0.4 for k, v in anchors.items()
+        ):
+            raise ValueError("invalid anchor_by_type")
+        d["anchor_by_type"] = {k: float(v) for k, v in anchors.items()}
         return cls(**d)
 
     def record(self):
