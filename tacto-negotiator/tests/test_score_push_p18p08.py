@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 
 from negotiator.agent import PackageAgent
-from negotiator.evaluator import total_cost
+from arena_kit.cost import total_cost
 from negotiator.policy import PolicyConfig
 from negotiator.trades import TradePolicy
 
