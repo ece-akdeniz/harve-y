@@ -1,0 +1,42 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4M2MF5Q5TY1ZD5TKKR0CZBC",
+  "session_id": "9104d171-4a04-4ba1-9aae-ad79445217e0",
+  "strategy": "manual-commit",
+  "created_at": "2026-10-10T23:33:39.360499Z",
+  "branch": "codex/fresh-pacing",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "tacto-negotiator/configs/fresh-h3-run.json",
+    "tacto-negotiator/configs/fresh-h3h1-run.json",
+    "tacto-negotiator/configs/fresh-h3h1.json"
+  ],
+  "agent": "Cursor",
+  "model": "unknown",
+  "turn_id": "1e44a24f8453",
+  "compact_transcript_start": 0,
+  "session_metrics": {
+    "turn_count": 2
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-10-10T23:33:39.342214Z",
+    "agent_lines": 172,
+    "agent_removed": 0,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 172,
+    "total_lines_changed": 172,
+    "agent_percentage": 100,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    }
+  ]
+}

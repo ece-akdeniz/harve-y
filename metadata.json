@@ -1,0 +1,21 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4M2MF5Q5TY1ZD5TKKR0CZBC",
+  "strategy": "manual-commit",
+  "branch": "codex/fresh-pacing",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "tacto-negotiator/configs/fresh-h3-run.json",
+    "tacto-negotiator/configs/fresh-h3h1-run.json",
+    "tacto-negotiator/configs/fresh-h3h1.json"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ]
+}
