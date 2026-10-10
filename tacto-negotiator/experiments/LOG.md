@@ -880,3 +880,23 @@ excluded rfq. Not a test of the hypothesis. Next: same config with `rfq` in pack
   .4168 is ~EUR 400 (consistent with 32.00 at 45 d), ~0.0005 on the ten-case mean; not pursued.
   `rfq_final_guard` stays off (serial-only protection; async covers the 65 s rival case).
   Sessions consumed by this P05 work: 4.
+
+## 2026-10-10 — P05 offline cost decomposition (no session)
+
+Session `ef13f675` deal sup:70210 32.00/35 d/30 d: C = 271,720.96 (price 268,800; payment
+financing 1,792; quality 1,129). Scoring: c_open 305,544.96, c_best 223,424.17, so score/EUR
+of unit price = **0.103** (EUR 8,456 per EUR 1). Levers at fixed price: 90 d payment −3,584
+(+0.044), 60 d −1,792, 45 d −896; lead 28 d = 0, 42 d +1,400 (−0.017). Score 1.0 needs
+≈EUR 26.70 at 35/90. **Price dominates** (gap ≈ EUR 5.3/unit); payment ≤0.044; lead time is
+cost, not value, except as a trade for price. Supplier choice: sup:70240 (Hrvelec) opened
+31.50 at 52 d and explicitly priced 35 d as "expensive overtime" (+3.50); it alone offered 90 d.
+70240 at 42 d/90 d scores 0.50 @31.50, 0.55 @31.00, 0.66 @30.00 — the bolder lever. Every
+prior run countered 70240 at 35 d (overtime premium), so it never got below 33.50.
+Lever verification: payment options {14,30,45,60,90} (90 legal, 14 banned by rule); lead
+{28,35,42,56} with must-have ≤42 → 42 allowed, 56 never; awarding 70240 legal; rival
+disclosure would require claim plumbing for RFQ (not built; held for later screens).
+
+Hypothesis A (`rfq_supplier_lead_time`, `configs/p05-supplier-lead.json`): when a supplier
+quotes a lead time beyond ours, counter at the longest legal option ≤ its quote (42 d for
+70240), so it can drop its overtime premium. Offline first counters: 70240 27.72/90/42; others
+unchanged. Unit test added; suite 378 passed + known preflight failure; ruff clean.

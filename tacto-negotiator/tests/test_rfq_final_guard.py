@@ -61,3 +61,17 @@ def test_p05_losing_rival_gap_closed_does_not_end_case_while_leader_workable():
     # Once the leader is no longer workable, the legacy close returns.
     threads[leader][-1] = msg('final_offer', ('offer:lead-2', threads[leader][-1]['term_sheets'][0]['terms']))
     assert not guarded.propose(case, threads, rival).get('hold')
+
+
+def test_rfq_supplier_lead_time_counters_longest_legal_option_up_to_quote():
+    case = next(c for c in json.loads((Path(__file__).parent / 'fixtures/practice_cases.json').read_text())
+                if c['case_id'] == 'case:P05')
+    slow, fast = case['suppliers'][:2]
+    threads = {slow: [msg('open', ('offer:s', {'unit_price': 31.5, 'lead_time_days': 52}))],
+               fast: [msg('open', ('offer:f', {'unit_price': 36.0}))]}
+    on = PackageAgent(policy=PolicyConfig(rfq_supplier_lead_time=True))
+    off = PackageAgent(policy=PolicyConfig())
+    lt = lambda a, s: a.propose(case, threads, s)['message']['term_sheets'][0]['terms']['lead_time_days']  # noqa: E731
+    assert lt(on, slow) == 42  # never 56: must-have caps lead time at 42
+    assert lt(off, slow) < 42
+    assert lt(on, fast) == lt(off, fast)

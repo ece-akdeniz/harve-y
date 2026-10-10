@@ -233,6 +233,8 @@ class PackageAgent:
                 case, ref_terms["unit_price"], std, sup,
                 prefer_longer_lead=bool(self.policy and self.policy.cost_neutral_lead_time),
             ))
+            if self.policy and self.policy.rfq_supplier_lead_time and case["type"] == "rfq":
+                n = self._supplier_lead_time(case, sid, events, n, std)
         elif not eligible:
             return prev
         else:
@@ -242,6 +244,25 @@ class PackageAgent:
                 n = nonprice(case, complete_offer(case, closing_terms(case, ref_terms, std)))
                 self._log(case, "package_switch", sid, prev=prev, new=n, c_prev=min(on_prev), c_new=ref_c)
         return self._free_concessions(case, n, ref_terms, std, sup) if eligible else n
+
+    def _supplier_lead_time(self, case, sid, events, n, std):
+        """A supplier quoting a longer lead time than ours gets the longest legal option up to its
+        quote: its capacity premium for short lead times can exceed our late-delivery cost."""
+        if "lead_time_days" not in n:
+            return n
+        quoted = [s["terms"]["lead_time_days"] for m in events if m.get("from") != "buyer"
+                  for s in m.get("term_sheets") or [] if (s.get("terms") or {}).get("lead_time_days") is not None]
+        if not quoted or max(quoted) <= n["lead_time_days"]:
+            return n
+        legal = [v for v in (case.get("term_options") or {}).get("lead_time_days", [])
+                 if n["lead_time_days"] < v <= max(quoted)
+                 and must_haves_ok(case, complete_offer(case, {**n, "lead_time_days": v, "unit_price": 1.0}), std)]
+        if not legal:
+            return n
+        out = {**n, "lead_time_days": max(legal)}
+        self._log(case, "supplier_lead_time", sid, quoted=max(quoted), prev=n["lead_time_days"],
+                  new=out["lead_time_days"])
+        return out
 
     def _free_concessions(self, case, n, theirs, std, sup):
         price = theirs["unit_price"]
