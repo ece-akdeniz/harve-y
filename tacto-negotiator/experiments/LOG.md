@@ -2,6 +2,71 @@
 
 Format and decision rule: `docs/04-experiments.md`. Newest on top. One entry per change.
 
+## 2026-10-10 — Readable experiment reports (UI VALIDATION)
+
+- Hypothesis: outcome summaries, labeled terms, cost bars and per-supplier conversations make
+  saved experiments easier to inspect than configuration/message JSON. No agent behavior changed.
+- Data/config: existing lab run `ee284ea2-76b7-4100-a03f-27fce795f7cc` (D01/D02), unchanged.
+  Raw JSON and fingerprints remain accessible under collapsed technical details.
+- Validation: ten JavaScript tests pass. An isolated DOM check rendered all 37 messages across
+  three suppliers and verified terms, scores, escaping, retained expanded sections/scroll, and
+  imported, failed, recovered and truncated evidence states. Ruff and JS syntax checks pass.
+- Limit: in-app browser control timed out, so desktop/mobile appearance was not visually verified.
+- Quota/scores: no new arena sessions; previous measured results retained. Decision: use the report
+  for inspection, preserving partial scores and operational failures explicitly.
+
+## 2026-10-10 14:43 — First shared-lab baseline (MEASURED HOSTED SANDBOX)
+
+- Hypothesis: establish the current PackageAgent's D01/D02 reference and verify the lab records
+  and publishes complete results from the host laptop.
+- Run: `ee284ea2-76b7-4100-a03f-27fce795f7cc`, **Package v0.2 — first lab baseline**;
+  commit `1a18dc0e17f9137deedf52f6db18bd77a006039f`, dirty checkout explicitly allowed.
+  Patch SHA256 `fcf7cbc45c297efffc95039868f8b3fe2db7fd785a391928fb83b3ddc68277fb`.
+- Config: anchor 0.12, rounds 5, close_gap 0.005, final_hold_s 40, p_walk 0.25;
+  claims=false, meso=false, estimates={}. Official kit serial play interface; no wave deadline.
+  No local data package, so its fingerprint is null. No provider-model calls.
+- Cases: D01/D02, one attempt each, maximum two sessions, explicit sandbox environment.
+  D01 **90.48/100**, C=EUR 412,451.25, 26.12s, 7 counted sends/closes;
+  D02 **46.09/100**, C=EUR 187,768.00, 7.52s, 10 counted sends/closes.
+  Two-case mean **68.28/100**. Both deals satisfy must-haves; zero recorded timeouts/failures.
+- Sessions/replays: [D01](https://arena.tacto.ai/replay/0303d7a8e61f034a),
+  [D02](https://arena.tacto.ai/replay/ad3bb1c328d166d7).
+- Quota: both starts used sandbox cases. Shared practice snapshot changed from 19 used / 181 left
+  to 20 used / 180 left while the run was active; the shared counter does not attribute that change
+  to a caller. Do not count these two sandbox attempts as practice starts or assert the team was idle.
+- Verification: the dashboard's stored final record exactly matches the local run snapshot.
+  Raw evidence: `experiments/runs/ee284ea2-76b7-4100-a03f-27fce795f7cc/run.json` (ignored).
+- Decision: retain this as the first lab baseline. One run per case is insufficient for a strategy
+  promotion; compare a named candidate on the same case plan with repeats before drawing conclusions.
+
+## 2026-10-10 — Dashboard sign-in diagnosis (LOCAL TESTS / PUBLIC TUNNEL)
+
+- Trigger: public-tunnel sign-in displayed a generic sign-in prompt after a connection failure.
+- Findings: the existing password and cookie authenticated successfully over the supplied HTTPS
+  tunnel in an API check; browser-style requests intermittently timed out. A local regression
+  also reproduced a race where an outstanding anonymous refresh skipped the post-login refresh.
+- Change: serialize the post-login refresh, retain specific timeout/network/cookie errors, and
+  reject unexpected non-JSON tunnel responses. No password or authentication-policy changes.
+- Validation: five JavaScript regression tests pass, including the reproduced refresh race.
+  Hosted arena cases/quota/scores: none; this is dashboard behavior only. User-browser confirmation
+  remains needed to determine whether these fixes resolve the reported public-tunnel symptom.
+
+## 2026-10-10 — Shared experiment lab integration (MEASURED LOCAL)
+
+- Hypothesis: an independent runner and shared dashboard can retain experiment provenance,
+  failures and case-aligned comparisons while teammates execute on separate laptops.
+- Revision/config: work on `codex/experiment-dashboard` from `42c7659`, uncommitted integration
+  run explicitly allowed; PackageAgent defaults, official local simulator with its clock disabled.
+- Cases: S01/S02, one attempt each. Scores **82.90/100** and **86.09/100**, both completed;
+  five and nine rounds respectively. These verify integration, not a new negotiation strategy.
+- Quota: two local simulator sessions; zero hosted sessions and no provider-model calls.
+- Evidence: atomic snapshots under `/tmp/lab-e2e-runs/8fd28b58-0237-42dd-b5f5-6367d5586131/`;
+  dashboard UI checks used a separate synthetic database, never the real team database.
+- Failures addressed in review: reject hosted URLs in simulator mode; preserve imported terminal
+  evidence when delayed tracked snapshots arrive; retry and reconcile incomplete history imports.
+- Decision: use the lab for development tracking. Preserve original operational failures when
+  recovering arena outcomes. This does not change the agent or establish final readiness.
+
 ## 2026-10-10 13:37 — Hosted sandbox baseline and RFQ probe (MEASURED HOSTED)
 
 - Revision: `e543b5d5d14fff699019bdffb38688c3bee882b7`, kit `1b5516b`; added diagnostic
@@ -470,6 +535,93 @@ keep that unmeasured policy out of the combined candidate.
 
 - User subsequently chose **stop after the free check and preserve quota**. No more practice
   sessions started. Final comparison is explicitly deferred until the user asks to resume.
+
+## 2026-10-10 — MEASURED LOCAL: immutable full-project experiment loop rehearsal
+
+Hypothesis: normal anchored rounds improve kit simulator S01/S02 score over a deliberately
+weak one-round, zero-anchor control. This tests loop integration with scripted toy suppliers;
+it is not hosted performance evidence or a proposed production strategy change.
+
+- Source: current public project bytes and exact uv.lock captured into a temporary isolated Git
+  repository; baseline checkpoint `c1585d66a11d4b228eb24a2f87ea5f8a`, candidate
+  `24a77b1e71f74e3c9f957c0e712374e3`. Both were published only to a temporary local bare remote.
+- Config: baseline anchor=0, rounds=1; candidate anchor=0.12, rounds=5. Both final_hold_s=0,
+  claims=false, meso=false, estimates={}; serial runner, no dossier inputs.
+- Cases/quota: actual bundled arena_kit.sim S01/S02; three repeats per case per arm,
+  all 12 planned sessions completed through real CLI and restored-source worker subprocesses.
+  Two separate worktrees each used `uv sync --locked --offline` and independent environments.
+  No hosted sessions, hosted quota, actual origin pushes or actual dashboard DB writes.
+- Scores (0–100): S01 14.5102 → 82.9021; S02 14.5243 → 86.0854. Overall gain 69.9764;
+  zero within-case spread, all three repetition blocks won; baseline/candidate timeouts 0/0.
+- Decision: temporary lab policy verdict **promoted**; all gates passed, no evidence gaps.
+  Deterministic scripted responses explain zero spread; this establishes local execution fidelity,
+  not generalized negotiation readiness. Real CLI evidence references and immutable finding saved.
+- Recovery/invariants: real CLI restore fetched candidate from temporary remote on second clone,
+  verified every tracked byte/lock hash, and preserved active untracked work. Separate synthetic
+  policy SQLite verified rejection, simultaneous same-generation completion (exactly one promotion,
+  one baseline_superseded), idempotent completion and recommendation rollback generation 2→3.
+- Failures: harness-only fixes for literal fixture credential secret-scan rejection, incorrect
+  artifact worktree path and CLI response envelope in fixture suite. No production defect found.
+- Validation: Python 232 passed, 19 existing research-data skips; Ruff passed; Node helper/DOM
+  checks passed. DOM smoke now requires explicit LAB_UI_DOM_MODULE and reports skip when absent.
+- Artifacts: `/tmp/tacto-loop-rehearsal-itmo0e21/summary.json`, `cli-results.json`, `lab.sqlite`,
+  `loop/measured/` immutable worktrees/request journals/final outcomes, second-clone and restored.
+  Reproduce with `uv run --locked --offline python tools/rehearse_loop.py`; retained-artifact checks
+  use `--verify-existing /tmp/tacto-loop-rehearsal-itmo0e21`. Original local cache and loopback socket
+  permission are required; fetching remains offline. Detailed task-5-report.md/checks.log in SDD.
+
+- Final independent review follow-up: host promotion now requires original ended-session evidence;
+  CLI restore request-ID retries remain idempotent; precreated family budgets and practice protections
+  survive smaller campaign ceilings. Five regression cases reproduced before fixes. Final full suite:
+  237 passed, 19 existing data skips; Ruff clean; retained simulator evidence reverified without new
+  sessions. Direct UI checks: 19 tests plus one actual-page DOM smoke passed.
+- Live dashboard restarted with saved credentials and existing database. Secure-cookie login, bearer
+  reads, new loop overview, retained original experiment and public tunnel loop.js asset verified.
+  Initial shared recommendation remains explicitly unseeded; no real checkpoint publication or hosted
+  campaign was launched. Browser crash prevents visual layout QA.
+
+## 2026-10-10 — Lab setup: nested-project checkpoint verification
+
+- Hypothesis: checkpoint publication and restoration must verify the entire repository when the
+  negotiator lives below its root and the arena kit is a sibling submodule.
+- Change: inspect Git trees with `--full-tree`; retain root-relative submodule and private-file checks.
+  Negotiation policy/configuration is unchanged. The coding-agent workflow is in `LAB_PLAYBOOK.md`.
+- Failure: initial real-repository restore rejected the valid sibling kit as a submodule manifest
+  mismatch. A nested-project, sibling-submodule, second-clone regression reproduced it before the fix.
+- Validation: all 27 checkpoint tests passed after the fix, including publication and isolated restore
+  from a second clone. No arena cases, hosted sessions or quota consumed; no performance score claimed.
+- Decision: use the corrected source for the initial shared baseline; seeding identifies a starting
+  checkpoint and does not imply measured promotion or improved negotiation performance.
+
+## 2026-10-10 — MEASURED SANDBOX: Baris Test
+
+- Scope/hypothesis: user-authorized single D01 smoke test of the shared recommended baseline;
+  no candidate change or comparative performance claim. Budget: one sandbox session, no practice run.
+- Run: `95dca638-82b5-4f07-b88c-1bb15c3813ce`; arena session `0f0ad2bb6dd309b5`.
+- Checkpoint: `e1d931e4fcce49fb8fd341c40052953a`; clean verified source
+  `f325fcb12c09ef2590cd9496a90dddd73e714648`, locked dependencies, serial package agent.
+- Config: anchor=0.12, rounds=5, close_gap=0.005, final_hold_s=40, p_walk=0.25,
+  meso=false, claims=false, estimates={}. Original manifest retains lock/data hashes.
+- Result: ended deal, 91.9231/100, must-haves satisfied, zero reported timeouts,
+  seven recorded moves, approximately five seconds negotiation time.
+- Setup issue: the first preflight rejected the restore metadata as untracked; no session opened.
+  Temporarily moved only that metadata into ignored storage, then restored it after execution.
+- Decision: retain the recommendation; this single sandbox observation is not evidence of an
+  improvement. Tracked result and original supplier messages are saved in the lab.
+
+
+## 2026-10-10 — Lab browsing: score history, pagination and ordering
+
+- Hypothesis: chronological supplier/case evidence and consistent list ordering make prior
+  results easier to inspect; this is a lab UX change, not a negotiator strategy experiment.
+- Change: authenticated compact history projection, selected-supplier charts and filters,
+  session deduplication, explicit recovered/missing outcomes, and sortable paginated experiments.
+- Configuration/cases/quota: existing recorded/imported results only; no new arena sessions.
+- Verification: regression coverage for numeric sorting across pages, filter/page refresh behavior,
+  zero versus missing scores, supplier attribution, campaign/import duplicates and recovery shapes;
+  actual DOM checks cover navigation, chart drill-down, escaping and late response cleanup.
+- Review fixes: normalized recovered campaign scores and ordered same-time repetitions numerically.
+  No performance gain claimed and no change to the shared recommended checkpoint.
 
 ## Shared Evidence context — local contract validation, 10 October 2026
 

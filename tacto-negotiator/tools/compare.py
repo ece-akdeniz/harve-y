@@ -20,7 +20,6 @@ import argparse
 import hashlib
 import json
 import os
-import random
 import shlex
 import signal
 import socket
@@ -361,13 +360,9 @@ def main(argv=None) -> int:
             if not sim_up(args.sim_url):
                 sim_proc = start_sim(args.sim_url, data_dir, out_dir)
             env["ARENA_API_KEY"] = sim_key(args.sim_url)
-        rng = random.Random(args.seed)
-        jobs = []
-        for rep in range(1, args.repeats + 1):
-            for case in cases if args.cmd == "play" else ["*"]:
-                order = list(arms)
-                rng.shuffle(order)
-                jobs += [(rep, case, name) for name in order]
+        from negotiator.lab.ordering import campaign_order
+        cells = campaign_order(cases if args.cmd == "play" else ["*"], args.repeats, args.seed, tuple(arms))
+        jobs = [(cell["repeat"], cell["case_id"], cell["arm"]) for cell in cells]
         for i, (rep, case, name) in enumerate(jobs, 1):
             argv_ = ["play", case] if case != "*" else ["run", "--set", set_]
             tag = case.replace("case:", "") if case != "*" else set_

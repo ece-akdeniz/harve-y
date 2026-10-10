@@ -35,6 +35,7 @@ Hosted timing is measured. Then scale to multiple cases.
 
 ## Document map
 
+- [Coding-agent lab playbook](../LAB_PLAYBOOK.md): laptop setup and the tracked experiment workflow.
 - [00 — Challenge contract](00-challenge.md): official rules, score, limits and schedule.
 - [01 — Research](01-research.md): reproduced findings, estimates and hypotheses.
 - [02 — Architecture](02-architecture.md): ownership, state, deadlines and interfaces.
@@ -54,6 +55,12 @@ Hosted timing is measured. Then scale to multiple cases.
   conditional 52-session ceiling, stop gates and FAQ implications. Supersedes document 12's budget.
 
 - [14 — Measured demo](14-measured-demo.md): two defensible replay stories and their limits.
+
+- [12 — Experiment dashboard](12-experiment-dashboard.md): shared laptop-hosted dashboard,
+  local experiment runners, comparisons, buffering and importing previous attempts.
+
+- [13 — Agent experiment loop](13-agent-experiment-loop.md): immutable checkpoints, bounded
+  comparisons, cited findings, recovery and safe local/recommendation restore.
 
 - [15 — Evidence stage plan](15-evidence-stage-plan.md): prioritized data correctness, case-aware
   supplier signals, claim validation and gated experiments for the Evidence owner.
