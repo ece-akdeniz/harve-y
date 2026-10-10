@@ -25,6 +25,9 @@ class PolicyConfig:
     clause_variant_types: tuple[str, ...] = ()
     rfq_nonleading_hold: bool = False
     rfq_final_guard: bool = False
+    # Case types whose opening and later packages keep the supplier's standard (quote PDF)
+    # payment days when that is a listed option; price is still scheduled by buyer C.
+    standard_payment_types: tuple[str, ...] = ()
 
     @classmethod
     def load(cls, path):
@@ -43,6 +46,7 @@ class PolicyConfig:
             "package_advice_types",
             "cost_target_types",
             "clause_variant_types",
+            "standard_payment_types",
         ):
             v = d.get(k, [])
             if not isinstance(v, list) or any(not isinstance(x, str) or x not in TYPES for x in v):
