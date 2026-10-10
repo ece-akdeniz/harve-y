@@ -67,6 +67,13 @@ class PolicyConfig:
     # Fraction of the way from our last price to the value-equivalent ceiling the swap offers
     # (1.0 = the ceiling itself); later rounds concede toward it on the swapped package.
     value_swap_split: float = 1.0
+    # Opt-in model layer (src/negotiator/llm_*.py), per case type. Numbers, terms and closing stay in code.
+    # model_traits: supplier traits read from public notes/letters with verbatim quotes, unioned with regexes.
+    model_traits: tuple[str, ...] = ()
+    # model_choice: the model picks among code-priced candidate packages for the turn (fallback: schedule).
+    model_choice: tuple[str, ...] = ()
+    # model_answers: 1-3 validated sentences answering a direct supplier question from an allowlist of facts.
+    model_answers: tuple[str, ...] = ()
 
     @classmethod
     def load(cls, path):
@@ -94,6 +101,9 @@ class PolicyConfig:
             "bundle_commitment_types",
             "value_swap_types",
             "fast_payment_types",
+            "model_traits",
+            "model_choice",
+            "model_answers",
         ):
             v = d.get(k, [])
             if not isinstance(v, list) or any(not isinstance(x, str) or x not in TYPES for x in v):

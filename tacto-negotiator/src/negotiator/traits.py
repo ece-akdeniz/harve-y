@@ -36,7 +36,7 @@ NEWS_TRAITS = {
 
 # Suppliers for whom money now is worth more than usual (supplier_value interest_rate).
 CASH_SHORT = {"liquidity_crisis", "wants_fast_payment", "overdue_invoices", "credit_worsening",
-              "credit_downgrade", "credit_watch", "restructuring", "short_time_work"}
+              "credit_downgrade", "credit_watch", "restructuring", "short_time_work", "cash_short"}
 
 CREDIT_WORSENING_POINTS = 20  # credit index: higher is worse
 LATE_PAYER_DAYS = 10  # we pay this supplier's invoices late on average

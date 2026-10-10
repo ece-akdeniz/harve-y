@@ -98,6 +98,7 @@ class PackageAgent:
         model_name=None,
         memory=None,
         multi_supplier_anchor=None,
+        llm=None,
     ):
         self.anchor, self.rounds, self.close_gap, self.tracer = anchor, rounds, close_gap, tracer
         if multi_supplier_anchor is not None and (
@@ -119,6 +120,19 @@ class PackageAgent:
             self.package_advisor = PackageAdvisor()
         self.memory = validate_memory(memory) if memory is not None else None
         self._memory_seen = set()
+        # Opt-in model layer: one bounded client; every feature falls back deterministically.
+        self.llm, self.trait_reader, self._budget, self._traits_prefetched = None, None, None, set()
+        if policy and (policy.model_traits or policy.model_choice or policy.model_answers):
+            from .llm import LlmClient, configured
+
+            if llm is not None or configured():
+                self.llm = llm if isinstance(llm, LlmClient) else LlmClient(llm)
+            else:
+                log.warning("model_* policy fields set but LLM_BASE_URL/LLM_API_KEY/LLM_MODEL missing: rules only")
+            if self.llm and policy.model_traits:
+                from .llm_traits import TraitReader
+
+                self.trait_reader = TraitReader(self.llm)
         self.conditional_exchange = False
         self.trades = None
         if policy:
@@ -191,7 +205,53 @@ class PackageAgent:
     def experiment_metrics(self):
         return {"model": self.model_assist.metrics() if self.model_assist is not None else
                 {"calls": 0, "fallbacks": 0, "latency_s": [], "input_tokens": 0, "output_tokens": 0},
+                "llm": self.llm.metrics() if self.llm is not None else None,
                 "memory_snapshot_id": self.memory["snapshot_id"] if self.memory else None}
+
+    # -- model layer (opt-in; src/negotiator/llm_*.py) -----------------------------------------
+    def _turn_budget(self, fresh=False):
+        """One `TurnBudget` per buyer decision: `decide` opens it; `propose` opens one only when it
+        is called directly (async workers)."""
+        from .llm import TurnBudget
+
+        if fresh or self._budget is None:
+            self._budget = TurnBudget()
+        return self._budget
+
+    def _window_s(self, sid):
+        """Seconds left in this thread's reply window (and the wave cap, when a runner set one)."""
+        now = time.time()
+        windows = []
+        if self.trades and sid in self.trades.deadlines:
+            windows.append(self.trades.deadlines[sid] - now)
+        cap = getattr(self, "wave_deadline", None)
+        cap = cap() if callable(cap) else cap
+        if cap:
+            windows.append(cap - now)
+        return min(windows) if windows else None
+
+    def _model_traits(self, case, sid):
+        """Model traits for `sid` (cached). The first call per case extracts every supplier of the
+        case in parallel, waiting at most the decision's remaining model budget; later calls only
+        read the cache, so a slow model never delays a later message."""
+        if not (self.trait_reader and self.policy and case["type"] in self.policy.model_traits):
+            return set()
+        if case["case_id"] not in self._traits_prefetched:
+            self._traits_prefetched.add(case["case_id"])
+            budget = self._turn_budget()
+            if budget.allow("traits", window_s=self._window_s(sid), need_s=2.0):
+                dossiers = {s: self._public_traits(s)[1] for s in case.get("suppliers", [])}
+                self.trait_reader.log = lambda s, entry: self._log(
+                    case, "model_traits", s, traits=sorted(entry["traits"]), items=entry["items"],
+                    elapsed_s=entry["elapsed_s"])
+                future = self.trait_reader.prefetch_async(dossiers)
+                try:
+                    budget.timed(future.result, timeout=budget.timeout_for())
+                except Exception:
+                    self._log(case, "model_fallback", sid, kind="traits", reason="prefetch still running")
+            else:
+                self._log(case, "model_fallback", sid, kind="traits", skipped=budget.skipped[-1:])
+        return self.trait_reader.traits(sid)
 
     # -- estimates ----------------------------------------------------------------------------
     def estimates_for(self, case):
@@ -417,7 +477,9 @@ class PackageAgent:
     def _standard_payment(self, case):
         return bool(self.policy and case["type"] in self.policy.standard_payment_types)
 
-    def _public_traits(self, sid):
+    def _public_traits(self, sid, case=None):
+        """(traits, dossier) from public data: regex traits, plus model traits when `case` is given
+        and `model_traits` covers its type (the dossier copy then carries the union too)."""
         if sid not in self._traits_cache:
             from .context import DATA_ERRORS
             from .dossiers import build_one, load_package
@@ -427,14 +489,20 @@ class PackageAgent:
             except DATA_ERRORS:
                 dossier = None
             self._traits_cache[sid] = (set(dossier.traits), dossier) if dossier else (set(), None)
-        return self._traits_cache[sid]
+        traits, dossier = self._traits_cache[sid]
+        extra = self._model_traits(case, sid) - traits if case is not None else set()
+        if not extra:
+            return traits, dossier
+        from .llm_traits import with_traits
+
+        return traits | extra, with_traits(dossier, extra)
 
     def _fast_payment(self, case, sid, terms, std):
         """Shortest legal payment option for a supplier whose public notes ask for faster payment
         (opt-in `fast_payment_types`); None when off, not applicable or not legal."""
         if not (self.policy and case["type"] in self.policy.fast_payment_types and "payment_days" in terms):
             return None
-        if "wants_fast_payment" not in self._public_traits(sid)[0]:
+        if "wants_fast_payment" not in self._public_traits(sid, case)[0]:
             return None
         for days in sorted((case.get("term_options") or {}).get("payment_days") or []):
             if must_haves_ok(case, complete_offer(case, {**terms, "payment_days": days}), std):
@@ -455,8 +523,10 @@ class PackageAgent:
             return move
         from . import traits as T
 
-        traits, dossier = self._public_traits(sid)
+        traits, dossier = self._public_traits(sid, case)
         ids = T.evidence(dossier, "wants_fast_payment") if dossier else []
+        if not ids and self.trait_reader:
+            ids = [i for i in self.trait_reader.evidence(sid, "wants_fast_payment") if i.startswith("doc:")]
         source = f"Your note {ids[0]}" if ids else "Your note"
         text = (f"{source} asked whether we could pay your invoices faster in return for a cash discount."
                 f" We offer payment within {days} days; the attached unit price reflects that discount.")
@@ -708,6 +778,13 @@ class PackageAgent:
     def decide(self, case, threads):
         """Serial wrapper: final-offer threads first, then the least-worked open thread; the first
         proposal that is not a hold is sent, and a close request is resolved by the evaluator."""
+        self._turn_budget(fresh=True)
+        try:
+            return self._decide(case, threads)
+        finally:
+            self._budget = None
+
+    def _decide(self, case, threads):
         if self.policy and case["type"] in self.policy.cost_target_types:
             move = self._cost_target_move(case, threads)
             if move is not None:
@@ -747,6 +824,18 @@ class PackageAgent:
     def propose(self, case, threads, supplier_id, *, defer_evidence=False):
         if supplier_id not in self.model_seen:
             self.prepare_email(case, threads, supplier_id)
+        if self._budget is None:  # called directly by an async worker: one budget per proposal
+            self._turn_budget(fresh=True)
+            try:
+                return self._propose_budgeted(case, threads, supplier_id, defer_evidence=defer_evidence)
+            finally:
+                self._budget = None
+        return self._propose_budgeted(case, threads, supplier_id, defer_evidence=defer_evidence)
+
+    def _propose_budgeted(self, case, threads, supplier_id, *, defer_evidence=False):
+        if self.trait_reader and self.policy and case["type"] in self.policy.model_traits and self.trades:
+            self.trades.prepare(case)
+            self.trades.traits[supplier_id] |= self._model_traits(case, supplier_id)
         if self.policy:
             ours = self._ours(threads[supplier_id])
             if ours:
@@ -837,11 +926,11 @@ class PackageAgent:
             return move
         from . import bundle_volume
         from .context import DATA_ERRORS
-        from .dossiers import build_one, load_package
+        from .dossiers import load_package
 
         try:
             package = load_package()
-            dossier = build_one(package, sid)
+            dossier = self._public_traits(sid, case)[1]
             p = bundle_volume.plan(case, package, sid, dossier)
         except DATA_ERRORS:
             p = dossier = None
