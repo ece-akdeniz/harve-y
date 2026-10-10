@@ -48,7 +48,8 @@ def run_config(agent, runner="serial-play_case", facts="data/package/facts.json"
         commit, dirty = None, None
     path = root / facts
     data = hashlib.sha256(path.read_bytes()).hexdigest()[:12] if path.exists() else None
-    params = {k: getattr(agent, k) for k in ("anchor", "rounds", "close_gap", "final_hold_s") if hasattr(agent, k)}
+    keys = ("anchor", "rounds", "close_gap", "final_hold_s", "meso", "p_walk")
+    params = {k: getattr(agent, k) for k in keys if hasattr(agent, k)}
     return {
         "commit": commit,
         "src_dirty": dirty,

@@ -213,17 +213,33 @@ def test_postponement_cost_includes_units_at_old_price():
     assert late == pytest.approx(early - 4000 * (52.0 - 48.6), rel=1e-3)
 
 
-def test_final_offer_gets_at_most_one_counter_then_close():
-    final = {"unit_price": 15.7, "payment_days": 30, "lead_time_days": 21, "incoterm": "DAP"}
+def _final_thread(final):
+    return {"sup:J": [msg("open", ("o:0", {**final, "unit_price": 17.1})), ours({**final, "unit_price": 15.0}),
+                      msg("final_offer", ("o:1", final))]}
+
+
+FINAL = {"unit_price": 15.7, "payment_days": 30, "lead_time_days": 21, "incoterm": "DAP"}
+PREV = {"payment_days": 60, "lead_time_days": 21, "incoterm": "DAP"}
+
+
+def test_final_offer_accepted_when_walk_risk_outweighs_gain():
     agent = PackageAgent()
-    agent.prev["sup:J"] = {"payment_days": 60, "lead_time_days": 21, "incoterm": "DAP"}
-    threads = {"sup:J": [msg("open", ("o:0", {**final, "unit_price": 17.1})), ours({**final, "unit_price": 15.0}),
-                         msg("final_offer", ("o:1", final))]}
-    move = agent.decide(RFQ, threads)
+    agent.prev["sup:J"] = PREV
+    move = agent.decide(RFQ, _final_thread(FINAL))  # fallback is the far dearer alternative
+    assert move["message"]["action"] == {"type": "accept", "term_sheet_id": "o:1"}
+
+
+def test_final_offer_gets_at_most_one_counter_then_close():
+    case = copy.deepcopy(RFQ)
+    case["buyer"]["alternative"]["terms"] = {**FINAL, "unit_price": 15.72}  # walking costs little
+    agent = PackageAgent()
+    agent.prev["sup:J"] = PREV
+    threads = _final_thread(FINAL)
+    move = agent.decide(case, threads)
     terms = move["message"]["term_sheets"][0]["terms"]
     assert terms["unit_price"] == 15.7 and terms["payment_days"] == 60
-    threads["sup:J"] += [ours(terms), msg("final_offer", ("o:2", final))]
-    move = agent.decide(RFQ, threads)
+    threads["sup:J"] += [ours(terms), msg("final_offer", ("o:2", FINAL))]
+    move = agent.decide(case, threads)
     assert move["message"]["action"] == {"type": "accept", "term_sheet_id": "o:2"}
 
 
