@@ -854,3 +854,11 @@ score or proof of unseen-case performance. No default changes or main merge.
 
 Validation:371 tests passed, only the known pre-existing claim-data preflight
 test failed; Ruff passed. The new exact historical replay passed.
+
+Hosted confirmation: b2922dc3-6036-4a59-9c29-c75afc4af0e2,
+sessione7f60b71102745a0, sourced070c01. Score0.4530612521, zero timeouts,4.11s.
+All11 original messages (body, terms, refs, actions, statuses, claim results)
+match the recovered historical thread exactly; likely deterministic/cache reuse.
+Retain this policy over the0.4195698792 clause-variant config. Delta+0.0334913728
+on P18, equivalent+0.0033491373 on ten-case mean. No new historical-best claim.
+Own budget24/30;6 remain. Result uploaded to lab automatically.
