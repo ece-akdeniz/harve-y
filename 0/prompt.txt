@@ -1,0 +1,9 @@
+# Context from my IDE setup:
+
+## Active file: tacto-negotiator/docs/README.md
+
+## Open tabs:
+- README.md: tacto-negotiator/docs/README.md
+
+## My request:
+take a look at the documentation files and resolve them
