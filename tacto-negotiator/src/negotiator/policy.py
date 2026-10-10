@@ -75,7 +75,7 @@ class PolicyConfig:
         d["anchor_by_type"] = {k: float(v) for k, v in anchors.items()}
         rounds = d.get("rounds_by_type", {})
         if not isinstance(rounds, dict) or any(
-            k not in TYPES or type(v) is not int or not 1 <= v <= 8 for k, v in rounds.items()
+            k not in TYPES or type(v) is not int or not 1 <= v <= 12 for k, v in rounds.items()
         ):
             raise ValueError("invalid rounds_by_type")
         d["rounds_by_type"] = dict(rounds)

@@ -899,3 +899,15 @@ in the preceding entry; the same failure reproduces with the unchanged current
   so the supplier gives more reciprocal room before its final round. Bundle volume stays on.
   Prices still come only from our C schedule of quoted terms; no hidden outcome is used.
 - Risk: under a pure time-based supplier schedule we only pay more. Pass: > 0.7535.
+- Screen 2 `01cf4cef` / session `8dc700cdef9319e6`: **0.7145** (5.46, 90d, 24m; supplier "agreed"
+  at our r4 5.46; 0 timeouts). Ours 5.05/5.23/5.36/5.46 vs theirs 5.59/5.52/5.46/5.46. Drop
+  rounds=3. Lesson: the supplier's end point tracks our last offer (slow schedules: final ≈ our
+  r4 + 0.11-0.12), not a fixed floor reached by reciprocity.
+
+## 2026-10-10 — P07 slower schedule (hypothesis, before screen 3)
+
+- Difference: `rounds_by_type: {"bundling": 10}` (rounds 5 → 10; steps ≈0.054 instead of 0.108),
+  with bundle volume on. Our r4 is ≈5.21 instead of 5.28. If the supplier's final stays ≈ our r4
+  + 0.11, it lands ≈5.32-5.34 (needed for ~0.78-0.80). Supplier still finals at r5; after that we
+  keep the existing final-accept check (no new closing logic). No hidden outcome is used.
+- Risk: the supplier holds 5.40+ and we accept the same final (≈0.75), or it walks (p_walk guard unchanged).
