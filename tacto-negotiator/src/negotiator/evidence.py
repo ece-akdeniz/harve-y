@@ -15,7 +15,8 @@ from .dossiers import load_package
 class EvidencePolicy:
     def __init__(self, package=None, tracer=None, case_types=None, recent_window_types=()):
         self.recent_window_types = set(recent_window_types)
-        self.case_types = set(case_types if case_types is not None else ["price_increase"]) | self.recent_window_types
+        self.default_types = set(case_types if case_types is not None else ["price_increase"])
+        self.case_types = self.default_types | self.recent_window_types
         self.package = package
         self.tracer = tracer
         self.banks = {}
@@ -74,10 +75,16 @@ class EvidencePolicy:
             existing = set(message.get("refs") or [])
             used.update(existing)
             bank = [c for c in context.candidates if verify(c, facts, self.package, case)]
-            recent = case["type"] in self.recent_window_types
-            if recent:  # only public index claims over windows ending at the latest month
-                bank = [c for c in recent_index_claims(case, self.package, facts)
-                        if verify(c, facts, self.package, case)]
+            recent = False
+            if case["type"] in self.recent_window_types:
+                # Public facts decide: material drivers falling at the latest month and not documented as
+                # hedged by the supplier. Otherwise behave exactly as without the option.
+                fresh = [c for c in recent_index_claims(case, self.package, facts)
+                         if verify(c, facts, self.package, case)]
+                if fresh:
+                    bank, recent = fresh, True
+                elif case["type"] not in self.default_types:
+                    bank = []
             priorities, reasons = index_relevance(bank, case, self.package, threads.get(sid, []))
             # Each pre-existing ref conservatively consumes one checked-claim slot.
             budget = max(0, MAX_CHECKED - len(existing))

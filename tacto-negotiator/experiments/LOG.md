@@ -2,7 +2,48 @@
 
 Format and decision rule: `docs/04-experiments.md`. Newest on top. One entry per change.
 
-## P18 recent index windows — REPEAT, 10 October 2026
+## Fact-keyed recent index windows — qualification survey (OFFLINE, 0 sessions), 10 October 2026
+
+- Rule (`configs/recent-index-window.json`, scope = all single-supplier types): cite a public index
+  window ending at the latest published month only if the series is a listed cost driver of the
+  part (weight ≥ 0.10), fell ≥ 1 pp, and the supplier's own letters/quote remarks contain no
+  hedge ("covered … fixed prices/until", "hedged"). A hedge sentence naming a material hedges the
+  matching series (name stems, e.g. "alloys" ~ "Alloy surcharge"); a generic one ("Material
+  covered") hedges all. Nothing qualifies → exactly the configured default evidence (none for
+  raw_material). Case IDs and types are not used.
+- Survey of hosted cases (latest 12-month window; most recent buyer window):
+  - P01 (PPI-C241 0.26 +6.5, LCI-C 0.32 +2.7, PPI-D351 0.06 −3.7): only PPI-D351 falls (−6.1%
+    11/25→08/26), but it is below the weight floor and has risen 4 months running. Not qualifying.
+  - P02 (CU-NOTATION 0.20 +47.7 and rising every month to 09/26; PPI-C241 0.16 +6.5 rising; LCI-C
+    0.21 +2.7): **no falling window at all**. Not qualifying. The P02 screen was not run.
+  - P03 (PPI-C2611 +13.5, CU +47.7, LCI-C), P04 (PPI-C2815 +0.8, LCI-C), P07 (PPI-C2594 +1.7, LCI-C),
+    P10 (PPI-C2219 +3.9, LCI-C): all rising at the latest month. Not qualifying.
+  - P11: same drivers as P01 (PPI-D351 0.06). Not qualifying.
+  - P05 (RFQ, 3 suppliers): AS-14404 0.16 −5.5% and PPI-C2431 0.19 −2.3% qualify, no hedge found
+    for 70210/70240/70250. But evidence here is single-supplier only, and P05 is owned by
+    `codex/score-push-p05` (now 0.7723 with `rfq_data_claims`). Not screened, to avoid overlap.
+  - P08: AS-14404/PPI-C2431 fall as in P18, but 70710's letter `doc:20260706-70710-M1` ("nickel and
+    alloys … covered at fixed prices until March 2027") and its quote remark ("Material covered until
+    March 2027") hedge both. 70710 is a bar stockholder, so the bars (PPI-C2431) are its material.
+    Excluded. This matches fullcost `e3f1f373` (0.3606, rebutted).
+  - P18: both qualify (no hedge for 70740). Only case changed (tested: enrich output differs from the
+    retained config for P18 only).
+- Prior art found: `codex/score-push-fullcost` screened the same two windows on P18 (`8444d792`,
+  `fc54cd39`: 0.4531 ×2) and P08 (`e3f1f373`: 0.3606). That run was on the clause-variant base and
+  added a scorecard claim. On the retained package base without the scorecard, this branch gets
+  0.5200 ×2. The base policy and claim mix matter: the screen below is not the first index-window
+  test on P18, but it is the first on this base.
+- P02 interaction: the fullcost-rel cost-posterior worker owns P02 (0.7115 ×2). The lever does not
+  qualify there anyway, so there is no interaction.
+- Validation: 375 passed + known preflight failure; ruff clean. Sessions: 0.
+
+## P18 recent index windows — REPEAT: 0.5200 confirmed, 10 October 2026
+
+- Run `5223242a-a174-4870-85e3-5eb47c68ebec`, session `7dd75ee1f6308fd6`: **0.5200438598**, identical
+  path (6.10 → 5.50 "acknowledging the recent index decreases you verified" → 5.40 → 5.30 final, agreed,
+  AS-14404 db0 / 90d / 24m). 1 session, no expiry. `lab sync`: uploaded 2, failed 0.
+
+## P18 recent index windows — REPEAT (pre-registration), 10 October 2026
 
 - Same config/commit lineage as the KEEP entry below (`configs/p18-recent-index-window.json`).
   Nothing differs; purpose is to confirm 0.5200 is reproducible rather than one favourable

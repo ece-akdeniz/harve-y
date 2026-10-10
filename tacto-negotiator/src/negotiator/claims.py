@@ -151,16 +151,57 @@ def recent_buyer_window(values: dict[str, float]) -> tuple[str, str] | None:
     return best
 
 
+MIN_DRIVER_WEIGHT = 0.10  # recent-window claims only for drivers that matter to the supplier's cost
+_HEDGE = re.compile(r"[^.]*\b(?:covered\b[^.]{0,40}\b(?:fixed prices|until)|hedged?)\b[^.]*", re.I)
+_NAME_STOP = {"producer", "prices", "index", "monthly", "average", "derived", "fictional", "other"}
+
+
+def _stems(text: str) -> set[str]:
+    return {w[:5] for w in re.findall(r"[a-z]{4,}", text.lower()) if w not in _NAME_STOP}
+
+
+def hedged_series(case: dict, package, series: list[str]) -> set[str]:
+    """Series whose cost the case suppliers say is fixed for now, from their own letters/quote remarks.
+
+    A hedge sentence naming a series (ID or name word, e.g. "alloys" ~ "Alloy surcharge") hedges that
+    series; one naming no known series hedges all of them (fail closed)."""
+    if package is None or getattr(package, "db", None) is None:
+        return set(series)
+    sups = set(case.get("suppliers") or [])
+    texts = []
+    for ref in package.ids("doc:"):
+        if (package.lookup(ref) or {}).get("supplier") in sups:
+            try:
+                texts.append(package.document(ref))
+            except (OSError, ValueError):
+                continue
+    for part in case.get("parts") or []:
+        texts += [r["remarks"] or "" for r in package.query(
+            "SELECT supplier_id, remarks FROM quotes WHERE part_id = ?", (part,), limit=10_000)
+            if r["supplier_id"] in sups]
+    names = _series_names(package)
+    out = set()
+    for text in texts:
+        for m in _HEDGE.finditer(text or ""):
+            sentence = m.group(0)
+            hit = {s for s in series if s in sentence
+                   or _stems(names.get(s, "").split(" (")[0]) & _stems(sentence)}
+            out |= hit or set(series)
+    return out
+
+
 def recent_index_claims(case: dict, package, facts: dict) -> list["Claim"]:
-    """Public claims for cost drivers that are falling at the latest month (opt-in, not in the bank)."""
+    """Public claims for material cost drivers falling at the latest month and not documented as hedged
+    by the supplier (opt-in, not in the bank)."""
     parts = case.get("parts") or []
     part = parts[0] if parts else None
     refs = set(case.get("refs") or [])
-    drivers = _drivers(package, part)
+    drivers = {s: w for s, w in _drivers(package, part).items() if w >= MIN_DRIVER_WEIGHT}
+    hedged = hedged_series(case, package, list(drivers))
     names = _series_names(package)
     series = series_values(facts)
     out = []
-    for sid in sorted(drivers, key=lambda s: -drivers[s]):
+    for sid in sorted(set(drivers) - hedged, key=lambda s: -drivers[s]):
         values = series.get(sid, {})
         if (w := recent_buyer_window(values)) is None:
             continue
