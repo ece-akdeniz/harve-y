@@ -32,6 +32,9 @@ def test_supplied_data_rebuilds_facts_without_changing_message_identity(tmp_path
 
     monkeypatch.setattr("negotiator.lab.learning.load_package", package)
     learning = LearningStore(tmp_path / "lab.db")
+    legacy = snapshot("legacy-no-provenance", status="completed", score=0.4)
+    legacy.update(status="completed", source="imported", provenance=None)
+    Store(learning.path).upsert(Run.model_validate(legacy))
     first = learning.ingest(data)
     run = snapshot("prior", status="completed", score=0.6)
     run["attempts"][0].update(session_id="session-a", result={"ended": True, "deal": True},

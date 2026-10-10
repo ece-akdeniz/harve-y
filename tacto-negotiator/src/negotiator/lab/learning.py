@@ -68,7 +68,8 @@ class LearningStore:
                     db.execute("INSERT INTO learning_data VALUES(?,?,?)", (data_hash, encoded, body["ingested_at"]))
             refreshed, failures = 0, 0
             for run in self.store.all():
-                if run.status not in TERMINAL or run.provenance.data_sha256 != data_hash:
+                if (run.status not in TERMINAL or run.provenance is None
+                        or run.provenance.data_sha256 != data_hash):
                     continue
                 try:
                     self.review(run.run_id)

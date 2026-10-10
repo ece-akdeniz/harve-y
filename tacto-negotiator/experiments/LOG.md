@@ -2,6 +2,13 @@
 
 Format and decision rule: `docs/04-experiments.md`. Newest on top. One entry per change.
 
+## 2026-10-10 — Shared-lab ingestion compatibility hotfix (DEPLOYMENT CHECK)
+
+- Hypothesis: registering a matching supplied package should refresh feedback for versioned runs while skipping historical imports that have no provenance. The first deployed ingest stopped on such an import before refresh; the original runs and recommendation were unchanged.
+- Change: skip a run whose provenance is absent when selecting version-matched refreshes. A regression fixture includes an imported run without provenance alongside a matched tracked run.
+- Validation: nine focused learning tests, 595 full Python tests and Ruff passed. No Arena session or practice quota. The matching supplied package was transferred to the trusted team lab and fingerprint-checked before ingest. A pre-deployment SQLite backup passed integrity check.
+- Decision: deploy the compatibility fix and retry the same data ingest. Do not infer negotiation-score improvement or promote a checkpoint from this operational fix.
+
 ## 2026-10-10 — Supplier learning loop, local integration (UNPROMOTED)
 
 - Hypothesis: versioned supplied data and terminal run uploads can refresh separate public-fact and episodic stores, produce cited feedback, and create a reviewable configuration candidate without changing active sessions or the recommended checkpoint.
