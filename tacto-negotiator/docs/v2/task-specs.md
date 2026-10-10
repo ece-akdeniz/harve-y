@@ -97,3 +97,39 @@ These preserve the existing parent IDs. Large parents split into the listed outp
 T1.1 batches share models.py and merge serially. After T1.1d plus fixture codec, evidence resolver, official-economic adapter, interpreter with fake ModelGateway, final validator with fake economic/claim ports, and state/event store with dummy valid actions can proceed in separate branches. Each owns only its package; changes to shared models/tests require contract-owner review. Strategy begins with recorded assessment/evaluations; interpreter does not wait for a real provider. M1 integration remains its own owner and proves substitutability before modules are combined.
 
 Suggested owners: Decision owns strategy/selection/assessment coordination; Evidence owns resolver/prep/claims; Runtime owns store/coordinator/gateway; Evaluation owns fixture labels/catalog/gates. Names beyond the existing Decision owner are unassigned. The plan prepares delegation; no coding agents were launched in this preparation.
+
+### T1.1d first bounded evidence handoff — approved 10 October 2026
+
+Source: `6880d7a`. The requested inventory is exactly these twelve models:
+EvidenceScope, Provenance, TemporalValidity, DisclosureRule, IndexFact, ScorecardFact,
+CostFact, QuoteFact, ContractFact, ForecastFact, OrderPriceFact, TextRecord.
+The user explicitly requires excluding any member with an unresolved contract.
+
+**Implementable exports (4):** EvidenceScope, Provenance, TemporalValidity, DisclosureRule.
+Dependencies: FrozenModel, SourceRef, strict identifier/hash validation and canonical
+serialization from T1.1a–c; stdlib date/datetime and Pydantic. No feature services.
+Examples/tests: tests/v2/contracts/test_evidence_dtos.py decodes P10 supplier/part scope,
+source provenance and temporal/disclosure metadata; round-trip, immutable Python/JSON
+boundaries, invalid IDs/hashes/dates/times and enum checks. Run alongside foundation,
+hardening, guardrail, boundary tests and the full V2 suite with core/config required.
+
+**Excluded members (8), pending explicit field contracts:**
+- IndexFact: value numeric type and month encoding are not specified for this payload.
+- ScorecardFact: quarter encoding and numeric types of otd_pct/ppm are not declared.
+- CostFact: cost_base type/meaning and confidence_pct type/range are undefined.
+- QuoteFact: observed_terms shape and validity type are undefined.
+- ContractFact: clause_refs element type (source revision or clause identifier) is undefined.
+- ForecastFact: period encoding and quantity/change_pct numeric types are undefined.
+- OrderPriceFact: quantity numeric type is undefined; fractional quantities versus counts
+  cannot be settled by reusing an unrelated integer term field.
+- TextRecord: document_kind and declared_role vocabularies (open strings versus enums)
+  are not specified.
+No placeholders, partial EvidencePayload union or EvidenceRecord are introduced.
+These exclusions are specification gaps, not completed DTOs.
+
+**Later handoffs:** EconomicContext, scenario_policy and standards_by_supplier remain
+excluded; their concrete definitions belong to the economic-context batch. NamedEstimate.name
+currently says "from method's registered enum". No registry values are declared. The later
+contract must explicitly choose a registered method-specific enum (and enumerate values) or
+revise to a validated string with defined validation/authority rules. This handoff preserves
+the registry requirement and does not silently choose the string alternative.

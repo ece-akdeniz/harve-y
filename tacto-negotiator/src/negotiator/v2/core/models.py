@@ -2,7 +2,7 @@
 
 import json
 import re
-from datetime import date
+from datetime import date, datetime, timedelta
 from decimal import Decimal
 from typing import Annotated, Literal
 from uuid import UUID
@@ -846,3 +846,70 @@ class EffectiveConfig(FrozenModel):
         if self.price_min > self.price_max:
             raise ValueError("price_min must not exceed price_max")
         return self
+
+
+class EvidenceScope(FrozenModel):
+    supplier_ids: tuple[str, ...]
+    part_ids: tuple[str, ...]
+    level: Literal["supplier", "part", "basket", "case", "global"]
+    case_id: str | None = None
+
+    @field_validator("supplier_ids", "part_ids")
+    @classmethod
+    def valid_scope_ids(cls, value):
+        if any(not item.strip() or item != item.strip() for item in value):
+            raise ValueError("scope identifiers must be nonempty and unpadded")
+        return value
+
+
+class Provenance(FrozenModel):
+    layer: Literal["base", "release", "case", "session", "derived"]
+    source_version: str
+    content_hash: str
+    locator: str
+    parent_refs: tuple[SourceRef, ...]
+    parser_version: str | None = None
+
+    @field_validator("locator")
+    @classmethod
+    def logical_locator(cls, value):
+        if "://" in value:
+            raise ValueError("locator must be a logical source location, not a URL")
+        return value
+
+    @field_validator("source_version", "locator", "parser_version")
+    @classmethod
+    def valid_provenance_labels(cls, value):
+        if value is not None and not value.strip():
+            raise ValueError("provenance labels must be nonempty when supplied")
+        return value
+
+
+class TemporalValidity(FrozenModel):
+    status: Literal["current", "stale", "future", "unknown"]
+    freshness_rule_id: str
+    observed_at: datetime | None = None
+    published_at: datetime | None = None
+    valid_from: date | None = None
+    valid_to: date | None = None
+    data_as_of: date | None = None
+
+    @field_validator("observed_at", "published_at")
+    @classmethod
+    def utc_timestamps(cls, value):
+        if value is not None and (value.utcoffset() is None or value.utcoffset() != timedelta(0)):
+            raise ValueError("domain timestamps must be UTC with an offset")
+        return value
+
+
+class DisclosureRule(FrozenModel):
+    classification: Literal["public", "supplier_own", "internal", "reveals_rival", "restricted"] = "restricted"
+    permitted_recipients: tuple[str, ...]
+    purpose: tuple[str, ...]
+
+    @field_validator("permitted_recipients", "purpose")
+    @classmethod
+    def valid_disclosure_labels(cls, value):
+        if any(not item.strip() or item != item.strip() for item in value):
+            raise ValueError("disclosure labels must be nonempty and unpadded")
+        return value

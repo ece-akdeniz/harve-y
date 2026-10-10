@@ -7,6 +7,7 @@ import sys
 from pathlib import Path
 
 OWNERS = {
+    "test_evidence_dtos.py": "T1.1d bounded evidence DTOs",
     "test_hardening.py": "T1.1a/T1.1b/T1.1c hardening",
     "test_foundation.py": "T1.1a/T1.1b", "test_boundaries.py": "T1.1b",
     "test_guardrails.py": "T1.1c/T1.3", "test_evidence.py": "T2.1/T2.3",

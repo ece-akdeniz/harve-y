@@ -60,7 +60,7 @@ Every task row starts `planned`; assign owner and evidence as work begins. Use o
 
 | Task | Small assignments / required result | Status |
 |---|---|---|
-| T1.1 | a immutable values/terms/serialization; b assessment/ports; c DecisionRecord/config; d remaining DTO batches | a–c verified locally; d planned |
+| T1.1 | a immutable values/terms/serialization; b assessment/ports; c DecisionRecord/config; d remaining DTO batches | a–c verified locally; d evidence metadata verified locally (4); 8 payload DTOs blocked on field contracts |
 | T1.2 | a typed fixture bindings/recorded codec; b full injected offline pipeline, not a one-step proposal stub | Planned |
 | T1.3 | Immutable effective config and explicit fake clock/model/server/store composition from the start | Planned |
 | T1.4 | Versioned fixtures, exact raw bytes, immutable artifacts and append-only SQLite DecisionRecords; restart reload/replay hashes | Planned |
@@ -259,3 +259,43 @@ KeyError in PackageAgent.propose. The identical failure was reproduced from an u
 `git archive 7e861cd` source/test copy. V1 source has no diff; no V1 green-suite claim is made.
 No hosted quota or model calls were consumed. Full repository readiness remains outside this
 foundation gate; all required V2 suites are green apart from explicitly deferred modules.
+
+
+#### T1.1d bounded evidence metadata completion — 10 October 2026
+
+**Source / scope:** `6880d7a`, same existing V2 branch. Before coding, task-specs recorded
+all twelve requested models, foundation dependencies, exact owned tests, and eight exclusions
+under the user's explicit ambiguity rule. Implemented exports: **EvidenceScope, Provenance,
+TemporalValidity, DisclosureRule**. These four are verified locally; the full twelve-model
+subset and T1.1d are **not complete**. The eight payload models remain blocked on concrete
+field types/encodings/vocabularies itemized in task-specs. No partial payload union was created.
+
+**Behavior:** strict frozen models with immutable tuple boundaries and versioned JSON;
+nonempty scoped identifiers, validated content hashes, logical provenance locations,
+optional real dates and UTC timestamps, literal scope/layer/freshness/disclosure vocabularies.
+Unknown temporal status remains unknown; source disclosure defaults restricted. No source
+winner, freshness decision, scope inference, disclosure authorization or executable authority
+is inferred. Concrete P10 metadata composes with existing SourceRef, PriceBasis and Price
+through normal validated constructors/JSON, never model_construct.
+
+**Newly passing owned tests:** `tests/v2/contracts/test_evidence_dtos.py`: **32 passed**.
+These are additional DTO assertions, not newly implemented resolver/codec/service tests.
+Foundation + hardening + guardrails + boundaries + DTO selector: **192 passed, 2 expected
+UNIMPLEMENTED xfails**. Complete V2 contract/acceptance/integration suite with core and config
+required: **193 passed, 120 expected UNIMPLEMENTED xfails** (baseline 161/120).
+**Unexpected regressions: zero**. Every previously passing V2 test remains passing; deferred
+component xfails are unchanged. V2 source/tests Ruff and git diff whitespace checks pass.
+Repository-wide Ruff still reports the four unchanged V1 findings documented in hardening
+(evaluator B905, guards I001, runner E501 twice). uv remains unavailable; commands used the
+existing Python 3.12 .venv without dependency changes.
+
+**Reproduction:** `.venv/bin/python -m pytest -q tests/v2/contracts/test_evidence_dtos.py`;
+`.venv/bin/python -m pytest -q tests/v2 --v2-require core --v2-require config`;
+`.venv/bin/ruff check src/negotiator/v2 tests/v2`; `.venv/bin/ruff check .`.
+
+**Preserved / deferred:** V1, existing model contracts, Decimal semantics, Package fingerprint
+verification, configuration trust, exact Protocols, and all golden fixtures unchanged.
+Only the generated assertion manifest was refreshed. EconomicContext/scenario_policy/
+standards_by_supplier and NamedEstimate/EstimateRecord remain deferred with explicit decisions
+needed; no enum registry values or validated-string replacement were invented. No services,
+persistence, orchestration, intelligence, hosted/model calls or quota consumed.

@@ -2,7 +2,7 @@
   "fixture_version": "negotiator-v2-fixtures/1",
   "contract_version": "negotiator-v2/1",
   "generated_from": "pytest collection and Python assertion AST; regenerate after test edits",
-  "test_count": 281,
+  "test_count": 313,
   "tests": [
     {
       "test_id": "tests/v2/acceptance/test_behavior.py::test_meaningful_preference_flip_changes_intent_direction",
@@ -1319,6 +1319,661 @@
       ],
       "expected_exceptions": [],
       "source_line": 89,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_evidence_dtos.py::test_metadata_roundtrip_frozen_and_extra_forbidden[EvidenceScope]",
+      "group": "contracts",
+      "task": "T1.1d bounded evidence DTOs",
+      "fixture_arguments": [
+        "evidence_metadata",
+        "model"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "model.model_validate_json(result.model_dump_json()) == result",
+        "result.schema_version == 'negotiator-v2/1'",
+        "semantic_hash(result) == semantic_hash(model.model_validate_json(result.model_dump_json()))"
+      ],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)",
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 37,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_evidence_dtos.py::test_metadata_roundtrip_frozen_and_extra_forbidden[Provenance]",
+      "group": "contracts",
+      "task": "T1.1d bounded evidence DTOs",
+      "fixture_arguments": [
+        "evidence_metadata",
+        "model"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "model.model_validate_json(result.model_dump_json()) == result",
+        "result.schema_version == 'negotiator-v2/1'",
+        "semantic_hash(result) == semantic_hash(model.model_validate_json(result.model_dump_json()))"
+      ],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)",
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 37,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_evidence_dtos.py::test_metadata_roundtrip_frozen_and_extra_forbidden[TemporalValidity]",
+      "group": "contracts",
+      "task": "T1.1d bounded evidence DTOs",
+      "fixture_arguments": [
+        "evidence_metadata",
+        "model"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "model.model_validate_json(result.model_dump_json()) == result",
+        "result.schema_version == 'negotiator-v2/1'",
+        "semantic_hash(result) == semantic_hash(model.model_validate_json(result.model_dump_json()))"
+      ],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)",
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 37,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_evidence_dtos.py::test_metadata_roundtrip_frozen_and_extra_forbidden[DisclosureRule]",
+      "group": "contracts",
+      "task": "T1.1d bounded evidence DTOs",
+      "fixture_arguments": [
+        "evidence_metadata",
+        "model"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "model.model_validate_json(result.model_dump_json()) == result",
+        "result.schema_version == 'negotiator-v2/1'",
+        "semantic_hash(result) == semantic_hash(model.model_validate_json(result.model_dump_json()))"
+      ],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)",
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 37,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_evidence_dtos.py::test_p10_metadata_composes_with_existing_foundation",
+      "group": "contracts",
+      "task": "T1.1d bounded evidence DTOs",
+      "fixture_arguments": [
+        "evidence_metadata",
+        "p10"
+      ],
+      "fixture_sources": [
+        "tests/fixtures/v2/p10.json"
+      ],
+      "assertions": [
+        "price.basis.part_ids == tuple(p10['case']['parts'])",
+        "scope.supplier_ids == (p10['supplier_id'],)",
+        "provenance.parent_refs == (SourceRef(record_id='record:base'),)",
+        "temporal.observed_at == datetime.fromisoformat(p10['as_of'])",
+        "temporal.valid_from == date(2026, 10, 1)",
+        "disclosure.classification == 'internal'",
+        "disclosure.permitted_recipients == ()"
+      ],
+      "expected_exceptions": [],
+      "source_line": 48,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_evidence_dtos.py::test_invalid_metadata_rejected[EvidenceScope-supplier_ids-value0]",
+      "group": "contracts",
+      "task": "T1.1d bounded evidence DTOs",
+      "fixture_arguments": [
+        "evidence_metadata",
+        "model",
+        "field",
+        "value"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 78,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_evidence_dtos.py::test_invalid_metadata_rejected[EvidenceScope-part_ids-value1]",
+      "group": "contracts",
+      "task": "T1.1d bounded evidence DTOs",
+      "fixture_arguments": [
+        "evidence_metadata",
+        "model",
+        "field",
+        "value"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 78,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_evidence_dtos.py::test_invalid_metadata_rejected[EvidenceScope-case_id- ]",
+      "group": "contracts",
+      "task": "T1.1d bounded evidence DTOs",
+      "fixture_arguments": [
+        "evidence_metadata",
+        "model",
+        "field",
+        "value"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 78,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_evidence_dtos.py::test_invalid_metadata_rejected[EvidenceScope-level-plant]",
+      "group": "contracts",
+      "task": "T1.1d bounded evidence DTOs",
+      "fixture_arguments": [
+        "evidence_metadata",
+        "model",
+        "field",
+        "value"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 78,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_evidence_dtos.py::test_invalid_metadata_rejected[Provenance-content_hash-invalid]",
+      "group": "contracts",
+      "task": "T1.1d bounded evidence DTOs",
+      "fixture_arguments": [
+        "evidence_metadata",
+        "model",
+        "field",
+        "value"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 78,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_evidence_dtos.py::test_invalid_metadata_rejected[Provenance-content_hash-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA]",
+      "group": "contracts",
+      "task": "T1.1d bounded evidence DTOs",
+      "fixture_arguments": [
+        "evidence_metadata",
+        "model",
+        "field",
+        "value"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 78,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_evidence_dtos.py::test_invalid_metadata_rejected[Provenance-source_version-]",
+      "group": "contracts",
+      "task": "T1.1d bounded evidence DTOs",
+      "fixture_arguments": [
+        "evidence_metadata",
+        "model",
+        "field",
+        "value"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 78,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_evidence_dtos.py::test_invalid_metadata_rejected[Provenance-locator- ]",
+      "group": "contracts",
+      "task": "T1.1d bounded evidence DTOs",
+      "fixture_arguments": [
+        "evidence_metadata",
+        "model",
+        "field",
+        "value"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 78,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_evidence_dtos.py::test_invalid_metadata_rejected[Provenance-locator-https://user:secret@example.test/source]",
+      "group": "contracts",
+      "task": "T1.1d bounded evidence DTOs",
+      "fixture_arguments": [
+        "evidence_metadata",
+        "model",
+        "field",
+        "value"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 78,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_evidence_dtos.py::test_invalid_metadata_rejected[Provenance-parser_version-]",
+      "group": "contracts",
+      "task": "T1.1d bounded evidence DTOs",
+      "fixture_arguments": [
+        "evidence_metadata",
+        "model",
+        "field",
+        "value"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 78,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_evidence_dtos.py::test_invalid_metadata_rejected[Provenance-layer-model_truth]",
+      "group": "contracts",
+      "task": "T1.1d bounded evidence DTOs",
+      "fixture_arguments": [
+        "evidence_metadata",
+        "model",
+        "field",
+        "value"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 78,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_evidence_dtos.py::test_invalid_metadata_rejected[TemporalValidity-valid_from-2026-02-30]",
+      "group": "contracts",
+      "task": "T1.1d bounded evidence DTOs",
+      "fixture_arguments": [
+        "evidence_metadata",
+        "model",
+        "field",
+        "value"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 78,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_evidence_dtos.py::test_invalid_metadata_rejected[TemporalValidity-observed_at-2026-10-10T12:00:00]",
+      "group": "contracts",
+      "task": "T1.1d bounded evidence DTOs",
+      "fixture_arguments": [
+        "evidence_metadata",
+        "model",
+        "field",
+        "value"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 78,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_evidence_dtos.py::test_invalid_metadata_rejected[TemporalValidity-published_at-2026-10-10T12:00:00+02:00]",
+      "group": "contracts",
+      "task": "T1.1d bounded evidence DTOs",
+      "fixture_arguments": [
+        "evidence_metadata",
+        "model",
+        "field",
+        "value"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 78,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_evidence_dtos.py::test_invalid_metadata_rejected[TemporalValidity-freshness_rule_id-]",
+      "group": "contracts",
+      "task": "T1.1d bounded evidence DTOs",
+      "fixture_arguments": [
+        "evidence_metadata",
+        "model",
+        "field",
+        "value"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 78,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_evidence_dtos.py::test_invalid_metadata_rejected[TemporalValidity-status-verified]",
+      "group": "contracts",
+      "task": "T1.1d bounded evidence DTOs",
+      "fixture_arguments": [
+        "evidence_metadata",
+        "model",
+        "field",
+        "value"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 78,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_evidence_dtos.py::test_invalid_metadata_rejected[DisclosureRule-classification-binding]",
+      "group": "contracts",
+      "task": "T1.1d bounded evidence DTOs",
+      "fixture_arguments": [
+        "evidence_metadata",
+        "model",
+        "field",
+        "value"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 78,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_evidence_dtos.py::test_invalid_metadata_rejected[DisclosureRule-permitted_recipients-value17]",
+      "group": "contracts",
+      "task": "T1.1d bounded evidence DTOs",
+      "fixture_arguments": [
+        "evidence_metadata",
+        "model",
+        "field",
+        "value"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 78,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_evidence_dtos.py::test_invalid_metadata_rejected[DisclosureRule-purpose-value18]",
+      "group": "contracts",
+      "task": "T1.1d bounded evidence DTOs",
+      "fixture_arguments": [
+        "evidence_metadata",
+        "model",
+        "field",
+        "value"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 78,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_evidence_dtos.py::test_python_collections_require_tuples[EvidenceScope-supplier_ids]",
+      "group": "contracts",
+      "task": "T1.1d bounded evidence DTOs",
+      "fixture_arguments": [
+        "evidence_metadata",
+        "model",
+        "field"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "isinstance(raw[field], tuple)"
+      ],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 87,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_evidence_dtos.py::test_python_collections_require_tuples[EvidenceScope-part_ids]",
+      "group": "contracts",
+      "task": "T1.1d bounded evidence DTOs",
+      "fixture_arguments": [
+        "evidence_metadata",
+        "model",
+        "field"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "isinstance(raw[field], tuple)"
+      ],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 87,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_evidence_dtos.py::test_python_collections_require_tuples[Provenance-parent_refs]",
+      "group": "contracts",
+      "task": "T1.1d bounded evidence DTOs",
+      "fixture_arguments": [
+        "evidence_metadata",
+        "model",
+        "field"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "isinstance(raw[field], tuple)"
+      ],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 87,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_evidence_dtos.py::test_python_collections_require_tuples[DisclosureRule-permitted_recipients]",
+      "group": "contracts",
+      "task": "T1.1d bounded evidence DTOs",
+      "fixture_arguments": [
+        "evidence_metadata",
+        "model",
+        "field"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "isinstance(raw[field], tuple)"
+      ],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 87,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_evidence_dtos.py::test_python_collections_require_tuples[DisclosureRule-purpose]",
+      "group": "contracts",
+      "task": "T1.1d bounded evidence DTOs",
+      "fixture_arguments": [
+        "evidence_metadata",
+        "model",
+        "field"
+      ],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "isinstance(raw[field], tuple)"
+      ],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 87,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_evidence_dtos.py::test_temporal_unknown_is_not_silently_current",
+      "group": "contracts",
+      "task": "T1.1d bounded evidence DTOs",
+      "fixture_arguments": [],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "result.status == 'unknown'",
+        "result.observed_at is None and result.data_as_of is None",
+        "TemporalValidity.model_validate_json(result.model_dump_json()) == result",
+        "TemporalValidity(status='current', freshness_rule_id='rule:1', observed_at=datetime(2026, 10, 10, tzinfo=UTC)).observed_at.tzinfo == UTC"
+      ],
+      "expected_exceptions": [
+        "pytest.raises(ValidationError)",
+        "pytest.raises(ValidationError)"
+      ],
+      "source_line": 95,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_evidence_dtos.py::test_unknown_text_disclosure_defaults_restricted",
+      "group": "contracts",
+      "task": "T1.1d bounded evidence DTOs",
+      "fixture_arguments": [],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "result.classification == 'restricted'",
+        "DisclosureRule.model_validate_json(result.model_dump_json()) == result"
+      ],
+      "expected_exceptions": [],
+      "source_line": 108,
+      "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
+    },
+    {
+      "test_id": "tests/v2/contracts/test_evidence_dtos.py::test_supplier_scorecard_scope_does_not_invent_parts",
+      "group": "contracts",
+      "task": "T1.1d bounded evidence DTOs",
+      "fixture_arguments": [],
+      "fixture_sources": [
+        "test-local controlled values and parametrization"
+      ],
+      "assertions": [
+        "result.part_ids == ()",
+        "result.case_id is None",
+        "EvidenceScope.model_validate_json(result.model_dump_json()) == result"
+      ],
+      "expected_exceptions": [],
+      "source_line": 114,
       "failure_condition": "A specified assertion/exception expectation fails, unexpected error occurs, or an absent owning component is required by --v2-require."
     },
     {

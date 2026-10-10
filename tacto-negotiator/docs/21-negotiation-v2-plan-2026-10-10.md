@@ -55,7 +55,7 @@ Update this file as milestones progress. Do not check off a milestone from sourc
 | Milestone | Outcome | Status | Evidence / owner |
 |---|---|---|---|
 | M0 | Assessment, architecture, contracts and executable handoff | Verified local preparation; architecture approved in principle | A–F, tests/fixtures/task handoff; production owner unassigned |
-| M1 | Complete typed offline skeletal loop, effective config, persistent DecisionRecord and replay | Planned | D/task-specs required gates |
+| M1 | Complete typed offline skeletal loop, effective config, persistent DecisionRecord and replay | in_progress | T1.1a–c hardened; four T1.1d metadata DTOs verified_local; eight payload DTOs blocked on field contracts; [D evidence](v2/D-roadmap.md) |
 | M2 | Unified evidence resolution and prebuilt context | Planned | — |
 | M3 | Grounded capacity supplier interpreter | Planned | — |
 | M4 | Capacity intents, certified candidates and interchangeable selection | Planned | — |
@@ -94,7 +94,7 @@ Maintain a dated change log below. Contract changes require a new contract versi
 ## Executable handoff
 
 - [Test catalog](v2/test-catalog.md): three suites, actual fixtures, expected assertions/failure conditions and owning tasks.
-- [Expanded machine-readable test manifest](../tests/fixtures/v2/test-manifest.json): all 241 collected parameter cases with executable assertions and owners.
+- [Expanded machine-readable test manifest](../tests/fixtures/v2/test-manifest.json): all 313 collected parameter cases with executable assertions and owners.
 - [Task specifications](v2/task-specs.md): exact paths/ports/imports/instructions/reuse/dependencies/acceptance/exclusions; small M1 subassignments.
 - [Coding guide](v2/implementation-guide.md): required-prefix gates, replay/baseline commands and completion reporting.
 - [Architecture compliance checklist](v2/compliance-checklist.md): objective review criteria with evidence.
