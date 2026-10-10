@@ -29,7 +29,8 @@ class EvidencePolicy:
     def __init__(self, package=None, tracer=None, case_types=None, interpretation=None, recent_window_types=(),
                  rival_quote_types=(), index_window_types=()):
         self.recent_window_types = set(recent_window_types)
-        self.case_types = set(case_types if case_types is not None else ["price_increase"]) | self.recent_window_types
+        self.default_types = set(case_types if case_types is not None else ["price_increase"])
+        self.case_types = self.default_types | self.recent_window_types
         # Opt-in: disclose a documented, still-valid public rival quote for the case part when its
         # complete cost (case cost model) beats the supplier's standing sheet.
         self.rival_quote_types = set(rival_quote_types or ())
@@ -135,11 +136,21 @@ class EvidencePolicy:
                 self.tracer.log("reply_interpretation", case=cid, supplier=sid, **interpretation)
             if "*" in rejected:
                 return move
-            recent = case["type"] in self.recent_window_types
-            # Recent-window cases use only public index claims over windows ending at the latest month.
-            source = recent_index_claims(case, self.package, facts) if recent else context.candidates
-            bank = [c for c in source if verify(c, facts, self.package, case)
-                    and not rejected.intersection(c.ids) and c.kind not in skip_kinds]
+
+            def usable(claims):
+                return [c for c in claims if verify(c, facts, self.package, case)
+                        and not rejected.intersection(c.ids) and c.kind not in skip_kinds]
+
+            bank = usable(context.candidates)
+            recent = False
+            if case["type"] in self.recent_window_types:
+                # Public facts decide: material drivers falling at the latest month and not documented as
+                # hedged by the supplier. Otherwise behave exactly as without the option.
+                fresh = usable(recent_index_claims(case, self.package, facts))
+                if fresh:
+                    bank, recent = fresh, True
+                elif case["type"] not in self.default_types:
+                    bank = []
             disclosures = DEFAULT_DISCLOSURE
             if case["type"] in self.index_window_types:  # only the most recent fall, never a stale window
                 bank = [c for c in bank if not c.cherry_picked or c.note.startswith("recent buyer window")]
