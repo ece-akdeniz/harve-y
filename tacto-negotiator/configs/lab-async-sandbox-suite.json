@@ -1,0 +1,24 @@
+{
+  "suite_id": "d01-d02-sandbox-async-harvey-v1",
+  "cases": [
+    "case:D01",
+    "case:D02"
+  ],
+  "repetitions": 3,
+  "runner": "async",
+  "arena_url": "https://arena.tacto.ai",
+  "environment": "sandbox",
+  "data": {
+    "base": {
+      "sha256": "d5088ef05eb836b9b818f00adc584252d01362b28f73af964d9fac15a61f33dd",
+      "source": "https://github.com/tacto-ai/negotiation-arena-kit"
+    }
+  },
+  "max_sessions": 12,
+  "policy": {
+    "version": "v1",
+    "min_gain": 1.0,
+    "max_case_regression": 2.0,
+    "min_win_fraction": 0.6666666666666666
+  }
+}

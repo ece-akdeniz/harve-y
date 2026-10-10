@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "package_types": [
+    "quality"
+  ],
+  "evidence_types": [
+    "quality"
+  ],
+  "preference": "lower_chargeback",
+  "chargeback_steps": 1
+}

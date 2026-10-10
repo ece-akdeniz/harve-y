@@ -1,0 +1,400 @@
+{
+  "quota_before": {
+    "used": 14,
+    "left": 186,
+    "limit": 200,
+    "resets_at": "2026-10-11T11:39:03.056071+00:00"
+  },
+  "quota_after": {
+    "used": 19,
+    "left": 181,
+    "limit": 200,
+    "resets_at": "2026-10-11T11:39:03.056071+00:00"
+  },
+  "budget": 5,
+  "config": {
+    "commit": "1a18dc0",
+    "src_dirty": false,
+    "agent": "PackageAgent-v0.2",
+    "params": {
+      "anchor": 0.12,
+      "rounds": 5,
+      "close_gap": 0.005,
+      "final_hold_s": 40.0,
+      "meso": false,
+      "p_walk": 0.25,
+      "claims": false
+    },
+    "estimates": "off",
+    "runner": "async",
+    "facts_sha256": "7dc162f977c0",
+    "parallel": 3,
+    "runtime": {
+      "calls_per_s": 6,
+      "move_limit_s": 60,
+      "buyer_target_s": 35.0,
+      "close_wait_s": 20.0,
+      "close_budget_s": 20.0,
+      "close_before_cap_s": 90,
+      "round_margin_s": 15,
+      "max_close_attempts": 3,
+      "send_slots_per_session": 1,
+      "send_reserve_s": 25.0
+    }
+  },
+  "recorded_at": "2026-10-10T14:41:02.495449+02:00",
+  "world_sqlite_sha256": "4d8c896740350218d39f9d1ceada7b937f0d4e3078a155312851b8c09ed172b9",
+  "scope": "Five previously untested hosted cases; fixed policy, shared limiter 6 calls/s, at most 3 sessions concurrently; not a paired policy comparison.",
+  "runs": {
+    "case:P04": {
+      "session_id": "ae20ddcf43f86237",
+      "score": 0.05639164267740558,
+      "deal": true,
+      "must_haves_ok": true,
+      "terms": {
+        "payment_days": 90,
+        "lead_time_days": 7,
+        "volume_per_year": 20000,
+        "contract_months": 12,
+        "effective_date": "2027-01-01",
+        "index_clause": null,
+        "incoterm": "DAP",
+        "tooling_eur": 0.0,
+        "ppm_commitment": 150,
+        "chargeback_eur_per_complaint": 0.0,
+        "unit_price": 5.02
+      },
+      "c_open": 198846.33,
+      "c_deal": 198715.67,
+      "c_best": 196529.32,
+      "c_alt": 203169.0,
+      "cost_breakdown": {
+        "price": 100400.0,
+        "uncovered_need": 94000.0,
+        "fallback_risk": 4700.0,
+        "payment_terms": -669.33,
+        "freight": 0.0,
+        "late_delivery": 0.0,
+        "quality": 285.0,
+        "tooling": 0.0,
+        "index_clause": 0.0,
+        "index_risk": 0.0,
+        "relationship": 0.0
+      },
+      "elapsed_s": 47.5,
+      "server_timeouts": {
+        "sup:70620": 0
+      }
+    },
+    "case:P02": {
+      "session_id": "1c87a28d5390f289",
+      "score": 0.29342218854638985,
+      "deal": true,
+      "must_haves_ok": true,
+      "terms": {
+        "payment_days": 90,
+        "lead_time_days": 35,
+        "volume_per_year": 6110,
+        "contract_months": 12,
+        "effective_date": "2027-01-01",
+        "index_clause": null,
+        "incoterm": "DAP",
+        "tooling_eur": 0.0,
+        "ppm_commitment": 250,
+        "chargeback_eur_per_complaint": 0.0,
+        "unit_price": 373.65
+      },
+      "c_open": 2282867.49,
+      "c_deal": 2268972.94,
+      "c_best": 2235514.05,
+      "c_alt": 2604227.78,
+      "cost_breakdown": {
+        "price": 2283001.5,
+        "uncovered_need": 0.0,
+        "fallback_risk": 0.0,
+        "payment_terms": -15220.01,
+        "freight": 0.0,
+        "late_delivery": 0.0,
+        "quality": 1191.45,
+        "tooling": 0.0,
+        "index_clause": 0.0,
+        "index_risk": 0.0,
+        "relationship": 0.0
+      },
+      "elapsed_s": 53.3,
+      "server_timeouts": {
+        "sup:70510": 0
+      }
+    },
+    "case:P08": {
+      "session_id": "7b1457795e1fbbbd",
+      "score": 0.15618407664515943,
+      "deal": true,
+      "must_haves_ok": true,
+      "terms": {
+        "payment_days": 90,
+        "lead_time_days": 10,
+        "volume_per_year": 94800,
+        "contract_months": 12,
+        "effective_date": "2027-01-01",
+        "index_clause": null,
+        "incoterm": "DAP",
+        "tooling_eur": 0.0,
+        "ppm_commitment": 50,
+        "chargeback_eur_per_complaint": 0.0,
+        "unit_price": 5.84
+      },
+      "c_open": 1135887.28,
+      "c_deal": 1108464.8,
+      "c_best": 960309.33,
+      "c_alt": 1157019.84,
+      "cost_breakdown": {
+        "price": 553632.0,
+        "uncovered_need": 542256.0,
+        "fallback_risk": 16267.68,
+        "payment_terms": -3690.88,
+        "freight": 0.0,
+        "late_delivery": 0.0,
+        "quality": 0.0,
+        "tooling": 0.0,
+        "index_clause": 0.0,
+        "index_risk": 0.0,
+        "relationship": 0.0
+      },
+      "elapsed_s": 72.3,
+      "server_timeouts": {
+        "sup:70710": 0
+      }
+    },
+    "case:P18": {
+      "session_id": "ca5c5a2ee6331b7f",
+      "score": 0.3860786443168386,
+      "deal": true,
+      "must_haves_ok": true,
+      "terms": {
+        "payment_days": 90,
+        "lead_time_days": 14,
+        "volume_per_year": 23700,
+        "contract_months": 24,
+        "effective_date": "2027-01-01",
+        "index_clause": {
+          "series": "AS-14404",
+          "material_share": 0.45,
+          "deadband_pct": 0.0,
+          "base_month": "2026-08"
+        },
+        "incoterm": "DAP",
+        "tooling_eur": 0.0,
+        "ppm_commitment": 70,
+        "chargeback_eur_per_complaint": 0.0,
+        "unit_price": 5.5
+      },
+      "c_open": 295173.23,
+      "c_deal": 267174.05,
+      "c_best": 222651.27,
+      "c_alt": 301087.96,
+      "cost_breakdown": {
+        "price": 260700.0,
+        "uncovered_need": 0.0,
+        "fallback_risk": 0.0,
+        "payment_terms": -1738.0,
+        "freight": 0.0,
+        "late_delivery": 0.0,
+        "quality": 0.0,
+        "tooling": 0.0,
+        "index_clause": 7038.9,
+        "index_risk": 1173.15,
+        "relationship": 0.0
+      },
+      "elapsed_s": 72.8,
+      "server_timeouts": {
+        "sup:70740": 0
+      }
+    },
+    "case:P11": {
+      "session_id": "d5371cf52ee9b718",
+      "score": 0.3143945632837383,
+      "deal": true,
+      "must_haves_ok": true,
+      "terms": {
+        "payment_days": 60,
+        "lead_time_days": 56,
+        "volume_per_year": 15900,
+        "contract_months": 12,
+        "effective_date": "2027-01-01",
+        "index_clause": null,
+        "incoterm": "FCA",
+        "tooling_eur": 0.0,
+        "ppm_commitment": 300,
+        "chargeback_eur_per_complaint": 500.0,
+        "unit_price": 48.0
+      },
+      "c_open": 817578.0,
+      "c_deal": 787686.0,
+      "c_best": 722500.02,
+      "c_alt": 894383.19,
+      "cost_breakdown": {
+        "price": 763200.0,
+        "uncovered_need": 0.0,
+        "fallback_risk": 0.0,
+        "payment_terms": 0.0,
+        "freight": 24486.0,
+        "late_delivery": 0.0,
+        "quality": 0.0,
+        "tooling": 0.0,
+        "index_clause": 0.0,
+        "index_risk": 0.0,
+        "relationship": 0.0
+      },
+      "elapsed_s": 130.8,
+      "server_timeouts": {
+        "sup:70140": 0
+      }
+    }
+  },
+  "unavailable_hosted": [
+    "case:P06",
+    "case:P09",
+    "case:P12",
+    "case:P13",
+    "case:P14",
+    "case:P15",
+    "case:P16",
+    "case:P17",
+    "case:P19"
+  ],
+  "best_observed_by_case_mixed_configurations": {
+    "case:P01": 0.9279307477921152,
+    "case:P02": 0.29342218854638985,
+    "case:P03": 0.8998338783551213,
+    "case:P04": 0.05639164267740558,
+    "case:P05": 0.3603959484559269,
+    "case:P07": 0.7430181822024754,
+    "case:P08": 0.15618407664515943,
+    "case:P10": 0.4531834161636432,
+    "case:P11": 0.3143945632837383,
+    "case:P18": 0.3860786443168386
+  },
+  "human_only_public_benchmarks": [
+    {
+      "case_id": "case:P01",
+      "best": 0.928,
+      "holder": "y/agent",
+      "house": 0.9659
+    },
+    {
+      "case_id": "case:P02",
+      "best": 0.293,
+      "holder": "y/agent",
+      "house": 0.74
+    },
+    {
+      "case_id": "case:P03",
+      "best": 0.9,
+      "holder": "y/agent",
+      "house": 0.9249
+    },
+    {
+      "case_id": "case:P04",
+      "best": 0.81,
+      "holder": "Boo \ud83d\udc7e",
+      "house": 0.8604
+    },
+    {
+      "case_id": "case:P05",
+      "best": 0.381,
+      "holder": "Boo \ud83d\udc7e",
+      "house": 0.5552
+    },
+    {
+      "case_id": "case:P07",
+      "best": 0.743,
+      "holder": "y/agent",
+      "house": 0.7816
+    },
+    {
+      "case_id": "case:P08",
+      "best": 0.227,
+      "holder": "Boo \ud83d\udc7e",
+      "house": 0.7516
+    },
+    {
+      "case_id": "case:P10",
+      "best": 0.453,
+      "holder": "y/agent",
+      "house": 0.6863
+    },
+    {
+      "case_id": "case:P11",
+      "best": 0.406,
+      "holder": "Boo \ud83d\udc7e",
+      "house": 0.3144
+    },
+    {
+      "case_id": "case:P18",
+      "best": 0.386,
+      "holder": "y/agent",
+      "house": 0.3861
+    }
+  ],
+  "benchmark_source": "https://arena.tacto.ai/live (public page API /v1/live); planning only, never runtime agent input",
+  "offline_claim_bank_checks": {
+    "case:P01": {
+      "claims": 9
+    },
+    "case:P02": {
+      "claims": 10
+    },
+    "case:P03": {
+      "error": "TypeError: float() argument must be a string or a real number, not 'NoneType'"
+    },
+    "case:P04": {
+      "error": "TypeError: float() argument must be a string or a real number, not 'NoneType'"
+    },
+    "case:P05": {
+      "error": "TypeError: float() argument must be a string or a real number, not 'NoneType'"
+    },
+    "case:P06": {
+      "error": "TypeError: float() argument must be a string or a real number, not 'NoneType'"
+    },
+    "case:P07": {
+      "error": "TypeError: float() argument must be a string or a real number, not 'NoneType'"
+    },
+    "case:P08": {
+      "error": "TypeError: float() argument must be a string or a real number, not 'NoneType'"
+    },
+    "case:P09": {
+      "error": "TypeError: float() argument must be a string or a real number, not 'NoneType'"
+    },
+    "case:P10": {
+      "error": "TypeError: float() argument must be a string or a real number, not 'NoneType'"
+    },
+    "case:P11": {
+      "error": "TypeError: float() argument must be a string or a real number, not 'NoneType'"
+    },
+    "case:P12": {
+      "error": "TypeError: float() argument must be a string or a real number, not 'NoneType'"
+    },
+    "case:P13": {
+      "claims": 8
+    },
+    "case:P14": {
+      "error": "TypeError: float() argument must be a string or a real number, not 'NoneType'"
+    },
+    "case:P15": {
+      "error": "TypeError: float() argument must be a string or a real number, not 'NoneType'"
+    },
+    "case:P16": {
+      "error": "TypeError: float() argument must be a string or a real number, not 'NoneType'"
+    },
+    "case:P17": {
+      "claims": 7
+    },
+    "case:P18": {
+      "error": "TypeError: float() argument must be a string or a real number, not 'NoneType'"
+    },
+    "case:P19": {
+      "error": "TypeError: float() argument must be a string or a real number, not 'NoneType'"
+    }
+  }
+}
