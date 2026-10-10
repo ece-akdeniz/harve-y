@@ -5,6 +5,7 @@ Reconstruct used IDs from buyer messages after resume. Reserve proposed IDs too:
 skipping an unsent claim is preferable to consuming the same fact twice.
 """
 
+import re
 from dataclasses import asdict
 
 from arena_kit.cost import total_cost
@@ -64,6 +65,25 @@ class EvidencePolicy:
                                 context=context.to_dict())
         return self.contexts[cid]
 
+    def material_hedged(self, case):
+        """True when the package documents that a case supplier's material cost is fixed for now
+        (its letters/notes or its quote remarks): a recent index fall then does not reach its cost."""
+        pkg, sups = self.package, set(case.get("suppliers") or [])
+        if pkg is None or getattr(pkg, "db", None) is None:
+            return True  # fail closed: no evidence that a fall reaches the supplier
+        texts = []
+        for ref in pkg.ids("doc:"):
+            if (pkg.lookup(ref) or {}).get("supplier") in sups:
+                try:
+                    texts.append(pkg.document(ref))
+                except (OSError, ValueError):
+                    continue
+        for part in case.get("parts") or []:
+            texts += [r["remarks"] or "" for r in pkg.query(
+                "SELECT supplier_id, remarks FROM quotes WHERE part_id = ?", (part,), limit=10_000)
+                if r["supplier_id"] in sups]
+        return any(re.search(r"\bcovered\b.{0,40}\b(fixed prices|until)\b", t, re.I | re.S) for t in texts)
+
     def cheaper_rivals(self, case, events, sid):
         """Public rival quotes whose complete buyer cost beats the supplier's standing sheet."""
         if case.get("type") not in self.rival_quote_types:
@@ -113,7 +133,9 @@ class EvidencePolicy:
             bank = [c for c in context.candidates if verify(c, facts, self.package, case)]
             disclosures = DEFAULT_DISCLOSURE
             if case["type"] in self.index_window_types:  # only the most recent fall, never a stale window
-                bank = [c for c in bank if not c.cherry_picked or c.note.startswith("recent buyer window")]
+                hedged = self.material_hedged(case)
+                bank = [c for c in bank if not c.cherry_picked
+                        or (c.note.startswith("recent buyer window") and not hedged)]
             rivals = self.cheaper_rivals(case, threads.get(sid, []), sid)
             if rivals:
                 bank = [c for c in bank if c.kind != "rival_quote"] + rivals

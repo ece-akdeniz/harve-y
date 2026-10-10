@@ -71,3 +71,9 @@ def test_recent_index_window_only_when_opted_in(pkg):
     assert all(c.cherry_picked and c.supports_buyer for c in recent)
     assert PolicyConfig.from_dict({"version": 1, "index_window_types": ["raw_material"]}).index_window_types == (
         "raw_material",)
+
+
+def test_recent_window_skipped_when_supplier_material_is_hedged(pkg):
+    ev = EvidencePolicy(package=pkg, case_types=["raw_material"], index_window_types=["raw_material"])
+    assert ev.material_hedged(CASES["case:P08"])  # doc:20260706-70710-M1, quote:7300008 remark
+    assert not ev.material_hedged(CASES["case:P18"])
