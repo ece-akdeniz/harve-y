@@ -865,3 +865,9 @@ sup:70210 EUR 32.00 / 35 d / 30 d final accepted, 12.3 s, zero timeouts; identic
 Replicated 2/2 after fix. Next: hold + `preferences.rfq = standard_payment`
 (`configs/p05-hold-standard-payment.json`) — earlier standard-payment screens were masked
 by the gap-closed exit.
+
+## 2026-10-10 — P05 screen 4: hold + rfq standard_payment (inert)
+
+Run `046127b6-2113-49dc-ac7b-2247ac95cb45`, session `2b9eb01f4eb4f8ec`. Score **41.19**, identical
+transcript (still 90-day counters): the preference only applies to `package_types`, which
+excluded rfq. Not a test of the hypothesis. Next: same config with `rfq` in package_types.

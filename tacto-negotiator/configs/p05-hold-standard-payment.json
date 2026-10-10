@@ -1,9 +1,10 @@
 {
   "version": 1,
   "package_types": [
-    "renewal",
     "quality",
-    "raw_material"
+    "raw_material",
+    "renewal",
+    "rfq"
   ],
   "evidence_types": [
     "price_increase",
