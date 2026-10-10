@@ -16,7 +16,8 @@ import uuid
 from dataclasses import dataclass, field
 from pathlib import Path
 
-OUTCOMES = ("done", "failed", "abandoned")
+OUTCOMES = ("done", "failed", "abandoned", "unresolved")
+FINAL_OUTCOMES = ("done", "failed", "abandoned")
 
 
 def new_move_id() -> str:
@@ -109,7 +110,7 @@ class Journal:
 
     def pending(self, session_id: str | None = None, case_id: str | None = None) -> list[dict]:
         """Intents without an outcome, oldest first."""
-        closed = {r["move_id"] for r in self.records if r["rec"] in OUTCOMES}
+        closed = {r["move_id"] for r in self.records if r["rec"] in FINAL_OUTCOMES}
         return [
             r
             for r in self.records

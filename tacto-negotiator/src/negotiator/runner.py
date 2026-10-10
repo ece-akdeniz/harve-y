@@ -253,6 +253,8 @@ class CaseRunner:
             await self._settle_pending(intent)
             if self.st.ended:
                 return self.st.result
+        if self.journal.pending(session_id=session_id):
+            return {"status": "unresolved", "session_id": session_id, "recovery_required": True}
         return None
 
     # -- reconciliation ------------------------------------------------------------------------
@@ -335,13 +337,13 @@ class CaseRunner:
             await self._refresh_thread(sid, await self.arena.session(self.st.session_id))
             t.deadline_utc = self.clock.time() + self.move_limit_s
             return
-        self.journal.outcome(mid, "abandoned", why="unresolved after retries")
+        self.journal.outcome(mid, "unresolved", why="outcome unknown after reconciliation retries")
         await self._refresh_all()
 
     # -- workers -------------------------------------------------------------------------------
     async def _worker(self, sid: str):
         t = self.st.threads[sid]
-        while not self.closing and not self.st.ended and not t.closed and not t.parked:
+        while not self.closing and not self.st.ended and not t.closed and not t.parked and not t.in_flight:
             t0 = self.clock.time()
             async with self.lock:  # decide + journal only; no HTTP under the lock
                 if self.closing or self.st.ended:
@@ -444,7 +446,8 @@ class CaseRunner:
             if held:
                 self.slot.release()
             if not ok:
-                t.in_flight = None
+                unresolved = any(p["move_id"] == mid for p in self.journal.pending(session_id=self.st.session_id))
+                t.in_flight = mid if unresolved else None
                 self.changed.set()
         self.journal.outcome(mid, "done", status=reply.get("status"))
         t.rejects = 0
@@ -480,6 +483,10 @@ class CaseRunner:
     async def _close(self, reason: str, wait: bool = True):
         async with self.close_lock:
             if self.st.ended:
+                return
+            if self.journal.pending(session_id=self.st.session_id):
+                self.closing = False
+                self._trace("close_unresolved", reason="pending operation requires reconciliation")
                 return
             self.closing = True
             if wait:
@@ -519,6 +526,10 @@ class CaseRunner:
                     reply = await self.arena.send(self.st.session_id, sid, msg, intent["move_id"])
                 except UncertainOutcome:
                     await self._settle_pending(intent)
+                    if any(p["move_id"] == intent["move_id"] for p in self.journal.pending(session_id=self.st.session_id)):
+                        self.closing = False
+                        self._trace("close_unresolved", reason="close outcome remains ambiguous")
+                        return
                     continue
                 except ArenaError as e:
                     self.journal.outcome(intent["move_id"], "failed", http=e.status, detail=str(e.detail))
@@ -561,6 +572,8 @@ class CaseRunner:
     async def run(self) -> dict:
         early = await self._open()
         if early is not None:
+            if early.get("status") == "unresolved":
+                return early
             # Legacy result records are returned only when their session has authoritative
             # terminal proof. `_resume` sets `st.ended` for an ended server session.
             if self.st is None or self.st.ended:
