@@ -45,7 +45,7 @@ def best_terms(case: dict, unit_price: float, standard: dict | None = None, supp
     base = complete_offer(case, {"unit_price": unit_price})
     options = case.get("term_options") or {}
     fields = [f for f in case["negotiable"] if f != "unit_price" and options.get(f)]
-    best, best_c = base, float("inf")
+    best, best_c = None, float("inf")
     for combo in itertools.product(*(options[f] for f in fields)):
         terms = {**base, **dict(zip(fields, combo, strict=True))}
         if not must_haves_ok(case, terms, standard):

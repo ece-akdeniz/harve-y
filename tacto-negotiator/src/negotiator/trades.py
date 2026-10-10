@@ -55,7 +55,15 @@ class TradePolicy:
         self.log(
             case, "package_candidates", sid, at_quote=packages(case, price, standard, supplier), at_proposed=candidates
         )
-        t = dict(candidates[0][1]) if candidates else best_terms(case, price, standard, supplier)
+        if candidates:
+            t = dict(candidates[0][1])
+        else:
+            t = best_terms(case, price, standard, supplier)
+            if t is None:
+                t = complete_offer(case, reference) if reference and must_haves_ok(case, reference, standard) else None
+            if t is None:
+                self.log(case, "package_infeasible", sid, reason="no complete must-have-compliant package")
+                return None
         options = case.get("term_options", {})
         if "multi_year_only" in self.traits[sid] and "contract_months" in t:
             tenors = [m for m in options.get("contract_months", []) if m >= 12 * case["buyer"]["horizon_years"]]

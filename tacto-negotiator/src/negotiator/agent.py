@@ -232,10 +232,14 @@ class PackageAgent:
                 return prev
             return self.trades.initial(case, sid, ref_terms["unit_price"], self.anchor, std, sup, reference=ref_terms)
         if prev is None:
-            n = nonprice(case, best_terms(
+            optimized = best_terms(
                 case, ref_terms["unit_price"], std, sup,
                 prefer_longer_lead=bool(self.policy and self.policy.cost_neutral_lead_time),
-            ))
+            )
+            safe_reference = complete_offer(case, ref_terms)
+            if optimized is None and not must_haves_ok(case, safe_reference, std):
+                return None
+            n = nonprice(case, optimized or safe_reference)
         elif not eligible:
             return prev
         else:
@@ -482,6 +486,8 @@ class PackageAgent:
 
         ref_c = cands[0][0]
         n = self._nonprice(case, sid, events, std, sup, cands, eligible)
+        if n is None:
+            return {"close": True, "reason": "no legal buyer package is available"}
         p = self._ask_on(case, n, cands, std, sup)
         first = next((i for i, m in enumerate(events) if m.get("from") != "buyer" and m.get("term_sheets")), None)
         p_open = p
