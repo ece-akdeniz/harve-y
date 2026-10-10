@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "package_types": ["renewal", "quality", "raw_material", "rfq"],
+  "response_types": ["price_increase", "quality", "raw_material"],
+  "free_concessions": true,
+  "rfq_close_guard": true,
+  "evidence_types": [],
+  "preferences": {"rfq": "standard_payment"},
+  "final_offer_risk": "legacy"
+}

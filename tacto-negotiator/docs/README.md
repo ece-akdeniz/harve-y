@@ -78,3 +78,5 @@ Resolve conflicting official statements with the desk; public jury weighting is 
 
 Hosted sandbox observations are recorded in [the experiment log](../experiments/LOG.md).
 They do not establish generalization, final readiness or a winning probability.
+
+- [15 — Local response checks](15-local-replay-checks.md): opt-in fixes, synthetic replay limits and no-quota validation.

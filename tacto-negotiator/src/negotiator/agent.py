@@ -210,6 +210,16 @@ class PackageAgent:
         return (len(self._ours(threads[sid])), sheets[0][0] if sheets else math.inf)
 
     # -- packages -----------------------------------------------------------------------------
+    def _can_switch_package(self, case, sid, events):
+        """Use the same persisted-history, moves and deadline bounds as response trades."""
+        from .trades import history
+
+        ours, _, switches = history(case, events)
+        return bool(
+            self.trades and ours and switches < 2 and moves_left(case, events) >= 3
+            and self.trades.deadlines.get(sid, 0) - time.time() >= 20
+        )
+
     def _nonprice(self, case, sid, events, std, sup, cands, eligible):
         """Our non-price terms: the previous ones, unless a supplier package (by C) is cheaper
         than the supplier's own price for ours. First offer: cheapest terms at its best price.
@@ -218,6 +228,11 @@ class PackageAgent:
         prev = self.prev.get(sid)
         if self.trades and case["type"] in self.policy.package_types:
             if prev is not None:
+                if self.policy.free_concessions and eligible and self._can_switch_package(case, sid, events):
+                    from .responses import permitted
+
+                    if permitted(case, ref_terms):
+                        return self._free_concessions(case, prev, ref_terms, std, sup)
                 return prev
             return self.trades.initial(case, sid, ref_terms["unit_price"], self.anchor, std, sup, reference=ref_terms)
         if prev is None:
@@ -435,7 +450,12 @@ class PackageAgent:
             self._log(case, "revealed", sid, deltas=deltas)
 
         ref_c = cands[0][0]
+        previous_nonprice = self.prev.get(sid)
         n = self._nonprice(case, sid, events, std, sup, cands, eligible)
+        free_switch = bool(
+            self.policy and self.policy.free_concessions and case["type"] in self.policy.package_types
+            and previous_nonprice is not None and n != previous_nonprice
+        )
         p = self._ask_on(case, n, cands, std, sup)
         first = next((i for i, m in enumerate(events) if m.get("from") != "buyer" and m.get("term_sheets")), None)
         p_open = p
@@ -458,6 +478,13 @@ class PackageAgent:
                 # only the standing sheet can be accepted: counter with the cheaper alternative
                 alt = complete_offer(case, cands[0][2])
                 return self._offer(case, sid, alt, std, sup, c_alt, "gap closed: take alternative")
+            if self.policy and self.policy.rfq_close_guard:
+                best = best_close(case, threads, self.estimates_for(case))
+                if (best and best[1] != sid and latest(threads[best[1]]).get("status") == "open"
+                        and moves_left(case, threads[best[1]]) > 1
+                        and self.trades.deadlines.get(sid, 0) - time.time() > 20):
+                    self._log(case, "nonleading_convergence", sid, leading_supplier=best[1], leading_cost=best[0])
+                    return {"hold": True, "reason": "nonleading supplier converged; leader still workable"}
             return {"close": True, "reason": "gap closed"}
 
         floor = p_open * (1 - self.anchor)
@@ -471,8 +498,22 @@ class PackageAgent:
                 return {"close": True, "reason": "rival cannot beat the final offer without backtracking"}
             price = min(price, cap_p)
         terms = complete_offer(case, {**n, "unit_price": round(price, 2)})
-        if self.trades and case["type"] in self.policy.package_types:
+        response = None
+        if self.policy and case["type"] in self.policy.response_types and not free_switch:
+            from .responses import respond
+
+            terms, response = respond(case, events, terms, std, sup, self.trades.deadlines.get(sid, 0))
+            if response:
+                self._log(case, "supplier_response", sid, **response)
+                why = response["reason"]
+        if self.trades and case["type"] in self.policy.package_types and response is None and not free_switch:
             terms, trade_reason = self.trades.switch(case, sid, events, terms, std, sup)
             why = trade_reason or why
         variants = self._payment_variants(case, terms, cands[0][2], std, sup) if self.meso else []
-        return self._offer(case, sid, terms, std, sup, c_alt, why or f"round {k + 1} schedule", variants)
+        move = self._offer(case, sid, terms, std, sup, c_alt, why or f"round {k + 1} schedule", variants)
+        if response:
+            move["message"]["body"] += (
+                " We have considered the package you proposed. We can offer these terms in exchange for"
+                " the attached unit price; please confirm this complete package in a new standing offer."
+            )
+        return move

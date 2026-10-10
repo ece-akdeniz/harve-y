@@ -18,6 +18,9 @@ class PolicyConfig:
     preference: str = "default"
     chargeback_steps: int = 1
     preferences: dict[str, str] = field(default_factory=dict)
+    response_types: tuple[str, ...] = ()
+    free_concessions: bool = False
+    rfq_close_guard: bool = False
 
     @classmethod
     def load(cls, path):
@@ -26,11 +29,14 @@ class PolicyConfig:
             raise ValueError("unknown policy fields")
         if type(d.get("version")) is not int or d["version"] != 1:
             raise ValueError("policy version must be 1")
-        for k in ("package_types", "evidence_types"):
+        for k in ("package_types", "evidence_types", "response_types"):
             v = d.get(k, [])
             if not isinstance(v, list) or any(not isinstance(x, str) or x not in TYPES for x in v):
                 raise ValueError(f"invalid {k}")
             d[k] = tuple(sorted(set(v)))
+        for k in ("free_concessions", "rfq_close_guard"):
+            if type(d.get(k, False)) is not bool:
+                raise ValueError(f"{k} must be boolean")
         if d.get("final_offer_risk", "legacy") not in ("legacy", "opening_proxy"):
             raise ValueError("invalid final_offer_risk")
         if d.get("preference", "default") not in ("default", "standard_payment", "longer_tenor", "lower_chargeback"):

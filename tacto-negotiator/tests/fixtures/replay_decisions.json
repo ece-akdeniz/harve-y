@@ -1,0 +1,1190 @@
+{
+  "description": "Curated development regressions, not an unseen holdout or simulated supplier outcomes. Prefixes exclude future replies and results. Evidence decoration disabled to isolate decisions. Remaining time is a controlled test input.",
+  "snapshots": [
+    {
+      "id": "p02-priced-payment",
+      "case_id": "case:P02",
+      "supplier_id": "sup:70510",
+      "source": {
+        "path": "experiments/runs/staged-broader-20261010/6-P02-candidate-r1/server-evidence.json",
+        "sha256": "12e2c1a5d8bee7b7294f76f598c5ba78835270d95ff235d85a02299ac0f7cb3f",
+        "session_id": "0afc8adba4237ebd",
+        "prefix_ends": {
+          "sup:70510": 2
+        }
+      },
+      "policy": {
+        "version": 1
+      },
+      "threads": {
+        "sup:70510": [
+          {
+            "message_id": "msg:70510-0-0",
+            "from": "sales@70510",
+            "body": "Dear Sir or Madam,\n\nThank you for your enquiry. Please find our Angebot below.\n\nWe offer a price of \u20ac370.96 per unit, Zahlungsziel 30 days net, no Preisgleitklausel. \n\nRegarding our cost structure, CU-NOTATION rose 47.7 % in twelve months and is 20 % of our cost. LCI-C rose 2.7 % in twelve months and is 20 % of our cost. PPI-C241 rose 6.5 % in twelve months and is 14 % of our cost.\n\nPlease note that this offer remains valid for 30 days.\n\nMit freundlichen Gr\u00fc\u00dfen\nPetra Lechner\nKey Account Manager, Antriebstechnik Nordmark AG",
+            "term_sheets": [
+              {
+                "term_sheet_id": "offer:70510-0",
+                "terms": {
+                  "unit_price": 370.96,
+                  "payment_days": 30,
+                  "index_clause": null
+                }
+              }
+            ],
+            "refs": [],
+            "status": "open"
+          },
+          {
+            "from": "buyer",
+            "body": "Thank you for your offer. To go ahead we propose the attached terms: unit price EUR 326.44, payment days 90, index clause None. We look forward to your confirmation.\n\nYour supplier-caused defect rate on scorecard sc:70510@2026Q3 was 273 ppm.",
+            "term_sheets": [
+              {
+                "terms": {
+                  "unit_price": 326.44,
+                  "payment_days": 90,
+                  "index_clause": null
+                }
+              }
+            ],
+            "refs": [
+              "sc:70510@2026Q3"
+            ]
+          },
+          {
+            "message_id": "msg:70510-1-2",
+            "from": "sales@70510",
+            "body": "Dear Sir or Madam,\n\nWe have reviewed your offer and can adjust our Angebot as follows. We checked the quality record data you cited; it holds, but it does not change our calculation. We have reviewed your proposal and the referenced quality scorecard; however, our overall performance remains strong and this does not warrant a price reduction. Our calculation is our property; we do not share a breakdown.\n\nOur current Angebot is a price of \u20ac374.07 per unit, Zahlungsziel 90 days net, no Preisgleitklausel. \n\nAlternatively, at our standard terms, we can offer a price of \u20ac369.95 per unit, Zahlungsziel 30 days net, no Preisgleitklausel. We can offer a revised price of EUR 369.95, provided we maintain the 30-day payment terms, as extending to 90 days would necessitate a price increase. \n\nThis offer remains valid for 30 days.\n\nMit freundlichen Gr\u00fc\u00dfen\nPetra Lechner\nKey Account Manager, Antriebstechnik Nordmark AG\n\nQuality Management: We meet the agreed quality targets.\n\nCredit Control: We refer to our standard Zahlungsziel, which is 30 days net.",
+            "term_sheets": [
+              {
+                "term_sheet_id": "offer:70510-1",
+                "terms": {
+                  "unit_price": 374.07,
+                  "payment_days": 90,
+                  "index_clause": null
+                }
+              },
+              {
+                "term_sheet_id": "offer:70510-1-a",
+                "terms": {
+                  "unit_price": 369.95,
+                  "payment_days": 30,
+                  "index_clause": null
+                }
+              }
+            ],
+            "refs": [],
+            "status": "open"
+          }
+        ]
+      },
+      "seconds_left": 60,
+      "expected": {
+        "kind": "send",
+        "terms": {
+          "payment_days": 30
+        }
+      }
+    },
+    {
+      "id": "p11-chargeback-alternative",
+      "case_id": "case:P11",
+      "supplier_id": "sup:70140",
+      "source": {
+        "path": "experiments/runs/staged-a-20261010/3-P11-packages/server-evidence.json",
+        "sha256": "ce183cd5a1a154443e97038fe79e73d0697bc56cbf1d48320b93411fee5509b3",
+        "session_id": "cc9acf4242059a59",
+        "prefix_ends": {
+          "sup:70140": 2
+        }
+      },
+      "policy": {
+        "version": 1,
+        "package_types": [
+          "quality",
+          "renewal",
+          "raw_material"
+        ],
+        "evidence_types": []
+      },
+      "threads": {
+        "sup:70140": [
+          {
+            "message_id": "msg:70140-0-0",
+            "from": "sales@70140",
+            "body": "Hello,\n\nThank you for your enquiry. Please find our Angebot below. We are very excited about the opportunity to work together with Hollerau Pumpenwerke GmbH and to prove ourselves as a reliable partner for your business!\n\nFor our offer, we can propose a price of \u20ac47.00 per unit, alongside a quality commitment of 6400 ppm. \n\nPlease note that this offer stays valid for 30 days. We are eager to show you what we can do and hope this initial quote meets your expectations. Let us know if you have any questions at all.\n\nKind regards\nMarek Lis\nExport Manager, Odlewnia Kalwisz Sp. z o.o.",
+            "term_sheets": [
+              {
+                "term_sheet_id": "offer:70140-0",
+                "terms": {
+                  "unit_price": 47.0,
+                  "ppm_commitment": 6400
+                }
+              }
+            ],
+            "refs": [],
+            "status": "open"
+          },
+          {
+            "from": "buyer",
+            "body": "Thank you for your offer. To go ahead we propose the attached terms: unit price EUR 41.36, ppm commitment 1500, chargeback eur per complaint 500. We look forward to your confirmation. We can accept the proposed future quality commitment of 1500 ppm in exchange for the proposed price and chargeback terms. This is a conditional exchange: we can commit to this package in return for the proposed unit price.",
+            "term_sheets": [
+              {
+                "terms": {
+                  "ppm_commitment": 1500,
+                  "chargeback_eur_per_complaint": 500,
+                  "unit_price": 41.36
+                }
+              }
+            ]
+          },
+          {
+            "message_id": "msg:70140-1-2",
+            "from": "sales@70140",
+            "body": "Hello,\n\nWe have reviewed your offer and can adjust our Angebot as follows. Our current Angebot is a price of \u20ac49.00 per unit, a quality commitment of 1500 ppm, a chargeback of \u20ac500.00 per complaint.\n\nThanks for getting back to us, but a 500 EUR chargeback is just too risky for us and would actually make the price go up. I can agree to the 1500 ppm you asked for, but we have to drop the chargeback to 150 EUR. With that change, I can give you a small discount to EUR 46.50. \n\nAlternatively, with a chargeback of \u20ac150.00 per complaint: \u20ac46.50 per unit, a quality commitment of 1500 ppm.\n\nWhich figures is that based on? Please send us the data. Our price follows our main cost drivers: LCI-C, PPI-C241, PPI-D351. Our offer stays valid for 30 days.\n\nKind regards\nMarek Lis\nExport Manager, Odlewnia Kalwisz Sp. z o.o.\n\nQuality: We take the complaints seriously; our 8D report is attached.",
+            "term_sheets": [
+              {
+                "term_sheet_id": "offer:70140-1",
+                "terms": {
+                  "unit_price": 49.0,
+                  "ppm_commitment": 1500,
+                  "chargeback_eur_per_complaint": 500.0
+                }
+              },
+              {
+                "term_sheet_id": "offer:70140-1-a",
+                "terms": {
+                  "unit_price": 46.5,
+                  "ppm_commitment": 1500,
+                  "chargeback_eur_per_complaint": 150.0
+                }
+              }
+            ],
+            "refs": [],
+            "status": "open"
+          }
+        ]
+      },
+      "seconds_left": 60,
+      "expected": {
+        "kind": "send",
+        "terms": {
+          "chargeback_eur_per_complaint": 150
+        }
+      }
+    },
+    {
+      "id": "p11-remember-alternative",
+      "case_id": "case:P11",
+      "supplier_id": "sup:70140",
+      "source": {
+        "path": "experiments/runs/staged-a-20261010/3-P11-packages/server-evidence.json",
+        "sha256": "ce183cd5a1a154443e97038fe79e73d0697bc56cbf1d48320b93411fee5509b3",
+        "session_id": "cc9acf4242059a59",
+        "prefix_ends": {
+          "sup:70140": 4
+        }
+      },
+      "policy": {
+        "version": 1,
+        "package_types": [
+          "quality",
+          "renewal",
+          "raw_material"
+        ],
+        "evidence_types": []
+      },
+      "threads": {
+        "sup:70140": [
+          {
+            "message_id": "msg:70140-0-0",
+            "from": "sales@70140",
+            "body": "Hello,\n\nThank you for your enquiry. Please find our Angebot below. We are very excited about the opportunity to work together with Hollerau Pumpenwerke GmbH and to prove ourselves as a reliable partner for your business!\n\nFor our offer, we can propose a price of \u20ac47.00 per unit, alongside a quality commitment of 6400 ppm. \n\nPlease note that this offer stays valid for 30 days. We are eager to show you what we can do and hope this initial quote meets your expectations. Let us know if you have any questions at all.\n\nKind regards\nMarek Lis\nExport Manager, Odlewnia Kalwisz Sp. z o.o.",
+            "term_sheets": [
+              {
+                "term_sheet_id": "offer:70140-0",
+                "terms": {
+                  "unit_price": 47.0,
+                  "ppm_commitment": 6400
+                }
+              }
+            ],
+            "refs": [],
+            "status": "open"
+          },
+          {
+            "from": "buyer",
+            "body": "Thank you for your offer. To go ahead we propose the attached terms: unit price EUR 41.36, ppm commitment 1500, chargeback eur per complaint 500. We look forward to your confirmation. We can accept the proposed future quality commitment of 1500 ppm in exchange for the proposed price and chargeback terms. This is a conditional exchange: we can commit to this package in return for the proposed unit price.",
+            "term_sheets": [
+              {
+                "terms": {
+                  "ppm_commitment": 1500,
+                  "chargeback_eur_per_complaint": 500,
+                  "unit_price": 41.36
+                }
+              }
+            ]
+          },
+          {
+            "message_id": "msg:70140-1-2",
+            "from": "sales@70140",
+            "body": "Hello,\n\nWe have reviewed your offer and can adjust our Angebot as follows. Our current Angebot is a price of \u20ac49.00 per unit, a quality commitment of 1500 ppm, a chargeback of \u20ac500.00 per complaint.\n\nThanks for getting back to us, but a 500 EUR chargeback is just too risky for us and would actually make the price go up. I can agree to the 1500 ppm you asked for, but we have to drop the chargeback to 150 EUR. With that change, I can give you a small discount to EUR 46.50. \n\nAlternatively, with a chargeback of \u20ac150.00 per complaint: \u20ac46.50 per unit, a quality commitment of 1500 ppm.\n\nWhich figures is that based on? Please send us the data. Our price follows our main cost drivers: LCI-C, PPI-C241, PPI-D351. Our offer stays valid for 30 days.\n\nKind regards\nMarek Lis\nExport Manager, Odlewnia Kalwisz Sp. z o.o.\n\nQuality: We take the complaints seriously; our 8D report is attached.",
+            "term_sheets": [
+              {
+                "term_sheet_id": "offer:70140-1",
+                "terms": {
+                  "unit_price": 49.0,
+                  "ppm_commitment": 1500,
+                  "chargeback_eur_per_complaint": 500.0
+                }
+              },
+              {
+                "term_sheet_id": "offer:70140-1-a",
+                "terms": {
+                  "unit_price": 46.5,
+                  "ppm_commitment": 1500,
+                  "chargeback_eur_per_complaint": 150.0
+                }
+              }
+            ],
+            "refs": [],
+            "status": "open"
+          },
+          {
+            "from": "buyer",
+            "body": "Thank you for your offer. To go ahead we propose the attached terms: unit price EUR 42.48, ppm commitment 1500, chargeback eur per complaint 500. We look forward to your confirmation. We can accept the proposed future quality commitment of 1500 ppm in exchange for the proposed price and chargeback terms. This is a conditional exchange: we can commit to this package in return for the proposed unit price.",
+            "term_sheets": [
+              {
+                "terms": {
+                  "ppm_commitment": 1500,
+                  "chargeback_eur_per_complaint": 500,
+                  "unit_price": 42.48
+                }
+              }
+            ]
+          },
+          {
+            "message_id": "msg:70140-2-4",
+            "from": "sales@70140",
+            "body": "Hello,\n\nWe have reviewed your offer and can adjust our Angebot as follows. Thanks for the new numbers, but we are still miles apart if you want that 500 EUR chargeback. \n\nOur current offer is a price of \u20ac48.50 per unit, a quality commitment of 1500 ppm, a chargeback of \u20ac500.00 per complaint. I can do 48.50 EUR with the 500 EUR penalty, but that's a lot of risk for us to swallow. If you want a better price, we really need to lower that chargeback. Please note that this offer remains valid for 30 days.\n\nWe are very eager to work together and build a great partnership with your company!\n\nKind regards\nMarek Lis\nExport Manager, Odlewnia Kalwisz Sp. z o.o.",
+            "term_sheets": [
+              {
+                "term_sheet_id": "offer:70140-2",
+                "terms": {
+                  "unit_price": 48.5,
+                  "ppm_commitment": 1500,
+                  "chargeback_eur_per_complaint": 500.0
+                }
+              }
+            ],
+            "refs": [],
+            "status": "open"
+          }
+        ]
+      },
+      "seconds_left": 60,
+      "expected": {
+        "kind": "send",
+        "terms": {
+          "chargeback_eur_per_complaint": 150
+        }
+      }
+    },
+    {
+      "id": "p08-clause-condition",
+      "case_id": "case:P08",
+      "supplier_id": "sup:70710",
+      "source": {
+        "path": "experiments/runs/staged-broader-20261010/2-P08-candidate-r1/server-evidence.json",
+        "sha256": "a999cedd7f8e4e42350d50bf2967d9a6a6bb395a441498e038506fdd4ac31fe3",
+        "session_id": "4451a15ec9934f23",
+        "prefix_ends": {
+          "sup:70710": 2
+        }
+      },
+      "policy": {
+        "version": 1,
+        "package_types": [
+          "quality",
+          "renewal",
+          "raw_material"
+        ],
+        "evidence_types": []
+      },
+      "threads": {
+        "sup:70710": [
+          {
+            "message_id": "msg:70710-0-0",
+            "from": "sales@70710",
+            "body": "Dear customer,\n\nThank you for your enquiry. Please find our Angebot below. We are pleased to present our offer for a price of \u20ac6.05 per unit, with a Zahlungsziel 30 days net, a contract term of 12 months, and no Preisgleitklausel. \n\nTo give you some background on our current situation and market conditions, AS-14404 rose 5.9 % in twelve months and is 45 % of our cost. Furthermore, LCI-C rose 2.7 % in twelve months and is 5 % of our cost. Lastly, PPI-C2431 rose 12.3 % in twelve months and is 38 % of our cost. \n\nPlease note that this offer remains valid for 30 days. We look forward to continuing our partnership with your team and supplying your needs from our extensive inventory.\n\nMit freundlichen Gr\u00fc\u00dfen\nGeorg Aigner\nInside Sales, Edelstahl-Service Donautal GmbH",
+            "term_sheets": [
+              {
+                "term_sheet_id": "offer:70710-0",
+                "terms": {
+                  "unit_price": 6.05,
+                  "payment_days": 30,
+                  "index_clause": null,
+                  "contract_months": 12
+                }
+              }
+            ],
+            "refs": [],
+            "status": "open"
+          },
+          {
+            "from": "buyer",
+            "body": "Thank you for your offer. To go ahead we propose the attached terms: unit price EUR 5.31, index clause None, payment days 90, contract months 24. We look forward to your confirmation. We offer a 24-month commitment at unchanged annual volume; please reflect that commitment in your price, with payment priced as part of the package. This is a conditional exchange: we can commit to this package in return for the proposed unit price.",
+            "term_sheets": [
+              {
+                "terms": {
+                  "unit_price": 5.31,
+                  "index_clause": null,
+                  "payment_days": 90,
+                  "contract_months": 24
+                }
+              }
+            ]
+          },
+          {
+            "message_id": "msg:70710-1-2",
+            "from": "sales@70710",
+            "body": "Dear customer,\n\nWe have reviewed your offer and can adjust our Angebot as follows. We welcome your proposal for a 24-month contract and can accommodate the requested 90-day payment terms. Please note that we cannot offer a fixed price for a 24-month period, which is why we must include an AS-14404 index clause. \n\nFor our current offer, we can propose a price of \u20ac5.45 per unit, Zahlungsziel 90 days net, a contract term of 24 months, and a Preisgleitklausel on AS-14404. Under these conditions, we can offer a unit price of EUR 5.57; furthermore, please provide the exact figures for your anticipated annual volume so we can properly evaluate your commitment. Which volume can you commit to? \n\nAlternatively, we can present an alternative package at a price of \u20ac5.57 per unit, Zahlungsziel 90 days net, a contract term of 24 months, and a Preisgleitklausel on AS-14404. Alternatively, with a Preisgleitklausel on AS-14404: \u20ac5.57 per unit. We can offer a Preisgleitklausel on AS-14404, AS-14404, AS-14404. Our standard Zahlungsziel is 30 days net. This proposal remains valid for 30 days.\n\nMit freundlichen Gr\u00fc\u00dfen\nGeorg Aigner\nInside Sales, Edelstahl-Service Donautal GmbH",
+            "term_sheets": [
+              {
+                "term_sheet_id": "offer:70710-1",
+                "terms": {
+                  "unit_price": 5.45,
+                  "payment_days": 90,
+                  "index_clause": {
+                    "series": "AS-14404",
+                    "material_share": 0.45,
+                    "deadband_pct": 0.0,
+                    "base_month": "2026-08"
+                  },
+                  "contract_months": 24
+                }
+              },
+              {
+                "term_sheet_id": "offer:70710-1-a",
+                "terms": {
+                  "unit_price": 5.57,
+                  "payment_days": 90,
+                  "index_clause": {
+                    "series": "AS-14404",
+                    "material_share": 0.45,
+                    "deadband_pct": 5.0,
+                    "base_month": "2026-08"
+                  },
+                  "contract_months": 24
+                }
+              }
+            ],
+            "refs": [],
+            "status": "open"
+          }
+        ]
+      },
+      "seconds_left": 60,
+      "expected": {
+        "kind": "send",
+        "terms": {},
+        "quoted_index_clause": true
+      },
+      "annotation_note": "Any already quoted, permitted AS-14404 clause is acceptable for this decision check; choose deadband by full cost, not a fixed label."
+    },
+    {
+      "id": "p05-free-delivery",
+      "case_id": "case:P05",
+      "supplier_id": "sup:70240",
+      "source": {
+        "path": "experiments/runs/staged-broader-20261010/10-P05-candidate-r1/server-evidence.json",
+        "sha256": "fd5716ce6c9c09cb9050df33bdab200ed10c00dd66722acb79d4d9f5f19ea150",
+        "session_id": "833a5941d12cd20b",
+        "prefix_ends": {
+          "sup:70210": 4,
+          "sup:70240": 4,
+          "sup:70250": 3
+        }
+      },
+      "policy": {
+        "version": 1,
+        "package_types": [
+          "rfq"
+        ],
+        "preferences": {
+          "rfq": "standard_payment"
+        },
+        "evidence_types": []
+      },
+      "threads": {
+        "sup:70210": [
+          {
+            "message_id": "msg:70210-0-0",
+            "from": "sales@70210",
+            "body": "Hallo,\n\nThank you for your enquiry. Please find our Angebot below.\n\nIt is good to hear from Hollerau Pumpenwerke GmbH. We have looked at your request carefully for our shop. We can offer you a price of \u20ac36.00 per unit. \n\nWe always aim to deliver top quality from our machines for your orders, and we look forward to working together on this project. Let us know if this works for you.\n\nGru\u00df\nAndreas Dralveck\nOwner, Zerspanung Dralveck GmbH",
+            "term_sheets": [
+              {
+                "term_sheet_id": "offer:70210-0",
+                "terms": {
+                  "unit_price": 36.0
+                }
+              }
+            ],
+            "refs": [],
+            "status": "open"
+          },
+          {
+            "from": "buyer",
+            "body": "Thank you for your offer. To go ahead we propose the attached terms: unit price EUR 31.68, payment days 30, lead time days 28. We look forward to your confirmation. This is a conditional exchange: we can commit to this package in return for the proposed unit price.",
+            "term_sheets": [
+              {
+                "terms": {
+                  "unit_price": 31.68,
+                  "payment_days": 30,
+                  "lead_time_days": 28
+                }
+              }
+            ]
+          },
+          {
+            "message_id": "msg:70210-1-2",
+            "from": "sales@70210",
+            "body": "Hallo,\n\nWe have reviewed your offer and can adjust our Angebot as follows. I can meet you at 33.00 EUR and we keep the 30 days payment and 28 days lead time you asked for. \n\nOur adjusted proposal stands at a price of \u20ac33.00 per unit, Zahlungsziel 30 days net, Lieferzeit 28 days.\n\nLet me know if this works so I can get the machines scheduled.\n\nGru\u00df\nAndreas Dralveck\nOwner, Zerspanung Dralveck GmbH",
+            "term_sheets": [
+              {
+                "term_sheet_id": "offer:70210-1",
+                "terms": {
+                  "unit_price": 33.0,
+                  "payment_days": 30,
+                  "lead_time_days": 28
+                }
+              }
+            ],
+            "refs": [],
+            "status": "open"
+          },
+          {
+            "from": "buyer",
+            "body": "Thank you for your offer. To go ahead we propose the attached terms: unit price EUR 31.94, payment days 30, lead time days 28. We look forward to your confirmation. This is a conditional exchange: we can commit to this package in return for the proposed unit price.",
+            "term_sheets": [
+              {
+                "terms": {
+                  "unit_price": 31.94,
+                  "payment_days": 30,
+                  "lead_time_days": 28
+                }
+              }
+            ]
+          },
+          {
+            "message_id": "msg:70210-2-4",
+            "from": "sales@70210",
+            "body": "Hallo,\n\nthanks for the new numbers. We have reviewed your offer and can adjust our Angebot as follows. \n\nI can drop to 32.50 EUR if we keep the 30 days payment and 28 days lead time. So, our offer stands at a price of \u20ac32.50 per unit, Zahlungsziel 30 days net, Lieferzeit 28 days.\n\nGru\u00df\nAndreas Dralveck\nOwner, Zerspanung Dralveck GmbH",
+            "term_sheets": [
+              {
+                "term_sheet_id": "offer:70210-2",
+                "terms": {
+                  "unit_price": 32.5,
+                  "payment_days": 30,
+                  "lead_time_days": 28
+                }
+              }
+            ],
+            "refs": [],
+            "status": "open"
+          }
+        ],
+        "sup:70240": [
+          {
+            "message_id": "msg:70240-0-0",
+            "from": "sales@70240",
+            "body": "Hello,\n\nThank you for your enquiry. Please find our Angebot below. We are very eager to work with Hollerau Pumpenwerke GmbH and to prove ourselves as a reliable, long-term partner for your business!\n\nWe are happy to offer you a price of \u20ac31.50 per unit, Lieferzeit 52 days. \n\nPlease note that this offer stays valid for 30 days. We remain fully flexible and look forward to building a great relationship together. Let us know if this works for you!\n\nKind regards\nJana Proch\u00e1zkov\u00e1\nExport Manager, Stroj\u00edrna Hrvelec s.r.o.",
+            "term_sheets": [
+              {
+                "term_sheet_id": "offer:70240-0",
+                "terms": {
+                  "unit_price": 31.5,
+                  "lead_time_days": 52
+                }
+              }
+            ],
+            "refs": [],
+            "status": "open"
+          },
+          {
+            "from": "buyer",
+            "body": "Thank you for your offer. To go ahead we propose the attached terms: unit price EUR 27.72, payment days 45, lead time days 28. We look forward to your confirmation. This is a conditional exchange: we can commit to this package in return for the proposed unit price.",
+            "term_sheets": [
+              {
+                "terms": {
+                  "unit_price": 27.72,
+                  "payment_days": 45,
+                  "lead_time_days": 28
+                }
+              }
+            ]
+          },
+          {
+            "message_id": "msg:70240-1-2",
+            "from": "sales@70240",
+            "body": "Hello,\n\nHello! Thanks for getting back to us. We can do the 45 days payment you asked for. We have reviewed your offer and can adjust our Angebot as follows. \n\nOur offer is a price of \u20ac34.50 per unit, Zahlungsziel 45 days net, Lieferzeit 35 days. I can drop the price a bit to \u20ac31.00 to make it better for you. What do you say? Alternatively, at our standard terms with Lieferzeit 52 days: a price of \u20ac31.00 per unit, Zahlungsziel 45 days net, Lieferzeit 52 days.\n\nThis offer is valid for 30 days. We are so eager to build a great long-term partnership with you!\n\nKind regards\nJana Proch\u00e1zkov\u00e1\nExport Manager, Stroj\u00edrna Hrvelec s.r.o.",
+            "term_sheets": [
+              {
+                "term_sheet_id": "offer:70240-1",
+                "terms": {
+                  "unit_price": 34.5,
+                  "payment_days": 45,
+                  "lead_time_days": 35
+                }
+              },
+              {
+                "term_sheet_id": "offer:70240-1-a",
+                "terms": {
+                  "unit_price": 31.0,
+                  "payment_days": 45,
+                  "lead_time_days": 52
+                }
+              }
+            ],
+            "refs": [],
+            "status": "open"
+          },
+          {
+            "from": "buyer",
+            "body": "Thank you for your offer. To go ahead we propose the attached terms: unit price EUR 29.08, payment days 45, lead time days 28. We look forward to your confirmation. This is a conditional exchange: we can commit to this package in return for the proposed unit price.",
+            "term_sheets": [
+              {
+                "terms": {
+                  "unit_price": 29.08,
+                  "payment_days": 45,
+                  "lead_time_days": 28
+                }
+              }
+            ]
+          },
+          {
+            "message_id": "msg:70240-2-4",
+            "from": "sales@70240",
+            "body": "Hello,\n\nWe have reviewed your offer and can adjust our Angebot as follows. We really want to make this work, so let me know if we have a deal!\n\nOur latest proposal is a price of \u20ac34.00 per unit, Zahlungsziel 45 days net, Lieferzeit 35 days. The absolute fastest we can deliver is 35 days. For this lead time, I can drop the price a bit more to \u20ac34.00. Please keep in mind that our price follows our main cost drivers: LCI-C, PPI-C2431, AS-14404, PPI-D351. \n\nThis offer stays valid for 30 days. We are so excited about the chance to partner with you and build a great future together!\n\nKind regards\nJana Proch\u00e1zkov\u00e1\nExport Manager, Stroj\u00edrna Hrvelec s.r.o.\n\nFreight Forwarder: Our Lieferzeit is 35 days. With overtime we can deliver in 35 days, at a premium.",
+            "term_sheets": [
+              {
+                "term_sheet_id": "offer:70240-2",
+                "terms": {
+                  "unit_price": 34.0,
+                  "payment_days": 45,
+                  "lead_time_days": 35
+                }
+              }
+            ],
+            "refs": [],
+            "status": "open"
+          }
+        ],
+        "sup:70250": [
+          {
+            "message_id": "msg:70250-0-0",
+            "from": "sales@70250",
+            "body": "Hallo,\n\nThank you for your enquiry. Please find our Angebot below.\n\nWe can offer a price of \u20ac38.50 per unit. As a practical shop, we like to keep things simple and direct. You can count on our usual hands-on quality and clear communication for this work. \n\nLet us know if this works for you so we can get started.\n\nGru\u00df\nClaudia Fuchsreiter\nOwner, Drehteile Fuchsreiter GmbH",
+            "term_sheets": [
+              {
+                "term_sheet_id": "offer:70250-0",
+                "terms": {
+                  "unit_price": 38.5
+                }
+              }
+            ],
+            "refs": [],
+            "status": "open"
+          },
+          {
+            "from": "buyer",
+            "body": "Thank you for your offer. To go ahead we propose the attached terms: unit price EUR 33.88, payment days 30, lead time days 28. We look forward to your confirmation. This is a conditional exchange: we can commit to this package in return for the proposed unit price.",
+            "term_sheets": [
+              {
+                "terms": {
+                  "unit_price": 33.88,
+                  "payment_days": 30,
+                  "lead_time_days": 28
+                }
+              }
+            ]
+          },
+          {
+            "message_id": "msg:70250-1-2",
+            "from": "sales@70250",
+            "body": "Hallo,\n\nHallo, thanks for the offer. We have reviewed your offer and can adjust our Angebot as follows. Our current Angebot is a price of \u20ac34.50 per unit, Zahlungsziel 30 days net, Lieferzeit 28 days. We can drop the price to 34.50 per piece, but to make that work for our small shop we need 14 days payment terms. Alternatively, a price of \u20ac34.00 per unit, Zahlungsziel 14 days net, Lieferzeit 28 days. Let me know if we can shake hands on this so we can get the machines running.\n\nGru\u00df\nClaudia Fuchsreiter\nOwner, Drehteile Fuchsreiter GmbH",
+            "term_sheets": [
+              {
+                "term_sheet_id": "offer:70250-1",
+                "terms": {
+                  "unit_price": 34.5,
+                  "payment_days": 30,
+                  "lead_time_days": 28
+                }
+              },
+              {
+                "term_sheet_id": "offer:70250-1-a",
+                "terms": {
+                  "unit_price": 34.0,
+                  "payment_days": 14,
+                  "lead_time_days": 28
+                }
+              }
+            ],
+            "refs": [],
+            "status": "open"
+          },
+          {
+            "from": "buyer",
+            "body": "Thank you for your offer. To go ahead we propose the attached terms: unit price EUR 33.93, payment days 30, lead time days 28. We look forward to your confirmation. This is a conditional exchange: we can commit to this package in return for the proposed unit price.",
+            "term_sheets": [
+              {
+                "terms": {
+                  "unit_price": 33.93,
+                  "payment_days": 30,
+                  "lead_time_days": 28
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "seconds_left": 60,
+      "expected": {
+        "kind": "send",
+        "terms": {
+          "lead_time_days": 35
+        }
+      }
+    },
+    {
+      "id": "p05-losing-close",
+      "case_id": "case:P05",
+      "supplier_id": "sup:70250",
+      "source": {
+        "path": "experiments/runs/staged-broader-20261010/10-P05-candidate-r1/server-evidence.json",
+        "sha256": "fd5716ce6c9c09cb9050df33bdab200ed10c00dd66722acb79d4d9f5f19ea150",
+        "session_id": "833a5941d12cd20b",
+        "prefix_ends": {
+          "sup:70210": 5,
+          "sup:70240": 5,
+          "sup:70250": 4
+        }
+      },
+      "policy": {
+        "version": 1,
+        "package_types": [
+          "rfq"
+        ],
+        "preferences": {
+          "rfq": "standard_payment"
+        },
+        "evidence_types": []
+      },
+      "threads": {
+        "sup:70210": [
+          {
+            "message_id": "msg:70210-0-0",
+            "from": "sales@70210",
+            "body": "Hallo,\n\nThank you for your enquiry. Please find our Angebot below.\n\nIt is good to hear from Hollerau Pumpenwerke GmbH. We have looked at your request carefully for our shop. We can offer you a price of \u20ac36.00 per unit. \n\nWe always aim to deliver top quality from our machines for your orders, and we look forward to working together on this project. Let us know if this works for you.\n\nGru\u00df\nAndreas Dralveck\nOwner, Zerspanung Dralveck GmbH",
+            "term_sheets": [
+              {
+                "term_sheet_id": "offer:70210-0",
+                "terms": {
+                  "unit_price": 36.0
+                }
+              }
+            ],
+            "refs": [],
+            "status": "open"
+          },
+          {
+            "from": "buyer",
+            "body": "Thank you for your offer. To go ahead we propose the attached terms: unit price EUR 31.68, payment days 30, lead time days 28. We look forward to your confirmation. This is a conditional exchange: we can commit to this package in return for the proposed unit price.",
+            "term_sheets": [
+              {
+                "terms": {
+                  "unit_price": 31.68,
+                  "payment_days": 30,
+                  "lead_time_days": 28
+                }
+              }
+            ]
+          },
+          {
+            "message_id": "msg:70210-1-2",
+            "from": "sales@70210",
+            "body": "Hallo,\n\nWe have reviewed your offer and can adjust our Angebot as follows. I can meet you at 33.00 EUR and we keep the 30 days payment and 28 days lead time you asked for. \n\nOur adjusted proposal stands at a price of \u20ac33.00 per unit, Zahlungsziel 30 days net, Lieferzeit 28 days.\n\nLet me know if this works so I can get the machines scheduled.\n\nGru\u00df\nAndreas Dralveck\nOwner, Zerspanung Dralveck GmbH",
+            "term_sheets": [
+              {
+                "term_sheet_id": "offer:70210-1",
+                "terms": {
+                  "unit_price": 33.0,
+                  "payment_days": 30,
+                  "lead_time_days": 28
+                }
+              }
+            ],
+            "refs": [],
+            "status": "open"
+          },
+          {
+            "from": "buyer",
+            "body": "Thank you for your offer. To go ahead we propose the attached terms: unit price EUR 31.94, payment days 30, lead time days 28. We look forward to your confirmation. This is a conditional exchange: we can commit to this package in return for the proposed unit price.",
+            "term_sheets": [
+              {
+                "terms": {
+                  "unit_price": 31.94,
+                  "payment_days": 30,
+                  "lead_time_days": 28
+                }
+              }
+            ]
+          },
+          {
+            "message_id": "msg:70210-2-4",
+            "from": "sales@70210",
+            "body": "Hallo,\n\nthanks for the new numbers. We have reviewed your offer and can adjust our Angebot as follows. \n\nI can drop to 32.50 EUR if we keep the 30 days payment and 28 days lead time. So, our offer stands at a price of \u20ac32.50 per unit, Zahlungsziel 30 days net, Lieferzeit 28 days.\n\nGru\u00df\nAndreas Dralveck\nOwner, Zerspanung Dralveck GmbH",
+            "term_sheets": [
+              {
+                "term_sheet_id": "offer:70210-2",
+                "terms": {
+                  "unit_price": 32.5,
+                  "payment_days": 30,
+                  "lead_time_days": 28
+                }
+              }
+            ],
+            "refs": [],
+            "status": "open"
+          },
+          {
+            "from": "buyer",
+            "body": "Thank you for your offer. To go ahead we propose the attached terms: unit price EUR 32.01, payment days 30, lead time days 28. We look forward to your confirmation. This is a conditional exchange: we can commit to this package in return for the proposed unit price.",
+            "term_sheets": [
+              {
+                "terms": {
+                  "unit_price": 32.01,
+                  "payment_days": 30,
+                  "lead_time_days": 28
+                }
+              }
+            ]
+          }
+        ],
+        "sup:70240": [
+          {
+            "message_id": "msg:70240-0-0",
+            "from": "sales@70240",
+            "body": "Hello,\n\nThank you for your enquiry. Please find our Angebot below. We are very eager to work with Hollerau Pumpenwerke GmbH and to prove ourselves as a reliable, long-term partner for your business!\n\nWe are happy to offer you a price of \u20ac31.50 per unit, Lieferzeit 52 days. \n\nPlease note that this offer stays valid for 30 days. We remain fully flexible and look forward to building a great relationship together. Let us know if this works for you!\n\nKind regards\nJana Proch\u00e1zkov\u00e1\nExport Manager, Stroj\u00edrna Hrvelec s.r.o.",
+            "term_sheets": [
+              {
+                "term_sheet_id": "offer:70240-0",
+                "terms": {
+                  "unit_price": 31.5,
+                  "lead_time_days": 52
+                }
+              }
+            ],
+            "refs": [],
+            "status": "open"
+          },
+          {
+            "from": "buyer",
+            "body": "Thank you for your offer. To go ahead we propose the attached terms: unit price EUR 27.72, payment days 45, lead time days 28. We look forward to your confirmation. This is a conditional exchange: we can commit to this package in return for the proposed unit price.",
+            "term_sheets": [
+              {
+                "terms": {
+                  "unit_price": 27.72,
+                  "payment_days": 45,
+                  "lead_time_days": 28
+                }
+              }
+            ]
+          },
+          {
+            "message_id": "msg:70240-1-2",
+            "from": "sales@70240",
+            "body": "Hello,\n\nHello! Thanks for getting back to us. We can do the 45 days payment you asked for. We have reviewed your offer and can adjust our Angebot as follows. \n\nOur offer is a price of \u20ac34.50 per unit, Zahlungsziel 45 days net, Lieferzeit 35 days. I can drop the price a bit to \u20ac31.00 to make it better for you. What do you say? Alternatively, at our standard terms with Lieferzeit 52 days: a price of \u20ac31.00 per unit, Zahlungsziel 45 days net, Lieferzeit 52 days.\n\nThis offer is valid for 30 days. We are so eager to build a great long-term partnership with you!\n\nKind regards\nJana Proch\u00e1zkov\u00e1\nExport Manager, Stroj\u00edrna Hrvelec s.r.o.",
+            "term_sheets": [
+              {
+                "term_sheet_id": "offer:70240-1",
+                "terms": {
+                  "unit_price": 34.5,
+                  "payment_days": 45,
+                  "lead_time_days": 35
+                }
+              },
+              {
+                "term_sheet_id": "offer:70240-1-a",
+                "terms": {
+                  "unit_price": 31.0,
+                  "payment_days": 45,
+                  "lead_time_days": 52
+                }
+              }
+            ],
+            "refs": [],
+            "status": "open"
+          },
+          {
+            "from": "buyer",
+            "body": "Thank you for your offer. To go ahead we propose the attached terms: unit price EUR 29.08, payment days 45, lead time days 28. We look forward to your confirmation. This is a conditional exchange: we can commit to this package in return for the proposed unit price.",
+            "term_sheets": [
+              {
+                "terms": {
+                  "unit_price": 29.08,
+                  "payment_days": 45,
+                  "lead_time_days": 28
+                }
+              }
+            ]
+          },
+          {
+            "message_id": "msg:70240-2-4",
+            "from": "sales@70240",
+            "body": "Hello,\n\nWe have reviewed your offer and can adjust our Angebot as follows. We really want to make this work, so let me know if we have a deal!\n\nOur latest proposal is a price of \u20ac34.00 per unit, Zahlungsziel 45 days net, Lieferzeit 35 days. The absolute fastest we can deliver is 35 days. For this lead time, I can drop the price a bit more to \u20ac34.00. Please keep in mind that our price follows our main cost drivers: LCI-C, PPI-C2431, AS-14404, PPI-D351. \n\nThis offer stays valid for 30 days. We are so excited about the chance to partner with you and build a great future together!\n\nKind regards\nJana Proch\u00e1zkov\u00e1\nExport Manager, Stroj\u00edrna Hrvelec s.r.o.\n\nFreight Forwarder: Our Lieferzeit is 35 days. With overtime we can deliver in 35 days, at a premium.",
+            "term_sheets": [
+              {
+                "term_sheet_id": "offer:70240-2",
+                "terms": {
+                  "unit_price": 34.0,
+                  "payment_days": 45,
+                  "lead_time_days": 35
+                }
+              }
+            ],
+            "refs": [],
+            "status": "open"
+          },
+          {
+            "from": "buyer",
+            "body": "Thank you for your offer. To go ahead we propose the attached terms: unit price EUR 30.23, payment days 45, lead time days 28. We look forward to your confirmation. This is a conditional exchange: we can commit to this package in return for the proposed unit price.",
+            "term_sheets": [
+              {
+                "terms": {
+                  "unit_price": 30.23,
+                  "payment_days": 45,
+                  "lead_time_days": 28
+                }
+              }
+            ]
+          }
+        ],
+        "sup:70250": [
+          {
+            "message_id": "msg:70250-0-0",
+            "from": "sales@70250",
+            "body": "Hallo,\n\nThank you for your enquiry. Please find our Angebot below.\n\nWe can offer a price of \u20ac38.50 per unit. As a practical shop, we like to keep things simple and direct. You can count on our usual hands-on quality and clear communication for this work. \n\nLet us know if this works for you so we can get started.\n\nGru\u00df\nClaudia Fuchsreiter\nOwner, Drehteile Fuchsreiter GmbH",
+            "term_sheets": [
+              {
+                "term_sheet_id": "offer:70250-0",
+                "terms": {
+                  "unit_price": 38.5
+                }
+              }
+            ],
+            "refs": [],
+            "status": "open"
+          },
+          {
+            "from": "buyer",
+            "body": "Thank you for your offer. To go ahead we propose the attached terms: unit price EUR 33.88, payment days 30, lead time days 28. We look forward to your confirmation. This is a conditional exchange: we can commit to this package in return for the proposed unit price.",
+            "term_sheets": [
+              {
+                "terms": {
+                  "unit_price": 33.88,
+                  "payment_days": 30,
+                  "lead_time_days": 28
+                }
+              }
+            ]
+          },
+          {
+            "message_id": "msg:70250-1-2",
+            "from": "sales@70250",
+            "body": "Hallo,\n\nHallo, thanks for the offer. We have reviewed your offer and can adjust our Angebot as follows. Our current Angebot is a price of \u20ac34.50 per unit, Zahlungsziel 30 days net, Lieferzeit 28 days. We can drop the price to 34.50 per piece, but to make that work for our small shop we need 14 days payment terms. Alternatively, a price of \u20ac34.00 per unit, Zahlungsziel 14 days net, Lieferzeit 28 days. Let me know if we can shake hands on this so we can get the machines running.\n\nGru\u00df\nClaudia Fuchsreiter\nOwner, Drehteile Fuchsreiter GmbH",
+            "term_sheets": [
+              {
+                "term_sheet_id": "offer:70250-1",
+                "terms": {
+                  "unit_price": 34.5,
+                  "payment_days": 30,
+                  "lead_time_days": 28
+                }
+              },
+              {
+                "term_sheet_id": "offer:70250-1-a",
+                "terms": {
+                  "unit_price": 34.0,
+                  "payment_days": 14,
+                  "lead_time_days": 28
+                }
+              }
+            ],
+            "refs": [],
+            "status": "open"
+          },
+          {
+            "from": "buyer",
+            "body": "Thank you for your offer. To go ahead we propose the attached terms: unit price EUR 33.93, payment days 30, lead time days 28. We look forward to your confirmation. This is a conditional exchange: we can commit to this package in return for the proposed unit price.",
+            "term_sheets": [
+              {
+                "terms": {
+                  "unit_price": 33.93,
+                  "payment_days": 30,
+                  "lead_time_days": 28
+                }
+              }
+            ]
+          },
+          {
+            "message_id": "msg:70250-2-4",
+            "from": "sales@70250",
+            "body": "Hallo,\n\nWe have reviewed your offer and can adjust our Angebot as follows. \n\nWe can give you a price of \u20ac34.00 per unit, a Zahlungsziel 30 days net, and a Lieferzeit 28 days. Let's shake hands on 34.00 and I can get the machines set up right away. \n\nGru\u00df\nClaudia Fuchsreiter\nOwner, Drehteile Fuchsreiter GmbH",
+            "term_sheets": [
+              {
+                "term_sheet_id": "offer:70250-2",
+                "terms": {
+                  "unit_price": 34.0,
+                  "payment_days": 30,
+                  "lead_time_days": 28
+                }
+              }
+            ],
+            "refs": [],
+            "status": "open"
+          }
+        ]
+      },
+      "seconds_left": 60,
+      "expected": {
+        "kind": "hold",
+        "terms": {}
+      }
+    },
+    {
+      "id": "p04-preserve-opening",
+      "case_id": "case:P04",
+      "supplier_id": "sup:70620",
+      "source": {
+        "path": "experiments/runs/staged-a-20261010/1-P04-packages/server-evidence.json",
+        "sha256": "a61f93ce57de020031780f52a45f4b75c2bd943c454e8cd753ea91fc91062d3f",
+        "session_id": "e2fcc134ecd03d17",
+        "prefix_ends": {
+          "sup:70620": 0
+        }
+      },
+      "policy": {
+        "version": 1,
+        "package_types": [
+          "quality",
+          "renewal",
+          "raw_material"
+        ],
+        "evidence_types": []
+      },
+      "threads": {
+        "sup:70620": [
+          {
+            "message_id": "msg:70620-0-0",
+            "from": "sales@70620",
+            "body": "Dear customer,\n\nThank you for your enquiry. Please find our Angebot below. We are delighted to assist Hollerau Pumpenwerke GmbH and remain eager to serve all your requirements from our extensive product range.\n\nWe are pleased to submit our offer at a price of \u20ac4.96 per unit, with a Zahlungsziel 30 days net, and a contract term of 12 months. This offer stays valid for 30 days.\n\nTo give you complete visibility into our underlying costs, please note that LCI-C rose 2.7 % in twelve months and is 10 % of our cost. Furthermore, PPI-C2815 rose 0.8 % in twelve months and is 65 % of our cost. \n\nAs your trusted partner, we pride ourselves on exceptional distributor service and look forward to continuing our successful business relationship.\n\nMit freundlichen Gr\u00fc\u00dfen\nFlorian Gruber\nInside Sales, W\u00e4lzlager-Zentrum S\u00fcd GmbH",
+            "term_sheets": [
+              {
+                "term_sheet_id": "offer:70620-0",
+                "terms": {
+                  "unit_price": 4.96,
+                  "payment_days": 30,
+                  "contract_months": 12
+                }
+              }
+            ],
+            "refs": [],
+            "status": "open"
+          }
+        ]
+      },
+      "seconds_left": 60,
+      "expected": {
+        "kind": "send",
+        "terms": {
+          "contract_months": 24
+        }
+      }
+    },
+    {
+      "id": "p02-preserve-final",
+      "case_id": "case:P02",
+      "supplier_id": "sup:70510",
+      "source": {
+        "path": "experiments/runs/staged-broader-20261010/6-P02-candidate-r1/server-evidence.json",
+        "sha256": "12e2c1a5d8bee7b7294f76f598c5ba78835270d95ff235d85a02299ac0f7cb3f",
+        "session_id": "0afc8adba4237ebd",
+        "prefix_ends": {
+          "sup:70510": 8
+        }
+      },
+      "policy": {
+        "version": 1
+      },
+      "threads": {
+        "sup:70510": [
+          {
+            "message_id": "msg:70510-0-0",
+            "from": "sales@70510",
+            "body": "Dear Sir or Madam,\n\nThank you for your enquiry. Please find our Angebot below.\n\nWe offer a price of \u20ac370.96 per unit, Zahlungsziel 30 days net, no Preisgleitklausel. \n\nRegarding our cost structure, CU-NOTATION rose 47.7 % in twelve months and is 20 % of our cost. LCI-C rose 2.7 % in twelve months and is 20 % of our cost. PPI-C241 rose 6.5 % in twelve months and is 14 % of our cost.\n\nPlease note that this offer remains valid for 30 days.\n\nMit freundlichen Gr\u00fc\u00dfen\nPetra Lechner\nKey Account Manager, Antriebstechnik Nordmark AG",
+            "term_sheets": [
+              {
+                "term_sheet_id": "offer:70510-0",
+                "terms": {
+                  "unit_price": 370.96,
+                  "payment_days": 30,
+                  "index_clause": null
+                }
+              }
+            ],
+            "refs": [],
+            "status": "open"
+          },
+          {
+            "from": "buyer",
+            "body": "Thank you for your offer. To go ahead we propose the attached terms: unit price EUR 326.44, payment days 90, index clause None. We look forward to your confirmation.\n\nYour supplier-caused defect rate on scorecard sc:70510@2026Q3 was 273 ppm.",
+            "term_sheets": [
+              {
+                "terms": {
+                  "unit_price": 326.44,
+                  "payment_days": 90,
+                  "index_clause": null
+                }
+              }
+            ],
+            "refs": [
+              "sc:70510@2026Q3"
+            ]
+          },
+          {
+            "message_id": "msg:70510-1-2",
+            "from": "sales@70510",
+            "body": "Dear Sir or Madam,\n\nWe have reviewed your offer and can adjust our Angebot as follows. We checked the quality record data you cited; it holds, but it does not change our calculation. We have reviewed your proposal and the referenced quality scorecard; however, our overall performance remains strong and this does not warrant a price reduction. Our calculation is our property; we do not share a breakdown.\n\nOur current Angebot is a price of \u20ac374.07 per unit, Zahlungsziel 90 days net, no Preisgleitklausel. \n\nAlternatively, at our standard terms, we can offer a price of \u20ac369.95 per unit, Zahlungsziel 30 days net, no Preisgleitklausel. We can offer a revised price of EUR 369.95, provided we maintain the 30-day payment terms, as extending to 90 days would necessitate a price increase. \n\nThis offer remains valid for 30 days.\n\nMit freundlichen Gr\u00fc\u00dfen\nPetra Lechner\nKey Account Manager, Antriebstechnik Nordmark AG\n\nQuality Management: We meet the agreed quality targets.\n\nCredit Control: We refer to our standard Zahlungsziel, which is 30 days net.",
+            "term_sheets": [
+              {
+                "term_sheet_id": "offer:70510-1",
+                "terms": {
+                  "unit_price": 374.07,
+                  "payment_days": 90,
+                  "index_clause": null
+                }
+              },
+              {
+                "term_sheet_id": "offer:70510-1-a",
+                "terms": {
+                  "unit_price": 369.95,
+                  "payment_days": 30,
+                  "index_clause": null
+                }
+              }
+            ],
+            "refs": [],
+            "status": "open"
+          },
+          {
+            "from": "buyer",
+            "body": "Thank you for your offer. To go ahead we propose the attached terms: unit price EUR 335.97, payment days 90, index clause None. We look forward to your confirmation.",
+            "term_sheets": [
+              {
+                "terms": {
+                  "unit_price": 335.97,
+                  "payment_days": 90,
+                  "index_clause": null
+                }
+              }
+            ]
+          },
+          {
+            "message_id": "msg:70510-2-4",
+            "from": "sales@70510",
+            "body": "Dear Sir or Madam,\n\nWe have reviewed your offer and can adjust our Angebot as follows. We acknowledge your revised offer; however, the proposed price remains below our required level for extended payment terms. We have adjusted our offer to EUR 373.85 for 90-day payment terms to reflect our willingness to reach an agreement.\n\nAccordingly, our Angebot is a price of \u20ac373.85 per unit, Zahlungsziel 90 days net, no Preisgleitklausel. Please note that this offer remains valid for 30 days.\n\nMit freundlichen Gr\u00fc\u00dfen\nPetra Lechner\nKey Account Manager, Antriebstechnik Nordmark AG",
+            "term_sheets": [
+              {
+                "term_sheet_id": "offer:70510-2",
+                "terms": {
+                  "unit_price": 373.85,
+                  "payment_days": 90,
+                  "index_clause": null
+                }
+              }
+            ],
+            "refs": [],
+            "status": "open"
+          },
+          {
+            "from": "buyer",
+            "body": "Thank you for your offer. To go ahead we propose the attached terms: unit price EUR 345.41, payment days 90, index clause None. We look forward to your confirmation.",
+            "term_sheets": [
+              {
+                "terms": {
+                  "unit_price": 345.41,
+                  "payment_days": 90,
+                  "index_clause": null
+                }
+              }
+            ]
+          },
+          {
+            "message_id": "msg:70510-3-6",
+            "from": "sales@70510",
+            "body": "Dear Sir or Madam,\n\nWe have reviewed your offer and can adjust our Angebot as follows. We acknowledge your revised offer and appreciate your movement. However, the proposed price is still significantly below our required level for 90-day payment terms. We have adjusted our offer to EUR 373.75 to reflect our continued willingness to reach an agreement. \n\nOur current offer stands at a price of \u20ac373.75 per unit, a Zahlungsziel of 90 days net, and no Preisgleitklausel. Please note that this offer stays valid for 30 days.\n\nMit freundlichen Gr\u00fc\u00dfen\nPetra Lechner\nKey Account Manager, Antriebstechnik Nordmark AG",
+            "term_sheets": [
+              {
+                "term_sheet_id": "offer:70510-3",
+                "terms": {
+                  "unit_price": 373.75,
+                  "payment_days": 90,
+                  "index_clause": null
+                }
+              }
+            ],
+            "refs": [],
+            "status": "open"
+          },
+          {
+            "from": "buyer",
+            "body": "Thank you for your offer. To go ahead we propose the attached terms: unit price EUR 354.83, payment days 90, index clause None. We look forward to your confirmation.",
+            "term_sheets": [
+              {
+                "terms": {
+                  "unit_price": 354.83,
+                  "payment_days": 90,
+                  "index_clause": null
+                }
+              }
+            ]
+          },
+          {
+            "message_id": "msg:70510-4-8",
+            "from": "sales@70510",
+            "body": "Dear Sir or Madam,\n\nWe acknowledge your revised offer and appreciate the movement towards our position. We have adjusted our offer to EUR 373.65 to reflect our continued willingness to reach an agreement. \n\nConsequently, our offer stands at a price of \u20ac373.65 per unit, a Zahlungsziel of 90 days net, and no Preisgleitklausel. Please note that our price reflects our costs; our calculation stays internal. This is our final offer (letztes Angebot). Please decide. \n\nThis offer remains valid for 7 days.\n\nMit freundlichen Gr\u00fc\u00dfen\nPetra Lechner\nKey Account Manager, Antriebstechnik Nordmark AG",
+            "term_sheets": [
+              {
+                "term_sheet_id": "offer:70510-4",
+                "terms": {
+                  "unit_price": 373.65,
+                  "payment_days": 90,
+                  "index_clause": null
+                }
+              }
+            ],
+            "refs": [],
+            "status": "final_offer"
+          }
+        ]
+      },
+      "seconds_left": 60,
+      "expected": {
+        "kind": "close",
+        "terms": {}
+      }
+    }
+  ]
+}

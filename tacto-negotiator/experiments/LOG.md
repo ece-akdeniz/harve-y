@@ -592,3 +592,37 @@ it is not hosted performance evidence or a proposed production strategy change.
   from a second clone. No arena cases, hosted sessions or quota consumed; no performance score claimed.
 - Decision: use the corrected source for the initial shared baseline; seeding identifies a starting
   checkpoint and does not imply measured promotion or improved negotiation performance.
+
+## Offline response-policy development — 10 October 2026
+
+- User requested local replay/iteration before more practice; no new arena sessions or model
+  calls. Jev/Clef were researched, not integrated or benchmarked.
+- Eight curated prefix regressions cover priced payment (P02), current/historical chargeback
+  alternatives (P11), the supplier-required index clause (P08), equally valued delivery and
+  nonleading RFQ closure (P05), and P04 opening/P02 final preservation controls.
+- Opt-in response_types, free_concessions and rfq_close_guard preserve defaults and candidate.json.
+  Historical packages can only generate counterproposals, never direct accepts. Inverse pricing
+  caps proposal cost; guards preserve allowed fields, switch/move/time limits and fixed terms.
+- Initial local evaluation: six known behaviour mismatches reproduced. After fixes, all eight
+  development annotations pass; P08 annotation was corrected to allow the cheaper quoted 5%
+  deadband clause rather than prescribing zero deadband. This is not an unbiased accuracy score.
+- All 24 saved runs: 134 open-thread prefixes, 77 unique inputs, 12 changed decisions and zero
+  proposal validity/cost-guard failures. Prefixes are independent, not simulated rollouts.
+  Full traces remain ignored locally; compact evidence is experiments/local-decisions.json.
+- P02 still has the prior aggressive concession schedule. A valid payment exchange is a
+  hypothesis, not demonstrated supplier acceptance or score improvement. Final risk is unchanged.
+- Pulled main 7b35a43 and moved this work to isolated codex/offline-response-checks. The new lab
+  integration test exposed an explicit missing-data path silently falling back to unrelated
+  local data. Fixed explicit-path loading to fail closed; no checkpoint may silently substitute it.
+- Integrated validation: 296 tests passed, including experimental RFQ concurrency checks; ruff
+  clean. Candidate not promoted. No hosted campaign or model requests authorized by these results.
+
+Independent review correction: saved histories omit downloaded quote defaults. P05 opening
+payments differed (synthetic 90 days vs recorded 30/45/30). The prefix scan is explicitly
+classified as synthetic guard testing with historical fidelity unverified. It cannot justify
+policy selection until original quote defaults and baseline-action fidelity are recovered.
+The review also found a free-concession deadline/switch-budget bypass; corrected before publication.
+
+Final independent-review validation: 302 tests passed (46.60s); all 8 curated checks and
+77 unique synthetic prefix guard checks pass. Original histories imported locally: 55 sandbox
+and 60 practice; 24 audited sessions match saved results and all 316 messages exactly.

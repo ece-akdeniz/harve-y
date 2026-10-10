@@ -1,0 +1,329 @@
+{
+  "interpretation": "Synthetic one-step development regressions with incomplete quote defaults; no predicted arena scores or supplier responses.",
+  "historical_fidelity_verified": false,
+  "arena_sessions_started": 0,
+  "model_calls": 0,
+  "source_revision": "aee398a0ac67ff952e9ceea936ab750dcaa81355",
+  "source_hashes": {
+    "src/negotiator/__init__.py": "0fa906054421dfe2838bfdaad18161cd735025a9181a2aa1bce586a0440c7dd6",
+    "src/negotiator/agent.py": "d10946fc01643ad7391edf3a21e745f5950f128255bb70ced621e0519ca4c8b1",
+    "src/negotiator/beliefs.py": "b2ce88bc6365e2bc08964e6d4efc4dc2964e8c8f0967aa3eab9df307d1577f96",
+    "src/negotiator/claims.py": "a94b5d5ad7ad3a55d6494be14e6fd56ba64376f0f42b4970f36fcbeda5846eca",
+    "src/negotiator/cli.py": "498e74a531c810d92c7c43b48185a6d5e36b35c75e89e4de4556b83ebb261e97",
+    "src/negotiator/client.py": "243921f17fba17dc628f763d37148914af507c0d10f1b6b3dbdbea502c3a0688",
+    "src/negotiator/config.py": "34808af4435a80972c00b959168e9fc12535aa4a470f578501e8d537dd751349",
+    "src/negotiator/dossiers.py": "413eecf30869b0860a1098f9e5d6b0d03bdd64bf60170780526b6807abcc50b8",
+    "src/negotiator/evaluator.py": "fd76fc4987055050b9ac10bd1a310958981c849d2d384487e8550d84f725bde6",
+    "src/negotiator/evidence.py": "65d46c63b5f393ed44957833e8a5cb4e9831c7b0b4eedd793fb1f3af5fd90597",
+    "src/negotiator/guards.py": "a8b01a6c0269a35bd39a52d037d722e9cc494f8beaec0f8d78157c063cdfee0c",
+    "src/negotiator/optimizer.py": "63ee87a4ae7423054628f8d382766775adc8c72907fba9345a9b86ff37a0f7f5",
+    "src/negotiator/play.py": "5d3694e6739a54330f788c7e0fc0011e517a06e3b0f2c1137749999d7777dfa6",
+    "src/negotiator/policy.py": "6b7f02e782d560286b095eb00c840a2e9b97a3493ac866351f1054cc35627ec8",
+    "src/negotiator/report.py": "ed150239291fb9e5ebf331c20db0cee286e96daf492c3aaee46a79f94a166b78",
+    "src/negotiator/responses.py": "8f9b89f1dfb40e7954d86afbc64aa6da1b092df4908bd86f530708285e6e3823",
+    "src/negotiator/runner.py": "e898b2eacd98adc7e56e30e8a420918fba4fbe297bbe4fb60742305b11840566",
+    "src/negotiator/state.py": "b754eede2f37b37a95a284094cc27bf29e332e069a438f3a91fb53cfc16592ee",
+    "src/negotiator/trace.py": "9fb91ab709b59d5b3cbb95ff41aac6e040c54e5612d2da5d3316a90505266c30",
+    "src/negotiator/trades.py": "4b5ffe340f06c6b9b6a267db279dd0170feb355d896e287c0e840d038430af75",
+    "src/negotiator/traits.py": "ca466a86a4c77581c433d3291110cb865282eda45aaa37915f929f224ab0e47f",
+    "src/negotiator/writer.py": "5862755602b0d71e15afbae9f3f13e10a180ee9e02d12106f27830d826abaf9f"
+  },
+  "fixture_sha256": "484954d063b37045300218349fd5923becdcaa974d4642072b983d4f00a15a89",
+  "before_matches": 2,
+  "after_matches": 8,
+  "checks_pass": true,
+  "saved_scan": {
+    "runs": 24,
+    "prefixes": 134,
+    "unique_prefixes": 77,
+    "failures": 0,
+    "interpretation": "Synthetic prefix guard checks; quote defaults unavailable. Not faithful historical replays, rollouts or RFQ timelines.",
+    "historical_fidelity_verified": false,
+    "changed_decisions": 12
+  },
+  "rows": [
+    {
+      "id": "p02-priced-payment",
+      "source": {
+        "path": "experiments/runs/staged-broader-20261010/6-P02-candidate-r1/server-evidence.json",
+        "sha256": "12e2c1a5d8bee7b7294f76f598c5ba78835270d95ff235d85a02299ac0f7cb3f",
+        "session_id": "0afc8adba4237ebd",
+        "prefix_ends": {
+          "sup:70510": 2
+        }
+      },
+      "proposal_cost_not_increased": true,
+      "before": {
+        "kind": "send",
+        "terms": {
+          "unit_price": 335.97,
+          "payment_days": 90,
+          "index_clause": null
+        },
+        "safe": true,
+        "matches_annotation": false,
+        "proposal_cost": 2039091.52,
+        "historical_fidelity": "unverified: quote defaults and timing not reconstructed"
+      },
+      "after": {
+        "kind": "send",
+        "terms": {
+          "unit_price": 331.52,
+          "payment_days": 30,
+          "index_clause": null
+        },
+        "safe": true,
+        "matches_annotation": true,
+        "proposal_cost": 2039091.11,
+        "historical_fidelity": "unverified: quote defaults and timing not reconstructed"
+      }
+    },
+    {
+      "id": "p11-chargeback-alternative",
+      "source": {
+        "path": "experiments/runs/staged-a-20261010/3-P11-packages/server-evidence.json",
+        "sha256": "ce183cd5a1a154443e97038fe79e73d0697bc56cbf1d48320b93411fee5509b3",
+        "session_id": "cc9acf4242059a59",
+        "prefix_ends": {
+          "sup:70140": 2
+        }
+      },
+      "proposal_cost_not_increased": true,
+      "before": {
+        "kind": "send",
+        "terms": {
+          "ppm_commitment": 1500,
+          "chargeback_eur_per_complaint": 500,
+          "unit_price": 42.48
+        },
+        "safe": true,
+        "matches_annotation": false,
+        "proposal_cost": 699918.0,
+        "historical_fidelity": "unverified: quote defaults and timing not reconstructed"
+      },
+      "after": {
+        "kind": "send",
+        "terms": {
+          "ppm_commitment": 1500,
+          "chargeback_eur_per_complaint": 150.0,
+          "unit_price": 42.02
+        },
+        "safe": true,
+        "matches_annotation": true,
+        "proposal_cost": 699759.0,
+        "historical_fidelity": "unverified: quote defaults and timing not reconstructed"
+      }
+    },
+    {
+      "id": "p11-remember-alternative",
+      "source": {
+        "path": "experiments/runs/staged-a-20261010/3-P11-packages/server-evidence.json",
+        "sha256": "ce183cd5a1a154443e97038fe79e73d0697bc56cbf1d48320b93411fee5509b3",
+        "session_id": "cc9acf4242059a59",
+        "prefix_ends": {
+          "sup:70140": 4
+        }
+      },
+      "proposal_cost_not_increased": true,
+      "before": {
+        "kind": "send",
+        "terms": {
+          "ppm_commitment": 1500,
+          "chargeback_eur_per_complaint": 500,
+          "unit_price": 44.22
+        },
+        "safe": true,
+        "matches_annotation": false,
+        "proposal_cost": 727584.0,
+        "historical_fidelity": "unverified: quote defaults and timing not reconstructed"
+      },
+      "after": {
+        "kind": "send",
+        "terms": {
+          "ppm_commitment": 1500,
+          "chargeback_eur_per_complaint": 150.0,
+          "unit_price": 43.76
+        },
+        "safe": true,
+        "matches_annotation": true,
+        "proposal_cost": 727425.0,
+        "historical_fidelity": "unverified: quote defaults and timing not reconstructed"
+      }
+    },
+    {
+      "id": "p08-clause-condition",
+      "source": {
+        "path": "experiments/runs/staged-broader-20261010/2-P08-candidate-r1/server-evidence.json",
+        "sha256": "a999cedd7f8e4e42350d50bf2967d9a6a6bb395a441498e038506fdd4ac31fe3",
+        "session_id": "4451a15ec9934f23",
+        "prefix_ends": {
+          "sup:70710": 2
+        }
+      },
+      "proposal_cost_not_increased": true,
+      "before": {
+        "kind": "send",
+        "terms": {
+          "unit_price": 5.36,
+          "index_clause": null,
+          "payment_days": 90,
+          "contract_months": 24
+        },
+        "safe": true,
+        "matches_annotation": false,
+        "proposal_cost": 1009480.96,
+        "historical_fidelity": "unverified: quote defaults and timing not reconstructed"
+      },
+      "after": {
+        "kind": "send",
+        "terms": {
+          "unit_price": 5.31,
+          "index_clause": {
+            "series": "AS-14404",
+            "material_share": 0.45,
+            "deadband_pct": 5.0,
+            "base_month": "2026-08"
+          },
+          "payment_days": 90,
+          "contract_months": 24
+        },
+        "safe": true,
+        "matches_annotation": true,
+        "proposal_cost": 1009125.14,
+        "historical_fidelity": "unverified: quote defaults and timing not reconstructed"
+      }
+    },
+    {
+      "id": "p05-free-delivery",
+      "source": {
+        "path": "experiments/runs/staged-broader-20261010/10-P05-candidate-r1/server-evidence.json",
+        "sha256": "fd5716ce6c9c09cb9050df33bdab200ed10c00dd66722acb79d4d9f5f19ea150",
+        "session_id": "833a5941d12cd20b",
+        "prefix_ends": {
+          "sup:70210": 4,
+          "sup:70240": 4,
+          "sup:70250": 3
+        }
+      },
+      "proposal_cost_not_increased": true,
+      "before": {
+        "kind": "send",
+        "terms": {
+          "unit_price": 30.23,
+          "payment_days": 45,
+          "lead_time_days": 28
+        },
+        "safe": true,
+        "matches_annotation": false,
+        "proposal_cost": 254778.44,
+        "historical_fidelity": "unverified: quote defaults and timing not reconstructed"
+      },
+      "after": {
+        "kind": "send",
+        "terms": {
+          "unit_price": 30.23,
+          "payment_days": 45,
+          "lead_time_days": 35
+        },
+        "safe": true,
+        "matches_annotation": true,
+        "proposal_cost": 254778.44,
+        "historical_fidelity": "unverified: quote defaults and timing not reconstructed"
+      }
+    },
+    {
+      "id": "p05-losing-close",
+      "source": {
+        "path": "experiments/runs/staged-broader-20261010/10-P05-candidate-r1/server-evidence.json",
+        "sha256": "fd5716ce6c9c09cb9050df33bdab200ed10c00dd66722acb79d4d9f5f19ea150",
+        "session_id": "833a5941d12cd20b",
+        "prefix_ends": {
+          "sup:70210": 5,
+          "sup:70240": 5,
+          "sup:70250": 4
+        }
+      },
+      "proposal_cost_not_increased": true,
+      "before": {
+        "kind": "close",
+        "terms": null,
+        "safe": true,
+        "matches_annotation": false,
+        "proposal_cost": null,
+        "historical_fidelity": "unverified: quote defaults and timing not reconstructed"
+      },
+      "after": {
+        "kind": "hold",
+        "terms": null,
+        "safe": true,
+        "matches_annotation": true,
+        "proposal_cost": null,
+        "historical_fidelity": "unverified: quote defaults and timing not reconstructed"
+      }
+    },
+    {
+      "id": "p04-preserve-opening",
+      "source": {
+        "path": "experiments/runs/staged-a-20261010/1-P04-packages/server-evidence.json",
+        "sha256": "a61f93ce57de020031780f52a45f4b75c2bd943c454e8cd753ea91fc91062d3f",
+        "session_id": "e2fcc134ecd03d17",
+        "prefix_ends": {
+          "sup:70620": 0
+        }
+      },
+      "proposal_cost_not_increased": true,
+      "before": {
+        "kind": "send",
+        "terms": {
+          "unit_price": 4.36,
+          "payment_days": 90,
+          "contract_months": 24
+        },
+        "safe": true,
+        "matches_annotation": true,
+        "proposal_cost": 173237.33,
+        "historical_fidelity": "unverified: quote defaults and timing not reconstructed"
+      },
+      "after": {
+        "kind": "send",
+        "terms": {
+          "unit_price": 4.36,
+          "payment_days": 90,
+          "contract_months": 24
+        },
+        "safe": true,
+        "matches_annotation": true,
+        "proposal_cost": 173237.33,
+        "historical_fidelity": "unverified: quote defaults and timing not reconstructed"
+      }
+    },
+    {
+      "id": "p02-preserve-final",
+      "source": {
+        "path": "experiments/runs/staged-broader-20261010/6-P02-candidate-r1/server-evidence.json",
+        "sha256": "12e2c1a5d8bee7b7294f76f598c5ba78835270d95ff235d85a02299ac0f7cb3f",
+        "session_id": "0afc8adba4237ebd",
+        "prefix_ends": {
+          "sup:70510": 8
+        }
+      },
+      "proposal_cost_not_increased": true,
+      "before": {
+        "kind": "close",
+        "terms": null,
+        "safe": true,
+        "matches_annotation": true,
+        "proposal_cost": null,
+        "historical_fidelity": "unverified: quote defaults and timing not reconstructed"
+      },
+      "after": {
+        "kind": "close",
+        "terms": null,
+        "safe": true,
+        "matches_annotation": true,
+        "proposal_cost": null,
+        "historical_fidelity": "unverified: quote defaults and timing not reconstructed"
+      }
+    }
+  ]
+}

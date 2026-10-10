@@ -100,11 +100,15 @@ def timeouts(arena, sid):
 
 
 @pytest.mark.parametrize("slots", [1, None])
-async def test_two_thread_rfq_slow_replies_no_timeouts(tmp_path, slots):
+@pytest.mark.parametrize("response_guard", [False, True])
+async def test_two_thread_rfq_slow_replies_no_timeouts(tmp_path, slots, response_guard):
+    from negotiator.policy import PolicyConfig
+
     clock = ScaledClock()
     arena = SimArena(clock, {"sup:70340": 30, "sup:70360": 50})
     close, calls = recording()
-    r = await CaseRunner(arena, "case:S02", PackageAgent(), Journal(tmp_path / "j.jsonl"),
+    policy = PolicyConfig(rfq_close_guard=True, free_concessions=True) if response_guard else None
+    r = await CaseRunner(arena, "case:S02", PackageAgent(policy=policy), Journal(tmp_path / "j.jsonl"),
                          clock=clock, close_fn=close, send_slots=slots).run()
     assert r["deal"] and r["score"] > 0
     assert set(timeouts(arena, r["session_id"]).values()) == {0}
