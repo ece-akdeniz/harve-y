@@ -960,3 +960,22 @@ data on the market was solid … 29.00 EUR"; we matched 29.00, gap closed, accep
 34.00 → 32.00 → 31.00 under the same claims; 70240 34.50 → final 34.00. Timeouts: one on the
 losing 70240 (its send waited behind a 58 s POST in the soft send slot); none on the winner.
 Must-haves held (35 d), no 56 d, no 14 d. Next: repeat once.
+
+## 2026-10-10 — P05: reconcile interrupted repeat `p05-rival-history-2`
+
+Run `704039ed-9bd6-4b42-95a0-8df15e33c6bb`, session `6c3717e8dc3eaed5` (journalled in the run;
+owned). The worker process was killed ~9 s after start (last journal record 19:21:29 UTC, buyer
+counter 29.00 to 70210 sent as intent). Arena status: `ended`, `end_reason: timeout`, no deal,
+score 0.00. Replay: 70210 again reached **29.00/35/30** (round 3), then final, then withdrew;
+70250 33.00/30 final, 70240 34.00/90 final; all withdrew after unanswered timeouts. Partial
+replication of the 29.00 floor. Recovered outcome attached with `save_reconciliation` for this
+one session only (no blanket import); original attempt evidence preserved; `lab sync` uploaded.
+Expired attempt counts as one session; not resumable.
+Teammate P05 work read (main LOG/BENCHMARK_HANDOFF, origin/codex/benchmark-goal-20261010): 14-day
+early cash + capacity opening (.3854, rejected), supplier-standard payment (inert). Not repeated.
+
+## 2026-10-10 — P05 screen 9 plan: replicate screen 8 config (no change)
+
+Differs from previous: nothing; `configs/p05-rival-history.json` at HEAD. Purpose: confirm the
+72.08 from session-wide rival-price disclosure (70210 31.50 claim → "boss approval" → 29.00).
+Runner `async`, launched under nohup so the process survives the shell.
