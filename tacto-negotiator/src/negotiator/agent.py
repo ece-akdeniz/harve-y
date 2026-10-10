@@ -10,11 +10,12 @@ import math
 import os
 import time
 
-from arena_kit.cost import closing_terms, complete_offer, must_haves_ok, total_cost
+from arena_kit.cost import closing_terms, complete_offer, must_haves_ok, supplier_value, total_cost
 from arena_kit.docs import standard_terms
 from arena_kit.play import latest, live_threads, moves_left
 
 from . import value_swap
+from .economics import InfeasiblePackage
 from .evaluator import (
     best_close,
     close_decision,
@@ -158,6 +159,7 @@ class PackageAgent:
         self.beat_asked = {}  # rival supplier -> final-offer sheet id we asked it to beat
         self.reanchored = set()  # rfq suppliers re-anchored after undercutting our own ask
         self.value_swapped = set()  # suppliers offered the value-equivalent chargeback swap (once)
+        self.payment_traded = set()  # suppliers whose main sheet moved to their payment term (once)
         self.final_seen = {}  # final-offer sheet id -> monotonic time first seen
         if estimates is None and os.environ.get("NEGOTIATOR_ESTIMATES") != "1":
             estimates = {}  # dossier estimates are opt-in until calibrated (docs: experiments/LOG.md)
@@ -402,6 +404,8 @@ class PackageAgent:
                 if "payment_days" in new and prev.get("payment_days") == self._fast_payment(
                         case, sid, {**ref_terms, **new}, std):
                     new["payment_days"] = prev["payment_days"]
+                if "payment_days" in new and sid in self.payment_traded:
+                    new["payment_days"] = prev["payment_days"]  # the traded payment term stays
                 n = new
                 self._log(case, "package_switch", sid, prev=prev, new=n, c_prev=min(on_prev), c_new=ref_c)
         if self.policy and self.policy.rfq_supplier_payment and case["type"] == "rfq":
@@ -504,6 +508,130 @@ class PackageAgent:
                   new=out["lead_time_days"])
         return out
 
+    # -- supplier payment trade (opt-in: policy.supplier_payment_trade) ------------------------
+    # The skonto-implied annual rate (skonto_pct over the days gained) is capped: a 2 % discount for
+    # paying 20 days earlier annualises to 36 %, which no supplier values money at for a whole term;
+    # 30 % is an assumption, not observed.
+    SKONTO_RATE_CAP = 0.30
+
+    def _payment_trade_on(self, case):
+        return bool(self.policy and self.policy.supplier_payment_trade and "payment_days" in case["negotiable"])
+
+    def _payment_trade_target(self, case, base, events, std):
+        """The payment term to move to: the supplier's stated days from its latest sheet when legal
+        and shorter than ours, else the shortest legal option - the first that keeps must-haves."""
+        options = (case.get("term_options") or {}).get("payment_days") or []
+        cur = base.get("payment_days")
+        if not options or cur is None:
+            return None
+        sheets = latest(events).get("term_sheets") or []
+        stated = (sheets[0].get("terms") or {}).get("payment_days") if sheets else None
+        cands = ([stated] if stated in options and stated < cur else []) + sorted(options)
+        for days in cands:
+            if must_haves_ok(case, complete_offer(case, {**base, "payment_days": days, "unit_price": 1.0}), std):
+                return days
+        return None
+
+    def _payment_trade_done(self, case, sid, events, std):
+        """True once this thread traded payment for price; rebuilt from our own sheets after a
+        restart (our last sheet is at or below the target, or we shortened payment once before)."""
+        if sid in self.payment_traded:
+            return True
+        ours = [t for t in self._ours(events) if t.get("payment_days") is not None]
+        if not ours:
+            return False
+        target = self._payment_trade_target(case, nonprice(case, ours[-1]), events, std)
+        done = (target is not None and ours[-1]["payment_days"] <= target) or any(
+            b["payment_days"] < a["payment_days"] for a, b in zip(ours, ours[1:], strict=False))
+        if done:
+            self.payment_traded.add(sid)
+        return done
+
+    def _payment_trade_trigger(self, sid, events):
+        """'signal' when any supplier message of the thread asks for a payment trade, else
+        'trait:<name>' for a public cash-short trait (incl. a skonto in master data), else None."""
+        from . import traits as T
+        from .replies import interpret
+
+        if any(s["kind"] == "payment_trade" for s in interpret(events)["signals"]):
+            return "signal"
+        traits = self._public_traits(sid)[0] & T.CASH_SHORT
+        if not traits:
+            return None
+        name = next((t for t in ("offers_skonto", "wants_fast_payment") if t in traits), min(traits))
+        return f"trait:{name}"
+
+    def _public_supplier(self, case, sid, std):
+        """Supplier estimate for `supplier_value` from public data only: standard terms from master
+        data (quote PDF overrides), interest rate BASE_RATE (company.md) unless the master row states
+        a skonto, then its implied annual rate skonto_pct/100 * 360 / (payment_days - skonto_days),
+        capped at SKONTO_RATE_CAP. Never the dossier's cash-short constants."""
+        from . import traits as T
+        from .dossiers import BASE_RATE
+
+        _, dossier = self._public_traits(sid)
+        master = (dossier.master if dossier else None) or {}
+        standard = {k: v for k, v in {
+            "payment_days": master.get("payment_days"),
+            "incoterm": master.get("incoterm"),
+            "lead_time_days": master.get("standard_lead_time_days"),
+        }.items() if v is not None}
+        standard.setdefault("payment_days", case["buyer"]["reference_payment_days"])
+        standard.setdefault("incoterm", "FCA")
+        standard.update(std or {})
+        rate = BASE_RATE
+        pct = T.skonto_pct(dossier) if dossier else 0.0
+        if pct > 0:
+            days = master.get("payment_days") or standard["payment_days"]
+            gained = max(1, days - (master.get("skonto_days") or 0))
+            rate = min(self.SKONTO_RATE_CAP, pct / 100 * 360 / gained)
+        return {"standard": standard, "interest_rate": rate}
+
+    def _payment_trade(self, case, sid, events, std, sup, c_alt):
+        """Once per thread, on a payment-trade signal or a public cash-short trait: move the main
+        sheet to the target payment term at the unit price that leaves the supplier's value (public
+        rate) unchanged versus our previous sheet, floored at buyer-cost parity (our C never rises).
+        Our schedule then continues on the new package by C. None when it does not apply."""
+        if not self._payment_trade_on(case) or self._payment_trade_done(case, sid, events, std):
+            return None
+        ours = self._ours(events)
+        if not ours or latest(events).get("status") != "open" or moves_left(case, events) <= 1:
+            return None
+        prev_terms = ours[-1]
+        base = nonprice(case, prev_terms)
+        target = self._payment_trade_target(case, base, events, std)
+        if target is None or base.get("payment_days") is None or target >= base["payment_days"]:
+            return None
+        trigger = self._payment_trade_trigger(sid, events)
+        if trigger is None:
+            return None
+        pub = self._public_supplier(case, sid, std)
+        new = {**base, "payment_days": target}
+        v_prev = supplier_value(case, prev_terms, pub)
+        v0 = supplier_value(case, {**new, "unit_price": 0.0}, pub)
+        v1 = supplier_value(case, {**new, "unit_price": 1.0}, pub)  # value is affine in the unit price
+        if v1 - v0 <= 0:
+            return None
+        value_price = math.floor(round((v_prev - v0) / (v1 - v0) * 100, 6)) / 100
+        c_prev = total_cost(case, prev_terms, std, sup)
+        try:
+            cost_price = price_for_cost(case, {**new, "unit_price": prev_terms["unit_price"]}, c_prev, std, sup)
+        except InfeasiblePackage:
+            return None
+        terms = complete_offer(case, {**new, "unit_price": min(value_price, cost_price)})
+        if (terms["unit_price"] <= 0 or terms["payment_days"] != target or not must_haves_ok(case, terms, std)
+                or total_cost(case, terms, std, sup) > c_prev + 1e-6):
+            return None
+        self.payment_traded.add(sid)
+        self._log(case, "supplier_payment_trade", sid, prev_days=base["payment_days"], new_days=target,
+                  rate=pub["interest_rate"], value_parity_price=value_price, cost_parity_price=cost_price,
+                  price=terms["unit_price"], trigger=trigger)
+        move = self._offer(case, sid, terms, std, sup, c_alt, "supplier payment trade: their term at value parity")
+        body = move["message"]["body"] + (
+            f" We can pay within {target} days; the attached unit price reflects that faster payment.")
+        assert not leaks(body), "body would leak internal information"
+        return {**move, "message": {**move["message"], "body": body}}
+
     def _anchor(self, case):
         return self._anchor_for(case)
 
@@ -534,6 +662,8 @@ class PackageAgent:
                 continue
             if f == "payment_days" and self._fast_payment(case, sid, {**n, "unit_price": price}, std) == n[f]:
                 continue
+            if f == "payment_days" and sid in self.payment_traded:
+                continue  # the payment term we traded for price is not given back for free
             if trial_c <= previous_c + 1e-6:
                 n = trial
         return n
@@ -1070,6 +1200,8 @@ class PackageAgent:
             if swapped:
                 return self._offer(case, sid, complete_offer(case, swapped), std, sup, c_alt,
                                    "value-equivalent chargeback swap")
+        if self._payment_trade_on(case):
+            self._payment_trade_done(case, sid, events, std)  # rebuild the once-per-thread state first
         n = self._nonprice(case, sid, events, std, sup, cands, eligible)
         p = self._ask_on(case, n, cands, std, sup)
         first = next((i for i, m in enumerate(events) if m.get("from") != "buyer" and m.get("term_sheets")), None)
@@ -1119,6 +1251,10 @@ class PackageAgent:
                     return {"hold": True, "reason": "nonleading supplier converged; leader still workable"}
             return {"close": True, "reason": "gap closed"}
 
+        if cap_c is None:
+            trade = self._payment_trade(case, sid, events, std, sup, c_alt)
+            if trade is not None:
+                return trade
         floor = p_open * (1 - self._anchor_for(case))
         price = floor + (p - floor) * min(1.0, k / self._rounds(case))
         if last_p is not None:

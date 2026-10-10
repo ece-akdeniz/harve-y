@@ -221,4 +221,6 @@ def build_one(package, supplier_id: str) -> Dossier | None:
         d.traits = traits_mod.classify(d)
         return d
     s = rows[0]
-    return Dossier(supplier_id, s["name"], s["country"], s["category"], master=s)
+    d = Dossier(supplier_id, s["name"], s["country"], s["category"], master=s)
+    d.traits = traits_mod.classify(d)  # master-data traits only (e.g. `offers_skonto`)
+    return d
