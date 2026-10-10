@@ -399,3 +399,16 @@ it is not hosted performance evidence or a proposed production strategy change.
   reads, new loop overview, retained original experiment and public tunnel loop.js asset verified.
   Initial shared recommendation remains explicitly unseeded; no real checkpoint publication or hosted
   campaign was launched. Browser crash prevents visual layout QA.
+
+## 2026-10-10 — Lab setup: nested-project checkpoint verification
+
+- Hypothesis: checkpoint publication and restoration must verify the entire repository when the
+  negotiator lives below its root and the arena kit is a sibling submodule.
+- Change: inspect Git trees with `--full-tree`; retain root-relative submodule and private-file checks.
+  Negotiation policy/configuration is unchanged. The coding-agent workflow is in `LAB_PLAYBOOK.md`.
+- Failure: initial real-repository restore rejected the valid sibling kit as a submodule manifest
+  mismatch. A nested-project, sibling-submodule, second-clone regression reproduced it before the fix.
+- Validation: all 27 checkpoint tests passed after the fix, including publication and isolated restore
+  from a second clone. No arena cases, hosted sessions or quota consumed; no performance score claimed.
+- Decision: use the corrected source for the initial shared baseline; seeding identifies a starting
+  checkpoint and does not imply measured promotion or improved negotiation performance.
