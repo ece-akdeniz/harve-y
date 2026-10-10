@@ -1,0 +1,30 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4KV32W0SZA6JF94F0NM2SYE",
+  "strategy": "manual-commit",
+  "branch": "codex/score-push-p05",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "tacto-negotiator/configs/p05-final-push.json",
+    "tacto-negotiator/experiments/LOG.md",
+    "tacto-negotiator/src/negotiator/agent.py",
+    "tacto-negotiator/src/negotiator/policy.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": ""
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 79911,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 3432167,
+    "output_tokens": 14745,
+    "api_call_count": 22,
+    "subagent_tokens_complete": false
+  }
+}
