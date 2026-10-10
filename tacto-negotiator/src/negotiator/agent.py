@@ -284,7 +284,7 @@ class PackageAgent:
                 est = None
             self._target_cache[key] = est
         est = self._target_cache[key]
-        return {**est, "standard": std or est.get("standard") or {}} if est else None
+        return {**est, "standard": {**(est.get("standard") or {}), **(std or {})}} if est else None
 
     def _cost_target_move(self, case, threads):
         """Single-supplier relationship cases only; None falls back to the default policy."""

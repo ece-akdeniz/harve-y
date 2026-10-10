@@ -33,6 +33,16 @@ def sup_msg(sheets, status="open"):
             "term_sheets": [{"term_sheet_id": f"offer:{i}", "terms": t} for i, t in sheets]}
 
 
+def test_partial_quote_standard_terms_merge_with_dossier(monkeypatch):
+    # Hosted quote PDFs list only some standard terms (e.g. ppm); payment days come from the dossier.
+    import negotiator.agent as A
+
+    monkeypatch.setattr(A, "standard_terms", lambda events: {"ppm_commitment": 250})
+    c, a = case(), agent()
+    move = a.decide(c, {SID: [sup_msg([(0, t(370.96, 30, None))])]})
+    assert move["message"]["term_sheets"][0]["terms"]["index_clause"]["deadband_pct"] == 5
+
+
 def buyer(t):
     return {"from": "buyer", "term_sheets": [{"terms": t}]}
 
