@@ -57,3 +57,75 @@ Update roadmap evidence, document any approved contract clarifications, and comm
 Do not implement T1.1d, persistence, strategy, economic services, or LLM functionality in this task.
 
 **Completion criterion:** All five identified gaps have explicit contract decisions and passing regression tests. Previously completed T1.1a–c functionality remains intact.
+
+---
+
+# Context from my IDE setup:
+
+## Active file: tacto-negotiator/docs/21-negotiation-v2-plan-2026-10-10.md
+
+## Open tabs:
+- 21-negotiation-v2-plan-2026-10-10.md: tacto-negotiator/docs/21-negotiation-v2-plan-2026-10-10.md
+- first-three-prompts.md: tacto-negotiator/docs/v2/first-three-prompts.md
+- D-roadmap.md: tacto-negotiator/docs/v2/D-roadmap.md
+- Pasted text.txt: /home/ugur/.codex/attachments/703a5586-1c90-4c5f-ac22-cbdfdf02d856/Pasted text.txt
+- 18-main-branch-audit-2026-10-10.md: tacto-negotiator/docs/18-main-branch-audit-2026-10-10.md
+
+## My request:
+**Implement T1.1d — First DTO Batch**
+
+Continue on the existing V2 branch, starting from commit `6880d7a`.
+
+Read `docs/v2/C-interfaces.md`, the T1.1d specifications in `docs/v2/task-specs.md`, and the relevant contract tests before coding.
+
+**Instructions:**
+
+1. Identify the exact model inventory assigned to the first T1.1d batch. Do not implement subsequent batches.
+2. Implement the specified immutable, strictly validated domain models using the approved interfaces and conventions established in T1.1a–c.
+3. Preserve all existing model contracts, semantic hashing rules, package fingerprint guarantees, and configuration trust boundaries.
+4. Demonstrate that the new DTOs compose correctly with existing models using concrete test fixtures.
+5. Add focused regression tests only where existing coverage does not establish a required invariant. Do not weaken existing assertions or modify golden fixtures.
+6. Run the batch-specific tests, foundation regressions, dependency-boundary tests, Ruff, and the complete V2 suite.
+7. Report newly passing tests, remaining expected failures, and unexpected regressions separately.
+8. Update the roadmap with precise completion evidence and commit this batch separately.
+
+Do not modify V1, redesign approved interfaces, or implement services, persistence, orchestration, or negotiation intelligence.
+
+If specifications are ambiguous or contradictory, report the conflict rather than inventing new contracts.
+
+**Completion criterion:** Every DTO in the first batch satisfies its specified contracts, composes with the existing foundation, and passes its owned tests without regressions.
+
+---
+
+# Context from my IDE setup:
+
+## Active file: tacto-negotiator/docs/21-negotiation-v2-plan-2026-10-10.md
+
+## Open tabs:
+- 21-negotiation-v2-plan-2026-10-10.md: tacto-negotiator/docs/21-negotiation-v2-plan-2026-10-10.md
+- first-three-prompts.md: tacto-negotiator/docs/v2/first-three-prompts.md
+- D-roadmap.md: tacto-negotiator/docs/v2/D-roadmap.md
+- Pasted text.txt: /home/ugur/.codex/attachments/703a5586-1c90-4c5f-ac22-cbdfdf02d856/Pasted text.txt
+- 18-main-branch-audit-2026-10-10.md: tacto-negotiator/docs/18-main-branch-audit-2026-10-10.md
+
+## My request:
+**T1.1d — Approve bounded evidence DTO batch**
+
+Proceed with the proposed 12-model evidence subset, provided all included models have unambiguous contracts in `C-interfaces.md`.
+
+Before coding:
+
+1. Record the exact 12-model inventory, dependencies, and owned tests in the task specification.
+2. Exclude `EconomicContext` and any model whose contract remains ambiguous.
+3. Defer the concrete definitions of `scenario_policy` and `standards_by_supplier` to the economic-context batch. Do not introduce placeholder types.
+4. For `NamedEstimate.name`, do not invent registered values. Document the registry-versus-validated-string decision for the later batch.
+
+Implement only the approved evidence DTOs, preserving the frozen V2 contracts and existing behavior.
+
+Run focused tests, foundation regressions, boundary checks, Ruff, and the complete V2 suite.
+
+Report newly passing tests, remaining expected failures, and regressions. Update the roadmap and commit the batch separately.
+
+If any of the 12 models still has an unresolved contractual ambiguity, exclude it and report the issue rather than guessing.
+
+**Do not implement economic context, services, persistence, or negotiation intelligence in this task.**
