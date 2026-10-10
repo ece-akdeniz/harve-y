@@ -54,6 +54,16 @@ class PolicyConfig:
     # Per case type number of buyer rounds over which the price schedule reaches the
     # supplier's price (faster convergence before a supplier's final offer); others use the agent's.
     rounds_by_type: dict[str, int] = field(default_factory=dict)
+    # Package-policy case types whose opening, for a supplier whose public notes say it only
+    # prices multi-year agreements (`multi_year_only`), takes the longest legal tenor of equal buyer C.
+    multi_year_tenor_types: tuple[str, ...] = ()
+    # Case types where a supplier whose public notes ask us to pay faster (`wants_fast_payment`)
+    # gets the shortest legal payment term in every package (instead of the quote standard), and
+    # the first offer answers that note.
+    fast_payment_types: tuple[str, ...] = ()
+    # Apply factual evidence after the package advisor (capacity advice), so both can act on the
+    # opening: the advisor skips messages that already carry refs.
+    evidence_after_advice: bool = False
 
     @classmethod
     def load(cls, path):
@@ -79,6 +89,8 @@ class PolicyConfig:
             "longer_tenor_types",
             "bundle_volume_types",
             "bundle_commitment_types",
+            "multi_year_tenor_types",
+            "fast_payment_types",
         ):
             v = d.get(k, [])
             if not isinstance(v, list) or any(not isinstance(x, str) or x not in TYPES for x in v):
@@ -86,7 +98,7 @@ class PolicyConfig:
             d[k] = tuple(sorted(set(v)))
         for k in ("cost_neutral_lead_time", "cost_target_index_clause", "rfq_nonleading_hold", "rfq_final_guard",
                   "rfq_supplier_lead_time", "rfq_rival_offer", "rfq_supplier_payment", "rfq_rival_offer_history",
-                  "rfq_undercut_reanchor", "rfq_data_claims", "rfq_data_claims_stack"):
+                  "rfq_undercut_reanchor", "rfq_data_claims", "rfq_data_claims_stack", "evidence_after_advice"):
             if type(d.get(k, False)) is not bool:
                 raise ValueError(f"{k} must be boolean")
         post = d.get("cost_target_posterior", 0.0)

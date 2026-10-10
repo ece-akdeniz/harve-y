@@ -60,7 +60,13 @@ class TradePolicy:
         if "multi_year_only" in self.traits[sid] and "contract_months" in t:
             tenors = [m for m in options.get("contract_months", []) if m >= 12 * case["buyer"]["horizon_years"]]
             if tenors:
-                t["contract_months"] = max(tenors) if preference == "longer_tenor" else min(tenors)
+                longest = preference == "longer_tenor" or case["type"] in self.config.multi_year_tenor_types
+                if longest and preference != "longer_tenor":
+                    # Cost-neutral only: never a tenor that raises buyer C.
+                    base_c = total_cost(case, t, standard, supplier)
+                    tenors = [m for m in tenors if total_cost(
+                        case, {**t, "contract_months": m}, standard, supplier) <= base_c + 1e-6] or tenors
+                t["contract_months"] = max(tenors) if longest else min(tenors)
             if "volume_per_year" in t and (reference or {}).get("volume_per_year") is not None:
                 t["volume_per_year"] = reference["volume_per_year"]
         if "ppm_commitment" in t:
