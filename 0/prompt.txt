@@ -1,0 +1,10 @@
+# Context from my IDE setup:
+
+## Open tabs:
+- .env: tacto-negotiator/.env
+- 17-inference-setup.md: tacto-negotiator/docs/17-inference-setup.md
+- .env.example: tacto-negotiator/.env.example
+- README.md: tacto-negotiator/docs/README.md
+
+## My request:
+check [detailed remediation plan](/home/ugur/harve-y/tacto-negotiator/docs/19-main-branch-remediation-plan-2026-10-10.md). and the detailed audit file and implement the fixes. create a new branch and commit each fix on its own. do not push.
