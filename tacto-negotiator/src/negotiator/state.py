@@ -113,6 +113,7 @@ class ThreadState:
     events: list[dict] = field(default_factory=list)  # all e-mails, oldest first
     deadline_utc: float | None = None  # when the buyer's 60 s window for this thread ends
     in_flight: str | None = None  # move id of the POST awaiting the supplier's reply
+    holding: str | None = None  # agent asked this thread to wait (re-asked on change / tick)
     parked: str | None = None  # why workers stopped proposing on this thread (it may still be accepted)
     closed: str | None = None  # server says the thread ended
     rejects: int = 0  # consecutive 422s

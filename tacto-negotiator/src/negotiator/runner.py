@@ -32,6 +32,7 @@ CLOSE_BUDGET_S = 20.0  # keep this much of a thread's 60 s window when waiting b
 WATCHDOG_TICK_S = 1.0
 MAX_CLOSE_ATTEMPTS = 3
 MAX_REJECTS = 2  # consecutive 422s before a thread is parked
+HOLD_RECHECK_S = 2.0  # a holding worker asks again after this long, or sooner when any thread changes
 SEND_RESERVE_S = 25.0  # stop waiting for the session's send slot this long before the thread's deadline
 
 
@@ -88,11 +89,13 @@ def _arity(fn) -> int:
 
 
 def propose(agent, case, threads, sid, workable) -> tuple[str, object]:
-    """Per-thread proposal for `sid`: ("send", message) | ("close", reason) | ("park", reason).
+    """Per-thread proposal for `sid`: ("send", message) | ("close", reason) | ("hold", reason) |
+    ("park", reason).
 
-    Uses `agent.propose(case, threads, supplier_id)` when present: a move, or
-    {"close": True, "reason": ...} asking the coordinator to close (via close_decision), or None /
-    {"park": True} for nothing to say. Otherwise adapts `agent.decide`: full snapshot first (a
+    Uses `agent.propose(case, threads, supplier_id)` when present: a move,
+    {"close": True, "reason"} asking the coordinator to close (via close_decision),
+    {"hold": True, "reason"} to wait and ask again when something changes, or None /
+    {"park": True} for nothing more on this thread. Otherwise adapts `agent.decide`: full snapshot first (a
     case-level close is honoured), then a snapshot restricted to `sid`. A thread-level accept
     closes the case only when it is a gap-closed accept on an open thread or nothing else is
     workable.
@@ -100,10 +103,12 @@ def propose(agent, case, threads, sid, workable) -> tuple[str, object]:
     fn = getattr(agent, "propose", None)
     if fn is not None and _arity(fn) == 3:
         d = fn(case, threads, sid)
-        if not d or d.get("park"):
+        if not d or d.get("park") or (not d.get("message") and not d.get("close") and not d.get("hold")):
             return "park", (d or {}).get("reason", "agent: nothing to send")
         if d.get("close"):
             return "close", f"agent: {d.get('reason', 'close requested')}"
+        if d.get("hold"):
+            return "hold", d.get("reason", "agent: hold")
         return _thread_level(case, threads, sid, workable, d)
     d = agent.decide(case, threads)
     action = (d.get("message") or {}).get("action")
@@ -372,6 +377,19 @@ class CaseRunner:
                 self._trace("park", supplier=sid, reason=what)
                 self.changed.set()
                 return
+            if kind == "hold":
+                if what != t.holding:
+                    self._trace("hold", supplier=sid, reason=what)
+                t.holding = what
+                if t.deadline_utc and self.clock.time() > t.deadline_utc:
+                    await self._refresh_all()  # learn the timeout (or closure) the wait just cost
+                self.changed.clear()
+                try:
+                    await asyncio.wait_for(self.changed.wait(), timeout=HOLD_RECHECK_S * self._scale())
+                except TimeoutError:
+                    pass
+                continue
+            t.holding = None
             await self._send(sid, intent, what, t0)
         self.changed.set()
 

@@ -300,5 +300,25 @@ async def test_client_transport_failure_is_uncertain():
         await arena.send("s", "sup", {}, "mid")
 
 
+@pytest.mark.parametrize(
+    "move, kind",
+    [
+        ({"close": True, "reason": "x"}, "close"),
+        ({"hold": True, "reason": "x"}, "hold"),
+        (None, "park"),
+        ({}, "park"),
+        ({"supplier_id": "a", "message": {"body": "hi"}}, "send"),
+        ({"supplier_id": "b", "message": {"body": "hi"}}, "park"),
+    ],
+)
+def test_propose_adapter(move, kind):
+    class Agent:
+        def propose(self, case, threads, supplier_id):
+            return move
+
+    threads = {"a": [{"from": "s", "status": "open"}], "b": [{"from": "s", "status": "open"}]}
+    assert runner.propose(Agent(), {}, threads, "a", ["a", "b"])[0] == kind
+
+
 def test_fallback_close_matches_shape():
     assert runner.resolve_close_fn() is close_decision

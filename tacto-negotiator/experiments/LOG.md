@@ -167,3 +167,22 @@ Decision:
   `runs/20261010-140410/`.
 - Decision: keep serial default; async passes D02 gate (0 timeouts, same score) and runtime tests.
   Promote after an RFQ with slow replies (practice, budgeted) shows no regression.
+
+## 2026-10-10 14:10 - Runtime: async runner with agent.propose (hold) vs serial, D02 (MEASURED HOSTED SANDBOX)
+
+- Config: 89a4389 + runner hold support (`agent.propose` -> send / close / hold), PackageAgent-v0.2
+  with propose, closes via `evaluator.close_decision`; per-session send slot on. Quota: 0 practice.
+- Batch 1 (3 parallel async sessions, then 3 parallel serial; hosted replies slow, 13-24 s):
+  async 0.116 / 0.461 / 0.116, serial 0.461 ×3. Thread timeouts 0/0 in all 6.
+  The two 0.116 runs: identical buyer moves to the serial runs; J1 answered our counter to its
+  final offer (same price, our terms) with `walked_away`, so the coordinator accepted C1's final
+  17.20. In the third async run J1 kept its final and we got 15.50 (0.461). All three async runs
+  sent that counter ~15 s after J1's final (send slot waiting on C1's slow reply); walk vs keep
+  differed with the same gap, so this looks like supplier randomness on countering a final offer,
+  not a clock effect. Not proven.
+- Batch 2 (3 parallel async, hosted fast, 8 s wall): 0.461 ×3, timeouts 0/0 ×3.
+- Totals for async on D02 today: 10 runs, 0 thread timeouts; serial 6 runs, 0 timeouts.
+- Raw: `runs/20261010-140547-D02-runner-compare/`, `runs/20261010-140838-D02-runner-compare/`.
+- Decision: runtime gate "no timeouts on repeated D02" met for async. Keep serial default until
+  Decision reviews the counter-to-final walk risk (2/9 async v0.2 runs) and an RFQ with slow
+  replies is compared.
