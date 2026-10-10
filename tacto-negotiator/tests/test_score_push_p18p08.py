@@ -49,6 +49,48 @@ def test_longer_tenor_is_cost_neutral_tie_break():
         t = tp.initial(case, case["suppliers"][0], 6.06, 0.1, std, None)
         out[name] = {**t, "unit_price": 5.5}
     assert out["p08-longer-tenor.json"]["contract_months"] == 36
-    assert total_cost(case, out["p08-longer-tenor.json"], std, None) <= total_cost(
-        case, out["package-advice.json"], std, None
-    ) + 1e-6
+    assert (
+        total_cost(case, out["p08-longer-tenor.json"], std, None)
+        <= total_cost(case, out["package-advice.json"], std, None) + 1e-6
+    )
+
+
+def test_clause_track_follows_revealed_spread_not_single_held_sheet():
+    case = _case("case:P18")
+    agent = PackageAgent(policy=PolicyConfig.load(ROOT / "configs/p18-clause-variants.json"), estimates={}, meso=False)
+    ic = {o["deadband_pct"]: o for o in case["term_options"]["index_clause"] if o}
+
+    def sheet(price, db, sid="offer:1"):
+        return {
+            "term_sheet_id": sid,
+            "terms": {
+                "unit_price": price,
+                "payment_days": 90,
+                "contract_months": 24,
+                "index_clause": {**ic[db], "deadband_pct": float(db)},
+            },
+        }
+
+    events = [
+        {
+            "from": "sales@1",
+            "term_sheets": [
+                {
+                    "term_sheet_id": "o0",
+                    "terms": {"unit_price": 6.1, "payment_days": 30, "index_clause": None, "contract_months": 12},
+                }
+            ],
+        },
+        {"from": "buyer", "term_sheets": [{"terms": {"unit_price": 5.37, "index_clause": None}}]},
+        {"from": "sales@1", "term_sheets": [sheet(5.6, 0, "o1"), sheet(5.7, 5, "o1-a")]},
+    ]
+    prev = {"index_clause": None, "payment_days": 90, "contract_months": 24}
+    ref = sheet(5.7, 5)["terms"]
+    track = agent._clause_track(case, "sup:1", events, prev, ref)
+    assert track["index_clause"]["deadband_pct"] == 5
+    events += [
+        {"from": "buyer", "term_sheets": [{"terms": {**track, "unit_price": 5.43}}]},
+        {"from": "sales@1", "term_sheets": [sheet(5.6, 0, "o2")]},
+    ]
+    again = agent._clause_track(case, "sup:1", events, track, sheet(5.6, 0)["terms"])
+    assert again["index_clause"]["deadband_pct"] == 5

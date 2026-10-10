@@ -227,19 +227,34 @@ class PackageAgent:
                     return True
         return False
 
-    def _clause_track(self, case, sid, events, prev, ref_terms):
+    def _revealed_clause(self, case, events, sup):
+        """Clause of the cheapest (by C) sheet in the latest supplier message that priced more than
+        one index clause; None if the supplier never revealed a clause spread."""
+        for i in range(len(events) - 1, -1, -1):
+            m = events[i]
+            sheets = m.get("term_sheets") or []
+            if m.get("from") == "buyer" or len({repr(s["terms"].get("index_clause")) for s in sheets}) < 2:
+                continue
+            cands = eligible_sheets(case, events[: i + 1], sup, alternatives=True)
+            return cands[0][2].get("index_clause") if cands else None
+        return None
+
+    def _clause_track(self, case, sid, events, prev, ref_terms, sup=None):
         """Locked previous terms, except for the index clause when clause variants are enabled:
         a mandatory clause (we offered none; every latest supplier sheet carries one) adopts the
-        supplier's clause, and after our deadband probe the cheapest supplier sheet's (by C)
-        clause is adopted. Never insists on no clause."""
+        supplier's clause; the track then follows the supplier's latest revealed clause spread
+        (cheapest by C), not a single held sheet. Never insists on no clause."""
         if not self._clause_on(case) or "index_clause" not in prev:
             return prev
         sheets = latest(events).get("term_sheets") or []
-        clause = ref_terms.get("index_clause")
-        if clause is None or clause not in (case.get("term_options") or {}).get("index_clause", []):
-            return prev
+        options = (case.get("term_options") or {}).get("index_clause", [])
         mandatory = prev["index_clause"] is None and sheets and all(s["terms"].get("index_clause") for s in sheets)
-        if (mandatory or self._clause_probed(events)) and clause != prev["index_clause"]:
+        clause = self._revealed_clause(case, events, sup) if prev["index_clause"] is not None else None
+        if clause is None and mandatory:
+            clause = ref_terms.get("index_clause")
+        if clause is None or clause not in options:
+            return prev
+        if clause != prev["index_clause"]:
             self._log(case, "clause_track", sid, prev=prev["index_clause"], new=clause, mandatory=bool(mandatory))
             return {**prev, "index_clause": clause}
         return prev
@@ -277,7 +292,7 @@ class PackageAgent:
         prev = self.prev.get(sid)
         if self.trades and case["type"] in self.policy.package_types:
             if prev is not None:
-                return self._clause_track(case, sid, events, prev, ref_terms)
+                return self._clause_track(case, sid, events, prev, ref_terms, sup)
             return self.trades.initial(case, sid, ref_terms["unit_price"], self.anchor, std, sup, reference=ref_terms)
         if prev is None:
             n = nonprice(case, best_terms(
