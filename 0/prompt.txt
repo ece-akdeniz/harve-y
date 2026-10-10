@@ -1,0 +1,88 @@
+# Context from my IDE setup:
+
+## Active file: tacto-negotiator/docs/v2/first-three-prompts.md
+
+## Open tabs:
+- first-three-prompts.md: tacto-negotiator/docs/v2/first-three-prompts.md
+- 21-negotiation-v2-plan-2026-10-10.md: tacto-negotiator/docs/21-negotiation-v2-plan-2026-10-10.md
+- Pasted text.txt: /home/ugur/.codex/attachments/703a5586-1c90-4c5f-ac22-cbdfdf02d856/Pasted text.txt
+- 18-main-branch-audit-2026-10-10.md: tacto-negotiator/docs/18-main-branch-audit-2026-10-10.md
+- 19-main-branch-remediation-plan-2026-10-10.md: tacto-negotiator/docs/19-main-branch-remediation-plan-2026-10-10.md
+
+## My request:
+Ok, then lets move things to a v2 branch
+
+---
+
+# Context from my IDE setup:
+
+## Active file: tacto-negotiator/docs/v2/first-three-prompts.md
+
+## Active selection of the file:
+## Prompt 2 — T1.1b: grounded assessment models and exact Protocols
+
+## Open tabs:
+- first-three-prompts.md: tacto-negotiator/docs/v2/first-three-prompts.md
+- 21-negotiation-v2-plan-2026-10-10.md: tacto-negotiator/docs/21-negotiation-v2-plan-2026-10-10.md
+- Pasted text.txt: /home/ugur/.codex/attachments/703a5586-1c90-4c5f-ac22-cbdfdf02d856/Pasted text.txt
+- 18-main-branch-audit-2026-10-10.md: tacto-negotiator/docs/18-main-branch-audit-2026-10-10.md
+- 19-main-branch-remediation-plan-2026-10-10.md: tacto-negotiator/docs/19-main-branch-remediation-plan-2026-10-10.md
+
+## My request:
+Continue V2 implementation with **T1.1b**.
+
+Switch to `codex-negotiator-v2-t1-1a-2026-10-10` and verify commit `86eaea6` is present. Do not modify the remediation branch.
+
+Follow Prompt 2 in `docs/v2/first-three-prompts.md` and the corresponding task specifications exactly.
+
+Additional requirements:
+
+- Preserve all T1.1a contracts and existing functionality.
+- Do not invent interfaces or change frozen specifications.
+- Run the required focused tests, boundary checks, Ruff, and complete V2 contract suite.
+- Report newly passing tests, remaining expected failures, and any regressions.
+- Do not weaken assertions or modify golden fixtures.
+- Commit T1.1b separately after successful verification.
+- Update the roadmap with implementation evidence.
+
+If specifications conflict, report the conflict rather than making an independent architectural decision.
+
+Do not implement future intelligence, strategy, or economic functionality.
+
+---
+
+# Context from my IDE setup:
+
+## Active file: tacto-negotiator/docs/v2/D-roadmap.md
+
+## Open tabs:
+- D-roadmap.md: tacto-negotiator/docs/v2/D-roadmap.md
+- first-three-prompts.md: tacto-negotiator/docs/v2/first-three-prompts.md
+- 21-negotiation-v2-plan-2026-10-10.md: tacto-negotiator/docs/21-negotiation-v2-plan-2026-10-10.md
+- Pasted text.txt: /home/ugur/.codex/attachments/703a5586-1c90-4c5f-ac22-cbdfdf02d856/Pasted text.txt
+- 18-main-branch-audit-2026-10-10.md: tacto-negotiator/docs/18-main-branch-audit-2026-10-10.md
+
+## My request:
+Continue V2 implementation with **T1.1c: Immutable DecisionRecord and Effective Configuration**.
+
+Work exclusively on `codex-negotiator-v2-t1-1a-2026-10-10`, starting from commit `1654a32`. Preserve the remediation branch and its stash.
+
+Follow Prompt 3 in `docs/v2/first-three-prompts.md` and the corresponding interface specifications and task requirements.
+
+**Requirements:**
+
+1. Implement the specified `DecisionStage`, `DecisionRecord`, `EffectiveConfig`, and `resolve_config` functionality.
+2. Preserve the strict frozen models, canonical serialization, and Protocol interfaces established in T1.1a/b.
+3. Enforce stage ordering, artifact requirements, reference integrity, and configuration validation exactly as specified.
+4. Resolve the five reported DecisionRecord test failures.
+5. Investigate why the latest V2 suite collected 213 cases instead of the previously reported 241. Confirm that no tests were unintentionally excluded.
+6. Run all T1.1c focused tests, foundation tests, boundary tests, Ruff, and the complete V2 contract suite.
+7. Report newly passing tests, remaining expected failures, unexpected failures, and any regressions.
+8. Do not modify test assertions, golden fixtures, frozen contracts, V1 behavior, or unrelated modules.
+9. Update the T1.1c implementation evidence in the roadmap and commit the completed task separately.
+
+If the implementation reveals inconsistencies between tests and architectural specifications, report them rather than independently redesigning the interfaces.
+
+Do not implement persistence, orchestration, LLM calls, negotiation strategies, or other functionality assigned to later tasks.
+
+**Completion criterion:** All T1.1c-owned tests pass, no T1.1a/b regressions occur, and remaining expected failures are exclusively associated with unimplemented future components.
