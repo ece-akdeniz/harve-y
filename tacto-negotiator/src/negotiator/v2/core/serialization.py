@@ -4,9 +4,13 @@ import hashlib
 import json
 from typing import Any
 
+from pydantic import BaseModel
+
 
 def canonical_json(value: Any) -> bytes:
     """Encode JSON-compatible values as stable, compact UTF-8 bytes."""
+    if isinstance(value, BaseModel):
+        value = value.model_dump(mode="json")
     try:
         encoded = json.dumps(
             value,

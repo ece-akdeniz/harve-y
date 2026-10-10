@@ -4,8 +4,11 @@ import re
 from datetime import date
 from decimal import Decimal
 from typing import Annotated, Literal
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, field_validator, model_validator
+
+from .serialization import semantic_hash
 
 SCHEMA_VERSION = "negotiator-v2/1"
 TermField = Literal[
@@ -523,3 +526,259 @@ class AssessmentDraft(FrozenModel):
         if any(not item.strip() for item in value):
             raise ValueError("unknown labels must be nonempty strings")
         return value
+
+
+DecisionStageName = Literal[
+    "evidence", "assessment", "proposal", "generation", "evaluation",
+    "selection", "rendering", "validation", "execution", "feedback",
+]
+DecisionStageStatus = Literal["planned", "completed", "failed", "skipped"]
+DECISION_STAGE_ORDER = (
+    "evidence", "assessment", "proposal", "generation", "evaluation",
+    "selection", "rendering", "validation", "execution", "feedback",
+)
+ARTIFACT_REF_PATTERN = re.compile(r"^sha256:[0-9a-f]{64}$")
+HASH_PATTERN = re.compile(r"^[0-9a-f]{64}$")
+
+
+def _validate_artifact_ref(value: str) -> str:
+    if not ARTIFACT_REF_PATTERN.fullmatch(value):
+        raise ValueError("artifact references must be sha256:<64 lowercase hex>")
+    return value
+
+
+class DecisionStage(FrozenModel):
+    schema_version: Literal["negotiator-v2/1"]
+    name: DecisionStageName
+    status: DecisionStageStatus
+    artifact_refs: tuple[str, ...]
+    issue_codes: tuple[IssueCode, ...]
+
+    @field_validator("artifact_refs")
+    @classmethod
+    def valid_stage_artifact_refs(cls, value):
+        for ref in value:
+            _validate_artifact_ref(ref)
+        if len(value) != len(set(value)):
+            raise ValueError("stage artifact references must be unique")
+        return value
+
+    @model_validator(mode="after")
+    def status_has_artifacts_or_reason(self):
+        if self.status == "completed" and not self.artifact_refs:
+            raise ValueError("completed stages require artifacts")
+        if self.status in {"failed", "skipped"} and not self.issue_codes:
+            raise ValueError("stage_issue_required")
+        if self.status == "planned" and (self.artifact_refs or self.issue_codes):
+            raise ValueError("planned stages cannot have artifacts or issues")
+        return self
+
+
+class DecisionRecord(FrozenModel):
+    schema_version: Literal["negotiator-v2/1"]
+    record_id: UUID
+    decision_id: UUID
+    snapshot: SnapshotRef
+    revision: Annotated[int, Field(gt=0)]
+    parent_record_hash: str | None
+    fixture_input_hash: str
+    config_artifact_ref: str
+    case_artifact_ref: str
+    evidence_artifact_ref: str | None
+    assessment_artifact_refs: tuple[str, ...]
+    intent_artifact_refs: tuple[str, ...]
+    candidate_artifact_refs: tuple[str, ...]
+    evaluation_artifact_refs: tuple[str, ...]
+    selection_artifact_ref: str | None
+    rendered_artifact_ref: str | None
+    validation_artifact_ref: str | None
+    operation_artifact_ref: str | None
+    execution_artifact_refs: tuple[str, ...]
+    feedback_artifact_refs: tuple[str, ...]
+    model_call_refs: tuple[str, ...]
+    model_output_hashes: tuple[str, ...]
+    issues: tuple[Issue, ...]
+    stages: tuple[DecisionStage, ...]
+    semantic_hash: str
+    record_hash: str
+
+    @field_validator("revision", mode="before")
+    @classmethod
+    def reject_bool_revision(cls, value):
+        if isinstance(value, bool):
+            raise ValueError("revision must be a positive integer")
+        return value
+
+    @field_validator(
+        "fixture_input_hash", "semantic_hash", "record_hash", "parent_record_hash",
+    )
+    @classmethod
+    def valid_content_hash(cls, value):
+        if value is not None and not HASH_PATTERN.fullmatch(value):
+            raise ValueError("hashes must be 64 lowercase hexadecimal characters")
+        return value
+
+    @field_validator(
+        "config_artifact_ref", "case_artifact_ref", "evidence_artifact_ref",
+        "assessment_artifact_refs", "intent_artifact_refs", "candidate_artifact_refs",
+        "evaluation_artifact_refs", "selection_artifact_ref", "rendered_artifact_ref",
+        "validation_artifact_ref", "operation_artifact_ref", "execution_artifact_refs",
+        "feedback_artifact_refs",
+    )
+    @classmethod
+    def valid_record_artifact_refs(cls, value):
+        if value is None:
+            return value
+        refs = value if isinstance(value, tuple) else (value,)
+        for ref in refs:
+            _validate_artifact_ref(ref)
+        if isinstance(value, tuple) and len(value) != len(set(value)):
+            raise ValueError("record artifact references must be unique")
+        return value
+
+    @field_validator("model_call_refs")
+    @classmethod
+    def nonempty_model_call_refs(cls, value):
+        if any(not ref.strip() for ref in value):
+            raise ValueError("model call refs must be nonempty")
+        return value
+
+    @field_validator("model_output_hashes")
+    @classmethod
+    def valid_model_output_hashes(cls, value):
+        if any(not HASH_PATTERN.fullmatch(item) for item in value):
+            raise ValueError("model output hashes must be 64 lowercase hexadecimal characters")
+        return value
+
+    @model_validator(mode="after")
+    def record_invariants(self):
+        actual_order = tuple(stage.name for stage in self.stages)
+        if len(self.stages) != len(DECISION_STAGE_ORDER) or actual_order != DECISION_STAGE_ORDER:
+            raise ValueError("stage_order")
+        if (self.revision == 1) != (self.parent_record_hash is None):
+            raise ValueError("revision_parent_mismatch")
+
+        by_name = {stage.name: stage for stage in self.stages}
+        for index, stage in enumerate(self.stages):
+            if stage.status != "completed" and any(
+                later.status == "completed" for later in self.stages[index + 1 :]
+            ):
+                raise ValueError("downstream_stage_completed_after_incomplete_stage")
+        if by_name["selection"].status == "planned" and any(
+            stage.status != "planned" for stage in self.stages[6:]
+        ):
+            raise ValueError("downstream_stage_before_selection")
+        if self.selection_artifact_ref is not None and not self.evaluation_artifact_refs:
+            raise ValueError("orphan_selection")
+        if self.selection_artifact_ref is not None and by_name["selection"].status != "completed":
+            raise ValueError("orphan_selection")
+        if by_name["selection"].status == "completed" and (
+            by_name["evaluation"].status != "completed" or not self.evaluation_artifact_refs
+        ):
+            raise ValueError("orphan_selection")
+        if by_name["selection"].status == "completed" and self.selection_artifact_ref is None:
+            raise ValueError("selection_artifact_required")
+        validation_completed = by_name["validation"].status == "completed"
+        if validation_completed and (
+            self.validation_artifact_ref is None
+            or self.rendered_artifact_ref is None
+            or by_name["rendering"].status != "completed"
+        ):
+            raise ValueError("validation_without_rendering")
+        executed = bool(self.execution_artifact_refs) or by_name["execution"].status == "completed"
+        if executed and (self.validation_artifact_ref is None or self.operation_artifact_ref is None):
+            raise ValueError("execution_requires_validated_operation")
+        if executed and by_name["validation"].status != "completed":
+            raise ValueError("execution_requires_validated_operation")
+        if by_name["execution"].status == "completed" and not self.execution_artifact_refs:
+            raise ValueError("execution_requires_artifact")
+        if by_name["feedback"].status == "completed" and (
+            by_name["execution"].status != "completed" or not self.execution_artifact_refs
+        ):
+            raise ValueError("feedback_requires_execution")
+
+        stage_artifact_refs = {
+            "evidence": (self.evidence_artifact_ref,) if self.evidence_artifact_ref else (),
+            "assessment": self.assessment_artifact_refs,
+            "proposal": self.intent_artifact_refs,
+            "generation": self.candidate_artifact_refs,
+            "evaluation": self.evaluation_artifact_refs,
+            "selection": (self.selection_artifact_ref,) if self.selection_artifact_ref else (),
+            "rendering": (self.rendered_artifact_ref,) if self.rendered_artifact_ref else (),
+            "validation": (self.validation_artifact_ref,) if self.validation_artifact_ref else (),
+            "execution": self.execution_artifact_refs,
+            "feedback": self.feedback_artifact_refs,
+        }
+        if any(
+            by_name[name].artifact_refs != refs
+            for name, refs in stage_artifact_refs.items()
+        ):
+            raise ValueError("stage_artifact_reference_mismatch")
+
+        expected_hash = semantic_hash(self.model_dump(mode="json", exclude={"record_hash"}))
+        if self.record_hash != expected_hash:
+            raise ValueError("record_hash_mismatch")
+        return self
+
+
+class EffectiveConfig(FrozenModel):
+    schema_version: Literal["negotiator-v2/1"]
+    strategy_id: str
+    selection_id: Literal["deterministic-v1"]
+    estimate_mode: Literal["disabled_explicit", "nominal_explicit", "robust_scenarios"]
+    model_mode: Literal["fake"]
+    compute_limit_s: Annotated[int, Field(gt=0)]
+    interpreter_limit_s: Annotated[int, Field(gt=0)]
+    selection_limit_s: Annotated[int, Field(gt=0)]
+    candidate_limit: Annotated[int, Field(gt=0)]
+    fallback_reserve_s: Annotated[int, Field(gt=0)]
+    submission_reserve_s: Annotated[int, Field(gt=0)]
+    price_tick: Decimal
+    price_min: Decimal
+    price_max: Decimal
+    retry_limit: Literal[0]
+    provider_id: str | None = None
+    protocol_id: str | None = None
+    prompt_version: str | None = None
+    config_hash: str
+
+    @field_validator("price_tick", "price_min", "price_max", mode="before")
+    @classmethod
+    def strict_config_decimal(cls, value, info: ValidationInfo):
+        if isinstance(value, bool) or not isinstance(value, (Decimal, str)):
+            raise ValueError("price config values must be Decimal")
+        if isinstance(value, str):
+            if info.mode != "json":
+                raise ValueError("Python price config values must be Decimal")
+            try:
+                value = Decimal(value)
+            except Exception as exc:
+                raise ValueError("price config values must be decimal strings") from exc
+        return _finite_decimal(value)
+
+    @field_validator("price_tick", "price_min", "price_max")
+    @classmethod
+    def positive_config_decimal(cls, value):
+        if value <= 0:
+            raise ValueError("price config values must be positive")
+        return value
+
+    @field_validator("config_hash")
+    @classmethod
+    def valid_config_hash(cls, value):
+        if not HASH_PATTERN.fullmatch(value):
+            raise ValueError("config_hash must be 64 lowercase hexadecimal characters")
+        return value
+
+    @field_validator("provider_id", "protocol_id", "prompt_version")
+    @classmethod
+    def nonempty_optional_model_ids(cls, value):
+        if value is not None and not value.strip():
+            raise ValueError("optional model identifiers must be nonempty when supplied")
+        return value
+
+    @model_validator(mode="after")
+    def ordered_price_bounds(self):
+        if self.price_min > self.price_max:
+            raise ValueError("price_min must not exceed price_max")
+        return self
