@@ -9,6 +9,23 @@ claim delivery are implemented. Hosted P01: mechanical baseline 80.0/100; claims
 without timeouts. These are development measurements, not final-readiness certification.
 See [the hacking guide](docs/README.md) and [experiment results](experiments/LOG.md).
 
+## Shared experiment dashboard
+
+Run agents on each teammate's laptop and publish experiments to a password-protected dashboard
+hosted on one laptop through VS Code port forwarding. Includes code/configuration provenance,
+per-case comparisons, local buffering and read-only arena-history import.
+
+```bash
+uv run --locked negotiator lab init
+uv run --locked negotiator lab serve --secure-cookies
+uv run --locked negotiator lab run --help
+```
+
+See [the host and teammate setup guide](docs/12-experiment-dashboard.md). The lab is development
+tooling; it does not replace or complete the final negotiation runtime.
+Coding agents should start with [LAB_PLAYBOOK.md](LAB_PLAYBOOK.md) for the required tracked
+experiment workflow and a copyable teammate prompt.
+
 ## Objective
 
 Maximize normalized case scores reliably, then demonstrate procurement judgment with an

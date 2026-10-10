@@ -5,6 +5,7 @@ import json
 import logging
 import os
 import statistics
+import sys
 import time
 from pathlib import Path
 
@@ -24,6 +25,15 @@ def _run_dir() -> Path:
 
 
 def main(argv=None) -> int:
+    argv = list(sys.argv[1:] if argv is None else argv)
+    if argv and argv[0] == "lab":
+        from .lab.cli import main as lab_main
+
+        return lab_main(argv[1:])
+    if argv and argv[0] == "loop":
+        from .lab.loop_cli import main as loop_main
+
+        return loop_main(argv[1:])
     load_env()
     ap = argparse.ArgumentParser(prog="negotiator")
     sub = ap.add_subparsers(dest="cmd", required=True)
