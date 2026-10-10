@@ -552,6 +552,12 @@ class PackageAgent:
             if values[str(self.p_walk)] <= 0:
                 return None
             terms, reason = complete_offer(case, alts[0][2]), "final offer: own alternative, positive opening proxy"
+        elif best[1] == sid and self.policy and self.policy.rfq_final_pushback and case["type"] == "rfq":
+            # One push on the leading final: its own non-price terms, 2 % below its price.
+            own = nonprice(case, complete_offer(case, closing_terms(case, terms_f, std)))
+            price = math.floor(terms_f["unit_price"] * 0.98 * 100) / 100
+            terms, reason = {**own, "unit_price": price}, "final offer: one code-priced push"
+            self._log(case, "final_pushback", sid, final=terms_f["unit_price"], counter=price)
         elif best[1] == sid:
             terms, reason = {**n, "unit_price": terms_f["unit_price"]}, "final offer: same price, our terms"
             c_alt_sheet, alt_id, alt_terms = eligible_sheets(case, events, sup, alternatives=True)[0]

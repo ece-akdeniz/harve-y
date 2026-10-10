@@ -34,6 +34,7 @@ class PolicyConfig:
     rfq_data_claims_burst: int = 0
     rfq_reciprocal_r2: bool = False
     rfq_burst_best_windows: bool = False
+    rfq_final_pushback: bool = False
 
     @classmethod
     def load(cls, path):
@@ -55,7 +56,7 @@ class PolicyConfig:
                   "rfq_rival_offer", "rfq_supplier_payment",
                   "rfq_rival_offer_history", "rfq_undercut_reanchor", "rfq_data_claims",
                   "rfq_data_claims_stack", "rfq_lead_trade", "rfq_reciprocal_reanchor", "rfq_reciprocal_r2",
-                  "rfq_burst_best_windows"):
+                  "rfq_burst_best_windows", "rfq_final_pushback"):
             if type(d.get(k, False)) is not bool:
                 raise ValueError(f"{k} must be boolean")
         if d.get("final_offer_risk", "legacy") not in ("legacy", "opening_proxy"):

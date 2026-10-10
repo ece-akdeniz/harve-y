@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "package_types": [
+    "renewal",
+    "quality",
+    "raw_material"
+  ],
+  "evidence_types": [
+    "price_increase",
+    "quality"
+  ],
+  "final_offer_risk": "legacy",
+  "preferences": {
+    "quality": "lower_chargeback"
+  },
+  "chargeback_steps": 2,
+  "cost_neutral_lead_time": true,
+  "rfq_nonleading_hold": true,
+  "rfq_rival_offer": true,
+  "rfq_rival_offer_history": true,
+  "rfq_undercut_reanchor": true,
+  "rfq_data_claims": true,
+  "rfq_final_pushback": true
+}

@@ -1191,3 +1191,18 @@ cost share in our driver table) + its own "our price follows LCI-C, PPI-C2431, A
 J showed claim *count* doesn't move the step, so test claim *weight* on its cost drivers. Both
 windows are within the rule (≤ 12 months, ending in the last 12 months) and verify; they are the
 kit's "best buyer window" (latest windows rose), so there's a trust risk.
+
+## 2026-10-10 — P05 screen 17 result: M material windows = 77.23 (no gain)
+
+Run `6c3b56ec` / `8861e3e3f45cf4ea`: .7723, 28.50/30/35, 0 timeouts. r2 claims: OTD verified,
+**AS-14404 −8.5 % "irrelevant" ("does not concern this part or our company")**, PPI-C2431 −3.8 %
+verified → same 28.50 step ("trade the payment terms for a much better price"). r3 → final 28.50.
+Across F/J/K/M the r2 step is 28.50 whatever the claim count, weight or give: a fixed boss step.
+
+## 2026-10-10 — P05 screen 18 plan: one code-priced push on the final (N)
+
+Differs from F: `rfq_final_pushback` (`configs/p05-final-push.json`). When 70210's final leads,
+counter once with its own non-price terms (30/35) at −2 % (27.93), instead of the legacy "same
+price, our terms" check (which always passed as accept-safe). If it re-issues 28.50 we accept
+(one counter max). Downside if it walks: 70250's 31.50 final (~.52). Tests whether "final" is a
+hard floor.
