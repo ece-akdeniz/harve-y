@@ -44,6 +44,11 @@ pushes or manual moves afterward. No new frameworks or training without a demons
 
 ## Lab experiment loop
 
+Before changing the negotiator or running experiments, read [LAB_PLAYBOOK.md](LAB_PLAYBOOK.md).
+Use `negotiator lab run` or `negotiator lab campaign run` for tracked experiments; ordinary
+play/run commands are not automatically recorded. The playbook supplies setup, isolation,
+budget, evidence and recovery steps. It does not authorize an experiment budget by itself.
+
 Follow [the coding-agent workflow](docs/13-agent-experiment-loop.md): read the current recommendation
 and cited evidence with `uv run --locked negotiator lab recommended show d01-d02-sandbox-serial-v1`
 and `uv run --locked negotiator lab findings list`; create an isolated candidate and one hypothesis,

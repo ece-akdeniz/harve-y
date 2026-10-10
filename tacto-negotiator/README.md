@@ -23,6 +23,8 @@ uv run --locked negotiator lab run --help
 
 See [the host and teammate setup guide](docs/12-experiment-dashboard.md). The lab is development
 tooling; it does not replace or complete the final negotiation runtime.
+Coding agents should start with [LAB_PLAYBOOK.md](LAB_PLAYBOOK.md) for the required tracked
+experiment workflow and a copyable teammate prompt.
 
 ## Objective
 

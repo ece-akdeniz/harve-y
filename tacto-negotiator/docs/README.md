@@ -35,6 +35,7 @@ Hosted timing is measured. Then scale to multiple cases.
 
 ## Document map
 
+- [Coding-agent lab playbook](../LAB_PLAYBOOK.md): laptop setup and the tracked experiment workflow.
 - [00 — Challenge contract](00-challenge.md): official rules, score, limits and schedule.
 - [01 — Research](01-research.md): reproduced findings, estimates and hypotheses.
 - [02 — Architecture](02-architecture.md): ownership, state, deadlines and interfaces.
