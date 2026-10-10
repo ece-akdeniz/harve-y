@@ -1226,3 +1226,15 @@ Sessions this round: 5 of 6 (J ede99fc7 .7723, K dc37e2b4 .7723, L 467e9094 .482
 Keep `configs/p05-data-claims.json` (F). New flags all opt-in/off: `rfq_data_claims_burst`,
 `rfq_burst_best_windows`, `rfq_reciprocal_reanchor`, `rfq_reciprocal_r2`, `rfq_final_pushback`.
 The .96 gap most plausibly needs the 14-day lever, which our rules forbid; not tested.
+
+## 2026-10-10 — P05 screen 19 plan: 14-day payment at the re-anchor (O)
+
+Differs from F: `fast_payment_types: ["rfq"]` (`configs/p05-fast-payment.json`), ported from
+`codex/score-push-small` f882d18 (there: package path + `wants_fast_payment` trait; 70210 lacks
+that trait, so here an RFQ-only path keyed on the supplier's own "faster payment is welcome"
+text). At F's one-time r3 re-anchor the counter moves to the shortest legal term (14 d) **only if**
+the sheet at the re-anchor price is C-cheaper than its standing sheet (capital cost included), and
+says so. Break-even vs .7723 (28.50/30/35, C 242,124.96): **28.3997 @ 14 d**; 28.00 → .814,
+27.00 → .917, 26.79 → .939. Only accepts at ≤ 28.39 by C (code-priced). Off by default; P01 path
+untouched (validator rejects non-rfq types on this branch). Risk: 70210 accepts 14 d without a
+price move → C-neutral matching keeps 30 d (no loss).

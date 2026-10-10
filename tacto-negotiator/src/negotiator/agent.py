@@ -582,6 +582,24 @@ class PackageAgent:
         self.final_counters[sid] = self.final_counters.get(sid, 0) + 1
         return self._offer(case, sid, complete_offer(case, terms), std, sup, c_alt, reason)
 
+    def _rfq_fast_payment(self, case, events, n, std, sup, price, ref_c):
+        """Shortest legal payment term for an RFQ re-anchor (opt-in `fast_payment_types` with "rfq")
+        when the supplier asked for faster payment in its own e-mails, and only if the package at
+        `price` is cheaper for us (complete C, capital cost included) than its standing sheet."""
+        if not (self.policy and case["type"] == "rfq" and "rfq" in self.policy.fast_payment_types):
+            return None
+        asked = any(m.get("from") != "buyer" and "faster payment is welcome" in (m.get("body") or "").lower()
+                    for m in events)
+        if not asked or "payment_days" not in n:
+            return None
+        for days in sorted((case.get("term_options") or {}).get("payment_days") or []):
+            if days >= (n.get("payment_days") or 0):
+                break
+            terms = complete_offer(case, {**n, "payment_days": days, "unit_price": price})
+            if must_haves_ok(case, terms, std) and total_cost(case, terms, std, sup) < ref_c - 1e-6:
+                return days
+        return None
+
     def decide_thread(self, case, threads, sid, c_alt, cap_c=None, why=None):
         events = threads[sid]
         if sid in self.lead_traded:
@@ -645,6 +663,11 @@ class PackageAgent:
                         n = {**n, "lead_time_days": max(legal)}
                         self.prev[sid] = n
                 give = None
+                fast = self._rfq_fast_payment(case, events, n, std, sup, price, ref_c)
+                if fast is not None:
+                    self.lead_traded[sid] = (dict(n), ref_c)  # same revert guard as the lead trade
+                    n = {**n, "payment_days": fast}
+                    self.prev[sid] = n
                 if self.policy.rfq_reciprocal_reanchor:
                     # Reciprocity: move to the supplier's own payment term (what it closes on anyway)
                     # so the lower ask comes with a real move from our side, plus a conditional award.
@@ -658,6 +681,12 @@ class PackageAgent:
                           lead_time_days=n.get("lead_time_days"), payment_days=n.get("payment_days"))
                 terms = complete_offer(case, {**n, "unit_price": price})
                 move = self._offer(case, sid, terms, std, sup, c_alt, "undercut our ask: re-anchor")
+                if fast is not None and move.get("message", {}).get("term_sheets"):
+                    move["message"]["body"] += (
+                        f" You wrote that faster payment is welcome: we offer payment within {fast} days;"
+                        " the attached unit price reflects that discount."
+                    )
+                    self._log(case, "fast_payment", sid, payment_days=fast, price=price)
                 if give is not None and move.get("message", {}).get("term_sheets"):
                     vol = case.get("fixed_terms", {}).get("volume_per_year")
                     move["message"]["body"] += (

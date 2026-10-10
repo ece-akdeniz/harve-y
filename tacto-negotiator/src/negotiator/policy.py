@@ -35,6 +35,9 @@ class PolicyConfig:
     rfq_reciprocal_r2: bool = False
     rfq_burst_best_windows: bool = False
     rfq_final_pushback: bool = False
+    # Ported from codex/score-push-small (f882d18) for RFQ only: case types where a supplier that asks
+    # for faster payment gets the shortest legal term at the RFQ re-anchor, only when C-cheaper.
+    fast_payment_types: tuple[str, ...] = ()
 
     @classmethod
     def load(cls, path):
@@ -61,6 +64,10 @@ class PolicyConfig:
                 raise ValueError(f"{k} must be boolean")
         if d.get("final_offer_risk", "legacy") not in ("legacy", "opening_proxy"):
             raise ValueError("invalid final_offer_risk")
+        fast = d.get("fast_payment_types", [])
+        if not isinstance(fast, list) or any(x != "rfq" for x in fast):
+            raise ValueError("fast_payment_types: only 'rfq' is implemented on this branch")
+        d["fast_payment_types"] = tuple(sorted(set(fast)))
         burst = d.get("rfq_data_claims_burst", 0)
         if type(burst) is not int or not 0 <= burst <= 3:
             raise ValueError("rfq_data_claims_burst must be 0..3")

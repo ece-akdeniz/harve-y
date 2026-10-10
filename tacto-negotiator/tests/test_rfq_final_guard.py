@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 
+import pytest
 from test_evaluator import msg, ours
 
 from negotiator.agent import PackageAgent
@@ -166,3 +167,31 @@ def test_rfq_lead_trade_offers_42_never_56_and_reverts_when_not_cheaper():
     threads[a] = base + [ours(sheet), msg('open', ('offer:a-3', {**t35, 'unit_price': 29.0, 'lead_time_days': 42}))]
     again = agent.propose(case, threads, a)['message']['term_sheets'][0]['terms']
     assert again['lead_time_days'] == 35  # 29.00 at 42 d costs more than 29.00 at 35 d
+
+
+def test_rfq_fast_payment_only_when_asked_and_cheaper_in_c():
+    case = next(c for c in json.loads((Path(__file__).parent / 'fixtures/practice_cases.json').read_text())
+                if c['case_id'] == 'case:P05')
+    a, b = case['suppliers'][:2]
+    t35 = {'payment_days': 30, 'lead_time_days': 35}
+
+    def threads(body):
+        first = msg('open', ('offer:a-1', {**t35, 'unit_price': 32.0}))
+        last = {**msg('open', ('offer:a-2', {**t35, 'unit_price': 29.0})), 'body': body}
+        return {a: [first, ours({**t35, 'unit_price': 31.74, 'payment_days': 90}), last],
+                b: [msg('open', ('offer:b-1', {**t35, 'unit_price': 34.0}))]}
+
+    cfg = dict(rfq_undercut_reanchor=True)
+    asked = 'Faster payment is welcome; we can reflect it in the price.'
+    on = PackageAgent(policy=PolicyConfig(**cfg, fast_payment_types=('rfq',)))
+    move = on.propose(case, threads(asked), a)['message']
+    sheet = move['term_sheets'][0]['terms']
+    assert sheet['payment_days'] == 14 and sheet['unit_price'] < 29.0
+    assert '14 days' in move['body']
+    off = PackageAgent(policy=PolicyConfig(**cfg)).propose(case, threads(asked), a)['message']
+    assert off['term_sheets'][0]['terms']['payment_days'] == 90
+    silent = PackageAgent(policy=PolicyConfig(**cfg, fast_payment_types=('rfq',)))
+    assert silent.propose(case, threads('We hold this price.'), a)['message']['term_sheets'][0]['terms'][
+        'payment_days'] == 90
+    with pytest.raises(ValueError):
+        PolicyConfig.from_dict({'fast_payment_types': ['price_increase']})
