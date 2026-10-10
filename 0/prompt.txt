@@ -1,0 +1,59 @@
+So here's what the other agent is doing:&#x20;
+
+Right now I'm only coordinating. Five workers are running:
+
+- **Integration:** merges the validated v1 config (fresh mean 0.7275) to main, then builds v2 with the three new wins (P05 0.77, P02 0.71, P18 0.52) and runs a fresh ten-case check. Expected about 0.75.
+- **P05:** trying lead time up to 42 days for a lower price, and awarding the other supplier.
+- **P08:** testing whether dropping the index clause, at a small price premium, is worth about +0.18.
+- **Deep rethink:** fixing our cost model, which is about €45k off the server's, then re-checking P03 and P11.
+- **P07:** still testing bundle volume.
+
+The **P08/P18 worker** checked the no-clause idea against past sessions and didn't screen it. I agree with that.
+
+- **No-clause deals already refused:** both suppliers turned down no-clause deals even at or above our break-even price (about €5.47). P18 walked away at €5.50 no-clause, and P08 kept the clause even at €5.49. P08 only drops the clause on a 12-month contract, at €5.84, which scored 0.16.
+- **Fallback sheet backfires:** putting the no-deadband deal on the table early has locked P08 at a high price before (scores 0.33–0.36).
+- **Hedge too short:** it covers only 3 of the 24 months, so it's weak support for a fixed price.
+
+Raw-material work stops here, with 3 of its 12 sessions used. The baselines stay at P08 0.5930 and P18 0.5200.
+
+P08 is still our biggest unexplained gap, at 0.59 against 0.92 elsewhere. The **deep-rethink worker**'s cost-model fix is now the most likely way to explain it. I'll re-check P08 if that fix changes how the index clause is valued.
+
+Yes, that matches. The board shows each case's best score from any of our runs, averaged:
+
+| **Case** | **Best** | **Case** | **Best** |
+| :------- | :------- | :------- | :------- |
+| P01      | .96      | P07      | .75      |
+| P02      | .71      | P08      | .59      |
+| P03      | .90      | P10      | .66      |
+| P04      | .86      | P11      | .79      |
+| P05      | .77      | P18      | .52      |
+
+That averages to about **0.751**.
+
+It isn't yet one config doing all of that in a single run. That's what v2's fresh ten-case run confirms. v1 did 0.7275 in one run, and v2 should land at about 0.75 if the three new wins hold together.
+
+Right now four workers are running:
+
+- **Integration:** merging the v1 config (fresh 0.7275) to main, then building v2 with the P05, P02 and P18 wins and running a fresh ten-case check. Target is about 0.75.
+- **P05:** trying lead time up to 42 days for a lower price, and awarding the other supplier.
+- **Deep rethink:** fixing our cost model, which is about €45k off the server's, then re-checking P03, P11 and possibly P08.
+- **P07:** testing bundle volume.
+
+From here:
+
+1. Make v2 the validated, merged config, with its real fresh mean reported.
+2. Rebuild and re-run the config only if the cost-model fix or the P05/P07 tests produce a confirmed win.
+3. Write a handoff with the exact commit, config, per-case scores, sessions used and risks.
+4. Stop before the freeze on Sunday at 12:00.
+
+**Why integration matters even at 0.75:** the 0.75 comes from different configs on different branches, each best on its own case. The final run uses one agent with one config on all the cases. Today main would run without most of these wins. Integration is what turns 0.75-on-paper into an agent that actually does it, and the fresh ten-case run proves the wins don't break each other. Without it, our final agent probably scores well below 0.75.
+
+**P05 lead time up to 42 days:** maybe.
+
+- **Why it might help:** on P10, choosing a longer lead time that cost us the same raised the score, because a longer lead time is cheap for the supplier to give.
+- **Why it might not:** the P05 supplier called €28.50 its floor, and a longer lead time costs us something. So it only helps if the price drop beats that cost.
+- **What the worker does:** it calculates that break-even first and screens only if it's positive. It's a small bet of 1–2 sessions.
+
+**What now:** finish v2 (P05, P02 and P18 wins), merge it, and report its real fresh mean. Then add more only if the cost-model fix finds a lever for P08, P03 or P11.
+
+I'll report when v2's ten-case result lands.
