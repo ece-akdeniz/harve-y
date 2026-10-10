@@ -33,6 +33,7 @@ class PolicyConfig:
     rfq_reciprocal_reanchor: bool = False
     rfq_data_claims_burst: int = 0
     rfq_reciprocal_r2: bool = False
+    rfq_burst_best_windows: bool = False
 
     @classmethod
     def load(cls, path):
@@ -53,7 +54,8 @@ class PolicyConfig:
         for k in ("cost_neutral_lead_time", "rfq_nonleading_hold", "rfq_final_guard", "rfq_supplier_lead_time",
                   "rfq_rival_offer", "rfq_supplier_payment",
                   "rfq_rival_offer_history", "rfq_undercut_reanchor", "rfq_data_claims",
-                  "rfq_data_claims_stack", "rfq_lead_trade", "rfq_reciprocal_reanchor", "rfq_reciprocal_r2"):
+                  "rfq_data_claims_stack", "rfq_lead_trade", "rfq_reciprocal_reanchor", "rfq_reciprocal_r2",
+                  "rfq_burst_best_windows"):
             if type(d.get(k, False)) is not bool:
                 raise ValueError(f"{k} must be boolean")
         if d.get("final_offer_risk", "legacy") not in ("legacy", "opening_proxy"):

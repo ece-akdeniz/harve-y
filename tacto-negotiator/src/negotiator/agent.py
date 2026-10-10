@@ -389,8 +389,9 @@ class PackageAgent:
                     # The supplier's one "clarify internally" step answers our second counter:
                     # back that counter with every honest claim we have (max 3 checked).
                     n_claims = burst
-                enriched = self.evidence.enrich(case, threads, supplier_id, move, context=context,
-                                                rfq_claims=n_claims)
+                enriched = self.evidence.enrich(
+                    case, threads, supplier_id, move, context=context, rfq_claims=n_claims,
+                    allow_cherry_pick=n_claims > 1 and self.policy.rfq_burst_best_windows)
                 if n_claims > 1 and enriched is not move:
                     self.burst_done.add(supplier_id)
                 return enriched

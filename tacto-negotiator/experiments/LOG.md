@@ -1173,3 +1173,21 @@ to each supplier moves to its own payment term (≥ 30 d) at the C-neutral price
 it said "to make up for the payment terms"; K showed the payment move is read as a real give. So
 the give now lands in the round that sets the step, together with the OTD claim. r3 re-anchor
 (26.79 @ 30 d) as in F.
+
+## 2026-10-10 — P05 screen 16 result: L reciprocal r2 = 48.29 (miss, dropped)
+
+Run `64a4f101` / `467e9094342a169a`: .4829, 70210 **agreed to our 31.31/30/35** at r2 ("clarified
+internally … we can accept your terms"), 1 timeout (loser). Moving to its payment at r2 removed
+the gap it had to fill with its own step: our 90 d ask is what makes it name 28.50/29.00 itself.
+Never give the payment term before the boss-approved step. Line dropped.
+
+## 2026-10-10 — P05 screen 17 plan: material-cost evidence in the r2 step (M)
+
+Differs from F/J: `rfq_data_claims_burst: 3` + `rfq_burst_best_windows` (`configs/p05-burst-windows.json`).
+r2 counter (31.74/90, as F) carries OTD 80.8 % + **AS-14404 −8.5 % (2024-11→2025-10)** + PPI-C2431
+−3.8 % (2024-09→2025-09); PPI-D351 −3.7 % moves to r3. Why: the owner note ("has not followed his
+material and energy prices closely since the 2022 peak") + part material 1.4404 (AS-14404, 16 %
+cost share in our driver table) + its own "our price follows LCI-C, PPI-C2431, AS-14404, PPI-D351".
+J showed claim *count* doesn't move the step, so test claim *weight* on its cost drivers. Both
+windows are within the rule (≤ 12 months, ending in the last 12 months) and verify; they are the
+kit's "best buyer window" (latest windows rose), so there's a trust risk.

@@ -51,7 +51,7 @@ class EvidencePolicy:
         if self.tracer:
             self.tracer.log("evidence_fallback", case=case["case_id"], error_type=type(exc).__name__)
 
-    def enrich(self, case, threads, sid, move, context=None, rfq_claims=0):
+    def enrich(self, case, threads, sid, move, context=None, rfq_claims=0, allow_cherry_pick=False):
         """`rfq_claims` > 0 enables RFQ (multi-supplier) decoration with at most that many claims,
         excluding our internal should-cost; the single-supplier gate stays for every other path."""
         message = move.get("message")
@@ -89,6 +89,7 @@ class EvidencePolicy:
                 case_type="renewal_trade" if case["type"] == "renewal" else case["type"],
                 index_priorities=priorities,
                 skip_kinds=frozenset({"should_cost"}) if rfq else frozenset(),
+                allow_cherry_pick=allow_cherry_pick,
             )
         except DATA_ERRORS as exc:
             self.fallback(case, exc)
