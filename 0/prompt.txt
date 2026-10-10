@@ -1,0 +1,167 @@
+Yes, do that please. Here if you want to evaluate:
+I’ll check the FAQ before starting the hosted runs. If it clarifies scoring, permitted terms, or final-round behavior, I’ll apply that to the implementation and test setup.
+
+
+
+
+Kontext automatisch komprimiert
+
+
+
+Hat Dateien gelesen, hat einen Befehl ausgeführt
+
+
+
+The FAQ confirms that normalized scores determine the final ranking, and that no deal scores zero when there is no alternative. It also gives concrete evidence that verified arguments and cooperative wording can change supplier concessions. I’ll keep that wording in our evidence policy; the FAQ still doesn’t explain how the jury chooses the prize winners after the top-10 cutoff.
+
+
+
+
+Hat Dateien gelesen, hat Befehle ausgeführt
+
+
+
+The package policy and evidence fixes are implemented. The local suite has passed 101 tests; I’m finishing the experiment safeguards before spending quota. The first four runs will isolate package negotiation from evidence on P04 and P11, and each replay will be checked before the next session starts.
+
+
+
+
+Hat Dateien gelesen, hat Befehle ausgeführt
+
+
+
+P04’s first package-only run scored 86.04, up from 5.64. It secured €4.94 with 90-day payment and a 24-month contract at unchanged annual volume, with no must-have violation and zero reported timeouts. That beats Boo’s earlier 81.0 snapshot; I’ll refresh the benchmark before calling it a current lead. The evidence variant is running now.
+
+
+
+
+Hat Befehle ausgeführt
+
+
+
+The refreshed board has moved: P04’s displayed leader is now 86.0, and P11’s is 62.6. Our first P04 result is competitive at that level, but it is not evidence of an outright lead. I’m keeping those benchmarks outside the agent and using them only to judge the experiments.
+
+
+
+
+Hat Befehle ausgeführt
+
+
+
+P04’s evidence variant also scored 86.04, so evidence added no measured benefit there. The plan therefore favors the simpler package-only policy for confirmation. The implementation is now pushed with Entire checkpoint linkage; P11 screening is next.
+
+
+
+
+Hat Befehle ausgeführt
+
+
+
+P04’s cited delivery score was verified by the hosted supplier, with no contradicted claims. One budget detail: the shared key’s quota dropped by more than our two completed runs, so other sessions are using it too. I’m recording our session IDs separately and rechecking the 46-session reserve before every start.
+
+
+
+
+Hat Befehle ausgeführt
+
+
+
+P11 is still negotiating. Its offers keep payment fixed at 60 days and use only the permitted price, ppm and chargeback fields. The current test offers a 1,500 ppm future commitment with €500 chargeback; the separate evidence run will cite the actual historical defect rate of 2,376 ppm.
+
+
+
+
+Hat Befehle ausgeführt
+
+
+
+The experiment safeguards now have their own regression tests: contradicted claims and unresolved requests stop new starts, and hosted timeout lists are counted correctly. All 104 tests and lint pass. P11 is taking longer than P04 because it is continuing through more supplier replies.
+
+
+
+
+Hat Befehle ausgeführt
+
+
+
+P11’s package-only run finished at 31.44, unchanged from baseline. Relaxing ppm alone did not unlock a discount. The final screening run adds verified quality evidence; if it also fails to improve, the plan calls for local diagnosis before spending on P11 confirmation.
+
+
+
+
+Hat Befehle ausgeführt
+
+
+
+The P11 replay points to a more specific issue: the supplier repeatedly offered lower prices for lower chargebacks, but our policy kept the €500 package. Some alternatives had lower complete cost than the eventual deal. The next decision depends on the evidence run, but chargeback negotiation is now a stronger hypothesis than ppm relaxation alone.
+
+
+
+
+Hat Befehle ausgeführt
+
+
+
+The follow-up fixes are committed, and 105 tests pass. P04’s screening result is clear; P11’s evidence run is still open. I’m holding the next practice batch until that result and its claim checks are complete.
+
+
+
+
+Hat Befehle ausgeführt
+
+
+
+The evidence run exposed a policy flaw: after stagnation, it spent switches tightening ppm before trying a lower chargeback. I’ve corrected that locally and added a regression test. The running experiment still uses its original frozen source, so its result remains comparable.
+
+
+
+
+Hat Befehle ausgeführt
+
+
+
+Screening is complete: P04 reached 86.04; P11 improved from 31.44 to 39.80 with verified evidence. All four runs produced valid deals, zero timeouts, and no contradicted claims. Both cases passed the improvement gate, so I’ve started the four confirmation sessions using the same frozen candidate source.
+
+
+
+
+uv run --locked python - <<'PY'
+import json
+from pathlib import Path
+p=Path('experiments/runs/staged-a-20261010');d=json.loads((p/'summary.json').read_text());rows=[]
+for run in d['runs']:
+ e=json.loads((Path(run['run_dir'])/'server-evidence.json').read_text())
+ for cid,row in run['cases'].items():
+  state=e[cid]['state'];checks=[cr for t in e[cid]['threads'].values() for m in t['messages'] for cr in m.get('claim_results',[])];result=state['result']
+  rows.append({'job':run['job'],**row,'terms':result['terms'],'c_open':result['c_open'],'c_deal':result['c_deal'],'c_best':result['c_best'],'claim_results':checks,'elapsed_s':run['elapsed_s']})
+board=json.loads((p/'human-benchmark.json').read_text())
+out={'cycle_ceiling':52,'reserve':46,'spent_by_cycle':4,'screening':{'before':d['before'],'after':d['after'],'source':d['manifest'][0]['ref'],'rows':rows},'human_benchmarks':[{k:r[k] for k in ('case_id','best','holder','house')} for r in board['bots']],'decision':'P04 package-only and P11 package+evidence proceed to fresh paired confirmation. No promotion.'}
+Path('experiments/staged-cycle-20261010.json').write_text(json.dumps(out,indent=2))
+for r in rows:print(r['job']['case'],r['job']['label'],r['score'],r['claim_results'])
+PY
+cat >> experiments/LOG.md <<'EOF'
+
+## Batch A — four screening sessions, source 1205582
+
+- P04 package-only: `e2fcc134ecd03d17`, **86.04/100**, EUR 4.94 / 90 days / 24 months.
+- P04 package + evidence: `b71d601095c82d96`, **86.04/100**, identical closing package;
+  its 85.0% delivery claim was verified. Select simpler package-only.
+- P11 package-only: `cc9acf4242059a59`, **31.44/100**, unchanged from historical baseline.
+- P11 package + evidence: `88f8a5d21a61c30f`, **39.80/100**. Select evidence for confirmation.
+- All four: valid deals, must-haves satisfied, zero authenticated thread timeout events,
+  no contradicted claims, no unresolved journal requests, successful exit status.
+- Cycle spent four. Shared quota 179 -> 165: ten additional sessions were consumed outside
+  this batch. Our ledger uses explicit session IDs, not the shared quota delta.
+- Human benchmark refresh: P04 best displayed 86.0, P11 best 62.6 (makeAnother.md).
+  These are rounded moving targets; P11 remains below the current competitor.
+- Released Batch B: fresh baseline 1551125 and frozen winning screening candidate 1205582
+  per case. P04 baseline then candidate; P11 candidate then baseline. Four sessions.
+- Local diagnosis: P11 suppliers price chargeback risk and propose cheaper alternatives.
+  The experimental stagnation order tightened ppm before reducing chargeback; a local fix
+  now tries adjacent lower chargeback first and only relaxes ppm upward. Batch B retains
+  original source to test reproducibility. The fix is reserved for later gated refinement.
+- Tracked compact evidence: `experiments/staged-cycle-20261010.json`. Full ignored local
+  traces/journals/authenticated thread data: `experiments/runs/staged-a-20261010/`.
+EOF
+uv run --locked pytest -q
+uv run --locked ruff check . wird ausgeführt

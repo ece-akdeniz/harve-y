@@ -1,0 +1,29 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4JYGE1X4R4Z1PK05K2G62FF",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "tacto-negotiator/configs/capacity-risk.json",
+    "tacto-negotiator/configs/price-evidence.json",
+    "tacto-negotiator/configs/quality-chargeback-1.json",
+    "tacto-negotiator/configs/quality-chargeback-2.json",
+    "tacto-negotiator/configs/raw-material-packages.json",
+    "tacto-negotiator/configs/rfq-payment.json",
+    "tacto-negotiator/experiments/LOG.md",
+    "tacto-negotiator/experiments/staged-cycle-20261010.json",
+    "tacto-negotiator/src/negotiator/policy.py",
+    "tacto-negotiator/src/negotiator/trades.py",
+    "tacto-negotiator/tests/test_policy.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ]
+}
