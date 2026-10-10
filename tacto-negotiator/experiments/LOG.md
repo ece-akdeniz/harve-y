@@ -470,3 +470,24 @@ keep that unmeasured policy out of the combined candidate.
 
 - User subsequently chose **stop after the free check and preserve quota**. No more practice
   sessions started. Final comparison is explicitly deferred until the user asks to resume.
+
+## Packaged runtime negotiation guidance — local integration, 10 October 2026
+
+- Hypothesis: explicit conditional package wording communicates the exchange more clearly
+  while preserving validated terms; score benefit remains unmeasured.
+- Config/source: working tree, packaged `src/negotiator/AGENTS.md`, runtime-settings v1.
+  Custom CLI serial/async play/run (including final) now load the guidance and record
+  its SHA-256 and effective settings. Missing/invalid guidance stops launch.
+- Existing numerical heuristics remain baseline values. Default CLI wording now makes
+  multi-issue offers conditional on the proposed price. Explicit experiment policies,
+  estimates and generic MESO activation retain existing controls; no candidate promotion.
+- Direct `PackageAgent` construction used by comparison tools retains its previous defaults.
+  Starter `arena --agent llm` is a separate implementation and does not load this guidance.
+- Cases: local synthetic RFQ decision comparison and both final CLI dispatch paths.
+  Integration tests verify changed guidance affects prices, conditional wording preserves
+  term sheets, arbitrary-cwd loading, trace provenance and launch failure on invalid guidance.
+- Validation: negotiation-only branch: 115 tests passed; combined checkout: 166 tests
+  passed; ruff clean. Wheel built offline, contains the guidance, and loads successfully
+  after extraction outside the source checkout.
+- Hosted sessions/quota: 0. Scores: unmeasured. Full final readiness remains outstanding.
+- Decision: runtime integration implemented; no claim of improved negotiation outcomes.

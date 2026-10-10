@@ -93,6 +93,7 @@ class PackageAgent:
     ):
         self.anchor, self.rounds, self.close_gap, self.tracer = anchor, rounds, close_gap, tracer
         self.policy = policy
+        self.conditional_exchange = False
         self.trades = None
         if policy:
             from .trades import TradePolicy
@@ -178,6 +179,8 @@ class PackageAgent:
             body += (
                 " This is a conditional exchange: we can commit to this package in return for the proposed unit price."
             )
+        elif self.conditional_exchange and any(k != "unit_price" for k in terms):
+            body += " The proposed non-price terms are conditional on the proposed unit price as one package."
         assert not leaks(body), "body would leak internal information"
         self.prev[sid] = {k: v for k, v in terms.items() if k != "unit_price"}
         c = total_cost(case, terms, std, sup)

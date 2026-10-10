@@ -48,6 +48,11 @@ caffeinate -dimsu uv run --locked negotiator run --set final --runner async --pa
 ```
 
 This is the candidate macOS foreground launch after async promotion and full rehearsal.
+This custom launch loads `src/negotiator/AGENTS.md` from the installed package.
+Check the initial `run` trace for `runtime_guidance.sha256` and `settings`; both
+serial and async custom runners use this same guidance. The starter command
+`arena run --agent llm` runs another agent and does not consume this file.
+Experimental policies still require an explicit rehearsed `--policy-config`.
 Reuse the same journal only for an organizer-permitted restart of that final run. In another terminal:
 
 ```bash

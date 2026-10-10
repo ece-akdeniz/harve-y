@@ -67,6 +67,15 @@ See [research limitations](docs/01-research.md).
 
 ## Custom commands
 
+The custom `negotiator play/run` commands load the packaged
+[runtime AGENTS.md](src/negotiator/AGENTS.md) before opening sessions, for both serial
+and async runners and every set including final. Its structured settings drive the
+price heuristics and conditional package wording. Prose supplies research rationale;
+it is not automatically interpreted by an LLM. Each run trace records the file hash
+and effective settings. Invalid or missing guidance stops launch. Explicit
+`--policy-config` remains the way to enable experimental package/evidence policies.
+The starter `arena --agent llm` does not load this custom agent or its guidance.
+
 ```bash
 uv run --locked negotiator prep
 uv run --locked negotiator play case:D01 --runner serial -v
