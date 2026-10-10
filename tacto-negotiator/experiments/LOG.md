@@ -857,3 +857,11 @@ config. Score **41.19** (vs 36.04 traced baseline, ties prior best .4119): sup:7
 35 d / 30 d, 50.7 s, zero timeouts. sup:70250's 34.00 convergence held; 70210 went 32.50 → 32.00
 → final 32.00; 70240 final 33.50/45 d; coordinator accepted 70210's final at once. Lead time
 35 d (<= 42), no 56-day counter, no early payment. Next: repeat once for replication.
+
+## 2026-10-10 — P05 screen 3: replicate non-leading hold (async)
+
+Run `bee8da3d-93be-417e-93bf-fb79f7ec55c8`, session `e7dd5622c1234a45`. Score **41.19** again:
+sup:70210 EUR 32.00 / 35 d / 30 d final accepted, 12.3 s, zero timeouts; identical transcript.
+Replicated 2/2 after fix. Next: hold + `preferences.rfq = standard_payment`
+(`configs/p05-hold-standard-payment.json`) — earlier standard-payment screens were masked
+by the gap-closed exit.
