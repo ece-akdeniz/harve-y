@@ -12,7 +12,8 @@ from .dossiers import load_package
 
 
 class EvidencePolicy:
-    def __init__(self, package=None, tracer=None):
+    def __init__(self, package=None, tracer=None, case_types=None):
+        self.case_types = set(case_types if case_types is not None else ["price_increase"])
         self.package = package
         self.tracer = tracer
         self.banks = {}
@@ -20,8 +21,13 @@ class EvidencePolicy:
 
     def enrich(self, case, threads, sid, move):
         message = move.get("message")
-        if (case.get("type") != "price_increase" or len(case.get("suppliers", [])) != 1
-                or not message or message.get("action") or not message.get("term_sheets")):
+        if (
+            case.get("type") not in self.case_types
+            or len(case.get("suppliers", [])) != 1
+            or not message
+            or message.get("action")
+            or not message.get("term_sheets")
+        ):
             return move
         cid = case["case_id"]
         try:
@@ -36,7 +42,9 @@ class EvidencePolicy:
                     if event.get("from") == "buyer":
                         used.update(event.get("refs") or [])
             bank = [c for c in self.banks[cid] if verify(c, facts)]
-            chosen = pick(bank, used, supplier_id=sid, case_type=case["type"])
+            chosen = pick(
+                bank, used, supplier_id=sid, case_type="renewal_trade" if case["type"] == "renewal" else case["type"]
+            )
         except (OSError, ValueError, KeyError, TypeError) as exc:
             if self.tracer:
                 self.tracer.log("evidence_fallback", case=cid, error_type=type(exc).__name__)

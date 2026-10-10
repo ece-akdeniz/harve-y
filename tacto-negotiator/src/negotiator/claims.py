@@ -33,6 +33,7 @@ KIND_ORDER = {
     "rfq": ("rival_quote", "rival_offer", "scorecard_otd", "scorecard_ppm", "index_change", "should_cost"),
     "quality": ("scorecard_ppm", "scorecard_otd", "rival_quote", "index_change", "notice", "should_cost"),
     "renewal": ("notice", "rival_quote", "index_change", "scorecard_otd", "scorecard_ppm", "should_cost"),
+    "renewal_trade": ("scorecard_otd", "index_change", "scorecard_ppm", "notice", "rival_quote", "should_cost"),
 }
 DEFAULT_ORDER = ("index_change", "rival_quote", "rival_offer", "notice", "scorecard_otd", "scorecard_ppm",
                  "should_cost")
@@ -265,7 +266,10 @@ def build_bank(case: dict, package=None) -> list[Claim]:
         letter = _trigger_letter(case, facts, target, part)
         contract = next(((r, c) for r, c in facts.items() if r.startswith("ctr:") and "#" not in r
                          and isinstance(c, dict) and c.get("supplier") == target and c.get("days")), None)
-        if letter and contract:
+        if letter and contract and all(
+            isinstance(x, int | float) and not isinstance(x, bool)
+            for x in (letter[1].get("days"), contract[1].get("days"))
+        ):
             (dref, d), (cref, c) = letter, contract
             given, needed = d["days"], c["days"]
             bank.append(Claim(

@@ -112,12 +112,21 @@ def _case_summary(case_id, events, hosted) -> dict:
         for e in events
         if e.get("event") == "guard"
     ]
-    guards += [{"src": d["src"], "kind": d["kind"], "supplier": d.get("supplier"), "outcome": d["guard"]}
-               for d in decisions if "guard" in d]
-    claims = [{"src": d["src"], "supplier": d.get("supplier"), "claims": d.get("claims") or d.get("refs")}
-              for d in decisions if d.get("claims") or d.get("refs")]
-    claims += [{"src": e["_src"], "supplier": e.get("supplier"), "claims": e.get("claims")}
-               for e in events if e.get("event") == "evidence"]
+    guards += [
+        {"src": d["src"], "kind": d["kind"], "supplier": d.get("supplier"), "outcome": d["guard"]}
+        for d in decisions
+        if "guard" in d
+    ]
+    claims = [
+        {"src": d["src"], "supplier": d.get("supplier"), "claims": d.get("claims") or d.get("refs")}
+        for d in decisions
+        if d.get("claims") or d.get("refs")
+    ]
+    claims += [
+        {"src": e["_src"], "supplier": e.get("supplier"), "claims": e.get("claims")}
+        for e in events
+        if e.get("event") == "evidence"
+    ]
     offers = Counter(d.get("supplier") for d in decisions if d.get("kind") == "offer")
     s = {
         "case": case_id,
@@ -141,9 +150,15 @@ def _case_summary(case_id, events, hosted) -> dict:
         "claims_used": claims,
         "fallbacks": sum(1 for d in decisions if d.get("fallback")),
         "error": None,
-        "timeouts": 0,
-        "session": next((e.get("session") or e.get("session_id") for e in events
-                         if isinstance(e.get("session") or e.get("session_id"), str)), None),
+        "timeouts": None,
+        "session": next(
+            (
+                e.get("session") or e.get("session_id")
+                for e in events
+                if isinstance(e.get("session") or e.get("session_id"), str)
+            ),
+            None,
+        ),
         "replay_url": None,
         "result_src": None,
         "duration_s": None,
@@ -160,6 +175,10 @@ def _case_summary(case_id, events, hosted) -> dict:
                 if k in row:
                     s[k] = row[k]
             s["supplier"] = row.get("supplier_id")
+            if isinstance(row.get("thread_timeouts"), dict) and row["thread_timeouts"]:
+                s["timeouts"] = sum(row["thread_timeouts"].values())
+            if row.get("score") is None or not isinstance(row.get("deal"), bool):
+                s["error"] = "incomplete result"
             if isinstance(row.get("cost_breakdown"), dict):
                 s["components"], s["components_src"] = row["cost_breakdown"], r["_src"]
         else:
@@ -178,9 +197,12 @@ def _case_summary(case_id, events, hosted) -> dict:
             s["supplier"] = res.get("supplier_id")
         if s["components"] is None and isinstance(res.get("cost_breakdown"), dict):
             s["components"], s["components_src"] = res["cost_breakdown"], h["_src"]
-        s["timeouts"] = sum(len(t.get("timeouts") or []) for t in h["threads"].values())
+        if h["threads"] and all("timeouts" in t for t in h["threads"].values()):
+            s["timeouts"] = sum(len(t.get("timeouts") or []) for t in h["threads"].values())
+    if not results and not h:
+        s["error"] = "missing result"
     if s["error"] and "timeout" in s["error"].lower():
-        s["timeouts"] = max(s["timeouts"], 1)
+        s["timeouts"] = max(s["timeouts"] or 0, 1)
     if _num(s["c_deal"]) is not None and _num(s["c_best"]) is not None:
         s["gap"] = round(s["c_deal"] - s["c_best"], 2)
     return s
@@ -228,7 +250,8 @@ def summarise(run_dir) -> dict:
         "no_deals": sum(1 for c in cases.values() if c["deal"] is False),
         "must_have_breaks": sum(1 for c in cases.values() if c["must_haves_ok"] is False),
         "failures": sorted(k for k, c in cases.items() if c["error"]),
-        "timeouts": sum(c["timeouts"] for c in cases.values()),
+        "timeouts": sum(c["timeouts"] or 0 for c in cases.values()),
+        "timeouts_unknown_cases": sum(c["timeouts"] is None for c in cases.values()),
         "decisions": sum(len(c["decisions"]) for c in cases.values()),
         "fallbacks": sum(c["fallbacks"] for c in cases.values()),
     }
@@ -271,7 +294,7 @@ def to_markdown(summary: dict) -> str:
         f" ({a['worst_case'] or '-'}); deals {a['deals']}, no deal {a['no_deals']}",
         f"- Must-have breaks {a['must_have_breaks']}, failures {len(a['failures'])}"
         f"{' ' + str(a['failures']) if a['failures'] else ''}, timeouts {a['timeouts']},"
-        f" fallbacks {a['fallbacks']}, decisions {a['decisions']}",
+        f" unknown timeout cases {a['timeouts_unknown_cases']}, fallbacks {a['fallbacks']}, decisions {a['decisions']}",
         "",
         "| Case | Score | Deal | Supplier | C deal | C best | Gap | C alt | Rounds | Decisions | Guards |",
         "|---|---:|---|---|---:|---:|---:|---:|---:|---|---:|",

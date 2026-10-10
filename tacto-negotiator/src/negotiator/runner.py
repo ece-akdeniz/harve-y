@@ -192,6 +192,13 @@ class CaseRunner:
 
     # -- open / resume -------------------------------------------------------------------------
     async def _open(self):
+        if getattr(self.agent, "trades", None):
+            meta = self.case_meta
+            if meta is None:
+                set_ = "sandbox" if self.case_id.startswith("case:D") else "practice"
+                meta = next((c for c in await self.arena.cases(set_) if c["case_id"] == self.case_id), None)
+            if meta:
+                await asyncio.to_thread(self.agent.trades.prepare, meta)
         if (done := self.journal.finished(self.case_id)) is not None:
             return done
         session_id = self.journal.session_for(self.case_id)
@@ -263,8 +270,15 @@ class CaseRunner:
         t.timeouts = max(t.timeouts, len(remote.get("timeouts") or []))
         if remote.get("closed") or info.get("closed"):
             t.closed = remote.get("closed") or info.get("closed")
-            events.append({"from": "arena", "status": "walked_away", "term_sheets": [], "attachments": [],
-                           "body": f"(thread ended: {t.closed})"})
+            events.append(
+                {
+                    "from": "arena",
+                    "status": "walked_away",
+                    "term_sheets": [],
+                    "attachments": [],
+                    "body": f"(thread ended: {t.closed})",
+                }
+            )
         t.events = events
         if info.get("seconds_left") is not None:
             t.deadline_utc = self.clock.time() + float(info["seconds_left"])
@@ -329,13 +343,20 @@ class CaseRunner:
                 if self.closing or self.st.ended:
                     return
                 snap = self._live_snapshot()
+                if getattr(self.agent, "trades", None):
+                    self.agent.trades.deadlines[sid] = time.time() + max(0, (t.deadline_utc or 0) - self.clock.time())
                 kind, what = await asyncio.to_thread(propose, self.agent, self.st.case, snap, sid, self._workable())
                 if kind == "send":
                     events = t.events
                     offer = (latest(events).get("term_sheets") or [{}])[0].get("term_sheet_id")
                     intent = self.journal.intent(
-                        self.case_id, self.st.session_id, sid, "send", what,
-                        buyer_count=sum(m.get("from") == "buyer" for m in events), offer_id=offer,
+                        self.case_id,
+                        self.st.session_id,
+                        sid,
+                        "send",
+                        what,
+                        buyer_count=sum(m.get("from") == "buyer" for m in events),
+                        offer_id=offer,
                     )
                     t.in_flight = intent["move_id"]
                     t.events.append({**what, "from": "buyer"})
@@ -385,8 +406,13 @@ class CaseRunner:
         t, mid = self.st.threads[sid], intent["move_id"]
         held = await self._send_slot(t)
         late_by = self.clock.time() - (t.deadline_utc or self.clock.time())
-        self._trace("send", supplier=sid, move_id=mid, late_by=round(late_by, 1), terms=[
-            s.get("terms") for s in message.get("term_sheets") or []])
+        self._trace(
+            "send",
+            supplier=sid,
+            move_id=mid,
+            late_by=round(late_by, 1),
+            terms=[s.get("terms") for s in message.get("term_sheets") or []],
+        )
         ok = False
         try:
             reply = await self.arena.send(self.st.session_id, sid, message, mid)
@@ -455,8 +481,11 @@ class CaseRunner:
             if wait:
                 now = self.clock.time()
                 until = now + CLOSE_WAIT_S
-                waiting = [t.deadline_utc for t in self.st.threads.values()
-                           if not t.in_flight and not t.closed and t.deadline_utc]
+                waiting = [
+                    t.deadline_utc
+                    for t in self.st.threads.values()
+                    if not t.in_flight and not t.closed and t.deadline_utc
+                ]
                 if waiting:
                     until = min(until, min(waiting) - CLOSE_BUDGET_S)
                 if (cap := self._cap()) is not None:
@@ -473,8 +502,11 @@ class CaseRunner:
                     estimates = self.estimates
                     if estimates is None:
                         estimates_for = getattr(self.agent, "estimates_for", None)
-                        estimates = (estimates_for(self.st.case) if estimates_for is not None
-                                     else getattr(self.agent, "estimates", None))
+                        estimates = (
+                            estimates_for(self.st.case)
+                            if estimates_for is not None
+                            else getattr(self.agent, "estimates", None)
+                        )
                     d = self.close_fn(self.st.case, live, estimates, reason)
                     sid, msg = d["supplier_id"], d["message"]
                     intent = self.journal.intent(self.case_id, self.st.session_id, sid, "close", msg, reason=reason)
@@ -580,8 +612,16 @@ async def run_set(arena, set_: str, new_agent, journal: Journal, parallel: int =
     return out
 
 
-async def run_waves(arena, new_agent, journal: Journal, waves: int = 5, parallel: int = 10, poll_s: float = 3.0,
-                    clock: Clock | None = None, **kw) -> dict:
+async def run_waves(
+    arena,
+    new_agent,
+    journal: Journal,
+    waves: int = 5,
+    parallel: int = 10,
+    poll_s: float = 3.0,
+    clock: Clock | None = None,
+    **kw,
+) -> dict:
     """Live Final: poll final case metadata, start every open case of a running wave with a cap
     from fresh `seconds_left`, until `waves` waves have closed and every case has finished."""
     clock = clock or Clock()
@@ -591,8 +631,16 @@ async def run_waves(arena, new_agent, journal: Journal, waves: int = 5, parallel
     async def one(case):
         async with sem:
             try:
-                return await play_case(arena, case["case_id"], new_agent(), journal, case=case,
-                                       deadline=lambda w=case["wave"]: caps.get(w), clock=clock, **kw)
+                return await play_case(
+                    arena,
+                    case["case_id"],
+                    new_agent(),
+                    journal,
+                    case=case,
+                    deadline=lambda w=case["wave"]: caps.get(w),
+                    clock=clock,
+                    **kw,
+                )
             except Exception as e:
                 log.exception("%s failed", case["case_id"])
                 return e

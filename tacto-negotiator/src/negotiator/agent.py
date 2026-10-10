@@ -79,19 +79,36 @@ class PackageAgent:
     version = "PackageAgent-v0.2"
 
     def __init__(
-        self, anchor=0.12, rounds=5, close_gap=0.005, tracer=None, estimates=None, final_hold_s=40.0, meso=None,
-        p_walk=0.25, claims=None,
+        self,
+        anchor=0.12,
+        rounds=5,
+        close_gap=0.005,
+        tracer=None,
+        estimates=None,
+        final_hold_s=40.0,
+        meso=None,
+        p_walk=0.25,
+        claims=None,
+        policy=None,
     ):
         self.anchor, self.rounds, self.close_gap, self.tracer = anchor, rounds, close_gap, tracer
+        self.policy = policy
+        self.trades = None
+        if policy:
+            from .trades import TradePolicy
+
+            self.trades = TradePolicy(policy, self._log)
         self.meso = os.environ.get("NEGOTIATOR_MESO") == "1" if meso is None else meso
         self.final_hold_s = final_hold_s
         self.p_walk = p_walk  # chance a supplier walks when its final offer is countered (D02: 2 of 9)
         self.claims = os.environ.get("NEGOTIATOR_CLAIMS") == "1" if claims is None else claims
+        if policy is not None:
+            self.claims = bool(policy.evidence_types)
         self.evidence = None
         if self.claims:
             from .evidence import EvidencePolicy
 
-            self.evidence = EvidencePolicy(tracer=tracer)
+            self.evidence = EvidencePolicy(tracer=tracer, case_types=policy.evidence_types if policy else None)
         self.prev = {}  # supplier -> non-price terms of our last offer
         self.final_counters = {}  # supplier -> counters sent to its final offers (at most one)
         self.beat_asked = {}  # rival supplier -> final-offer sheet id we asked it to beat
@@ -142,6 +159,20 @@ class PackageAgent:
             + "".join(f", {k.replace('_', ' ')} {v}" for k, v in terms.items() if k != "unit_price")
             + ". We look forward to your confirmation."
         )
+        if self.trades and case["type"] in self.policy.package_types:
+            if "contract_months" in terms:
+                body += (
+                    f" We offer a {terms['contract_months']}-month commitment at unchanged annual volume;"
+                    " please reflect that commitment in your price, with payment priced as part of the package."
+                )
+            if "ppm_commitment" in terms:
+                body += (
+                    f" We can accept the proposed future quality commitment of {terms['ppm_commitment']} ppm"
+                    " in exchange for the proposed price and chargeback terms."
+                )
+            body += (
+                " This is a conditional exchange: we can commit to this package in return for the proposed unit price."
+            )
         assert not leaks(body), "body would leak internal information"
         self.prev[sid] = {k: v for k, v in terms.items() if k != "unit_price"}
         c = total_cost(case, terms, std, sup)
@@ -180,6 +211,10 @@ class PackageAgent:
         Values the supplier asks for that cost us nothing at the same price are adopted."""
         ref_c, _, ref_terms = cands[0]
         prev = self.prev.get(sid)
+        if self.trades and case["type"] in self.policy.package_types:
+            if prev is not None:
+                return prev
+            return self.trades.initial(case, sid, ref_terms["unit_price"], self.anchor, std, sup)
         if prev is None:
             n = nonprice(case, best_terms(case, ref_terms["unit_price"], std, sup))
         elif not eligible:
@@ -200,9 +235,10 @@ class PackageAgent:
             trial = {**n, f: v}
             if not must_haves_ok(case, {**trial, "unit_price": price}, std):
                 continue
-            if total_cost(case, {**trial, "unit_price": price}, std, sup) <= total_cost(
-                case, {**n, "unit_price": price}, std, sup
-            ) + 1e-6:
+            if (
+                total_cost(case, {**trial, "unit_price": price}, std, sup)
+                <= total_cost(case, {**n, "unit_price": price}, std, sup) + 1e-6
+            ):
                 n = trial
         return n
 
@@ -238,6 +274,18 @@ class PackageAgent:
         return self._close(case, threads, reason)
 
     def propose(self, case, threads, supplier_id):
+        if self.policy:
+            ours = self._ours(threads[supplier_id])
+            if ours:
+                self.prev[supplier_id] = nonprice(case, ours[-1])
+            # Rebuild the final-counter budget from actual buyer history after restart.
+            saw_final, count = False, 0
+            for event in threads[supplier_id]:
+                if event.get("from") != "buyer" and event.get("status") == "final_offer":
+                    saw_final = True
+                if saw_final and event.get("from") == "buyer" and event.get("term_sheets"):
+                    count += 1
+            self.final_counters[supplier_id] = count
         move = self._propose(case, threads, supplier_id)
         return self.evidence.enrich(case, threads, supplier_id, move) if self.evidence else move
 
@@ -310,6 +358,39 @@ class PackageAgent:
             price = price_for_cost(case, {**n, "unit_price": terms_f["unit_price"]}, c_alt * 0.998, std, sup)
             price = math.floor(price * 100) / 100
             terms, reason = {**n, "unit_price": price}, "final offer above alternative: one counter"
+        elif (
+            best[1] == sid
+            and not math.isfinite(c_alt)
+            and self.policy
+            and self.policy.final_offer_risk == "opening_proxy"
+        ):
+            if not alts or alts[0][0] >= c_f:
+                return None
+            opening = []
+            for events_ in threads.values():
+                for i, event in enumerate(events_):
+                    if event.get("from") != "buyer" and event.get("term_sheets"):
+                        opening += [x[0] for x in eligible_sheets(case, events_[: i + 1], alternatives=True)]
+                        break
+            if not opening:
+                return None
+            c_open = min(opening)
+            gain = max(0, c_open - alts[0][0]) - max(0, c_open - c_f)
+            loss = max(0, c_open - c_f)
+            values = {str(p): (1 - p) * gain - p * loss for p in (0.1, self.p_walk, 0.5)}
+            self._log(
+                case,
+                "final_proxy",
+                sid,
+                gain=gain,
+                loss=loss,
+                p_walk=self.p_walk,
+                sensitivity=values,
+                interpretation="opening-relative proxy, not expected normalized score",
+            )
+            if values[str(self.p_walk)] <= 0:
+                return None
+            terms, reason = complete_offer(case, alts[0][2]), "final offer: own alternative, positive opening proxy"
         elif best[1] == sid:
             terms, reason = {**n, "unit_price": terms_f["unit_price"]}, "final offer: same price, our terms"
             c_alt_sheet, alt_id, alt_terms = eligible_sheets(case, events, sup, alternatives=True)[0]
@@ -317,7 +398,9 @@ class PackageAgent:
                 terms, reason = complete_offer(case, alt_terms), "final offer: its own cheaper alternative"
             gain = c_f - total_cost(case, terms, std, sup)
             rivals = [
-                c for s in live_threads(threads) if s != sid
+                c
+                for s in live_threads(threads)
+                if s != sid
                 for c, _, _ in eligible_sheets(case, threads[s], self._sup(case, threads, s))[:1]
             ]
             loss = min([c_alt, *rivals]) - c_f  # if the supplier walks, we fall back to this
@@ -381,5 +464,8 @@ class PackageAgent:
                 return {"close": True, "reason": "rival cannot beat the final offer without backtracking"}
             price = min(price, cap_p)
         terms = complete_offer(case, {**n, "unit_price": round(price, 2)})
+        if self.trades and case["type"] in self.policy.package_types:
+            terms, trade_reason = self.trades.switch(case, sid, events, terms, std, sup)
+            why = trade_reason or why
         variants = self._payment_variants(case, terms, cands[0][2], std, sup) if self.meso else []
         return self._offer(case, sid, terms, std, sup, c_alt, why or f"round {k + 1} schedule", variants)

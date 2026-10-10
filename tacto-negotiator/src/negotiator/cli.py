@@ -37,6 +37,7 @@ def main(argv=None) -> int:
     r.add_argument("--waves", type=int, default=5)
     r.add_argument("-v", "--verbose", action="store_true")
     for sp in (p, r):
+        sp.add_argument("--policy-config", help="versioned JSON experiment policy")
         sp.add_argument("--runner", choices=["serial", "async"], default="serial")
     rep = sub.add_parser("report", help="summarise a run directory")
     rep.add_argument("run_dir")
@@ -60,8 +61,15 @@ def main(argv=None) -> int:
     tracer = Tracer(run_dir)
     client = ArenaClient()
 
+    from .policy import PolicyConfig
+
+    try:
+        policy = PolicyConfig.load(args.policy_config) if args.policy_config else None
+    except (OSError, ValueError, TypeError) as exc:
+        ap.error(str(exc))
+
     def new_agent():
-        return PackageAgent(tracer=tracer)
+        return PackageAgent(tracer=tracer, policy=policy)
 
     if args.runner == "async":
         cfg = {**run_config(new_agent(), runner="async"), **runtime_config(getattr(args, "parallel", 1))}
@@ -96,7 +104,18 @@ def main(argv=None) -> int:
     print(f"trace: {tracer.path}")
     if client.practice_remaining is not None:
         print(f"practice sessions left: {client.practice_remaining}")
-    return 0
+    return (
+        0
+        if out
+        and all(
+            isinstance(r, dict)
+            and r.get("score") is not None
+            and isinstance(r.get("deal"), bool)
+            and r.get("ended", True) is True
+            for r in out.values()
+        )
+        else 1
+    )
 
 
 if __name__ == "__main__":

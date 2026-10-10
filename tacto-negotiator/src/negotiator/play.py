@@ -46,7 +46,29 @@ def run_config(agent, runner="serial-play_case", facts="data/package/facts.json"
         )
     except (OSError, subprocess.CalledProcessError):
         commit, dirty = None, None
-    path = root / facts
+    path = Path(os.environ.get("ARENA_DATA", root / Path(facts).parent)) / "facts.json"
+    provenance = {}
+    try:
+        from .dossiers import load_package
+
+        package = load_package()
+        for label, directory in [("base", package.root), ("release", package.release)]:
+            if directory:
+                paths = (
+                    sorted(directory.rglob("*"))
+                    if label == "release"
+                    else [directory / "facts.json", directory / "world.sqlite"]
+                )
+                provenance[label] = {
+                    "path": str(directory),
+                    "files": {
+                        str(p.relative_to(directory)): hashlib.sha256(p.read_bytes()).hexdigest()
+                        for p in paths
+                        if p.is_file()
+                    },
+                }
+    except (OSError, ValueError):
+        provenance["unavailable"] = True
     data = hashlib.sha256(path.read_bytes()).hexdigest()[:12] if path.exists() else None
     keys = ("anchor", "rounds", "close_gap", "final_hold_s", "meso", "p_walk", "claims")
     params = {k: getattr(agent, k) for k in keys if hasattr(agent, k)}
@@ -56,11 +78,16 @@ def run_config(agent, runner="serial-play_case", facts="data/package/facts.json"
         "agent": getattr(agent, "version", type(agent).__name__),
         "params": params,
         "estimates": (
-            "dossiers" if getattr(agent, "_estimates", {}) is None
-            else "injected" if getattr(agent, "_estimates", None) else "off"
+            "dossiers"
+            if getattr(agent, "_estimates", {}) is None
+            else "injected"
+            if getattr(agent, "_estimates", None)
+            else "off"
         ),
         "runner": runner,
         "facts_sha256": data,
+        "data_provenance": provenance,
+        "policy": agent.policy.record() if getattr(agent, "policy", None) else None,
     }
 
 
@@ -87,6 +114,9 @@ def play_case(table, case_id, agent, deadline=None):
     slowest = 0.0
     while live_threads(threads):
         t0 = time.monotonic()
+        if getattr(agent, "trades", None):
+            for sid in live_threads(threads):
+                agent.trades.deadlines[sid] = time.time() + MOVE_LIMIT_S
         cap = deadline() if callable(deadline) else deadline
         if cap and time.time() > cap - max(CLOSE_BEFORE_CAP_S, slowest + ROUND_MARGIN_S):
             log.info("%s: the wave's cap is near - closing", case_id)

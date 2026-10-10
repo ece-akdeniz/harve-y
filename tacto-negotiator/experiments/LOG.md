@@ -322,3 +322,21 @@ Decision:
 - Decision: enter planning phase. `docs/12-measured-improvement-plan.md` specifies P04 first,
   followed by package exploration and targeted fixes, with 24 proposed development sessions
   plus 10 regression sessions and a protected 46-session reserve. No additional quota spent.
+
+## Staged package experiment implementation — 10 October 2026
+
+- Implemented optional versioned policy configs, complete-cost package enumeration at opening
+  and proposed prices, bounded stagnation trades and history-based reconstruction. Defaults
+  preserve the baseline; supplier estimates and generic payment MESOs remain disabled.
+- Claims now tolerate missing/non-numeric notice fields; nineteen public case banks verified.
+  Quality prioritizes historical ppm; renewal prioritizes performance and index evidence.
+- Added no-alternative final-counter opening-improvement proxy behind configuration, limited
+  to a cheaper supplier-proposed package. It is not expected normalized score.
+- Reports distinguish unknown timeouts; incomplete CLI runs exit nonzero. Run traces include
+  resolved policy hash, source revision, actual base and release file hashes and decisions.
+- Local validation: 101 tests pass. Added a sequential manifest runner with a 46-session
+  reserve and stop gates; first release is four P04/P11 screening sessions only.
+- FAQ supplied by user confirms normalized wave means rank, ties use deals then rounds,
+  no deal scores the alternative (zero without one), and every case has a fixed Cbest.
+  Cooperative wording and verified evidence are supported by the FAQ example, not proof
+  that our candidate improves. Jury prize weighting remains unspecified.

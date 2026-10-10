@@ -194,7 +194,7 @@ def aggregate(runs, arms, cases) -> dict:
     out = {}
     for arm in arms:
         mine = [r for r in runs if r["arm"] == arm]
-        per_case, failures, timeouts = {}, [], 0
+        per_case, failures, timeouts, unknown_timeouts = {}, [], 0, 0
         for c in cases:
             scores = []
             for r in mine:
@@ -206,7 +206,10 @@ def aggregate(runs, arms, cases) -> dict:
                 else:
                     failures.append({"case": c, "repeat": r["repeat"], "run_dir": r["run_dir"],
                                      "why": (row or {}).get("error") or f"rc={r['returncode']} no score"})
-                timeouts += (row or {}).get("timeouts") or 0
+                if (row or {}).get("timeouts") is None:
+                    unknown_timeouts += 1
+                else:
+                    timeouts += row["timeouts"]
             per_case[c] = scores
         timeouts += sum(1 for r in mine if r["timed_out"])
         means = {c: statistics.mean(s) for c, s in per_case.items() if s}
@@ -222,6 +225,7 @@ def aggregate(runs, arms, cases) -> dict:
             "min_run": min(allv) if allv else None,
             "failures": failures,
             "timeouts": timeouts,
+            "timeouts_unknown_runs": unknown_timeouts,
             "runs": len(mine),
         }
     return out
@@ -262,7 +266,8 @@ def markdown(meta, agg) -> str:
     for arm, a in (("Baseline", b), ("Candidate", c)):
         lines.append(f"- {arm}: mean {pct(a['mean'])} over {sum(len(s) for s in a['scores'].values())} scored runs,"
                      f" worst case {a['worst_case'] or '-'} {pct(a['worst_case_mean'])}, min run {pct(a['min_run'])},"
-                     f" failures {len(a['failures'])}, timeouts {a['timeouts']}")
+                     f" failures {len(a['failures'])}, known timeouts {a['timeouts']},"
+                     f" unknown {a['timeouts_unknown_runs']}")
     if meta.get("quota"):
         lines.append(f"- Practice quota before/after: {meta['quota']}")
     lines += [f"- Raw: `{meta['out_dir']}/summary.json`", "- Decision: (fill in)", ""]
