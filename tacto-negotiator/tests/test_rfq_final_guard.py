@@ -156,7 +156,8 @@ def test_rfq_lead_trade_offers_42_never_56_and_reverts_when_not_cheaper():
                 if c['case_id'] == 'case:P05')
     a, b = case['suppliers'][:2]
     t35 = {'payment_days': 30, 'lead_time_days': 35}
-    base = [msg('open', ('offer:a-1', {**t35, 'unit_price': 32.0})), ours({**t35, 'unit_price': 31.74, 'payment_days': 90}),
+    base = [msg('open', ('offer:a-1', {**t35, 'unit_price': 32.0})),
+            ours({**t35, 'unit_price': 31.74, 'payment_days': 90}),
             msg('open', ('offer:a-2', {**t35, 'unit_price': 29.0}))]
     threads = {a: base, b: [msg('open', ('offer:b-1', {**t35, 'unit_price': 34.0}))]}
     agent = PackageAgent(policy=PolicyConfig(rfq_undercut_reanchor=True, rfq_lead_trade=True))

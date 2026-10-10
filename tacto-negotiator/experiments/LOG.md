@@ -1103,3 +1103,17 @@ lead time is 28 d; 70240 priced fast lead time as overtime, so slack may be wort
 reply's standing sheet isn't cheaper than the pre-trade sheet by kit C (e.g. 28.50 @42 d costs
 +1,400), we revert to 35 d, so the downside is one counter. Offline: 28.00@42 → keep 42; 28.50@42 or
 28.40@42 → back to 35 d.
+
+## 2026-10-10 — P05 screen 13 result: H lead trade = 75.52 (miss)
+
+Run `0f2d7d5f` / session `c54ee30b0fe13b67`: **.7552**, 70210 28.50/30/**42** (C +1,400 vs F),
+2 timeouts on losing threads only (70240/70250 r3), 117 s. Transcript: same as F through 70210's
+28.50/35 (r2); our re-anchor 26.79/90/42 + PPI claim → 70210 verified the claim and sent a
+**final** 28.50/30/42 ("without movement from your side we cannot move either"), accepted
+(rivals ≥ 33.00; a counter against a final failed the walk-risk test). The revert guard is for open
+replies only, so it never fired. 70210 put no price on lead time (its standard is 28 d), and 70240
+priced 42 d at ≥ 32.50 in screen 5, ~4 EUR above the 28.33 neutral price. **Line dropped** (one miss
+on 70210 plus offline/screen-5 evidence for 70240); no repeat. `rfq_lead_trade` stays opt-in, off.
+
+Verdict: keep `configs/p05-data-claims.json` (F, .7723 ×2). Award choice closed offline.
+Sessions this task: 1 (c54ee30b); 4 of 5 left unused.
