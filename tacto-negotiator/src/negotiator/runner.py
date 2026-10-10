@@ -204,8 +204,8 @@ class CaseRunner:
         session_id = self.journal.session_for(self.case_id)
         # A journal result is only a local record. Reconcile its session with the server
         # before treating it as terminal; older versions wrote results after failed closes.
-        if session_id is None and (done := self.journal.finished(self.case_id)) is not None:
-            return done
+        if session_id is None and self.journal.finished(self.case_id) is not None:
+            return {"status": "unresolved", "session_id": None, "recovery_required": True}
         if session_id is None:
             pend = [p for p in self.journal.pending(case_id=self.case_id) if p["kind"] == "open"]
             payload = {"case_id": self.case_id}
