@@ -1,0 +1,28 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4KBVWX9HERR8N0N4NSBM72H",
+  "strategy": "manual-commit",
+  "branch": "codex/supplier-memory",
+  "checkpoints_count": 5,
+  "files_touched": [
+    "tacto-negotiator/src/negotiator/lab/memory.py",
+    "tacto-negotiator/tests/test_lab_memory.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": ""
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 73317,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 5587898,
+    "output_tokens": 18237,
+    "api_call_count": 41,
+    "subagent_tokens_complete": false
+  }
+}
