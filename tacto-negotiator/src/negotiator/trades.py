@@ -72,6 +72,16 @@ class TradePolicy:
                 ):
                     t = trial
                     break
+        if preference == "longer_tenor" and "contract_months" in t:
+            # Cost-neutral tie-break: the longest tenor whose buyer C is no higher than the selection.
+            base_c = total_cost(case, t, standard, supplier)
+            for months in sorted(options.get("contract_months", []), reverse=True):
+                trial = {**t, "contract_months": months}
+                if months > t["contract_months"] and must_haves_ok(case, trial, standard) and total_cost(
+                    case, trial, standard, supplier
+                ) <= base_c + 1e-6:
+                    t = trial
+                    break
         if preference == "standard_payment" and "payment_days" in t:
             if standard.get("payment_days") in options.get("payment_days", []):
                 t["payment_days"] = standard["payment_days"]
