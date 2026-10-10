@@ -289,3 +289,36 @@ Decision:
   accept an alternative-sheet ID and omit relationship economics. Regression covers inherited
   estimates and explicit overrides including empty dict. Estimates remain opt-in: relationship
   penalties can make total cost non-monotonic in price, so inverse-price assumptions need review.
+
+
+## Remaining hosted coverage and improvement plan — 10 October 2026, 14:40 Berlin
+
+- User requested all untested cases, then planning with P04/Boo as a concrete target.
+  Source frozen at `1a18dc0`; no agent source changes. Async, claims/estimates/MESO off,
+  up to three concurrent cases, shared six-call/second limiter. Five-session budget.
+- P02 `1c87a28d5390f289`: 29.34/100, 53.3s.
+- P04 `ae20ddcf43f86237`: 5.64/100, 47.5s.
+- P08 `7b1457795e1fbbbd`: 15.62/100, 72.3s.
+- P11 `d5371cf52ee9b718`: 31.44/100, 130.8s.
+- P18 `ca5c5a2ee6331b7f`: 38.61/100, 72.8s.
+- All five returned valid deals satisfying must-haves, zero server-reported thread timeouts.
+  Quota 186 -> 181. All ten hosted cases now covered. Nine `hosted:false` cases not opened.
+- Recorded configuration facts hash `7dc162f977c0`; SQLite hash is separately stored in
+  `experiments/coverage-20261010.json` (comparison harness uses SQLite for its data hash).
+  Local complete replays: `experiments/runs/coverage-20261010/`.
+- Human-only public board snapshot at 14:40: Boo leads P04 (81.0), P05 (38.1), P08 (22.7),
+  P11 (40.6). P18 now held by y/agent (38.6), equal to house at displayed precision.
+  Board data is never passed to runtime agents. These are moving benchmarks.
+- Offline claim-bank coverage: four price-increase cases build; fifteen other cases throw
+  `TypeError` because notice generation calls `float(None)` on missing document days.
+  Repair required before enabling evidence on other types; no claim repair implemented yet.
+- P04 replay: repeatedly asks for a lower price on the same 12-month package despite dossier
+  signal that supplier discounts multi-year agreements. At recorded fixed terms,
+  EUR 4.94 / 90 days / 24 months calculates 86.04; this is a target, not an obtained offer.
+- P10 previous replay: final-counter risk uses infinite loss without an external quote,
+  suppressing a cheaper supplier-proposed package. Official finite fallback semantics must
+  be validated before changing this logic. P11's request for faster payment conflicts with
+  its negotiable schema; do not follow it.
+- Decision: enter planning phase. `docs/12-measured-improvement-plan.md` specifies P04 first,
+  followed by package exploration and targeted fixes, with 24 proposed development sessions
+  plus 10 regression sessions and a protected 46-session reserve. No additional quota spent.

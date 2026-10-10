@@ -47,6 +47,8 @@ Hosted timing is measured. Then scale to multiple cases.
 - [09 — Risks](09-risks.md): failure modes and validation.
 - [10 — Implementation checklist](10-implementation-checklist.md): actual scaffold gaps and gates.
 - [11 — Pipeline and win plan](11-pipeline-and-win-plan.md): one-page order, gates and cut list.
+- [12 — Measured improvement plan](12-measured-improvement-plan.md): full hosted coverage, P04 target,
+  reproduced policy gaps and the next bounded experiment sequence.
 
 ## Sources and evidence labels
 
