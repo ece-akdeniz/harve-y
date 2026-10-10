@@ -894,3 +894,42 @@ Accepting a clause early (variants) produced `agreed` at our higher counter inst
 - No hidden scores, c_best or other teams' outcomes in runtime; 16% is not derived from them.
 - Offline: replay on the .4531 thread changes only message 1 (5.12); later counters 5.37/5.43
   and the 5.40 acceptance logic unchanged. Tests pass. Budget: 1 of my 12 sessions.
+
+### Screen R1 result — failed attempt (harness), counts against budget
+
+- Run `636b698f-a57e-462d-a96e-310046e7472f`, session `f2daf3b6c96396d0`, commit `84c915f`.
+  The foreground tool call was interrupted after ~55 s; the runner died with it. Session
+  authoritatively **ended/timeout, no deal, score 0** (owned-session API, saved as
+  `authoritative_thread.json`; local run.json still says running). Not a supplier outcome.
+- Before it died (3 rounds): ours 5.12 / 5.24 / 5.31 no clause; supplier db0 5.60 / 5.50 /
+  **5.30** (db5 5.70/5.60/5.40). Retained run at the same round: 5.60/5.50/5.40. The 5.30 db0
+  standing offer (C ~257.4k) would beat the .4531 deal (C 262.3k) if it held, but it was
+  never accepted; this is a lead, not a score. The supplier again asked for a binding volume.
+- Sessions used by this chat: **1** of 12.
+
+### Coordinator hypotheses — offline checks (0 sessions)
+
+1. Binding volume (P08/P18): **not legal.** `volume_per_year` is in `fixed_terms` (94,800 /
+   23,700); negotiable fields are price, index_clause, payment_days, contract_months only. Kit
+   cost charges `committed = volume_per_year * years` in total (bought, needed or not, no
+   salvage; `covered = min(volume, need)`), so extra volume is a full-price overbuy: +10%
+   volume needs >=9.1% lower price just to break even, versus <2% supplier steps. 36 months
+   adds no cost (years capped at the 2-year horizon) but was tested on P08 and lost. A words-only
+   volume answer is the fixed-scope wording that already lost on P18. Drop; not screened.
+2. Index direction: the scorer uses fixed `index_paths` AS-14404 **+6%** (no public index
+   forecast exists; `fc:` facts are demand forecasts). Public AS-14404: +5.9% y/y
+  : 2025-09 2,839.7 -> 2026-09
+   3,007.8 = +5.9%; but -5.5% from the 2026-06 peak 3,182.7; WB-NI -13% from 2026-05.
+   Our C uses `arena_kit.total_cost`, identical to the scorer: db0 adds 2.7% of new-price spend
+   plus 0.45% index risk (3.15%), db3 1.8%, db5 0.9%, none 0. A clause is correctly a cost;
+   a falling path would make db0 a gain, but the scored path rises, so deadband value is right.
+   Hedge to March 2027: `effective_date` (2027-01-01) and clause `base_month` (2026-08) are
+   fixed in every legal option; no timing lever exists. Hedge wording already tied. Drop.
+- Ranking now: (1) R1 deeper anchor replacement on P18 (only lead with observed movement),
+  (2) same on P08, (3) open-book cost-breakdown question, (4) volume/index/timing: dropped.
+
+### Screen R1b planned — replacement of R1, identical config and commit
+
+- Differs: nothing in policy; replaces the harness-killed R1. Runner is launched detached
+  (`nohup`, own log) so a tool interruption cannot kill it. Why: R1's partial thread is the
+  only observed price below 5.40 db0 on P18. Budget: session 2 of 12.
