@@ -3,7 +3,7 @@
   "checkpoint_id": "01M4KHEW3NTF4PBYTBER60YVVF",
   "strategy": "manual-commit",
   "branch": "codex/p05-advice-screen",
-  "checkpoints_count": 2,
+  "checkpoints_count": 3,
   "files_touched": [
     "tacto-negotiator/experiments/LOG.md",
     "tacto-negotiator/src/negotiator/runner.py",
@@ -23,6 +23,13 @@
       "compact_transcript": "/1/transcript.jsonl",
       "content_hash": "/1/content_hash.txt",
       "prompt": ""
+    },
+    {
+      "metadata": "/2/metadata.json",
+      "transcript": "/2/full.jsonl",
+      "compact_transcript": "/2/transcript.jsonl",
+      "content_hash": "/2/content_hash.txt",
+      "prompt": "/2/prompt.txt"
     }
   ],
   "token_usage": {
