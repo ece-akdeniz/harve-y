@@ -1,129 +1,59 @@
 Yes, do that please. Here if you want to evaluate:
 I’ll check the FAQ before starting the hosted runs. If it clarifies scoring, permitted terms, or final-round behavior, I’ll apply that to the implementation and test setup.
 
-
-
-
 Kontext automatisch komprimiert
-
-
 
 Hat Dateien gelesen, hat einen Befehl ausgeführt
 
-
-
 The FAQ confirms that normalized scores determine the final ranking, and that no deal scores zero when there is no alternative. It also gives concrete evidence that verified arguments and cooperative wording can change supplier concessions. I’ll keep that wording in our evidence policy; the FAQ still doesn’t explain how the jury chooses the prize winners after the top-10 cutoff.
 
-
-
-
 Hat Dateien gelesen, hat Befehle ausgeführt
-
-
 
 The package policy and evidence fixes are implemented. The local suite has passed 101 tests; I’m finishing the experiment safeguards before spending quota. The first four runs will isolate package negotiation from evidence on P04 and P11, and each replay will be checked before the next session starts.
 
-
-
-
 Hat Dateien gelesen, hat Befehle ausgeführt
-
-
 
 P04’s first package-only run scored 86.04, up from 5.64. It secured €4.94 with 90-day payment and a 24-month contract at unchanged annual volume, with no must-have violation and zero reported timeouts. That beats Boo’s earlier 81.0 snapshot; I’ll refresh the benchmark before calling it a current lead. The evidence variant is running now.
 
-
-
-
 Hat Befehle ausgeführt
-
-
 
 The refreshed board has moved: P04’s displayed leader is now 86.0, and P11’s is 62.6. Our first P04 result is competitive at that level, but it is not evidence of an outright lead. I’m keeping those benchmarks outside the agent and using them only to judge the experiments.
 
-
-
-
 Hat Befehle ausgeführt
-
-
 
 P04’s evidence variant also scored 86.04, so evidence added no measured benefit there. The plan therefore favors the simpler package-only policy for confirmation. The implementation is now pushed with Entire checkpoint linkage; P11 screening is next.
 
-
-
-
 Hat Befehle ausgeführt
-
-
 
 P04’s cited delivery score was verified by the hosted supplier, with no contradicted claims. One budget detail: the shared key’s quota dropped by more than our two completed runs, so other sessions are using it too. I’m recording our session IDs separately and rechecking the 46-session reserve before every start.
 
-
-
-
 Hat Befehle ausgeführt
-
-
 
 P11 is still negotiating. Its offers keep payment fixed at 60 days and use only the permitted price, ppm and chargeback fields. The current test offers a 1,500 ppm future commitment with €500 chargeback; the separate evidence run will cite the actual historical defect rate of 2,376 ppm.
 
-
-
-
 Hat Befehle ausgeführt
-
-
 
 The experiment safeguards now have their own regression tests: contradicted claims and unresolved requests stop new starts, and hosted timeout lists are counted correctly. All 104 tests and lint pass. P11 is taking longer than P04 because it is continuing through more supplier replies.
 
-
-
-
 Hat Befehle ausgeführt
-
-
 
 P11’s package-only run finished at 31.44, unchanged from baseline. Relaxing ppm alone did not unlock a discount. The final screening run adds verified quality evidence; if it also fails to improve, the plan calls for local diagnosis before spending on P11 confirmation.
 
-
-
-
 Hat Befehle ausgeführt
-
-
 
 The P11 replay points to a more specific issue: the supplier repeatedly offered lower prices for lower chargebacks, but our policy kept the €500 package. Some alternatives had lower complete cost than the eventual deal. The next decision depends on the evidence run, but chargeback negotiation is now a stronger hypothesis than ppm relaxation alone.
 
-
-
-
 Hat Befehle ausgeführt
-
-
 
 The follow-up fixes are committed, and 105 tests pass. P04’s screening result is clear; P11’s evidence run is still open. I’m holding the next practice batch until that result and its claim checks are complete.
 
-
-
-
 Hat Befehle ausgeführt
-
-
 
 The evidence run exposed a policy flaw: after stagnation, it spent switches tightening ppm before trying a lower chargeback. I’ve corrected that locally and added a regression test. The running experiment still uses its original frozen source, so its result remains comparable.
 
-
-
-
 Hat Befehle ausgeführt
 
-
-
 Screening is complete: P04 reached 86.04; P11 improved from 31.44 to 39.80 with verified evidence. All four runs produced valid deals, zero timeouts, and no contradicted claims. Both cases passed the improvement gate, so I’ve started the four confirmation sessions using the same frozen candidate source.
-
-
-
 
 uv run --locked python - <<'PY'
 import json
