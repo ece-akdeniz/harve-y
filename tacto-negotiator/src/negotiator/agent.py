@@ -14,6 +14,7 @@ from arena_kit.cost import closing_terms, complete_offer, must_haves_ok, total_c
 from arena_kit.docs import standard_terms
 from arena_kit.play import latest, live_threads, moves_left
 
+from . import value_swap
 from .evaluator import (
     best_close,
     close_decision,
@@ -155,6 +156,7 @@ class PackageAgent:
         self.final_counters = {}  # supplier -> counters sent to its final offers (at most one)
         self.beat_asked = {}  # rival supplier -> final-offer sheet id we asked it to beat
         self.reanchored = set()  # rfq suppliers re-anchored after undercutting our own ask
+        self.value_swapped = set()  # suppliers offered the value-equivalent chargeback swap (once)
         self.final_seen = {}  # final-offer sheet id -> monotonic time first seen
         if estimates is None and os.environ.get("NEGOTIATOR_ESTIMATES") != "1":
             estimates = {}  # dossier estimates are opt-in until calibrated (docs: experiments/LOG.md)
@@ -944,6 +946,23 @@ class PackageAgent:
             self._log(case, "revealed", sid, deltas=deltas)
 
         ref_c = cands[0][0]
+        if (
+            self.policy
+            and case["type"] in self.policy.value_swap_types
+            and cap_c is None
+            and sid not in self.value_swapped
+            and eligible
+            and latest(events).get("status") == "open"
+            and moves_left(case, events) > 1
+            and value_swap.holds(case, events, sup) >= self.policy.value_swap_holds
+        ):
+            self.value_swapped.add(sid)
+            standing_terms = eligible_sheets(case, events, sup)[0][2]
+            swapped, trace = value_swap.swap(case, events, standing_terms, std, sup)
+            self._log(case, "value_swap", sid, **trace)
+            if swapped:
+                return self._offer(case, sid, complete_offer(case, swapped), std, sup, c_alt,
+                                   "value-equivalent chargeback swap")
         n = self._nonprice(case, sid, events, std, sup, cands, eligible)
         p = self._ask_on(case, n, cands, std, sup)
         first = next((i for i, m in enumerate(events) if m.get("from") != "buyer" and m.get("term_sheets")), None)
