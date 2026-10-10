@@ -6,16 +6,4 @@
 - README.md: tacto-negotiator/docs/README.md
 
 ## My request:
-Take a look at the negotiation strtegy we are using. I am thinking about looking at state of the art negotiation technique knowledge through a agents.md file. Can you let me know if this is feasible
-
----
-
-# Context from my IDE setup:
-
-## Active file: tacto-negotiator/docs/README.md
-
-## Open tabs:
-- README.md: tacto-negotiator/docs/README.md
-
-## My request:
-Make sure this is actualy used by the agent that the tacto arena launches.
+I want you to push this changes. however we have currently changes in negotiation as well as evidence. push these in seperate commits. Also make sure the entire hooks run. push them in seperate branches
