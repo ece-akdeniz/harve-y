@@ -325,3 +325,17 @@ def test_history_does_not_prevent_ongoing_writer_from_finishing(tmp_path):
     assert store.upsert(Run.model_validate(tracked))
     assert store.get("tracked-run")["attempts"][0]["result"]["reconciled_result"]["score"] == 0.75
     assert store.listing()["runs"][0]["metrics"]["mean_score"] == 0.75
+
+
+def test_score_history_requires_login_and_returns_compact_points(dashboard):
+    client, store = dashboard
+    body = snapshot(score=.75, status='completed')
+    body['attempts'][0]['result'] = {'supplier_id': 'sup:A', 'ended': True}
+    store.upsert(Run.model_validate(body))
+    assert client.get('/api/score-history').status_code == 401
+    client.post('/api/login', json={'password': 'test-password'})
+    response = client.get('/api/score-history')
+    assert response.status_code == 200
+    point = response.json()['points'][0]
+    assert point['score'] == .75 and point['supplier_id'] == 'sup:A'
+    assert 'threads' not in point and 'config' not in point

@@ -1,7 +1,7 @@
 "use strict";
 
 const $ = (id) => document.getElementById(id);
-const state = { runs: [], loggedIn: false, refreshPromise: null, detail: null, detailRequest: 0, comparison: null };
+const state = { runs: [], loggedIn: false, refreshPromise: null, detail: null, detailRequest: 0, comparison: null, table: { page: 1, pageSize: 25, sortKey: "updated_at", direction: "desc" } };
 const number = new Intl.NumberFormat(undefined, { maximumFractionDigits: 1 });
 const euro = new Intl.NumberFormat(undefined, { style: "currency", currency: "EUR", maximumFractionDigits: 2 });
 const score = (value) => typeof value === "number" && Number.isFinite(value) ? number.format(value * 100) : "—";
@@ -64,6 +64,8 @@ async function api(path, options = {}) {
 
 function showLogin() {
   globalThis.LoopDashboard?.reset();
+  globalThis.ScoreHistory?.reset();
+  state.table.page = 1;
   state.loggedIn = false;
   state.runs = [];
   state.detail = null;
@@ -84,18 +86,20 @@ function showWorkspace() {
 }
 
 function switchView(view) {
-  const comparing = view === "compare";
-  $("runs-view").hidden = comparing;
-  $("compare-view").hidden = !comparing;
-  $("nav-runs").classList.toggle("active", !comparing);
-  $("nav-compare").classList.toggle("active", comparing);
-  $("nav-runs").setAttribute("aria-current", comparing ? "false" : "page");
-  $("nav-compare").setAttribute("aria-current", comparing ? "page" : "false");
-  $("breadcrumb").textContent = comparing ? "Compare runs" : "Experiments";
-  $("page-title").replaceChildren(document.createTextNode(comparing ? "Find the difference" : "Experiment lab"), element("span", ".", "title-dot"));
-  $("page-description").textContent = comparing
-    ? "Understand where a change helped, and where it didn't."
-    : "Small changes. Clear comparisons. Better negotiations.";
+  for (const name of ["runs", "compare", "history"]) {
+    $(name + "-view").hidden = name !== view;
+    $("nav-" + name).classList.toggle("active", name === view);
+    $("nav-" + name).setAttribute("aria-current", name === view ? "page" : "false");
+  }
+  $("loop-view").hidden = view !== "runs";
+  const titles = {runs: ["Experiments", "Experiment lab", "Small changes. Clear comparisons. Better negotiations."],
+    compare: ["Compare runs", "Find the difference", "Understand where a change helped, and where it didn't."],
+    history: ["Score history", "Progress over time", "Follow each supplier and case, from the first attempt to the latest."]};
+  const [crumb, title, description] = titles[view];
+  $("breadcrumb").textContent = crumb;
+  $("page-title").replaceChildren(document.createTextNode(title), element("span", ".", "title-dot"));
+  $("page-description").textContent = description;
+  if (view === "history") globalThis.ScoreHistory?.refresh();
 }
 
 function updateOptions(id, entries, placeholder) {
@@ -127,14 +131,49 @@ function renderSummary(payload) {
   updateOptions("candidate-select", options, "Choose a candidate…");
 }
 
+const runColumns = ["name", "author", "environment", "score", "attempts", "status", "updated_at"];
+function experimentPage(rows, options = {}) {
+  const {query = "", author = "", environment = "", status = "", sortKey = "updated_at", direction = "desc"} = options;
+  const search = query.trim().toLowerCase();
+  const runs = rows.filter(r =>
+    (!search || [r.name, r.hypothesis, r.agent, r.author, r.run_id].join(" ").toLowerCase().includes(search)) &&
+    (!author || (r.author || "Unknown") === author) && (!environment || r.environment === environment) &&
+    (!status || r.status === status));
+  const collator = new Intl.Collator(undefined, {numeric: true, sensitivity: "base"});
+  const value = r => {
+    if (sortKey === "score") return r.metrics?.mean_score ?? r.metrics?.observed_mean ?? null;
+    if (sortKey === "attempts") return r.metrics?.completed ?? null;
+    if (sortKey === "updated_at") { const time = Date.parse(r.updated_at); return Number.isFinite(time) ? time : null; }
+    return r[sortKey] ?? null;
+  };
+  runs.sort((a, b) => {
+    const x = value(a), y = value(b);
+    if (x == null && y != null) return 1;
+    if (y == null && x != null) return -1;
+    const cmp = x == null ? 0 : typeof x === "number" && typeof y === "number" ? x - y : collator.compare(String(x), String(y));
+    return cmp * (direction === "asc" ? 1 : -1) || collator.compare(a.run_id, b.run_id);
+  });
+  const pageSize = Math.max(1, Math.floor(Number(options.pageSize) || 25));
+  const pages = Math.max(1, Math.ceil(runs.length / pageSize));
+  const page = Math.max(1, Math.min(pages, Math.floor(Number(options.page) || 1)));
+  return {rows: runs.slice((page - 1) * pageSize, page * pageSize), total: runs.length, page, pages, pageSize};
+}
+
 function renderRuns() {
-  const query = $("search").value.trim().toLowerCase();
-  const runs = state.runs.filter((r) =>
-    (!query || [r.name, r.hypothesis, r.agent, r.author, r.run_id].join(" ").toLowerCase().includes(query)) &&
-    (!$("filter-author").value || (r.author || "Unknown") === $("filter-author").value) &&
-    (!$("filter-environment").value || r.environment === $("filter-environment").value) &&
-    (!$("filter-status").value || r.status === $("filter-status").value));
-  $("run-count").textContent = runs.length;
+  const result = experimentPage(state.runs, {...state.table, query: $("search").value,
+    author: $("filter-author").value, environment: $("filter-environment").value, status: $("filter-status").value});
+  state.table.page = result.page;
+  const runs = result.rows;
+  $("page-range").textContent = result.total ? `${(result.page - 1) * result.pageSize + 1}–${Math.min(result.page * result.pageSize, result.total)} of ${result.total} experiments` : "0 experiments";
+  $("page-position").textContent = `Page ${result.page} of ${result.pages}`;
+  $("page-prev").disabled = result.page === 1;
+  $("page-next").disabled = result.page === result.pages;
+  for (const key of runColumns) {
+    const active = state.table.sortKey === key;
+    $("sort-" + key).parentElement.setAttribute("aria-sort", active ? (state.table.direction === "asc" ? "ascending" : "descending") : "none");
+    $("sort-" + key).querySelector(".sort-indicator").textContent = active ? (state.table.direction === "asc" ? "↑" : "↓") : "↕";
+  }
+  $("run-count").textContent = result.total;
   $("runs-body").replaceChildren();
   $("empty-state").hidden = state.runs.length > 0;
   $("no-matches").hidden = state.runs.length === 0 || runs.length > 0;
@@ -192,6 +231,7 @@ async function refreshWorkspace({ afterLogin }) {
     }
     if (changed && state.comparison && !$("compare-view").hidden) await compare();
     await globalThis.LoopDashboard?.refresh();
+    await globalThis.ScoreHistory?.refresh();
   } catch (error) {
     if (afterLogin) {
       if (error.status === 401) throw new Error("The password was accepted, but the session cookie was not received. Open the public HTTPS link directly and allow cookies for this site, then sign in again.");
@@ -531,9 +571,17 @@ $("logout").addEventListener("click", logout);
 $("logout-mobile").addEventListener("click", logout);
 $("nav-runs").addEventListener("click", () => switchView("runs"));
 $("nav-compare").addEventListener("click", () => switchView("compare"));
+$("nav-history").addEventListener("click", () => switchView("history"));
 $("refresh").addEventListener("click", refresh);
 $("compare-button").addEventListener("click", compare);
-for (const id of ["search", "filter-author", "filter-environment", "filter-status"]) $(id).addEventListener("input", renderRuns);
+for (const id of ["search", "filter-author", "filter-environment", "filter-status"]) $(id).addEventListener("input", () => { state.table.page = 1; renderRuns(); });
+$("page-prev").addEventListener("click", () => { state.table.page--; renderRuns(); });
+$("page-next").addEventListener("click", () => { state.table.page++; renderRuns(); });
+$("page-size").addEventListener("change", () => { state.table.pageSize = Number($("page-size").value); state.table.page = 1; renderRuns(); });
+for (const key of runColumns) $("sort-" + key).addEventListener("click", () => {
+  state.table.direction = state.table.sortKey === key ? (state.table.direction === "asc" ? "desc" : "asc") : (["score", "attempts", "updated_at"].includes(key) ? "desc" : "asc");
+  state.table.sortKey = key; state.table.page = 1; renderRuns();
+});
 for (const id of ["baseline-select", "candidate-select"]) $(id).addEventListener("change", () => {
   $("comparison").hidden = true; $("comparison-empty").hidden = false; state.comparison = null;
 });
@@ -542,4 +590,5 @@ $("detail-dialog").addEventListener("close", () => { state.detail = null; state.
 setInterval(() => { if (state.loggedIn && !document.hidden) refresh(); }, 5000);
 document.addEventListener("visibilitychange", () => { if (!document.hidden && state.loggedIn) refresh(); });
 globalThis.LoopDashboard?.init();
+globalThis.ScoreHistory?.init();
 refresh();

@@ -130,3 +130,31 @@ test('an in-flight background refresh cannot reopen a dismissed report', async (
 
 // Loop presentation tests share this entry point; DOM smoke is opt-in via LAB_UI_DOM_MODULE.
 require('./test_lab_loop_ui.cjs');
+
+test('experiment sorting spans pages, sorts scores numerically and keeps unknowns last', () => {
+  const {context} = page(async () => {});
+  context.rows = [
+    {run_id:'missing', name:'Unknown', metrics:{}},
+    {run_id:'low', name:'Run 10', metrics:{mean_score:0}},
+    {run_id:'high', name:'Run 2', metrics:{mean_score:.9}},
+    {run_id:'partial', name:'Run 3', metrics:{mean_score:null,observed_mean:.12}},
+  ];
+  assert.equal(vm.runInContext('typeof experimentPage',context),'function');
+  const result = vm.runInContext('experimentPage(rows, {page:2, pageSize:2, sortKey:"score", direction:"desc"})',context);
+  assert.deepEqual(Array.from(result.rows,r=>r.run_id),['low','missing']);
+  assert.equal(result.total,4);
+  assert.deepEqual(Array.from(vm.runInContext('experimentPage(rows,{pageSize:10,sortKey:"score",direction:"asc"}).rows',context),r=>r.run_id),['low','partial','high','missing']);
+  assert.deepEqual(Array.from(vm.runInContext('experimentPage(rows,{pageSize:10,sortKey:"name",direction:"asc"}).rows',context),r=>r.run_id),['high','partial','low','missing']);
+});
+
+test('filtering precedes pagination and invalid pages clamp without mutating incoming data', () => {
+  const {context} = page(async () => {});
+  context.rows = Array.from({length:60},(_,i)=>({run_id:String(i),name:'Test '+i,author:i%2?'Baris':'Other',environment:'sandbox',status:'completed',updated_at:`2026-10-10T12:00:${String(i).padStart(2,'0')}Z`,metrics:{completed:i,planned:60}}));
+  assert.equal(vm.runInContext('typeof experimentPage',context),'function');
+  const result = vm.runInContext('experimentPage(rows,{page:9,pageSize:25,author:"Baris",sortKey:"updated_at",direction:"desc"})',context);
+  assert.equal(result.page,2); assert.equal(result.total,30); assert.equal(result.pages,2);
+  assert.deepEqual(Array.from(result.rows,r=>r.run_id),['9','7','5','3','1']);
+  assert.equal(context.rows[0].run_id,'0');
+  const empty = vm.runInContext('experimentPage(rows,{query:"absent",page:8})',context);
+  assert.equal(empty.page,1); assert.equal(empty.rows.length,0); assert.equal(empty.total,0);
+});

@@ -592,3 +592,33 @@ it is not hosted performance evidence or a proposed production strategy change.
   from a second clone. No arena cases, hosted sessions or quota consumed; no performance score claimed.
 - Decision: use the corrected source for the initial shared baseline; seeding identifies a starting
   checkpoint and does not imply measured promotion or improved negotiation performance.
+
+## 2026-10-10 — MEASURED SANDBOX: Baris Test
+
+- Scope/hypothesis: user-authorized single D01 smoke test of the shared recommended baseline;
+  no candidate change or comparative performance claim. Budget: one sandbox session, no practice run.
+- Run: `95dca638-82b5-4f07-b88c-1bb15c3813ce`; arena session `0f0ad2bb6dd309b5`.
+- Checkpoint: `e1d931e4fcce49fb8fd341c40052953a`; clean verified source
+  `f325fcb12c09ef2590cd9496a90dddd73e714648`, locked dependencies, serial package agent.
+- Config: anchor=0.12, rounds=5, close_gap=0.005, final_hold_s=40, p_walk=0.25,
+  meso=false, claims=false, estimates={}. Original manifest retains lock/data hashes.
+- Result: ended deal, 91.9231/100, must-haves satisfied, zero reported timeouts,
+  seven recorded moves, approximately five seconds negotiation time.
+- Setup issue: the first preflight rejected the restore metadata as untracked; no session opened.
+  Temporarily moved only that metadata into ignored storage, then restored it after execution.
+- Decision: retain the recommendation; this single sandbox observation is not evidence of an
+  improvement. Tracked result and original supplier messages are saved in the lab.
+
+
+## 2026-10-10 — Lab browsing: score history, pagination and ordering
+
+- Hypothesis: chronological supplier/case evidence and consistent list ordering make prior
+  results easier to inspect; this is a lab UX change, not a negotiator strategy experiment.
+- Change: authenticated compact history projection, selected-supplier charts and filters,
+  session deduplication, explicit recovered/missing outcomes, and sortable paginated experiments.
+- Configuration/cases/quota: existing recorded/imported results only; no new arena sessions.
+- Verification: regression coverage for numeric sorting across pages, filter/page refresh behavior,
+  zero versus missing scores, supplier attribution, campaign/import duplicates and recovery shapes;
+  actual DOM checks cover navigation, chart drill-down, escaping and late response cleanup.
+- Review fixes: normalized recovered campaign scores and ordered same-time repetitions numerically.
+  No performance gain claimed and no change to the shared recommended checkpoint.

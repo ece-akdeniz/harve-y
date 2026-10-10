@@ -257,6 +257,6 @@ globalThis.LoopDashboard = (() => {
     });
   }
   return {
-    points,restoreCommand,diffCommand,campaignView,renderOverview,renderCampaign,refresh,reset,init
+    points,restoreCommand,diffCommand,campaignView,renderOverview,renderCampaign,refresh,reset,init,openCampaign
   };
 })();

@@ -201,3 +201,24 @@ before making requests, so it cannot silently fall back to hosted practice.
 See [Agent experiment loop](13-agent-experiment-loop.md) for immutable checkpoints, explicit
 recommendations and bounded paired campaigns. These records appear below historical experiments;
 the read-only dashboard copies restore/evidence commands for execution on a teammate laptop.
+
+## Browse experiments and score history
+
+The experiments table defaults to 25 rows per page, with 50 and 100 available. Click any
+column heading to sort and click it again to reverse the order. Filtering and sorting apply
+before pagination. Score ordering uses the displayed mean (including labeled partial means),
+with missing scores last; Attempts orders by completed count. Live refresh keeps the current
+page and ordering, while changing a filter or sort starts at page one.
+
+Open **Score history** in the sidebar for timelines by selected supplier and case. Filter by
+supplier, case, environment or local calendar date. Each arena/environment/case/supplier series
+has its own chart and latest, best, first-to-latest change and scored/total attempt counts.
+Click a point or an attempt name to inspect its experiment or campaign evidence.
+
+The chart shows case outcome scores, not per-supplier thread scores. No-selection outcomes stay
+in their own series; missing outcomes are not plotted as zero. Hollow points explicitly mark
+recovered evidence and do not change the original run status or promotion eligibility. Imported
+history has unknown source versions; dirty tracked versions show `+ changes`. Session IDs are
+deduplicated across imports and campaigns. Dates use recorded run/session starts, or campaign
+attempt starts where available; multiple repetitions of a tracked run can share a timestamp.
+The history endpoint is an authenticated read-only `GET /api/score-history` and consumes no arena quota.

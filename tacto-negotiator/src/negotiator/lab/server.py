@@ -15,6 +15,7 @@ from pydantic import ValidationError
 
 from .loop_store import LoopStore
 from .models import MAX_PAYLOAD, Run
+from .score_history import score_history
 from .store import Conflict, Store
 
 COOKIE = "lab_session"
@@ -238,6 +239,12 @@ class Handler(BaseHTTPRequestHandler):
                     self._error(404, "loop resource not found")
                 else:
                     self._json(200, body)
+            elif path == "/api/score-history":
+                loop = self.server.loop_store
+                self._json(200, score_history(
+                    self.server.store.all(), campaigns=loop.read("campaigns")["campaigns"],
+                    suites=loop.read("suites")["suites"], checkpoints=loop.read("checkpoints")["checkpoints"],
+                ))
             elif path == "/api/runs":
                 self._json(200, self.server.store.listing())
             elif path.startswith("/api/runs/"):
@@ -255,6 +262,7 @@ class Handler(BaseHTTPRequestHandler):
             "/index.html": ("index.html", "text/html"),
             "/app.js": ("app.js", "application/javascript"),
             "/loop.js": ("loop.js", "application/javascript"),
+            "/history.js": ("history.js", "application/javascript"),
             "/app.css": ("app.css", "text/css"),
             "/static/app.js": ("app.js", "application/javascript"),
             "/static/app.css": ("app.css", "text/css"),
