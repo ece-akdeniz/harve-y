@@ -89,3 +89,56 @@ No hosted session is authorized by this document. After local review, one separa
 experiment should change one policy group and specify the decision expected to differ. Inspect
 that complete replay before releasing another session. Use the shared lab workflow and current
 recommendation for any campaign; do not relabel historical imports as verified campaign outcomes.
+
+## Full local dialogues and fault injection
+
+`tools/local_simulation.py` runs the real async coordinator and PackageAgent against the
+kit's in-memory supplier simulator, with socket connections blocked. Both arms have identical
+package configuration; only `response_types`, `free_concessions`, and `rfq_close_guard` differ.
+This comparator is not the historical hosted baseline commit or a claims-enabled production policy.
+
+The three normal cases (S01 price increase, S02 RFQ, S03 renewal) finish at identical scores
+in both arms: 82.90, 72.78 and 88.56 on a 0–100 display scale. Three S02 fault scenarios
+(lost reply, injected stale close, compressed wave deadline) also finish validly for both arms.
+All twelve scenario/arm combinations complete with must-haves satisfied, no thread timeouts,
+no duplicate session opens and no unresolved journal requests.
+
+The compressed wave scenario naturally produces one stale-close 422 in each arm while a reply
+is in flight. The coordinator refreshes and accepts the current offer before the cap. The first
+harness run marked this as failure because it required zero request rejections; the reviewed
+check explicitly allows at most one recovered close-only 422 for that scenario and separately
+reports `strict_zero_rejections: false`. No production policy or recovery code was changed.
+Both the original and reviewed reports are retained locally. These repeats are diagnostic,
+not independent statistical samples.
+
+The kit supplier uses a fixed price script and ignores the economics of payment, liability
+and clauses. Its cases omit quality/raw-material negotiation and its benchmark permits free
+non-price terms. Therefore these scores cannot rank policies for hosted P02/P08/P11 or establish
+persuasion benefits. Synthetic refusal trajectories complement, rather than validate, that model.
+
+```sh
+ARENA_DATA=/absolute/public/package uv run --locked python tools/local_simulation.py \
+  --output-dir experiments/runs/local-sim-UNIQUE
+```
+
+Use a fresh output directory; the harness refuses to overwrite a dialogue's evidence.
+
+### Stateful synthetic refusal checks
+
+`tests/test_response_trajectories.py` contains five complete bounded decision trajectories:
+three payment discounts around complete-cost break-even, and two liability-package branches
+(retained versus withdrawn). Only the starting prefix is historical; each subsequent supplier
+reply is generated from the actual proposal using explicitly synthetic package-price floors.
+The agent is reconstructed from history at every decision. Tests block socket connections.
+
+All five preserve permitted fields, fixed P11 payment, bounded package switches and fresh
+standing-offer acceptance. They expose strategic weaknesses despite those safety passes:
+P02 continues with a very aggressive scheduled price after refusal; P11 may explore an
+unpriced zero-chargeback package after the previous alternative is withdrawn. This is not
+proof those moves fail on hosted suppliers, but does show that the response patch alone
+is insufficient to establish a good adaptive bargaining policy.
+
+Next local hypotheses: make repeated refusals alter the proposed concession; distinguish a
+rejected price from an unavailable package; track whether another trade would add information
+before spending a move. Test these against both flexible and stubborn synthetic opponents.
+Do not tune exclusively to a synthetic supplier's invented floor or report these as arena gains.

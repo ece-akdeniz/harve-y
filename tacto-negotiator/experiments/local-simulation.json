@@ -1,0 +1,611 @@
+{
+  "source_revision": "2eb083cfb4b8463699101f36ac7d819136a54e11",
+  "hosted_sessions": 0,
+  "model_calls": 0,
+  "network_connections": "blocked during dialogues",
+  "interpretation": "Full dialogues against fixed-price kit suppliers, not hosted score predictions.",
+  "baseline": "Same package configuration with the three response experiment flags disabled.",
+  "passed": true,
+  "rows": [
+    {
+      "case": "case:S01",
+      "scenario": "normal",
+      "policy": {
+        "config": {
+          "version": 1,
+          "package_types": [
+            "quality",
+            "raw_material",
+            "renewal",
+            "rfq"
+          ],
+          "evidence_types": [],
+          "final_offer_risk": "legacy",
+          "preference": "default",
+          "chargeback_steps": 1,
+          "preferences": {
+            "rfq": "standard_payment"
+          },
+          "response_types": [],
+          "free_concessions": false,
+          "rfq_close_guard": false
+        },
+        "sha256": "27ef318efd435a74669b82b6274ecf61b4c03f3fe6d26fc8bd3fb66c9dc0b7d7"
+      },
+      "result": {
+        "deal": true,
+        "score": 0.8290207284578679,
+        "must_haves_ok": true,
+        "thread_timeouts": {
+          "sup:70270": 0
+        }
+      },
+      "local_opens": 1,
+      "invalid_proposals": [],
+      "failed_requests": [],
+      "strict_zero_rejections": true,
+      "before_wave_deadline": null,
+      "unresolved_requests": 0,
+      "rounds": {
+        "sup:70270": 5
+      },
+      "passed": true,
+      "arm": "baseline"
+    },
+    {
+      "case": "case:S01",
+      "scenario": "normal",
+      "policy": {
+        "config": {
+          "version": 1,
+          "package_types": [
+            "quality",
+            "raw_material",
+            "renewal",
+            "rfq"
+          ],
+          "evidence_types": [],
+          "final_offer_risk": "legacy",
+          "preference": "default",
+          "chargeback_steps": 1,
+          "preferences": {
+            "rfq": "standard_payment"
+          },
+          "response_types": [
+            "price_increase",
+            "quality",
+            "raw_material"
+          ],
+          "free_concessions": true,
+          "rfq_close_guard": true
+        },
+        "sha256": "6ee14b08978ae415c7aa88723446051e964bd59b2962ad3b5acd771879cfcd36"
+      },
+      "result": {
+        "deal": true,
+        "score": 0.8290207284578679,
+        "must_haves_ok": true,
+        "thread_timeouts": {
+          "sup:70270": 0
+        }
+      },
+      "local_opens": 1,
+      "invalid_proposals": [],
+      "failed_requests": [],
+      "strict_zero_rejections": true,
+      "before_wave_deadline": null,
+      "unresolved_requests": 0,
+      "rounds": {
+        "sup:70270": 5
+      },
+      "passed": true,
+      "arm": "candidate"
+    },
+    {
+      "case": "case:S02",
+      "scenario": "normal",
+      "policy": {
+        "config": {
+          "version": 1,
+          "package_types": [
+            "quality",
+            "raw_material",
+            "renewal",
+            "rfq"
+          ],
+          "evidence_types": [],
+          "final_offer_risk": "legacy",
+          "preference": "default",
+          "chargeback_steps": 1,
+          "preferences": {
+            "rfq": "standard_payment"
+          },
+          "response_types": [],
+          "free_concessions": false,
+          "rfq_close_guard": false
+        },
+        "sha256": "27ef318efd435a74669b82b6274ecf61b4c03f3fe6d26fc8bd3fb66c9dc0b7d7"
+      },
+      "result": {
+        "deal": true,
+        "score": 0.7277772741184373,
+        "must_haves_ok": true,
+        "thread_timeouts": {
+          "sup:70340": 0,
+          "sup:70360": 0
+        }
+      },
+      "local_opens": 1,
+      "invalid_proposals": [],
+      "failed_requests": [],
+      "strict_zero_rejections": true,
+      "before_wave_deadline": null,
+      "unresolved_requests": 0,
+      "rounds": {
+        "sup:70340": 5,
+        "sup:70360": 4
+      },
+      "passed": true,
+      "arm": "baseline"
+    },
+    {
+      "case": "case:S02",
+      "scenario": "normal",
+      "policy": {
+        "config": {
+          "version": 1,
+          "package_types": [
+            "quality",
+            "raw_material",
+            "renewal",
+            "rfq"
+          ],
+          "evidence_types": [],
+          "final_offer_risk": "legacy",
+          "preference": "default",
+          "chargeback_steps": 1,
+          "preferences": {
+            "rfq": "standard_payment"
+          },
+          "response_types": [
+            "price_increase",
+            "quality",
+            "raw_material"
+          ],
+          "free_concessions": true,
+          "rfq_close_guard": true
+        },
+        "sha256": "6ee14b08978ae415c7aa88723446051e964bd59b2962ad3b5acd771879cfcd36"
+      },
+      "result": {
+        "deal": true,
+        "score": 0.7277772741184373,
+        "must_haves_ok": true,
+        "thread_timeouts": {
+          "sup:70340": 0,
+          "sup:70360": 0
+        }
+      },
+      "local_opens": 1,
+      "invalid_proposals": [],
+      "failed_requests": [],
+      "strict_zero_rejections": true,
+      "before_wave_deadline": null,
+      "unresolved_requests": 0,
+      "rounds": {
+        "sup:70340": 5,
+        "sup:70360": 4
+      },
+      "passed": true,
+      "arm": "candidate"
+    },
+    {
+      "case": "case:S03",
+      "scenario": "normal",
+      "policy": {
+        "config": {
+          "version": 1,
+          "package_types": [
+            "quality",
+            "raw_material",
+            "renewal",
+            "rfq"
+          ],
+          "evidence_types": [],
+          "final_offer_risk": "legacy",
+          "preference": "default",
+          "chargeback_steps": 1,
+          "preferences": {
+            "rfq": "standard_payment"
+          },
+          "response_types": [],
+          "free_concessions": false,
+          "rfq_close_guard": false
+        },
+        "sha256": "27ef318efd435a74669b82b6274ecf61b4c03f3fe6d26fc8bd3fb66c9dc0b7d7"
+      },
+      "result": {
+        "deal": true,
+        "score": 0.8855758158578935,
+        "must_haves_ok": true,
+        "thread_timeouts": {
+          "sup:70520": 0
+        }
+      },
+      "local_opens": 1,
+      "invalid_proposals": [],
+      "failed_requests": [],
+      "strict_zero_rejections": true,
+      "before_wave_deadline": null,
+      "unresolved_requests": 0,
+      "rounds": {
+        "sup:70520": 5
+      },
+      "passed": true,
+      "arm": "baseline"
+    },
+    {
+      "case": "case:S03",
+      "scenario": "normal",
+      "policy": {
+        "config": {
+          "version": 1,
+          "package_types": [
+            "quality",
+            "raw_material",
+            "renewal",
+            "rfq"
+          ],
+          "evidence_types": [],
+          "final_offer_risk": "legacy",
+          "preference": "default",
+          "chargeback_steps": 1,
+          "preferences": {
+            "rfq": "standard_payment"
+          },
+          "response_types": [
+            "price_increase",
+            "quality",
+            "raw_material"
+          ],
+          "free_concessions": true,
+          "rfq_close_guard": true
+        },
+        "sha256": "6ee14b08978ae415c7aa88723446051e964bd59b2962ad3b5acd771879cfcd36"
+      },
+      "result": {
+        "deal": true,
+        "score": 0.8855758158578935,
+        "must_haves_ok": true,
+        "thread_timeouts": {
+          "sup:70520": 0
+        }
+      },
+      "local_opens": 1,
+      "invalid_proposals": [],
+      "failed_requests": [],
+      "strict_zero_rejections": true,
+      "before_wave_deadline": null,
+      "unresolved_requests": 0,
+      "rounds": {
+        "sup:70520": 5
+      },
+      "passed": true,
+      "arm": "candidate"
+    },
+    {
+      "case": "case:S02",
+      "scenario": "lost_reply",
+      "policy": {
+        "config": {
+          "version": 1,
+          "package_types": [
+            "quality",
+            "raw_material",
+            "renewal",
+            "rfq"
+          ],
+          "evidence_types": [],
+          "final_offer_risk": "legacy",
+          "preference": "default",
+          "chargeback_steps": 1,
+          "preferences": {
+            "rfq": "standard_payment"
+          },
+          "response_types": [],
+          "free_concessions": false,
+          "rfq_close_guard": false
+        },
+        "sha256": "27ef318efd435a74669b82b6274ecf61b4c03f3fe6d26fc8bd3fb66c9dc0b7d7"
+      },
+      "result": {
+        "deal": true,
+        "score": 0.7277772741184373,
+        "must_haves_ok": true,
+        "thread_timeouts": {
+          "sup:70340": 0,
+          "sup:70360": 0
+        }
+      },
+      "local_opens": 1,
+      "invalid_proposals": [],
+      "failed_requests": [],
+      "strict_zero_rejections": true,
+      "before_wave_deadline": null,
+      "unresolved_requests": 0,
+      "rounds": {
+        "sup:70340": 5,
+        "sup:70360": 4
+      },
+      "passed": true,
+      "arm": "baseline"
+    },
+    {
+      "case": "case:S02",
+      "scenario": "lost_reply",
+      "policy": {
+        "config": {
+          "version": 1,
+          "package_types": [
+            "quality",
+            "raw_material",
+            "renewal",
+            "rfq"
+          ],
+          "evidence_types": [],
+          "final_offer_risk": "legacy",
+          "preference": "default",
+          "chargeback_steps": 1,
+          "preferences": {
+            "rfq": "standard_payment"
+          },
+          "response_types": [
+            "price_increase",
+            "quality",
+            "raw_material"
+          ],
+          "free_concessions": true,
+          "rfq_close_guard": true
+        },
+        "sha256": "6ee14b08978ae415c7aa88723446051e964bd59b2962ad3b5acd771879cfcd36"
+      },
+      "result": {
+        "deal": true,
+        "score": 0.7277772741184373,
+        "must_haves_ok": true,
+        "thread_timeouts": {
+          "sup:70340": 0,
+          "sup:70360": 0
+        }
+      },
+      "local_opens": 1,
+      "invalid_proposals": [],
+      "failed_requests": [],
+      "strict_zero_rejections": true,
+      "before_wave_deadline": null,
+      "unresolved_requests": 0,
+      "rounds": {
+        "sup:70340": 5,
+        "sup:70360": 4
+      },
+      "passed": true,
+      "arm": "candidate"
+    },
+    {
+      "case": "case:S02",
+      "scenario": "stale_close",
+      "policy": {
+        "config": {
+          "version": 1,
+          "package_types": [
+            "quality",
+            "raw_material",
+            "renewal",
+            "rfq"
+          ],
+          "evidence_types": [],
+          "final_offer_risk": "legacy",
+          "preference": "default",
+          "chargeback_steps": 1,
+          "preferences": {
+            "rfq": "standard_payment"
+          },
+          "response_types": [],
+          "free_concessions": false,
+          "rfq_close_guard": false
+        },
+        "sha256": "27ef318efd435a74669b82b6274ecf61b4c03f3fe6d26fc8bd3fb66c9dc0b7d7"
+      },
+      "result": {
+        "deal": true,
+        "score": 0.7277772741184373,
+        "must_haves_ok": true,
+        "thread_timeouts": {
+          "sup:70340": 0,
+          "sup:70360": 0
+        }
+      },
+      "local_opens": 1,
+      "invalid_proposals": [],
+      "failed_requests": [
+        {
+          "kind": "close",
+          "http": 422
+        }
+      ],
+      "strict_zero_rejections": false,
+      "before_wave_deadline": null,
+      "unresolved_requests": 0,
+      "rounds": {
+        "sup:70340": 5,
+        "sup:70360": 4
+      },
+      "passed": true,
+      "arm": "baseline"
+    },
+    {
+      "case": "case:S02",
+      "scenario": "stale_close",
+      "policy": {
+        "config": {
+          "version": 1,
+          "package_types": [
+            "quality",
+            "raw_material",
+            "renewal",
+            "rfq"
+          ],
+          "evidence_types": [],
+          "final_offer_risk": "legacy",
+          "preference": "default",
+          "chargeback_steps": 1,
+          "preferences": {
+            "rfq": "standard_payment"
+          },
+          "response_types": [
+            "price_increase",
+            "quality",
+            "raw_material"
+          ],
+          "free_concessions": true,
+          "rfq_close_guard": true
+        },
+        "sha256": "6ee14b08978ae415c7aa88723446051e964bd59b2962ad3b5acd771879cfcd36"
+      },
+      "result": {
+        "deal": true,
+        "score": 0.7277772741184373,
+        "must_haves_ok": true,
+        "thread_timeouts": {
+          "sup:70340": 0,
+          "sup:70360": 0
+        }
+      },
+      "local_opens": 1,
+      "invalid_proposals": [],
+      "failed_requests": [
+        {
+          "kind": "close",
+          "http": 422
+        }
+      ],
+      "strict_zero_rejections": false,
+      "before_wave_deadline": null,
+      "unresolved_requests": 0,
+      "rounds": {
+        "sup:70340": 5,
+        "sup:70360": 4
+      },
+      "passed": true,
+      "arm": "candidate"
+    },
+    {
+      "case": "case:S02",
+      "scenario": "wave_deadline",
+      "policy": {
+        "config": {
+          "version": 1,
+          "package_types": [
+            "quality",
+            "raw_material",
+            "renewal",
+            "rfq"
+          ],
+          "evidence_types": [],
+          "final_offer_risk": "legacy",
+          "preference": "default",
+          "chargeback_steps": 1,
+          "preferences": {
+            "rfq": "standard_payment"
+          },
+          "response_types": [],
+          "free_concessions": false,
+          "rfq_close_guard": false
+        },
+        "sha256": "27ef318efd435a74669b82b6274ecf61b4c03f3fe6d26fc8bd3fb66c9dc0b7d7"
+      },
+      "result": {
+        "deal": true,
+        "score": 0.17183627494794515,
+        "must_haves_ok": true,
+        "thread_timeouts": {
+          "sup:70340": 0,
+          "sup:70360": 0
+        }
+      },
+      "local_opens": 1,
+      "invalid_proposals": [],
+      "failed_requests": [
+        {
+          "kind": "close",
+          "http": 422
+        }
+      ],
+      "strict_zero_rejections": false,
+      "before_wave_deadline": true,
+      "unresolved_requests": 0,
+      "rounds": {
+        "sup:70340": 1,
+        "sup:70360": 0
+      },
+      "passed": true,
+      "arm": "baseline"
+    },
+    {
+      "case": "case:S02",
+      "scenario": "wave_deadline",
+      "policy": {
+        "config": {
+          "version": 1,
+          "package_types": [
+            "quality",
+            "raw_material",
+            "renewal",
+            "rfq"
+          ],
+          "evidence_types": [],
+          "final_offer_risk": "legacy",
+          "preference": "default",
+          "chargeback_steps": 1,
+          "preferences": {
+            "rfq": "standard_payment"
+          },
+          "response_types": [
+            "price_increase",
+            "quality",
+            "raw_material"
+          ],
+          "free_concessions": true,
+          "rfq_close_guard": true
+        },
+        "sha256": "6ee14b08978ae415c7aa88723446051e964bd59b2962ad3b5acd771879cfcd36"
+      },
+      "result": {
+        "deal": true,
+        "score": 0.17183627494794515,
+        "must_haves_ok": true,
+        "thread_timeouts": {
+          "sup:70340": 0,
+          "sup:70360": 0
+        }
+      },
+      "local_opens": 1,
+      "invalid_proposals": [],
+      "failed_requests": [
+        {
+          "kind": "close",
+          "http": 422
+        }
+      ],
+      "strict_zero_rejections": false,
+      "before_wave_deadline": true,
+      "unresolved_requests": 0,
+      "rounds": {
+        "sup:70340": 1,
+        "sup:70360": 0
+      },
+      "passed": true,
+      "arm": "candidate"
+    }
+  ]
+}

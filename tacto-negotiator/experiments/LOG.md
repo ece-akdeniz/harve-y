@@ -626,3 +626,29 @@ The review also found a free-concession deadline/switch-budget bypass; corrected
 Final independent-review validation: 302 tests passed (46.60s); all 8 curated checks and
 77 unique synthetic prefix guard checks pass. Original histories imported locally: 55 sandbox
 and 60 practice; 24 audited sessions match saved results and all 316 messages exactly.
+
+
+## Full local simulation — no hosted quota, 10 October 2026
+
+- Hypothesis: opt-in response fixes preserve complete negotiation and recovery mechanics.
+- Comparator: same local-response package config, with three response flags disabled/enabled;
+  evidence, MESOs and supplier estimates off. This is not the historical hosted baseline.
+- Twelve scenario/arm combinations, covering S01/S02/S03 and S02 lost-reply, stale-close and
+  wave-cap faults. Two diagnostic executions while refining the failure classification.
+- Normal scores unchanged: 82.90 / 72.78 / 88.56 (0–100 display). All reviewed combinations
+  end in a valid deal, satisfy must-haves, have zero thread timeouts and no unresolved requests.
+- Wave cap produces a recovered stale-close 422 in both arms; explicitly retained in the report.
+  The initial all-requests-clean assertion was inappropriate for this in-flight recovery case;
+  the revised check allows one close-only 422 and also requires successful closure before cap.
+- Artifacts: ignored experiments/runs/local-sim-20261010-response/ and
+  local-sim-20261010-response-reviewed/. Reproduction: tools/local_simulation.py.
+- Decision: no production promotion or hosted session. Fixed-price simulator cannot test priced
+  package acceptance or persuasion. Keep response policy experimental; add synthetic refusals.
+
+- Five additional stateful synthetic refusal trajectories pass. Subsequent supplier replies
+  depend on actual agent proposals, with fresh agent reconstruction at every decision.
+  Traces saved in local-sim-20261010-response-reviewed/synthetic-trajectories.json.
+- Strategic findings remain unresolved: aggressive P02 pricing after refusal, and an unpriced
+  P11 liability exploration after withdrawal. Safety passes do not establish economic benefit.
+  No production policy change or hosted validation authorized/performed in this step.
+- Final validation: 307 tests passed (45.84s); Ruff clean.
