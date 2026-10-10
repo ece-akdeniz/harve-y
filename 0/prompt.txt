@@ -1,0 +1,13 @@
+# Context from my IDE setup:
+
+## Active file: tacto-negotiator/docs/v2/first-three-prompts.md
+
+## Open tabs:
+- first-three-prompts.md: tacto-negotiator/docs/v2/first-three-prompts.md
+- 21-negotiation-v2-plan-2026-10-10.md: tacto-negotiator/docs/21-negotiation-v2-plan-2026-10-10.md
+- Pasted text.txt: /home/ugur/.codex/attachments/703a5586-1c90-4c5f-ac22-cbdfdf02d856/Pasted text.txt
+- 18-main-branch-audit-2026-10-10.md: tacto-negotiator/docs/18-main-branch-audit-2026-10-10.md
+- 19-main-branch-remediation-plan-2026-10-10.md: tacto-negotiator/docs/19-main-branch-remediation-plan-2026-10-10.md
+
+## My request:
+Ok, then lets move things to a v2 branch
