@@ -92,3 +92,15 @@ def test_rfq_rival_offer_claim_cites_cheaper_standing_rival_once():
     threads[b].append({**move, 'from': 'buyer'})
     threads[b].append(msg('open', ('offer:b-2', {**terms, 'unit_price': 33.5})))
     assert 'offer:a-1' not in (agent.propose(case, threads, b)['message'].get('refs') or [])
+
+
+def test_rfq_supplier_payment_adopts_stated_term_but_never_below_30_days():
+    case = next(c for c in json.loads((Path(__file__).parent / 'fixtures/practice_cases.json').read_text())
+                if c['case_id'] == 'case:P05')
+    a, b = case['suppliers'][:2]
+    agent = PackageAgent(policy=PolicyConfig(rfq_supplier_payment=True))
+    for stated, expected in ((30, 30), (14, 90)):
+        threads = {a: [msg('open', ('offer:a', {'unit_price': 33.0, 'payment_days': stated, 'lead_time_days': 35}))],
+                   b: [msg('open', ('offer:b', {'unit_price': 36.0}))]}
+        terms = agent.propose(case, threads, a)['message']['term_sheets'][0]['terms']
+        assert terms['payment_days'] == expected

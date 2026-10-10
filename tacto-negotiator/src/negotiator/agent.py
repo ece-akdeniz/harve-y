@@ -243,7 +243,28 @@ class PackageAgent:
             if on_prev and min(on_prev) > ref_c + 1e-6:
                 n = nonprice(case, complete_offer(case, closing_terms(case, ref_terms, std)))
                 self._log(case, "package_switch", sid, prev=prev, new=n, c_prev=min(on_prev), c_new=ref_c)
+        if self.policy and self.policy.rfq_supplier_payment and case["type"] == "rfq":
+            n = self._supplier_payment(case, sid, events, n, std)
         return self._free_concessions(case, n, ref_terms, std, sup) if eligible else n
+
+    def _supplier_payment(self, case, sid, events, n, std):
+        """Concede payment to the supplier's own stated term (never below 30 days) so that every
+        later round negotiates price only, instead of re-asking a payment term it keeps refusing."""
+        if "payment_days" not in n:
+            return n
+        stated = [s["terms"]["payment_days"] for m in events if m.get("from") != "buyer"
+                  for s in (m.get("term_sheets") or [])[:1] if (s.get("terms") or {}).get("payment_days") is not None]
+        if not stated:
+            return n
+        pay = stated[-1]
+        options = (case.get("term_options") or {}).get("payment_days", [])
+        if pay < 30 or pay >= n["payment_days"] or pay not in options:
+            return n
+        out = {**n, "payment_days": pay}
+        if not must_haves_ok(case, complete_offer(case, {**out, "unit_price": 1.0}), std):
+            return n
+        self._log(case, "supplier_payment", sid, prev=n["payment_days"], new=pay)
+        return out
 
     def _supplier_lead_time(self, case, sid, events, n, std):
         """A supplier quoting a longer lead time than ours gets the longest legal option up to its
