@@ -1,11 +1,12 @@
 import json
 import subprocess
 import threading
+from pathlib import Path
 
 import httpx
 import pytest
 
-from negotiator.lab.cli import main
+from negotiator.lab.cli import main, parse_args
 from negotiator.lab.history import import_history
 from negotiator.lab.models import Run
 from negotiator.lab.publish import Publisher, save_snapshot, sync
@@ -231,6 +232,57 @@ def test_init_secrets_are_owner_readable_and_output_only_the_path(tmp_path, caps
     assert "LAB_PASSWORD=" in contents and "LAB_UPLOAD_TOKEN=" in contents
     assert main(["init", "--secrets-file", str(path)]) == 2
     assert path.read_text() == contents
+
+
+def test_serve_defaults_can_be_supplied_by_managed_host_environment(tmp_path, monkeypatch):
+    database = tmp_path / "dashboard.sqlite3"
+    monkeypatch.setenv("LAB_HOST", "0.0.0.0")
+    monkeypatch.setenv("PORT", "8080")
+    monkeypatch.setenv("LAB_DB", str(database))
+    monkeypatch.setenv("LAB_SECRETS_FILE", "/home/data/unused.env")
+    monkeypatch.setenv("LAB_SECURE_COOKIES", "1")
+
+    args = parse_args(["serve"])
+
+    assert args.host == "0.0.0.0"
+    assert args.port == 8080
+    assert args.db == database
+    assert args.secrets_file == Path("/home/data/unused.env")
+    assert args.secure_cookies is True
+
+
+def test_explicit_serve_arguments_override_managed_host_environment(tmp_path, monkeypatch):
+    monkeypatch.setenv("LAB_HOST", "0.0.0.0")
+    monkeypatch.setenv("PORT", "8080")
+    monkeypatch.setenv("LAB_DB", "/home/data/dashboard.sqlite3")
+    monkeypatch.setenv("LAB_SECURE_COOKIES", "1")
+
+    args = parse_args(
+        [
+            "serve",
+            "--host",
+            "127.0.0.1",
+            "--port",
+            "9000",
+            "--db",
+            str(tmp_path / "local.sqlite3"),
+            "--no-secure-cookies",
+        ]
+    )
+
+    assert args.host == "127.0.0.1"
+    assert args.port == 9000
+    assert args.db == tmp_path / "local.sqlite3"
+    assert args.secure_cookies is False
+
+
+def test_invalid_secure_cookie_environment_does_not_defeat_override_or_other_commands(monkeypatch):
+    monkeypatch.setenv("LAB_SECURE_COOKIES", "")
+
+    assert parse_args(["serve", "--no-secure-cookies"]).secure_cookies is False
+    assert parse_args(["sync"]).command == "sync"
+    with pytest.raises(ValueError, match="LAB_SECURE_COOKIES"):
+        parse_args(["serve"])
 
 
 def test_sync_cli_and_existing_cli_dispatch(tmp_path, monkeypatch):

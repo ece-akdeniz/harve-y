@@ -622,3 +622,15 @@ it is not hosted performance evidence or a proposed production strategy change.
   actual DOM checks cover navigation, chart drill-down, escaping and late response cleanup.
 - Review fixes: normalized recovered campaign scores and ordered same-time repetitions numerically.
   No performance gain claimed and no change to the shared recommended checkpoint.
+
+## 2026-10-10 — Lab hosting: Azure VM deployment path
+
+- Hypothesis: one always-on Azure VM with SQLite on its managed disk removes the developer-tunnel
+  timeout and latency problems while preserving the existing laptop workflow.
+- Change: environment-backed server defaults, a versioned service startup file, and an operator
+  runbook for HTTPS, secrets, locked deployment, database migration, verification and rollback.
+- Configuration/cases/quota: infrastructure only; no negotiator configuration or recommendation
+  changed, no Arena case opened, and no sandbox or practice quota consumed.
+- Decision: do not use App Service's network-mounted filesystem because Microsoft documents that it
+  cannot support SQLite exclusive locks. Deploy one offer-eligible Linux VM and keep SQLite on its
+  managed disk. Cut over only after history, loop state, authentication and upload verification.

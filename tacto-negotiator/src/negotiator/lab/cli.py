@@ -40,17 +40,34 @@ def _init(path: Path):
     print(path)
 
 
+def _env_flag(name: str, default: bool = False) -> bool:
+    value = os.environ.get(name)
+    if value is None:
+        return default
+    normalized = value.strip().lower()
+    if normalized in {"1", "true", "yes", "on"}:
+        return True
+    if normalized in {"0", "false", "no", "off"}:
+        return False
+    raise ValueError(f"{name} must be a boolean")
+
+
 def parser():
     ap = argparse.ArgumentParser(prog="negotiator lab", description="Shared experiment dashboard tooling")
     sub = ap.add_subparsers(dest="command", required=True)
     init = sub.add_parser("init", help="generate host secrets without printing values")
     init.add_argument("--secrets-file", type=Path, default=Path(".lab-secrets.env"))
     serve = sub.add_parser("serve", help="serve the authenticated dashboard")
-    serve.add_argument("--host", default="127.0.0.1")
-    serve.add_argument("--port", type=int, default=8000)
-    serve.add_argument("--db", type=Path, default=Path("experiments/dashboard.sqlite3"))
-    serve.add_argument("--secrets-file", type=Path, default=Path(".lab-secrets.env"))
-    serve.add_argument("--secure-cookies", action="store_true", help="required for forwarded HTTPS dashboards")
+    serve.add_argument("--host", default=os.environ.get("LAB_HOST", "127.0.0.1"))
+    serve.add_argument("--port", type=int, default=os.environ.get("PORT", os.environ.get("LAB_PORT", "8000")))
+    serve.add_argument("--db", type=Path, default=os.environ.get("LAB_DB", "experiments/dashboard.sqlite3"))
+    serve.add_argument("--secrets-file", type=Path, default=os.environ.get("LAB_SECRETS_FILE", ".lab-secrets.env"))
+    serve.add_argument(
+        "--secure-cookies",
+        action=argparse.BooleanOptionalAction,
+        default=None,
+        help="require HTTPS for browser authentication cookies",
+    )
     run = sub.add_parser("run", help="run an explicit serial case plan")
     run.add_argument("--name", required=True)
     run.add_argument("--hypothesis", required=True)
@@ -91,6 +108,13 @@ def parser():
     return ap
 
 
+def parse_args(argv):
+    args = parser().parse_args(argv)
+    if args.command == "serve" and args.secure_cookies is None:
+        args.secure_cookies = _env_flag("LAB_SECURE_COOKIES")
+    return args
+
+
 def main(argv=None) -> int:
     argv = list(sys.argv[1:] if argv is None else argv)
     if argv and argv[0] == "loop":
@@ -110,9 +134,9 @@ def main(argv=None) -> int:
         from .loop_cli import main as loop_main
 
         return loop_main(argv)
-    load_env()
-    args = parser().parse_args(argv)
     try:
+        load_env()
+        args = parse_args(argv)
         if args.command == "init":
             _init(args.secrets_file)
             return 0
