@@ -35,3 +35,23 @@ def test_unknown_type_rejected(tmp_path, key):
     p.write_text(json.dumps({"version": 1, key: ["nope"]}))
     with pytest.raises(ValueError):
         PolicyConfig.load(p)
+
+
+def test_p01_standard_payment_opening_uses_quote_standard():
+    from test_evaluator import msg
+
+    from negotiator.agent import PackageAgent
+
+    c = case("case:P01")
+    sid = c["suppliers"][0]
+    m0 = msg("open", ("offer:0", {"unit_price": 138.55, "effective_date": "2026-11-01"}))
+    m0["attachments"] = [{"name": "quote-1.pdf",
+                          "text": "Our standard terms\nPayment terms (days net) 30\nIncoterm FCA"}]
+    terms = {}
+    for cfg in ("configs/candidate.json", "configs/p01-standard-payment.json"):
+        agent = PackageAgent(policy=PolicyConfig.load(cfg), claims=False)
+        move = agent.propose(c, {sid: [m0]}, sid)
+        terms[cfg] = move["message"]["term_sheets"][0]["terms"]
+    assert terms["configs/candidate.json"]["payment_days"] == 90
+    assert terms["configs/p01-standard-payment.json"]["payment_days"] == 30
+    assert terms["configs/candidate.json"]["unit_price"] == terms["configs/p01-standard-payment.json"]["unit_price"]
