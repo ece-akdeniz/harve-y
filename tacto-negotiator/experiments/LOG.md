@@ -1238,3 +1238,13 @@ says so. Break-even vs .7723 (28.50/30/35, C 242,124.96): **28.3997 @ 14 d**; 28
 27.00 → .917, 26.79 → .939. Only accepts at ≤ 28.39 by C (code-priced). Off by default; P01 path
 untouched (validator rejects non-rfq types on this branch). Risk: 70210 accepts 14 d without a
 price move → C-neutral matching keeps 30 d (no loss).
+
+## 2026-10-10 — P05 screen 19 result: O fast payment = 81.36 (new best, +4.13)
+
+Run `e287dd70` / `0da0416bc3b03ba2`: **.8136, 70210 28.00/14/35**, C 238,733.23 (−3,391.73 vs
+.7723), 0 timeouts, `--data` explicit. Path as F to r2 (28.50/30, PPI verified); r3 re-anchor
+26.79/**14** + fast-payment note → "The 14 days payment term is good for us, so I can come down to
+€28.00 for that" (open, not final); our code matched 28.00/14 (C-cheaper than 28.50/30 by 3.4 k,
+below the 28.3997 break-even) → agreed r4. Rivals: 70240 final 32.50/45, 70250 32.00/30.
+Single run, not repeated (no sessions left). Promote `configs/p05-fast-payment.json` over F if a
+repeat confirms. Remaining .96 gap (~26.7 @ 14 d) untested: r4 matched instead of pushing once more.
