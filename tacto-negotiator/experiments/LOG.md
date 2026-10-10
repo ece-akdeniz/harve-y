@@ -1774,3 +1774,34 @@ P10: no session (see the offline note above).
   P04 .8604, P05 .7723, P07 .7600, P08 .5930, P10 .6551, P11 .7902, P18 .5200. Mean .7522 = best-per-case mean.
 - Risks: bundle commitment untested on P15 (bundling, not practice); every v2 lever validated on one case;
   supplier side appears deterministic so repeats test reproducibility, not robustness.
+
+## 2026-10-10 23:40 — raw-material push P08/P18 (codex/score-push-rawmat2, MEASURED HOSTED PRACTICE, 3 sessions)
+
+Offline (51 P08/P18 traces across worktrees, `arena_kit.cost` on every legal package, 90d):
+- Score anchors (P08 / P18): .92 needs db0 ≈ 5.01, db3 ≈ 5.08, db5 ≈ 5.12, none ≈ 5.17 (P08);
+  .73 needs db0 ≈ 4.99, db5 ≈ 5.10, none ≈ 5.15 (P18). 12m is never competitive (uncovered year 2 at
+  fallback + 3 % risk: ≤ .61 / ≤ .38 even at 5.00); 36m = 24m in cost (H = 2).
+- Supplier db5 alternative is quoted +0.12 (P08) / +0.10 (P18) above db0 ≈ cost-neutral for us; no structure
+  arbitrage. Both suppliers refuse a fixed price at 24/36m in every session; db0 is the only accepted clause.
+- P08 ladder: 6.05 -> 5.45 -> 5.36 -> 5.31 regardless of our counters (it went 5.31 while we bid 5.38); claims
+  only front-load (5.40 first) and it then holds at our bid. Floor ≈ 5.31 db0 in 20/20 completed sessions.
+- P18 ladder: 0.10 per reply (< its 2 % committee threshold), final after reply 3-4; floor 5.3 db0. Verified
+  claims lower the first step (5.6 -> 5.5/5.4) but shorten the ladder; extra claims => earlier final.
+- Pushing past "final": the only counter-after-final (cbf98484) ended with the supplier walking (score 0).
+- Supplier keeps asking "Which volume can you commit to? A binding higher volume would help"; volume is a fixed
+  term and higher volume is uncovered spend, so the only legal answer is the fixed volume.
+
+Screens:
+| run | session | case | hypothesis | score | terms |
+|---|---|---|---|---|---|
+| 27922c57 | b31ea5fc9299c092 | P08 | volume answer (binding 24m volume, fc:370010@2026-09, 80 % quota) | .5376 | 5.36 db0 90d 24m |
+| 056141e0 | 68e50dcda140695c | P18 | volume answer + pricing-committee request | .4531 | 5.40 db0 90d 24m, final at reply 2 |
+| 35b79abe | ebea855c29b37e58 | P08 | specific hedge: cite unhedged PPI-C2431 fall (-2.3 %) | .5819 | 5.32 db0 90d 24m |
+
+- Volume answer: claim verified, "factored in", no price effect; on P18 it triggered final one reply earlier. Drop.
+- Specific hedge: P08 now cites PPI-C2431 (letter hedges only "nickel and alloys"); first counter 5.40 vs 5.45,
+  but same 5.31-5.32 floor. Drop for score (kept as opt-in code: the generic-remark fail-closed was over-broad).
+- Verdict: no validated config; v2 stays (.5930 / .5200). The .92/.73 gap (~0.3/kg) is not reachable by
+  claims, volume, tenor, payment, deadband or schedule levers in public data; 5 of 8 budgeted sessions unused.
+- Code (opt-in, tested, ruff clean): `volume_answer_types`, `specific_hedge_types`; configs
+  `rawmat-volume-answer(-run).json`, `rawmat-specific-hedge(-run).json`.

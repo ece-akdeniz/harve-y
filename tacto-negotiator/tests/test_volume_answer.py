@@ -57,3 +57,17 @@ def test_p08_text_only_changes_body_and_refs(monkeypatch):
     assert moves["v2"]["term_sheets"] == moves["answer"]["term_sheets"]
     assert "commit bindingly" in moves["answer"]["body"]
     assert "commit bindingly" not in moves["v2"]["body"]
+
+
+@pytest.mark.skipif(not (DATA / "facts.json").is_file(), reason="data package not present")
+def test_specific_hedge_scopes_generic_remark(monkeypatch):
+    monkeypatch.setenv("ARENA_DATA", str(DATA))
+    from negotiator import claims
+    from negotiator.dossiers import load_package
+
+    pk = load_package()
+    c = case("case:P08")
+    series = ["AS-14404", "PPI-C2431", "LCI-C"]
+    assert claims.hedged_series(c, pk, series) == set(series)  # default: generic remark fails closed
+    assert claims.hedged_series(c, pk, series, specific=True) == {"AS-14404"}  # letter names alloys only
+    assert PolicyConfig.load("configs/rawmat-specific-hedge.json").specific_hedge_types == ("raw_material",)
