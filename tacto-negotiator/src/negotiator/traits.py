@@ -34,13 +34,36 @@ NEWS_TRAITS = {
     "refocus", "big_order", "new_plant", "new_owner", "approvals",
 }
 
+# Suppliers for whom money now is worth more than usual (supplier_value interest_rate).
+CASH_SHORT = {"liquidity_crisis", "wants_fast_payment", "overdue_invoices", "credit_worsening",
+              "credit_downgrade", "credit_watch", "restructuring", "short_time_work"}
+
+CREDIT_WORSENING_POINTS = 20  # credit index: higher is worse
+LATE_PAYER_DAYS = 10  # we pay this supplier's invoices late on average
+
+
+def _note_text(note: dict, name: str) -> str:
+    text = note.get("text") or ""
+    return text.replace(name, "") if name else text
+
 
 def classify(dossier) -> set[str]:
     """Traits from notes (NOTE_TRAITS), news topics (NEWS_TRAITS) and intel thresholds
     (e.g. credit index worsened > 20 points → `credit_worsening`)."""
-    raise NotImplementedError
+    out = {t for t, p in NOTE_TRAITS.items() for n in dossier.notes if p.search(_note_text(n, dossier.name))}
+    out |= {n.get("topic") for n in dossier.news if n.get("topic") in NEWS_TRAITS}
+    now, before = dossier.intel.get("credit_index"), dossier.intel.get("credit_index_12m_ago")
+    if now is not None and before is not None and now - before > CREDIT_WORSENING_POINTS:
+        out.add("credit_worsening")
+    if (dossier.payment_lateness_days or 0) > LATE_PAYER_DAYS:
+        out.add("paid_late_by_us")
+    return out
 
 
 def evidence(dossier, trait: str) -> list[str]:
     """Document/news IDs that support a trait - for the trace and the pitch."""
-    raise NotImplementedError
+    if trait in NOTE_TRAITS:
+        return [n["id"] for n in dossier.notes if NOTE_TRAITS[trait].search(_note_text(n, dossier.name))]
+    if trait in NEWS_TRAITS:
+        return [n["id"] for n in dossier.news if n.get("topic") == trait]
+    return []

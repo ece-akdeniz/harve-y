@@ -95,3 +95,19 @@ Decision:
   payment terms (136.20 @30 d vs 138.40 @90 d).
 - Fix v0.1: evaluate every sheet in the latest message by C; lock non-price terms after the
   first offer. Sim regression 85.8 unchanged. Next: index claims for price_increase cases.
+
+## 2026-10-10 14:30 - Evidence: claim bank + supplier cost estimates (BUILD, local only, 0 sessions)
+
+- `claims.build_bank(case, package)`: latest-12-month index windows per cost driver (+ indices the
+  case cites), cherry-picked buyer windows (flagged, off by default), rival quotes (per receiving
+  supplier, `reveals_rival`), scorecard OTD/ppm, letter notice vs. contract notice, should-cost
+  (`internal`). Every claim passes `verify` against package + release + case facts.
+- `pick` default: <= 3 claims, buyer-side only, no private disclosure, no ID reuse (`claim_keys`).
+  P01 default pick: notice (doc:20260911-70110-P01 51 d vs ctr:4600070110), PPI-D351 -3.7 %,
+  scorecard OTD 85.2 %. LCI-C +2.7 % and PPI-C241 +6.5 % stay internal (adverse).
+- `cost_pressure_estimate`: P01 stated drivers -> 2.37 pp on 54 % coverage (listed drivers: 2.33 pp
+  on 64 %); sentence has no IDs, `verified: False`.
+- `dossiers.supplier_estimate`: P01 full cost 132.64 (+-5 %) vs current 126.53 -> margin -4.8 %
+  at status quo; rate 0.15 (wants_fast_payment). Relationship term is live even at today's price.
+- Sunday: `claims.prep(data_dir, out_path, release)` rebuilds dossiers + banks with the overlay.
+- Not integrated into agent.py; claims experiment (vs. mechanical baseline) still to run.
