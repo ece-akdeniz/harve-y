@@ -1,0 +1,80 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4K7V852RSF21S5D787XT3C3",
+  "session_id": "01a12673-71fc-74e1-b397-e276186161e5",
+  "strategy": "manual-commit",
+  "created_at": "2026-10-10T15:45:30.610996Z",
+  "branch": "codex/benchmark-improvement",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "tacto-negotiator/configs/reply-advice.json",
+    "tacto-negotiator/docs/15-bounded-reply-advice.md",
+    "tacto-negotiator/experiments/LOG.md",
+    "tacto-negotiator/src/negotiator/agent.py",
+    "tacto-negotiator/src/negotiator/policy.py",
+    "tacto-negotiator/src/negotiator/reply_advisor.py",
+    "tacto-negotiator/src/negotiator/runner.py",
+    "tacto-negotiator/tests/test_reply_advisor.py",
+    "tacto-negotiator/tests/test_runner.py",
+    "tacto-negotiator/tools/replay_advisor.py"
+  ],
+  "agent": "Codex",
+  "model": "gpt-6-astra",
+  "turn_id": "d917026fc557",
+  "checkpoint_transcript_start": 213,
+  "transcript_lines_at_start": 213,
+  "compact_transcript_start": 26,
+  "token_usage": {
+    "input_tokens": 45296,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 3425018,
+    "output_tokens": 17510,
+    "api_call_count": 24
+  },
+  "skill_events_version": 1,
+  "skill_events": [
+    {
+      "id": "prompt-skill-codex-goal-2026-10-10T15:36:01.630974Z",
+      "event_type": "prompt_invocation",
+      "skill": {
+        "name": "goal"
+      },
+      "source": {
+        "agent": "codex",
+        "signal": "prompt_slash_command",
+        "confidence": "explicit"
+      },
+      "turn_id": "8a12e8c2f6de",
+      "timestamp": "2026-10-10T15:36:01.630974Z",
+      "native": {
+        "command": "/goal"
+      },
+      "collapse": {
+        "target": "user_message",
+        "label": "/goal",
+        "default_collapsed": true
+      }
+    }
+  ],
+  "initial_attribution": {
+    "calculated_at": "2026-10-10T15:45:30.558721Z",
+    "agent_lines": 660,
+    "agent_removed": 18,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 660,
+    "total_lines_changed": 678,
+    "agent_percentage": 100,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4K7V852RSF21S5D787XT3C3",
+  "strategy": "manual-commit",
+  "branch": "codex/benchmark-improvement",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "tacto-negotiator/configs/reply-advice.json",
+    "tacto-negotiator/docs/15-bounded-reply-advice.md",
+    "tacto-negotiator/experiments/LOG.md",
+    "tacto-negotiator/src/negotiator/agent.py",
+    "tacto-negotiator/src/negotiator/policy.py",
+    "tacto-negotiator/src/negotiator/reply_advisor.py",
+    "tacto-negotiator/src/negotiator/runner.py",
+    "tacto-negotiator/tests/test_reply_advisor.py",
+    "tacto-negotiator/tests/test_runner.py",
+    "tacto-negotiator/tools/replay_advisor.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 45296,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 3425018,
+    "output_tokens": 17510,
+    "api_call_count": 24
+  }
+}
