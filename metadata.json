@@ -1,0 +1,23 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4M2BWD2PKXT0W3EGNBAGYRQ",
+  "strategy": "manual-commit",
+  "branch": "codex/fresh-h3",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "tacto-negotiator/configs/fresh-h3.json",
+    "tacto-negotiator/src/negotiator/agent.py",
+    "tacto-negotiator/src/negotiator/dossiers.py",
+    "tacto-negotiator/src/negotiator/traits.py",
+    "tacto-negotiator/tests/test_supplier_payment_trade.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ]
+}
