@@ -186,6 +186,8 @@ class PackageAgent:
             )
         elif self.conditional_exchange and any(k != "unit_price" for k in terms):
             body += " The proposed non-price terms are conditional on the proposed unit price as one package."
+        if any(v.get("index_clause") != terms.get("index_clause") for v in variants):
+            body += " Alternatively, please consider the attached packages; each is a separate proposal."
         assert not leaks(body), "body would leak internal information"
         self.prev[sid] = {k: v for k, v in terms.items() if k != "unit_price"}
         c = total_cost(case, terms, std, sup)
@@ -213,6 +215,55 @@ class PackageAgent:
                 out.append(complete_offer(case, v))
         return out
 
+    def _clause_on(self, case):
+        return bool(self.policy and case["type"] in self.policy.clause_variant_types)
+
+    @staticmethod
+    def _clause_probed(events):
+        """True once one of our messages carried sheets that differ in index_clause."""
+        for m in events:
+            if m.get("from") == "buyer" and len(m.get("term_sheets") or []) > 1:
+                if len({repr(s["terms"].get("index_clause")) for s in m["term_sheets"]}) > 1:
+                    return True
+        return False
+
+    def _clause_track(self, case, sid, events, prev, ref_terms):
+        """Locked previous terms, except for the index clause when clause variants are enabled:
+        a mandatory clause (we offered none; every latest supplier sheet carries one) adopts the
+        supplier's clause, and after our deadband probe the cheapest supplier sheet's (by C)
+        clause is adopted. Never insists on no clause."""
+        if not self._clause_on(case) or "index_clause" not in prev:
+            return prev
+        sheets = latest(events).get("term_sheets") or []
+        clause = ref_terms.get("index_clause")
+        if clause is None or clause not in (case.get("term_options") or {}).get("index_clause", []):
+            return prev
+        mandatory = prev["index_clause"] is None and sheets and all(s["terms"].get("index_clause") for s in sheets)
+        if (mandatory or self._clause_probed(events)) and clause != prev["index_clause"]:
+            self._log(case, "clause_track", sid, prev=prev["index_clause"], new=clause, mandatory=bool(mandatory))
+            return {**prev, "index_clause": clause}
+        return prev
+
+    def _clause_variants(self, case, events, terms, std, sup):
+        """Once, after the supplier made the clause mandatory: up to two sheets at our main sheet's
+        C that differ only in deadband (legal options of the same series), so the supplier reveals
+        which deadband it prices cheaper."""
+        clause = terms.get("index_clause")
+        if not self._clause_on(case) or not clause or self._clause_probed(events):
+            return []
+        options = [
+            o for o in (case.get("term_options") or {}).get("index_clause") or []
+            if o and o.get("series") == clause.get("series") and o != clause
+        ]
+        c_main = total_cost(case, terms, std, sup)
+        out = []
+        for o in sorted(options, key=lambda o: -o.get("deadband_pct", 0))[:2]:
+            v = {**terms, "index_clause": o}
+            v["unit_price"] = math.floor(price_for_cost(case, v, c_main, std, sup) * 100) / 100
+            if v["unit_price"] > 0 and must_haves_ok(case, v, std):
+                out.append(complete_offer(case, v))
+        return out
+
     def _key(self, case, threads, sid):
         sheets = eligible_sheets(case, threads[sid], self._sup(case, threads, sid))
         return (len(self._ours(threads[sid])), sheets[0][0] if sheets else math.inf)
@@ -226,7 +277,7 @@ class PackageAgent:
         prev = self.prev.get(sid)
         if self.trades and case["type"] in self.policy.package_types:
             if prev is not None:
-                return prev
+                return self._clause_track(case, sid, events, prev, ref_terms)
             return self.trades.initial(case, sid, ref_terms["unit_price"], self.anchor, std, sup, reference=ref_terms)
         if prev is None:
             n = nonprice(case, best_terms(
@@ -516,6 +567,10 @@ class PackageAgent:
             terms, trade_reason = self.trades.switch(case, sid, events, terms, std, sup)
             why = trade_reason or why
         variants = self._payment_variants(case, terms, cands[0][2], std, sup) if self.meso else []
+        if not variants and cap_c is None:
+            variants = self._clause_variants(case, events, terms, std, sup)
+            if variants:
+                why = why or "deadband probe at equal cost"
         return self._offer(case, sid, terms, std, sup, c_alt, why or f"round {k + 1} schedule", variants)
 
 
