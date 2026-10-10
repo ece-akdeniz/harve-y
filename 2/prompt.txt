@@ -59,14 +59,6 @@ Saved case bests: P01 .9279307478; P03 .8998338784; P04 .8604451427; P07 .743018
 
 ---
 
-Push ten-case mean toward 0.76
-
-Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
-
-To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
-
----
-
 Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
 
 To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
@@ -77,19 +69,9 @@ Build
 
 ---
 
-Push ten-case mean toward 0.76
-
 Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
 
 To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
-
----
-
-Briefly inform the user about the task result and perform any follow-up actions (if needed).
-
----
-
-Briefly inform the user about the task result and perform any follow-up actions (if needed).
 
 ---
 
@@ -131,31 +113,9 @@ But the agent seems to move slow since it loses a lot of time on the "Planning n
 
 ---
 
-[Image]
-<image_files>
-The following images were provided by the user and saved to disk for future use:
-1. /Users/sametdegirmenci/.cursor/projects/Users-sametdegirmenci-Downloads-ysamet/assets/image-2435f0fb-084c-4ab6-8a86-121a2034e5e3.png
-
-These files can be read with tools, copied to other locations, or attached to subagents using the file_attachments parameter.
-</image_files>
-<timestamp>Saturday, Oct 10, 2026, 6:56 PM (UTC+2)</timestamp>
-
 But why is the worker still stuck here.
 
 ---
-
-Perform any necessary follow-up actions in response to the subagent completion above. If no follow-up work is needed, no further action is required. If you mention an agent or subagent in your response, link it with the `[Name](id)` Don't use generic label such as `[agent]`, `[worker]`, or `[subagent]`. For cloud subagents, when the agent has edited code, link to `[Review](bc-id#changes)`, or, if you know the exact added and deleted line counts, `[Review +A −D](bc-id#changes)`, replacing A and D with those counts. Never write A or D literally. Use `[Try Live](bc-id#desktop)` only when the agent used computer use. Don't repeat the same confirmation every time.
-
----
-
-[Image]
-<image_files>
-The following images were provided by the user and saved to disk for future use:
-1. /Users/sametdegirmenci/.cursor/projects/Users-sametdegirmenci-Downloads-ysamet/assets/image-66a4d1cf-f6a3-4287-9bf4-5ff20e5d90ef.png
-
-These files can be read with tools, copied to other locations, or attached to subagents using the file_attachments parameter.
-</image_files>
-<timestamp>Saturday, Oct 10, 2026, 7:10 PM (UTC+2)</timestamp>
 
 No, look we have time. So please continue. I believe in you!
 
@@ -169,16 +129,8 @@ But why are the agents so slow?
 
 ---
 
-But why are the agents so slow?
-
----
-
-Perform any necessary follow-up actions in response to the subagent completion above. If no follow-up work is needed, no further action is required. If you mention an agent or subagent in your response, link it with the `[Name](id)` Don't use generic label such as `[agent]`, `[worker]`, or `[subagent]`. For cloud subagents, when the agent has edited code, link to `[Review](bc-id#changes)`, or, if you know the exact added and deleted line counts, `[Review +A −D](bc-id#changes)`, replacing A and D with those counts. Never write A or D literally. Use `[Try Live](bc-id#desktop)` only when the agent used computer use. Don't repeat the same confirmation every time.
-
----
-
 And?
 
 ---
 
-Perform any necessary follow-up actions in response to the subagent completion above. If no follow-up work is needed, no further action is required. If you mention an agent or subagent in your response, link it with the `[Name](id)` Don't use generic label such as `[agent]`, `[worker]`, or `[subagent]`. For cloud subagents, when the agent has edited code, link to `[Review](bc-id#changes)`, or, if you know the exact added and deleted line counts, `[Review +A −D](bc-id#changes)`, replacing A and D with those counts. Never write A or D literally. Use `[Try Live](bc-id#desktop)` only when the agent used computer use. Don't repeat the same confirmation every time.
+Continue
