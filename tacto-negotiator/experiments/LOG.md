@@ -1742,3 +1742,23 @@ P10: no session (see the offline note above).
   Drop `rounds_by_type` (3 and 10 both 0.7145). 0.81 not reached: the supplier's ladder (≈0.20 total
   after its first reply, final at reply 4) did not respond to volume, commitment, committee, or
   schedule changes; the remaining ≈0.08/unit needs a lever not found in public data.
+
+## 2026-10-10 22:55 — score-push v2: merge, interference check, sandbox, ten-case confirmation (MEASURED HOSTED PRACTICE, 10 sessions)
+
+- Main merge: origin/main 0ffb8c0 merged into codex/score-push-integrate (opt-in `multi_supplier_anchor`, lab UI);
+  642 passed, ruff clean, offline replay unchanged (P01/P02/P04/P07/P08/P18 exact). Merged to main as c434fad.
+- v2 branch codex/score-push-v2 = integrate + origin/codex/score-push-p05 (a913ac3) + alt-p18-buyer-window
+  (b354f99, fact-keyed recent index windows) + score-push-fullcost-rel (457c813, cost posterior) +
+  score-push-p07p11 (7a9f20d, bundle volume/commitment). `rounds_by_type`/`anchor_by_type` merged but unused.
+- configs/score-push-v2.json = score-push.json + rfq_undercut_reanchor, rfq_data_claims,
+  recent_index_window_types (all single-supplier types), cost_target_posterior 0.15, bundle_volume_types and
+  bundle_commitment_types [bundling]. Run wrapper configs/score-push-v2-run.json. Runtime commit 536959b.
+- Offline interference (v1 vs v2 full messages on run b9ad733d transcripts): only P02 (opening 366.23 -> 363.37,
+  same as posterior runs), P07 (kit volume + commitment text), P18 (AS-14404 / PPI-C2431 recent windows) change.
+  P01/P03/P04/P08/P10/P11 identical; P08 excluded by hedge, P02 by rising copper. P05: 11 snapshots, v2 decisions
+  identical to configs/p05-data-claims.json (recent windows never fire on RFQ; no duplicate data claims).
+- Tests 678 passed, ruff clean. Sandbox 8b3a4efe: D01 .9192 x2, D02 .5239 x2 (identical to v1 511a2526).
+- Practice 6b162c54 (10 sessions, 0 timeouts, 10 deals, all must-haves ok): P01 .9602, P02 .7115, P03 .8998,
+  P04 .8604, P05 .7723, P07 .7600, P08 .5930, P10 .6551, P11 .7902, P18 .5200. Mean .7522 = best-per-case mean.
+- Risks: bundle commitment untested on P15 (bundling, not practice); every v2 lever validated on one case;
+  supplier side appears deterministic so repeats test reproducibility, not robustness.
