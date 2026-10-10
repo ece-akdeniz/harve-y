@@ -16,6 +16,7 @@ class PolicyConfig:
     evidence_types: tuple[str, ...] = ()
     final_offer_risk: str = "legacy"
     preference: str = "default"
+    chargeback_steps: int = 1
 
     @classmethod
     def load(cls, path):
@@ -33,6 +34,9 @@ class PolicyConfig:
             raise ValueError("invalid final_offer_risk")
         if d.get("preference", "default") not in ("default", "standard_payment", "longer_tenor", "lower_chargeback"):
             raise ValueError("invalid preference")
+        steps = d.get("chargeback_steps", 1)
+        if type(steps) is not int or not 1 <= steps <= 3:
+            raise ValueError("chargeback_steps must be 1, 2 or 3")
         return cls(**d)
 
     def record(self):

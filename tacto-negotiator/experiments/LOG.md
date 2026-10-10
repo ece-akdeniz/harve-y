@@ -352,3 +352,39 @@ Decision:
   negotiable, and wording to describe the actual volume when it is a negotiated field.
   This does not affect P04, whose annual volume is fixed, or P11, which has no contract field.
 - Added malformed-notice preservation coverage and the current staged contract in document 13.
+
+## Batch A — four screening sessions, source 1205582
+
+- P04 package-only: `e2fcc134ecd03d17`, **86.04/100**, EUR 4.94 / 90 days / 24 months.
+- P04 package + evidence: `b71d601095c82d96`, **86.04/100**, identical closing package;
+  its 85.0% delivery claim was verified. Select simpler package-only.
+- P11 package-only: `cc9acf4242059a59`, **31.44/100**, unchanged from historical baseline.
+- P11 package + evidence: `88f8a5d21a61c30f`, **39.80/100**. Select evidence for confirmation.
+- All four: valid deals, must-haves satisfied, zero authenticated thread timeout events,
+  no contradicted claims, no unresolved journal requests, successful exit status.
+- Cycle spent four. Shared quota 179 -> 165: ten additional sessions were consumed outside
+  this batch. Our ledger uses explicit session IDs, not the shared quota delta.
+- Human benchmark refresh: P04 best displayed 86.0, P11 best 62.6 (makeAnother.md).
+  These are rounded moving targets; P11 remains below the current competitor.
+- Released Batch B: fresh baseline 1551125 and frozen winning screening candidate 1205582
+  per case. P04 baseline then candidate; P11 candidate then baseline. Four sessions.
+- Local diagnosis: P11 suppliers price chargeback risk and propose cheaper alternatives.
+  The experimental stagnation order tightened ppm before reducing chargeback; a local fix
+  now tries adjacent lower chargeback first and only relaxes ppm upward. Batch B retains
+  original source to test reproducibility. The fix is reserved for later gated refinement.
+- Tracked compact evidence: `experiments/staged-cycle-20261010.json`. Full ignored local
+  traces/journals/authenticated thread data: `experiments/runs/staged-a-20261010/`.
+
+## Batch B — confirmation
+
+- P04 baseline `6a95b5d68d53a5d0`: 5.64; package candidate `2d99044cccd0f46b`: 86.04.
+- P11 evidence candidate `321b3475cf3cf054`: 39.80; baseline `a08f5e8f1f64df2e`: 31.44.
+- Zero timeouts, invalid deals, contradicted claims or unresolved requests. Four sessions;
+  quota 165 -> 161, cycle total eight. Exact repeated results may be cached/deterministic;
+  they establish reproducibility, not statistical significance.
+- Release four P11 refinement sessions: two per permitted lower-chargeback variant, with
+  quality evidence enabled, ppm 300, payment fixed. Config rank selects one or two permitted
+  steps below the highest chargeback, not a case ID or a leaderboard-derived price.
+- Skip P04 optional refinements: candidate matches the refreshed displayed leading score.
+- Refinement source also fixes stagnation to consider adjacent lower chargeback before ppm,
+  with ppm switches only upward within the must-have. Initial concession schedule unchanged.

@@ -159,3 +159,29 @@ def test_multiyear_keeps_quoted_annual_volume(cases):
     result = trade.initial(case, sid, 200, 0.12, {}, None, reference={'volume_per_year': volume})
     assert result['volume_per_year'] == volume
     assert result['contract_months'] >= 12 * case['buyer']['horizon_years']
+
+
+def test_quality_stagnation_trades_chargeback_without_tightening_ppm(cases):
+    c = cases['case:P11']
+    sid = c['suppliers'][0]
+    terms = {'unit_price': 48, 'ppm_commitment': 1500, 'chargeback_eur_per_complaint': 500}
+    events = [msg('open', ('o:0', terms)), ours(terms), msg('open', ('o:1', terms)),
+              ours(terms), msg('open', ('o:2', terms))]
+    trade = TradePolicy(PolicyConfig(package_types=('quality',)), lambda *a, **kw: None)
+    trade.deadlines[sid] = time.time() + 60
+    changed, reason = trade.switch(c, sid, events, terms, {}, None)
+    assert reason and changed['chargeback_eur_per_complaint'] == 300
+    assert changed['ppm_commitment'] == 1500
+    assert total_cost(c, changed) <= total_cost(c, terms) + 0.01
+
+
+@pytest.mark.parametrize('steps,expected', [(1, 300), (2, 150)])
+def test_quality_chargeback_refinement_variants(cases, steps, expected):
+    case = cases['case:P11']
+    sid = case['suppliers'][0]
+    trade = TradePolicy(PolicyConfig(package_types=('quality',), preference='lower_chargeback',
+                                    chargeback_steps=steps), lambda *a, **kw: None)
+    result = trade.initial(case, sid, 47, 0.12, {}, None)
+    assert result['chargeback_eur_per_complaint'] == expected
+    assert result['ppm_commitment'] == 300
+    assert 'payment_days' not in result

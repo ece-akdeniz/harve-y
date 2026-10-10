@@ -79,7 +79,9 @@ class TradePolicy:
                 x for x in options.get("chargeback_eur_per_complaint", []) if x < t["chargeback_eur_per_complaint"]
             ]
             if lower:
-                t["chargeback_eur_per_complaint"] = max(lower)
+                t["chargeback_eur_per_complaint"] = sorted(lower, reverse=True)[
+                    min(self.config.chargeback_steps, len(lower)) - 1
+                ]
                 t["ppm_commitment"] = min(options["ppm_commitment"])
         return nonprice(case, t)
 
@@ -106,7 +108,7 @@ class TradePolicy:
         if "contract_months" in terms:
             fields.append("contract_months")
         if "ppm_commitment" in terms:
-            fields += ["ppm_commitment", "chargeback_eur_per_complaint"]
+            fields += ["chargeback_eur_per_complaint", "ppm_commitment"]
         if "index_clause" in terms:
             fields.append("index_clause")
         target = total_cost(case, terms, standard, supplier)
@@ -114,8 +116,10 @@ class TradePolicy:
             values = list(options.get(field, []))
             if field == "payment_days":
                 values = sorted((x for x in values if x < terms[field]), reverse=True)
-            if field == "contract_months":
+            if field in ("contract_months", "ppm_commitment"):
                 values = sorted(x for x in values if x > terms[field])
+            if field == "chargeback_eur_per_complaint":
+                values = sorted((x for x in values if x < terms[field]), reverse=True)
             for v in values:
                 trial = {**terms, field: v}
                 if v == terms.get(field) or nonprice(case, trial) in tried or not must_haves_ok(case, trial, standard):
