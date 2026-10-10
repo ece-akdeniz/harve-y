@@ -11,9 +11,10 @@ from pathlib import Path
 
 from arena_kit.cli import load_env, summary
 from arena_kit.client import ArenaClient, ArenaError
-from arena_kit.play import RemoteTable, hosted, play, play_all, play_waves
+from arena_kit.play import RemoteTable, hosted
 
 from .agent import PackageAgent
+from .play import play_all, play_case, play_waves, run_config
 from .trace import Tracer
 
 
@@ -48,16 +49,17 @@ def main(argv=None) -> int:
     )
     run_dir = _run_dir()
     tracer = Tracer(run_dir)
-    tracer.log("run", cmd=args.cmd, arena=os.environ.get("ARENA_URL"), agent="PackageAgent-v0")
     client = ArenaClient()
 
     def new_agent():
         return PackageAgent(tracer=tracer)
 
+    tracer.log("run", cmd=args.cmd, arena=os.environ.get("ARENA_URL"), **run_config(new_agent()))
+
     if args.cmd == "play":
         table = RemoteTable(client)
         try:
-            out = {args.case_id: play(table, args.case_id, new_agent())}
+            out = {args.case_id: play_case(table, args.case_id, new_agent())}
         except ArenaError as e:
             raise SystemExit(str(e)) from None
     elif args.set_ == "final":
