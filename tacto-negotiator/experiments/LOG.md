@@ -68,6 +68,91 @@ hosted sessions or practice quota were used.
   claim; model assistance and package advice remain opt-in. A hosted paired comparison,
   model latency/cost check, and final-machine rehearsal are still required.
 
+## Fact-keyed recent index windows — qualification survey (OFFLINE, 0 sessions), 10 October 2026
+
+- Rule (`configs/recent-index-window.json`, scope = all single-supplier types): cite a public index
+  window ending at the latest published month only if the series is a listed cost driver of the
+  part (weight ≥ 0.10), fell ≥ 1 pp, and the supplier's own letters/quote remarks contain no
+  hedge ("covered … fixed prices/until", "hedged"). A hedge sentence naming a material hedges the
+  matching series (name stems, e.g. "alloys" ~ "Alloy surcharge"); a generic one ("Material
+  covered") hedges all. Nothing qualifies → exactly the configured default evidence (none for
+  raw_material). Case IDs and types are not used.
+- Survey of hosted cases (latest 12-month window; most recent buyer window):
+  - P01 (PPI-C241 0.26 +6.5, LCI-C 0.32 +2.7, PPI-D351 0.06 −3.7): only PPI-D351 falls (−6.1%
+    11/25→08/26), but it is below the weight floor and has risen 4 months running. Not qualifying.
+  - P02 (CU-NOTATION 0.20 +47.7 and rising every month to 09/26; PPI-C241 0.16 +6.5 rising; LCI-C
+    0.21 +2.7): **no falling window at all**. Not qualifying. The P02 screen was not run.
+  - P03 (PPI-C2611 +13.5, CU +47.7, LCI-C), P04 (PPI-C2815 +0.8, LCI-C), P07 (PPI-C2594 +1.7, LCI-C),
+    P10 (PPI-C2219 +3.9, LCI-C): all rising at the latest month. Not qualifying.
+  - P11: same drivers as P01 (PPI-D351 0.06). Not qualifying.
+  - P05 (RFQ, 3 suppliers): AS-14404 0.16 −5.5% and PPI-C2431 0.19 −2.3% qualify, no hedge found
+    for 70210/70240/70250. But evidence here is single-supplier only, and P05 is owned by
+    `codex/score-push-p05` (now 0.7723 with `rfq_data_claims`). Not screened, to avoid overlap.
+  - P08: AS-14404/PPI-C2431 fall as in P18, but 70710's letter `doc:20260706-70710-M1` ("nickel and
+    alloys … covered at fixed prices until March 2027") and its quote remark ("Material covered until
+    March 2027") hedge both. 70710 is a bar stockholder, so the bars (PPI-C2431) are its material.
+    Excluded. This matches fullcost `e3f1f373` (0.3606, rebutted).
+  - P18: both qualify (no hedge for 70740). Only case changed (tested: enrich output differs from the
+    retained config for P18 only).
+- Prior art found: `codex/score-push-fullcost` screened the same two windows on P18 (`8444d792`,
+  `fc54cd39`: 0.4531 ×2) and P08 (`e3f1f373`: 0.3606). That run was on the clause-variant base and
+  added a scorecard claim. On the retained package base without the scorecard, this branch gets
+  0.5200 ×2. The base policy and claim mix matter: the screen below is not the first index-window
+  test on P18, but it is the first on this base.
+- P02 interaction: the fullcost-rel cost-posterior worker owns P02 (0.7115 ×2). The lever does not
+  qualify there anyway, so there is no interaction.
+- Validation: 375 passed + known preflight failure; ruff clean. Sessions: 0.
+
+## P18 recent index windows — REPEAT: 0.5200 confirmed, 10 October 2026
+
+- Run `5223242a-a174-4870-85e3-5eb47c68ebec`, session `7dd75ee1f6308fd6`: **0.5200438598**, identical
+  path (6.10 → 5.50 "acknowledging the recent index decreases you verified" → 5.40 → 5.30 final, agreed,
+  AS-14404 db0 / 90d / 24m). 1 session, no expiry. `lab sync`: uploaded 2, failed 0.
+
+## P18 recent index windows — REPEAT (pre-registration), 10 October 2026
+
+- Same config/commit lineage as the KEEP entry below (`configs/p18-recent-index-window.json`).
+  Nothing differs; purpose is to confirm 0.5200 is reproducible rather than one favourable
+  supplier draw. 1 session, no replacement unless expired.
+
+## P18 recent buyer-favourable index windows on retained package — KEEP 0.5200, 10 October 2026
+
+- Baseline/comparator: retained P18 policy `configs/retained-package-policy.json`,
+  0.4530612521 (`b2922dc3`, session `e7f60b71102745a0`; 5.40 / 90d / 24m / deadband 0).
+- Single change: the first buyer counter adds two verified public index claims over windows
+  ending at the latest published month: AS-14404 2026-06→2026-09 (-5.5%) and PPI-C2431
+  2026-06→2026-08 (-2.3%). Packages, prices, clause and message order are otherwise identical.
+  No scorecard, quote, PO, scope or internal-estimate claims.
+- What differs from earlier attempts: P18 evidence screens cited the scorecard (verified,
+  no movement, 0.3861), a public quote (irrelevant) or scope (0.3861); none cited falling
+  index windows, because the default picker drops rising 12-month windows and cherry-pick was
+  off. The P08 alloy-hedge letter (`aaac8af4`, tie) is a different lever. P08's index-window
+  test (`7fdf0fce`) ran on the full-cost policy, not this package, and its AS-14404 claim was
+  rejected only because P08's supplier says it is hedged until 03/2027. P18's supplier 70740
+  has no such hedge in its notice or case documents, and its own breakdown attributes 45% of
+  cost to AS-14404 and 38% to PPI-C2431.
+- Why it could work: the supplier justifies +11% with 12-month rises. Latest-month windows
+  show both drivers now falling, which is current, public and checkable. Unlike a stale
+  cherry-picked window, it disputes the trend the supplier is pricing forward.
+- Fairness: the windows use only public index facts. No hidden outcomes, `C_best` or other
+  teams' prices are used in pricing.
+- Plan: offline replay (only first counter body/refs may change), then one hosted P18 run.
+  Keep if > 0.4531 and the claims are verified/used; otherwise preserve as failed. Budget: up to
+  2 sessions (1 run + 1 replacement only if it expires), reserve 40 untouched.
+- Offline: replay vs retained thread — only first counter body/refs change; all 5 term sheets
+  and actions identical. 374 passed except the known claim-data preflight test; ruff clean.
+- Hosted: `f1af63e1-0f3d-4cce-8e61-c80c31304a2f`, session `193fd257d7a43c1e`, commit `83a32b0`.
+  Score **0.5200438598** vs 0.4530612521 (+0.0669826077 on P18; +0.0067 ten-case mean).
+  Deal 5.30 / 90d / 24m / AS-14404 deadband 0 (baseline 5.40, same clause). Both claims
+  `verified`; supplier: "Acknowledging the recent index decreases you verified, we are pleased
+  to offer a revised unit price of EUR 5.50" (baseline first counter-offer: 5.70/5.60), then
+  conceded to a 5.30 final. It still restated its 12-month rises ("That remains").
+- Sessions: 1 (no expiry, no replacement). Quota 443→440 during the run (others shared it).
+- Decision: KEEP as P18 candidate (new best 0.5200). Single sample: the supplier is likely
+  deterministic for identical messages, so a repeat would mostly confirm caching, not
+  variance. Transfer to other raw-material/price-increase cases is unmeasured; P08's hedge
+  rebuttal shows the lever depends on supplier context.
+
 ## Packaged runtime negotiation guidance — local integration, 10 October 2026
 
 - Hypothesis: explicit conditional package wording communicates the exchange more clearly
@@ -899,6 +984,7 @@ in the preceding entry; the same failure reproduces with the unchanged current
   4. P18: early equal-cost index_clause deadband variants, adopt supplier-revealed spread. Est.
      +0.03-0.06, weak-medium.
   P11 "faster payment" ask is not executable (payment_days not negotiable). Decision: implement 1-2 first.
+
 ## P10 package-advice replication + P02 expected-C clause target (branch codex/score-push-p10p02, 2026-10-10)
 
 ### P10 replication — run 3b0588df-1f6d-4558-aa1b-176bd028fd8d (`configs/package-advice.json` via configured_agent, aa5fb3c)
@@ -964,6 +1050,57 @@ in the preceding entry; the same failure reproduces with the unchanged current
 ### Lab sync
 - `negotiator lab sync` retried at 21:10: uploaded 0, failed 4. The `LAB_URL` dev tunnel times out (curl 000 after 15 s).
   Local run snapshots and reconciliations are intact; rerun sync when the host is back.
+
+
+### Cost-target generalisation (branch codex/score-push-costgen) — offline only, 0 sessions
+- Tool: `tools/expected_cost_report.py` (+ `tests/test_expected_cost_report.py`, 2). Feature-gated exactly like
+  `cost_target.active` (relationship goal + `relationship_eur_per_point` + `sustainable_margin_pct` + dossier fc);
+  public fixture + dossier only, no c_best / revealed breakdowns.
+- Structural finding: the non-monotone term (relationship) exists only for `stabilise`/`secure_supply` goals.
+  P18, P08 (raw_material), P11 (quality), P05 (rfq) are `leverage`/`quality_first`: relationship = 0, C is
+  monotone in price, so the expected-C target degenerates to "lowest price" — the insight cannot raise them.
+  | case | closed (best) | E[C]/notes | expected-optimal | predicted gain |
+  |---|---|---|---|---|
+  | P18 .4196 | 5.45 / db0 / 90d / 24m, C 264,745 | no relationship term; equal-C: db5 5.572, db3 5.523, none 5.623 | lowest legal price (db0 cheapest per € price) | 0 from this lever (supplier rejects db5 ≤5.46, LOG H18c) |
+  | P08 .5930 | 5.31 / db0 / 90d / 24m, C 1,031,778 | no relationship term; equal-C: db5 5.429, db3 5.381 | same as P18 | 0 from this lever |
+  | P10 .6551 | 31.80 / 56d / 24m, C 1,537,097, rel 0 | margin at 31.80 ≈ +23 % ≫ 10 % sustainable; penalty only below ≈27 | 26.36 / 35d / 24m (E[C] 1,274,360) | not reachable: supplier final 31.80; target is a price floor, not a structural package — 0 |
+  | P11 .7099 | 45.50 / ppm300 / cb0 | quality_first: no relationship term | n/a | 0 |
+  | P05 .4119 (.7208 on p05 branch) | 32.00 → 29.00 | leverage rfq: no relationship term | n/a | 0 |
+  | P02 .5993 | 366.23 / 90d / CU db5 | E[C] 2,320,234 (= target) | clause pkg 366.23 already optimal | 0 |
+- Other relationship-goal cases (not in scope; candidates for later): P03 closed 433.08 vs E[C]-target 423.79
+  (ΔE[C] −14k, relationship already ~0 → pure price gap), P01 133.70 vs 132.57/14d (−5k). No runs for P06/P09/P14/P17.
+- P02 reconciliation (teammate's 361.33 / −6,443): reproduced exactly as a POINT estimate at fc = 366.73.
+  That fc is back-solved from the hosted breakdown (relationship 12,647 at 366.23) = hidden-model leakage,
+  not the public estimate. Public point fc 374.95 → min-C price 369.17; public expected (uniform 356.20–393.70)
+  → 366.23. E[C](361.33) − E[C](366.23) = +3,231 (worse). Per-fc ΔC(361.33 vs 366.23): −29k @356.2, −11k @365,
+  +1.8k @370, +13k @374.95, +17k @393.7 — penalty side is long. Same penalty formula; the difference is the fc
+  assumption (revealed vs public). Verdict: no screen; 361.33 would be a hidden-data-tuned target.
+- P02 no-clause 366.41 has lower E[C] (2,301,137, no index risk) but price-only bargaining floors at 373.65
+  (6 sessions); the clause is what buys the lower price. Not screened.
+- Overfitting guard: no flags/configs added; nothing keyed by case ID. `cost_target_types` remains validated on
+  one case only (P02, n=3+1). Suite: 376 passed + known preflight failure + 1 timing flake
+  (`test_two_thread_rfq_slow_replies_no_timeouts[1]`, passes on rerun). Ruff clean.
+- Sessions used: 0 / 8. Merge verdict: merge tool + tests (harmless); no policy change.
+
+## 2026-10-10 — Score push Phase 1: factory port + offline triage (no sessions)
+
+- Branch `codex/score-push-20261010` from origin/main `3653046` (no teammate commits since).
+- Ported `negotiator.agent:configured_agent` + `PolicyConfig.from_dict` (no default policy change),
+  tests in `tests/test_configured_agent.py`. Full suite 367 passed, 1 known preflight failure; ruff clean.
+- Quota read-only: practice 79/200 used, 121 left, 0 active sessions. Hosted best P05 is 0.4168
+  (`fc0baf478c14eebb`, no local transcript).
+- Offline triage of all saved runs (no quota). Ranked hypotheses for Phase 2:
+  1. P02: once supplier accepts the CU 5%-deadband clause package (run 5eccc847), counter at the
+     relationship-cost argmin (~361, calibrated from the supplier's own no-index alternative sheet),
+     not the lowest price. Local kit fit reproduces server C within 2 EUR; est. 0.29 -> ~0.70. Medium.
+  2. P05 (`rfq`): a non-leading thread's "gap closed" must hold, not close the case (0.3604 runs
+     closed on sup:70250 and accepted 70210 at 32.50; best run continued to 32.00). Pair with
+     `rfq_close_guard` (d8a0b0b). Est. +0.05. Medium-high.
+  3. P08: cost-neutral 36-month tie-break for raw_material (`longer_tenor` outside multi_year_only).
+     Est. +0.05, weak-moderate.
+  4. P18: early equal-cost index_clause deadband variants, adopt supplier-revealed spread. Est.
+     +0.03-0.06, weak-medium.
+  P11 "faster payment" ask is not executable (payment_days not negotiable). Decision: implement 1-2 first.
 
 ## 2026-10-10 — Score push P18/P08 screens (branch `codex/score-push-p18p08`)
 
@@ -1315,3 +1452,325 @@ Runner `async`, launched under nohup so the process survives the shell.
 - Sessions: 10 practice (this run), 8 sandbox. Live practice 161 used before, 174 after (other agents
   share the key; a teammate P05 session was active at start). Decision: publish this config on the
   branch; no main merge, no recommendation change.
+
+## 2026-10-10 — P05 screens by parallel worker (same worktree; recorded here for completeness)
+
+A second agent shared this worktree and `/tmp/p05` from ~22:05; its runs are part of this P05 budget:
+- `57b90d1e` `p05-rival-history-3`, session `09f597f13bebed64`: launched 22:05 then abandoned
+  (process gone); ended `timeout`, score 0.00, no deal; 70210 was at 32.00 after the first claim.
+  Reconciled for this one verified owned, ended session; `lab sync` uploaded.
+- `d1fea8bb` `p05-rival-history-4`, session `2b8fbe3260167f15`: **72.08**, 70210 29.00/35/30, 0 timeouts.
+- `237f5adb` `p05-rival-history-4`, session `69acb4ae63e23c8c` (mine): **72.08**, 70210 29.00/35/30,
+  9.8 s, 0 timeouts. Identical 70210 path: 31.50 claim → 32.00 + "clarify internally" → 29.00.
+- `376427e0` `p05-undercut-reanchor-1` (hypothesis E, commit 5770caf), session `2ffdd9c5ee8c2b9d`:
+  **72.08**, 0 timeouts. Counter 27.26 after 29.00 → "I already gave you a massive drop … stay
+  there" → final 29.00, accepted. Anchor line: 1 miss. 29.00 looks like 70210's floor under rival
+  pressure alone.
+Replicated 3/3 (plus 2 expired). Lever confirmed.
+
+## 2026-10-10 — P05 screen 10 plan: one verified data fact on counters with no rival claim (F)
+
+Differs from previous: E config (undercut re-anchor) + `rfq_data_claims` (`configs/p05-data-claims.json`);
+E's lower ask is kept because on the D base we counter at 29.00 itself and a claim cannot lower it. Until now
+RFQ cases sent no data claims at all: `evidence_types` excludes rfq and `EvidencePolicy` gates to
+single-supplier cases. Only rival-offer citations went out. Once 70210 led at 29.00, no rival
+undercut it, so later counters carried no argument and it held 29.00 (E showed that a lower
+ask without new information fails). Category goal names "competition **and data**"; 70210 itself
+responded to "your data on the market was solid". F appends exactly one fresh verified public or
+supplier-own fact (scorecard OTD/PPM, latest index windows) to an RFQ counter only when no rival
+claim was added. Should-cost (internal estimate) excluded; no hidden outcomes are used.
+Offline replay: at 70210's 29.00 the counter carries scorecard sc:70210@2026Q3 OTD 80.8 %.
+
+## 2026-10-10 — P05 (parallel worker B): repeat + screen E (undercut re-anchor) — miss
+
+Note: two workers ran in this worktree at once (B did not know about A's `5dc584b`). B stops here
+to avoid duplicate sessions; A owns the next screen (its uncommitted `rfq_data_claims` is untouched).
+- Lever (from the full transcript of `d52efd4374aaf110`): `rfq_rival_offer_history` cites the
+  lowest rival sheet from the *whole session*, including must-have-invalid ones, so the leader
+  70210 receives 70240's opening 31.50 @ 52 d (offer:70240-0) in its first counter (verified) →
+  "clarify internally" → 36.00 → 32.00 → **29.00**. Screen 6 (valid sheets only) never cited to 70210.
+- Run `57b90d1e` / session `09f597f13bebed64`: process killed seconds after a nohup start (the shell
+  call reaping background jobs); ended by timeout, 0.00, reconciled for that one session only. 1 session.
+- Run `d1fea8bb` / session `2b8fbe3260167f15`, commit `5770caf`'s parent config
+  `configs/p05-rival-history.json`, foreground: **72.08**, 70210 29.00/35/30, 24.3 s, 0 timeouts.
+  Identical path to screen 8. Replicated (with A's `237f5adb` = 3/3 completed at 72.08).
+- Screen E `rfq_undercut_reanchor` (`configs/p05-undercut-reanchor.json`, commit `5770caf`), run
+  `376427e0` / session `2ffdd9c5ee8c2b9d`: **72.08** (no change), 97 s, 0 timeouts. Counter 27.26
+  after the 29.00 drop; 70210: "price stays … already gave you a massive drop to 29.00", then
+  final 29.00/30 d; accepted. Price-floor line: 1 miss. 29.00 looks like 70210's floor under the
+  single 31.50 claim; payment (90 d refused) and lead-time lines already closed.
+- Sessions used by B: 3 (one killed). Gap to .92 ≈ EUR 1.9/unit; remaining untested lever is a
+  verified data claim to the leader (A's in-progress `rfq_data_claims`).
+
+## 2026-10-10 — P05 screen 10: one verified data fact on RFQ counters (F) — WIN
+
+Run `c3054e99-df92-4a96-9d94-9b83035d79bc`, session `a7298b34c1e012d6`, config
+`configs/p05-data-claims.json` (E + `rfq_data_claims`). Score **77.23** (vs 72.08 ×3):
+sup:70210 EUR **28.50** / 35 d / 30 d, 183 s, zero timeouts. 70210 path: 31.50 rival claim →
+32.00 + "clarify internally"; counter 31.74 + scorecard OTD 80.8 % (verified) → "clarified
+internally … I checked the delivery scorecard … dropping the price to €28.50 to make up for it
+and the other quote"; re-anchor 26.79 + PPI-D351 −3.7 % (verified) → "you are right about the
+drop … already went as low as I can go … 28.50 final"; accepted. 70240 took the 45 d
+alternative path (32.50/45 final); 70250 32.00/30. No 56 d, no 14 d, lead 35 d. Data line: 1 hit.
+
+## 2026-10-10 — P05 screen 11 plan: stack the data fact with the rival claim (G)
+
+Differs from screen 10: `rfq_data_claims_stack` also adds the data fact to counters that already
+carry a rival claim (`configs/p05-data-claims-stack.json`). In F, 70210's first counter had only
+the rival claim; each verified claim appears to buy one internal-clarification drop. Front-loading
+OTD with the rival claim may move the 32.00 reply lower, leaving PPM 1863 and PPI-D351 for later
+counters. Offline first counters: 70210 rival 31.50 + OTD 80.8 %; 70250 rival + OTD 88.0 %;
+70240 OTD 62.5 % only. Risk: 70250's 88 % OTD is mildly favorable to it.
+
+## 2026-10-10 — P05 screen 11: stacked data + rival claim (G) — tie at old level
+
+Run `a160f212-66f3-4e52-9c0d-2b287ba4cce0`, session `6f46f0195a05816a`. Score **72.08**: 70210
+29.00/35/30, 228 s, zero timeouts. First counter carried rival 31.50 + OTD 80.8 % (both
+verified) → one reply, 32.00 + "clarify internally" (one drop for two claims). Second counter:
+PPI-D351 −3.7 % → 29.00. Third counter 27.26 had **no** claim (PPM shares id
+sc:70210@2026Q3 with OTD, so dedup blocks it) → "calculated tightly … 29.00" → final. Stacking
+spends a claim slot without a matching drop. Stack line: 1 miss; `rfq_data_claims_stack` stays off.
+
+## 2026-10-10 — P05 screen 12 plan: replicate F
+
+Differs from screen 11: stack off, i.e. exactly screen 10's `configs/p05-data-claims.json`.
+Purpose: confirm 77.23 (28.50) is not a single-sample draw versus 29.00 in G/E.
+
+## 2026-10-10 — P05 screen 12: replicate F — WIN replicated
+
+Run `5918e884-4983-41ae-b5b3-44c36a7fe366`, session `d48049c4678d0466`: **77.23**, sup:70210
+28.50/35/30, 10.8 s, zero timeouts; transcript identical to screen 10 (OTD → "clarified
+internally … 28.50"; PPI-D351 → "as low as I can go … 28.50 final"). F 2/2.
+
+Decision / merge verdict: merge candidate = `configs/p05-data-claims.json` (async runner;
+hold + rival offer + rival history + undercut re-anchor + `rfq_data_claims`), 77.23 ×2, zero
+timeouts, lead 35 d (≤42), 30 d payment, no 56 d counter, no 14 d / early cash. All new
+flags are opt-in; defaults unchanged. Drop: stack (1 miss), standalone re-anchor (tie, kept only
+as F's carrier). 70210 states 28.50 is its floor; remaining gap to ~.92 (≈EUR 27.1) is not
+reachable by more claims on this path. Next untested lines: 42 d lead time traded for price with
+70210, and the teammate's 24-month commitment (both price-for-term trades, none screened).
+Sessions in this task: 7 (2b8fbe32, 69acb4ae, 2ffdd9c5, a7298b34, 6f46f019, d48049c4 completed;
+09f597f1 expired, launched by a parallel worker in this worktree) plus 1 inherited expired
+(6c3717e8). Shared-team quota also fell from other teams' P05/other runs during this window.
+Validation: `pytest -q` 382 passed, 1 known failure (preflight); ruff clean.
+
+
+## 2026-10-10 — Restore the measured P18 package baseline
+
+Recovered original agent-visible thread for owned session336d373e78ee87f1
+(score0.4530612521, final5.40/90days/24months/AS-14404 deadband0).
+The previous best was not in local run manifests and had been overlooked when
+evaluating the0.4195698792 clause-variant candidate.
+
+Existing configs/package-advice.json with estimates={} and meso=false reproduces
+all FIVE buyer messages, term sheets and final acceptance exactly on that history.
+configs/retained-package-policy.json provides those exact factory kwargs. Runtime
+logic is unchanged; no case-specific prices or new flags. The original thread is
+an agent-visible regression fixture. In particular, clauses are not accepted into
+our counters early; the supplier's indexed standing offer can still be accepted.
+
+Plan: one hosted confirmation via negotiator.agent:configured_agent from own
+budget24/30, reserve40. This protects a historical gain; it is not a new best-of
+score or proof of unseen-case performance. No default changes or main merge.
+
+Validation:371 tests passed, only the known pre-existing claim-data preflight
+test failed; Ruff passed. The new exact historical replay passed.
+
+Hosted confirmation: b2922dc3-6036-4a59-9c29-c75afc4af0e2,
+sessione7f60b71102745a0, sourced070c01. Score0.4530612521, zero timeouts,4.11s.
+All11 original messages (body, terms, refs, actions, statuses, claim results)
+match the recovered historical thread exactly; likely deterministic/cache reuse.
+Retain this policy over the0.4195698792 clause-variant config. Delta+0.0334913728
+on P18, equivalent+0.0033491373 on ten-case mean. No new historical-best claim.
+Own budget24/30;6 remain. Result uploaded to lab automatically.
+
+
+## 2026-10-10 — P02 in-session supplier-cost posterior (branch `codex/score-push-fullcost-rel`)
+
+Hypothesis (coordinator): the instant accept of 366.23 / 90 d / CU db5 is runtime evidence that the
+supplier's cost sits below the public prior midpoint 374.95, so the cost target should adapt.
+
+Offline (no session; `/tmp/fc2/p02_post.py`, public dossier prior fc ~ U[356.20, 393.70]):
+- Likelihood: the supplier accepts an offer worth v to it (`supplier_value`) iff v >= fc·(1−s),
+  s ~ U[0, s_max] (how far below full cost it will sell). 366.23/90d is worth 361.35 to it.
+- Posterior after an accept at 366.23, and the E[C]-optimal price on the same package:
+  s_max .10 → E[fc] 370.3, opt 362.10; .125 → 371.6, 363.05; **.15 → 372.3, 363.65**; .20 → 373.1,
+  364.35; .30 → 373.8, 365.00. The accept is weak evidence. The supplier also sold the same package
+  at 349.37 in 5eccc847 (worth 344.71 to it), so acceptance alone does not bound fc from below.
+  It only says s is large (≥ 6 % at fc 366.7).
+- Score range at fc points (local model; hosted was ~.026 below local at 366.23). Price 363.37 vs 366.23:
+  fc 356 +1.25/+0.89, fc 362 +1.10/+0.86, fc 366.7 **+0.74/+0.63**, fc 375 −0.47/−0.34,
+  fc 385 −2.36/−2.17. Wrong-posterior risk: each EUR 1 below the relationship optimum costs ~.04
+  score at fc ≈ 375 and ~.05 at fc ≈ 385. A refusal-driven posterior would also over-concede: one
+  counter at 363.37 lifts E[fc] to 382 and the optimum to 375. So refusals may only bring us back to
+  the prior optimum, never above it.
+- The clause db5 package caps the score at ≈ .76 local even at the best price (~361). **.85 is not
+  reachable on this package**. No-clause 90 d is floored by the supplier at 373.65 (.29).
+- P10: not applicable. The margin at 31.80 is ≈ 23 % ≫ 10 % sustainable, so the relationship term
+  (and hence fc) does not bind above ≈ 27. Whether 31.80 is a bluff is a reservation-price question,
+  not a cost-posterior one. Countering a final offer has caused `walked_away` before (D02, line ~264).
+  No P10 session.
+
+What differs from previous P02 attempts (5eccc847 cost-driver, p02-cost-target 366.23 → .5993):
+opt-in `cost_target_posterior` (s_max 0.15, `configs/p02-cost-posterior.json`). Same package
+(90 d / CU db5). It opens at the self-consistent price p = argmin E[C | refusals, p accepted]
+(**363.37**) instead of the prior optimum 366.23. If the supplier refuses, it rises toward the prior
+optimum, never above it. It accepts a supplier sheet on our package at or below that price.
+Expected: accept → hosted ≈ .70 (+.10). Refuse → back to 366.23 (≈ .60).
+Plan: 1 P02 screen, repeat once if ≥ .62. Max 2 practice sessions.
+
+Results (source `1cae3b0`, `configured_agent` + `configs/p02-cost-posterior.json`, estimates/MESO off, serial):
+
+| run | session | score | terms | rounds | timeouts |
+|---|---|---|---|---|---|
+| c18148c9 | 936622ab15fb9214 | **0.7115** | 363.37 / 90 d / CU db5 / 12 m | 1 (instant accept) | 0 |
+| 887281c9 | 7874cdcfaa174eb6 | **0.7115** | identical | 1 (instant accept) | 0 |
+
+- Hosted breakdown: price 2,220,190.70, payment −14,801, index_risk 17,762, quality 1,191,
+  relationship 24,834 (was 12,647 at 366.23). +.1121 vs the .5993 best, n=2 identical.
+- Full transcript read: the supplier agreed in round 1 with "Our price reflects our costs". No refusal,
+  so the posterior was never updated after the opening. The instant accept at 363.37 is a second accept.
+  Under the same model it lowers E[fc] further, but this agent stops after an accept (close).
+- Not reached: .85. This package is capped near .76 local. A deeper next step (lower s_max → ~361) is
+  worth about +.02–.04 if fc ≈ 366.7, and loses ~.04/EUR if fc ≥ 375. Not screened.
+- Sessions: 2 practice (quota 174 → 176 used/600 at start/end of this block; other agents share it).
+Decision: P02 opt-in `configs/p02-cost-posterior.json` is a replicated win (.5993 → .7115). Defaults unchanged.
+P10: no session (see the offline note above).
+
+## 2026-10-10 — P07/P11/P01 score push (branch codex/score-push-p07p11)
+
+- Code: opt-in `longer_tenor_types` (cost-equal longer `contract_months` tie-break + no free
+  tenor concession) and `standard_payment_types` (adopt quote-standard `payment_days` if legal;
+  protect it in free concessions/package switch). Configs: `p07-longer-tenor`, `p07-standard-payment`,
+  `p01-standard-payment`, `p11-chargeback-zero`. Tests: `tests/test_tenor_payment_policy.py`.
+- Practice runs (configured_agent, 0 timeouts each):
+  - P07 longer-tenor `8daf33e5` / `064283abb3864b33`: 0.7405 (5.42, 90d, 36m; final at r5). Drop
+    (worse than 0.7430; also the rejected 36m-without-gain pattern).
+  - P01 standard-payment `b8875ca5` / `dff8db6b184aa534`: **0.9602** (133.70, 30d, eff 2027-04-01;
+    relationship 9.4k vs ~larger at 90d). Repeat `0171c5d9` / `8ff60c359f65cef7`: **0.9602** identical.
+    Winner (+0.032 vs 0.9279).
+  - P11 chargeback-zero `9cc1cbb5` / `294733b34a3e8667`: 0.7099 (45.50, 300ppm, cb 0) = best. Supplier
+    floor 45.50 at r4; holds through r7, only faster payment (fixed term) moves it. Drop.
+  - P07 standard-payment `b9c3510b` / `511eafb58b9545bf`: 0.7430 (5.38, 60d, 24m) = baseline; flag
+    no-op (no quote standard parsed); supplier declares final at r5. Drop P07.
+- Sessions consumed: 6/12. Verdict: merge `p01-standard-payment` (`standard_payment_types:
+  ["price_increase"]`); note it also affects P02 (owned elsewhere) if adopted globally — scope to
+  P01 owners' review or verify P02 before promoting.
+
+## 2026-10-10 — P07/P11/P01 line stopped (reconcile only, no new sessions)
+
+- Line stopped on request (overlap with another team agent). No new sessions started by this worker.
+- Reconciled run `2406aa57` (P07 deep anchor `anchor_by_type bundling 0.2`, session
+  `1a25cd75923030db`): it was left `running` after its attempt completed. Session verified owned and
+  ended; collected thread detail (0 timeouts), marked completed, `lab sync` ok. Score **0.7015**
+  (5.48, 90d, 24m). The supplier declared final at r3 after a 4.59 opening. Drop deep anchor.
+- Unlogged earlier run `c6416c3b` (P07 bundling OTD-scorecard evidence, session `8b8354f07cd83a87`):
+  **0.7470** (5.41, 90d, 24m, final at r5, 0 timeouts). That is +0.004 vs 0.7430 at n=1, within noise; not repeated.
+- Previous worker total: 8 practice sessions. Branch is behind origin/main (memory/model_assist), so
+  rebase before any merge. Merge candidate: `p01-standard-payment` only (0.9602 x2).
+
+## 2026-10-10 22:xx — P07 bundle-volume argument (hypothesis, before screen 1)
+
+- Prior P07 work reviewed (read-only): main `LOG.md`/runs (imports `af00461c` 0.7340, `d1b5e17f`
+  0.7430), `origin/codex/benchmark-goal-20261010` (no P07 entries), this branch (anchor 0.7015,
+  tenor 0.7405, std-pay 0.7430, OTD evidence 0.7470). Teammate MESO/estimates/evidence not repeated.
+- Diagnosis: every run concedes ~0.04-0.08/round from 5.59-5.60 to a round-5 final at 5.38-5.43,
+  whatever the terms. Our messages never mention the bundle itself; the only cited fact (OTD) was
+  "verified, does not change our calculation". Post-hoc only (never used at runtime): 0.81 implies
+  a final ≈EUR 0.10/unit lower (≈5.31 at 90d/24m).
+- Difference: new opt-in `bundle_volume_types` adds a cited, deterministic volume argument from
+  public data only: kit memo quantities x need (2.07 M pcs/yr), supplier's current `sourcing` quota
+  -> 1.308 M pcs/yr moved from other suppliers, latest `fc:` forecasts for the two parts moving most,
+  and the supplier's own `idle_capacity` note (doc M3). Terms/prices/closing unchanged (unit test).
+- Why it could work: a volume/capacity reason is the bundling lever (playbook; trait idle_capacity
+  "volume fills capacity -> price"); the supplier responds to verified data it values, OTD is not it.
+- Config `configs/p07-bundle-volume.json` = candidate + `bundle_volume_types: ["bundling"]`.
+  Pass: > 0.7470 with 0 contradicted claims, 0 timeouts. Budget: 10 sessions for this line.
+- Screen 1 `2320ed30` / session `00e07274bb4eaa48` (+1 run `31272ed7` failed pre-open, HTTP 401
+  from missing env, no session opened): **0.7535** (5.40, 90d, 24m, final r5, 0 timeouts). Supplier
+  "checked the volume change data; it holds" (no contradiction) but "already taken into account";
+  concessions 5.59→5.50→5.44→5.40. Best P07 so far (+0.0105 vs 0.7430, +0.0065 vs OTD), n=1.
+
+## 2026-10-10 — P07 concession speed (hypothesis, before screen 2)
+
+- Pattern over all 5 P07 traces: supplier step ≈0.8× our previous step (0.11→0.09, 0.07→0.06,
+  0.05→0.04), and it declares final at r5 (r2-r3 after a deep anchor). Our linear schedule
+  `k/rounds` with rounds=5 still has ~0.12 of its own room left when the supplier's final arrives,
+  so the supplier's reciprocal moves are cut off. Never tested: anchor depth was tested (0.2 → early
+  final, worse), the schedule length never was.
+- Difference: new opt-in `rounds_by_type` (bundling: 3); same 5.05 opening, larger early steps,
+  so the supplier gives more reciprocal room before its final round. Bundle volume stays on.
+  Prices still come only from our C schedule of quoted terms; no hidden outcome is used.
+- Risk: under a pure time-based supplier schedule we only pay more. Pass: > 0.7535.
+- Screen 2 `01cf4cef` / session `8dc700cdef9319e6`: **0.7145** (5.46, 90d, 24m; supplier "agreed"
+  at our r4 5.46; 0 timeouts). Ours 5.05/5.23/5.36/5.46 vs theirs 5.59/5.52/5.46/5.46. Drop
+  rounds=3. Lesson: the supplier's end point tracks our last offer (slow schedules: final ≈ our
+  r4 + 0.11-0.12), not a fixed floor reached by reciprocity.
+
+## 2026-10-10 — P07 slower schedule (hypothesis, before screen 3)
+
+- Difference: `rounds_by_type: {"bundling": 10}` (rounds 5 → 10; steps ≈0.054 instead of 0.108),
+  with bundle volume on. Our r4 is ≈5.21 instead of 5.28. If the supplier's final stays ≈ our r4
+  + 0.11, it lands ≈5.32-5.34 (needed for ~0.78-0.80). Supplier still finals at r5; after that we
+  keep the existing final-accept check (no new closing logic). No hidden outcome is used.
+- Risk: the supplier holds 5.40+ and we accept the same final (≈0.75), or it walks (p_walk guard unchanged).
+- Screen 3 `5a3a827d` / session `920807c3a03c6ed2`: **0.7145** (5.46; ours 5.05/5.11/5.15/5.19, theirs
+  5.59/5.54/5.50/5.46 final; 0 timeouts). Slower is as bad as faster: both supplier step and final
+  depend on our steps. Default rounds=5 stays. Schedule axis closed (3, 5, 10 tested).
+
+## 2026-10-10 — P07 answer the volume question + committee path (hypothesis, before screen 4)
+
+- Observation (screen 1): every supplier reply asks "Which volume can you commit to? A binding higher
+  volume would help us and can improve the price." We never answered; our reminder repeats volume
+  it says it "already factored in". Supplier dossier also has `pricing_committee` (doc M1: changes
+  above 2 % need committee approval); 5.59→5.40 is 3.4 %, never addressed. Neither was tested by
+  anyone (main LOG, teammate branch, this branch).
+- Difference: opt-in `bundle_commitment_types` (bundling). From round 2 the reminder is replaced by
+  a direct answer: binding commitment to the case's fixed volume (30000 kits/yr, no more than the
+  need; volume is not negotiable) over the offered term (24 m = 60000 kits), all 2.07 M pcs/yr from
+  one supplier, 1.308 M moved; plus, from the supplier's own note, a request to put the package to
+  its pricing committee. No new IDs, terms, prices or closing logic (unit test). No hidden outcome.
+- Why it could work: the supplier's script names a binding volume as its price lever, and the
+  committee note names its approval limit; both answer its stated conditions. Pass: > 0.7535.
+- Screen 4 `db8102bc` / session `0a624e505af85d00`: **0.7600** (5.39, 90d, 24m, final r5, 0 timeouts).
+  Supplier acknowledged both ("appreciate the binding commitment to 30,000 kits", "presented your
+  package to our pricing committee") but steps were unchanged (5.59/5.49/5.42/5.39 vs 5.59/5.50/5.44/5.40).
+  +0.0065 vs screen 1 is within n=1 noise (seven P07 runs span 5.38-5.48 with similar schedules).
+- Checked and not screened (no lever in public data): PPI-C2594 +1.7 % and LCI-C +2.7 % y/y (rising);
+  kit at today's PO prices ≈ EUR 5.95, so 5.39 is already below piece prices; no should-cost for
+  these parts; 30d alternative (5.52) ≈ 90d at 5.59 in our C (8 %/yr). No local run in any worktree
+  beats 0.76.
+
+## 2026-10-10 — P07 repeat of bundle-commit (before screen 5)
+
+- Same config/commit as screen 4 (`configs/p07-bundle-commit.json`). Purpose: separate signal from noise
+  before proposing a merge; no behavior change. Pass to keep: ≥ 0.7535 again.
+- Screen 5 `97f6d4cc` / session `c3383857201b8946`: **0.7600** again (identical path 5.59/5.49/5.42/5.39,
+  0 timeouts). Reproducible: +0.017 vs 0.7430 baseline, +0.013 vs OTD evidence.
+- Line total: 5 practice sessions opened (screens 1-5) + 1 failed run `31272ed7` (HTTP 401 before
+  open, no session). Budget 10 → 5 used, 5 left.
+- Verdict: merge candidate `configs/p07-bundle-commit.json` (`bundle_volume_types` +
+  `bundle_commitment_types` = ["bundling"]); bundling cases P07 and P15 are affected; P15 is unscreened, so verify it (or its owner) before promoting globally.
+  Drop `rounds_by_type` (3 and 10 both 0.7145). 0.81 not reached: the supplier's ladder (≈0.20 total
+  after its first reply, final at reply 4) did not respond to volume, commitment, committee, or
+  schedule changes; the remaining ≈0.08/unit needs a lever not found in public data.
+
+## 2026-10-10 22:55 — score-push v2: merge, interference check, sandbox, ten-case confirmation (MEASURED HOSTED PRACTICE, 10 sessions)
+
+- Main merge: origin/main 0ffb8c0 merged into codex/score-push-integrate (opt-in `multi_supplier_anchor`, lab UI);
+  642 passed, ruff clean, offline replay unchanged (P01/P02/P04/P07/P08/P18 exact). Merged to main as c434fad.
+- v2 branch codex/score-push-v2 = integrate + origin/codex/score-push-p05 (a913ac3) + alt-p18-buyer-window
+  (b354f99, fact-keyed recent index windows) + score-push-fullcost-rel (457c813, cost posterior) +
+  score-push-p07p11 (7a9f20d, bundle volume/commitment). `rounds_by_type`/`anchor_by_type` merged but unused.
+- configs/score-push-v2.json = score-push.json + rfq_undercut_reanchor, rfq_data_claims,
+  recent_index_window_types (all single-supplier types), cost_target_posterior 0.15, bundle_volume_types and
+  bundle_commitment_types [bundling]. Run wrapper configs/score-push-v2-run.json. Runtime commit 536959b.
+- Offline interference (v1 vs v2 full messages on run b9ad733d transcripts): only P02 (opening 366.23 -> 363.37,
+  same as posterior runs), P07 (kit volume + commitment text), P18 (AS-14404 / PPI-C2431 recent windows) change.
+  P01/P03/P04/P08/P10/P11 identical; P08 excluded by hedge, P02 by rising copper. P05: 11 snapshots, v2 decisions
+  identical to configs/p05-data-claims.json (recent windows never fire on RFQ; no duplicate data claims).
+- Tests 678 passed, ruff clean. Sandbox 8b3a4efe: D01 .9192 x2, D02 .5239 x2 (identical to v1 511a2526).
+- Practice 6b162c54 (10 sessions, 0 timeouts, 10 deals, all must-haves ok): P01 .9602, P02 .7115, P03 .8998,
+  P04 .8604, P05 .7723, P07 .7600, P08 .5930, P10 .6551, P11 .7902, P18 .5200. Mean .7522 = best-per-case mean.
+- Risks: bundle commitment untested on P15 (bundling, not practice); every v2 lever validated on one case;
+  supplier side appears deterministic so repeats test reproducibility, not robustness.

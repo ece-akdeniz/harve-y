@@ -7,15 +7,36 @@ skipping an unsent claim is preferable to consuming the same fact twice.
 
 from dataclasses import asdict
 
-from .claims import MAX_CHECKED, case_facts, claim_keys, index_relevance, pick, verify
+from arena_kit.cost import total_cost
+
+from .claims import (
+    DEFAULT_DISCLOSURE,
+    MAX_CHECKED,
+    case_facts,
+    claim_keys,
+    index_relevance,
+    pick,
+    public_rival_quotes,
+    recent_index_claims,
+    verify,
+)
 from .context import DATA_ERRORS, build_context, content_hash
 from .dossiers import load_package
 from .replies import evidence_constraints
 
 
 class EvidencePolicy:
-    def __init__(self, package=None, tracer=None, case_types=None, interpretation=None):
-        self.case_types = set(case_types if case_types is not None else ["price_increase"])
+    def __init__(self, package=None, tracer=None, case_types=None, interpretation=None, recent_window_types=(),
+                 rival_quote_types=(), index_window_types=()):
+        self.recent_window_types = set(recent_window_types)
+        self.default_types = set(case_types if case_types is not None else ["price_increase"])
+        self.case_types = self.default_types | self.recent_window_types
+        # Opt-in: disclose a documented, still-valid public rival quote for the case part when its
+        # complete cost (case cost model) beats the supplier's standing sheet.
+        self.rival_quote_types = set(rival_quote_types or ())
+        # Opt-in: allow the verified buyer-favourable index window (<= 12 months, ending in the last 12)
+        # for listed cost drivers whose latest 12-month change supports the supplier.
+        self.index_window_types = set(index_window_types or ())
         self.package = package
         self.tracer = tracer
         self.banks = {}
@@ -49,13 +70,40 @@ class EvidencePolicy:
                                 context=context.to_dict())
         return self.contexts[cid]
 
+    def cheaper_rivals(self, case, events, sid):
+        """Public rival quotes whose complete buyer cost beats the supplier's standing sheet."""
+        if case.get("type") not in self.rival_quote_types:
+            return []
+        standing = next((e for e in reversed(events) if e.get("from") != "buyer" and e.get("term_sheets")), None)
+        if standing is None:
+            return []
+        c_standing = min(total_cost(case, s.get("terms") or {}) for s in standing["term_sheets"])
+        cited = {r for e in events if e.get("from") == "buyer" for r in e.get("refs") or []}
+        out = []
+        for claim, terms in public_rival_quotes(case, self.package):
+            if claim.supplier_id != sid or set(claim.ids) & cited:
+                continue
+            c_rival = total_cost(case, terms)
+            if c_rival < c_standing:
+                out.append(claim)
+            if self.tracer:
+                self.tracer.log("rival_quote_check", case=case["case_id"], supplier=sid, ids=list(claim.ids),
+                                c_rival=c_rival, c_standing=c_standing, cites=c_rival < c_standing)
+        return out
+
     def fallback(self, case, exc):
         if self.tracer:
             self.tracer.log("evidence_fallback", case=case["case_id"], error_type=type(exc).__name__)
 
-    def enrich(self, case, threads, sid, move, context=None):
+    def enrich(self, case, threads, sid, move, context=None, rfq_claims=0):
+        """`rfq_claims` > 0 enables RFQ (multi-supplier) decoration with at most that many claims,
+        excluding our internal should-cost; the single-supplier gate stays for every other path."""
         message = move.get("message")
-        if not self.eligible(case, move):
+        rfq = rfq_claims > 0 and case.get("type") == "rfq"
+        if rfq:
+            if not message or not message.get("term_sheets") or message.get("action"):
+                return move
+        elif not self.eligible(case, move):
             return move
         cid = case["case_id"]
         events = threads.get(sid, [])
@@ -88,15 +136,39 @@ class EvidencePolicy:
                 self.tracer.log("reply_interpretation", case=cid, supplier=sid, **interpretation)
             if "*" in rejected:
                 return move
-            bank = [c for c in context.candidates if verify(c, facts, self.package, case)
-                    and not rejected.intersection(c.ids) and c.kind not in skip_kinds]
+
+            def usable(claims):
+                return [c for c in claims if verify(c, facts, self.package, case)
+                        and not rejected.intersection(c.ids) and c.kind not in skip_kinds]
+
+            bank = usable(context.candidates)
+            recent = False
+            if case["type"] in self.recent_window_types:
+                # Public facts decide: material drivers falling at the latest month and not documented as
+                # hedged by the supplier. Otherwise behave exactly as without the option.
+                fresh = usable(recent_index_claims(case, self.package, facts))
+                if fresh:
+                    bank, recent = fresh, True
+                elif case["type"] not in self.default_types:
+                    bank = []
+            disclosures = DEFAULT_DISCLOSURE
+            if case["type"] in self.index_window_types:  # only the most recent fall, never a stale window
+                bank = [c for c in bank if not c.cherry_picked or c.note.startswith("recent buyer window")]
+            rivals = self.cheaper_rivals(case, threads.get(sid, []), sid)
+            if rivals:
+                bank = [c for c in bank if c.kind != "rival_quote"] + rivals
+                disclosures = DEFAULT_DISCLOSURE | {"reveals_rival"}
             priorities, reasons = index_relevance(bank, case, self.package, threads.get(sid, []))
             # Each pre-existing ref conservatively consumes one checked-claim slot.
             budget = max(0, MAX_CHECKED - len(existing))
+            if rfq:
+                budget = min(budget, rfq_claims)
             chosen = pick(
                 bank, used, max_claims=budget, supplier_id=sid,
                 case_type="renewal_trade" if case["type"] == "renewal" else case["type"],
-                index_priorities=priorities,
+                index_priorities=priorities, disclosures=disclosures,
+                allow_cherry_pick=recent or case["type"] in self.index_window_types,
+                skip_kinds=frozenset({"should_cost"}) if rfq else frozenset(),
             )
         except DATA_ERRORS as exc:
             self.fallback(case, exc)
