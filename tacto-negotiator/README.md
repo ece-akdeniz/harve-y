@@ -97,8 +97,10 @@ stale or incomplete windows produce no claim. Citations already in buyer history
 not reused across supplier threads; decision traces record selected IDs.
 
 This is factual index context, not an estimate of the supplier's overall cost change.
-It does not yet infer hedges, supplier motivations or whether positive index movements
-support the supplier's ask. Keep the flag off for the baseline and compare replays
+It excludes rising indices as standalone buyer arguments. Supplier statements about
+hedging or irrelevant indices, contradicted claims, and final offers suppress further
+index arguments for that thread. These conservative textual rules are hypotheses,
+not inferred supplier economics; nuanced motivation modeling remains unfinished. Keep the flag off for the baseline and compare replays
 before promoting it. Durable retry recovery and concurrent citation reservations
 remain part of the unfinished runtime. `claims.py` is still the broader claim-bank
 scaffold; the implemented index-only path is `evidence.py`.
@@ -116,3 +118,13 @@ scaffold; the implemented index-only path is `evidence.py`.
 
 The current Settings class reads only part of the planned configuration; wiring it is a build
 task. Local settings never override the arena's per-thread or per-wave limits.
+
+
+### One-pass hosted evaluation
+
+`uv run --locked python tools/practice_sweep.py --data "$ARENA_DATA" --execute`
+starts one session per hosted practice case (currently ten), with at most three cases
+running concurrently. It consumes practice quota; it does not retry failed cases.
+The candidate uses favorable, reply-aware evidence. Raw requests, replays, outcomes,
+revision and quota are stored under ignored `experiments/runs/`. The kit still runs
+RFQ threads serially, so this is an evaluation tool, not a final-readiness claim.

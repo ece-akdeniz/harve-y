@@ -89,13 +89,40 @@ def index_claims(case, facts, series_by_part=None):
     return sorted(claims, key=lambda claim: (claim.change_pct, claim.refs))
 
 
-def evidence_for_offer(case, package_facts, threads, limit=2, series_by_part=None):
+def supplier_rejects_indices(events):
+    """Conservative textual veto, not a claim about hidden supplier economics.
+
+    Only supplier prose is inspected. A prior rejection keeps the index path off
+    for this thread; no attempt is made to infer when a hedge expires.
+    """
+    for message in events:
+        if message.get("from") == "buyer":
+            continue
+        body = (message.get("body") or "").lower()
+        if re.search(r"\b(?:hedged|hedging|bought forward|fixed energy contract)\b", body):
+            return True
+        if re.search(r"\b(?:index|indices|market data)\b[^.!?\n]{0,100}"
+                     r"(?:not relevant|irrelevant|do not reflect|does not reflect|not our costs)", body):
+            return True
+        if any(c.get("result") == "contradicted" for c in message.get("claim_results") or []):
+            return True
+    return False
+
+
+def evidence_for_offer(case, package_facts, threads, limit=2, series_by_part=None, supplier_id=None):
     """Select unused citations across the case from confirmed buyer history.
 
     Repeated decisions on unchanged history produce the same message. Actual retry
     persistence and concurrent reservation remain the runtime's responsibility.
     """
     facts = {**package_facts, **(case.get("facts") or {})}
+    if supplier_id is not None:
+        events = threads.get(supplier_id, [])
+        replies = [m for m in events if m.get("from") != "buyer"]
+        if replies and replies[-1].get("status") in {"final_offer", "agreed", "walked_away", "no_bid"}:
+            return []
+        if supplier_rejects_indices(events):
+            return []
     used = set()
     for events in threads.values():
         for message in events:
@@ -106,6 +133,10 @@ def evidence_for_offer(case, package_facts, threads, limit=2, series_by_part=Non
                 r"idx:[A-Za-z0-9_-]+@\d{4}-\d{2}", message.get("body") or ""))
     selected = []
     for claim in index_claims(case, facts, series_by_part):
+        # A positive input-price change supports the supplier unless we have a
+        # verified cost decomposition. This candidate has no such decomposition.
+        if claim.change_pct > 0:
+            continue
         if used.intersection(claim.refs):
             continue
         if len(selected) >= min(2, max(0, limit)):

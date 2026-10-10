@@ -99,3 +99,28 @@ def test_hosted_case_uses_only_its_own_cost_driver_series():
     selected = evidence_for_offer(case, facts, {}, series_by_part=links)
     assert len(selected) == 1
     assert "-3.70%" in selected[0][1]
+
+
+def test_rising_index_is_not_used_to_argue_against_increase():
+    case, facts = fixture()
+    facts["idx:ENERGY@2026-08"]["value"] = 105
+    assert index_claims(case, facts)  # True does not imply helpful.
+    assert evidence_for_offer(case, facts, {}) == []
+
+
+@pytest.mark.parametrize("body", [
+    "Our energy is hedged until next year.",
+    "These indices do not reflect our costs.",
+    "The market data is not relevant to our pricing.",
+])
+def test_supplier_objections_suppress_indices_only_for_that_recipient(body):
+    case, facts = fixture()
+    threads = {"a": [{"from": "sales", "body": body, "status": "open"}]}
+    assert evidence_for_offer(case, facts, threads, supplier_id="a") == []
+    assert evidence_for_offer(case, facts, threads, supplier_id="b")
+
+
+def test_final_offer_and_contradicted_claim_stop_new_arguments():
+    case, facts = fixture()
+    for reply in [{"status": "final_offer"}, {"claim_results": [{"result": "contradicted"}]}]:
+        assert not evidence_for_offer(case, facts, {"a": [{"from": "sales", **reply}]}, supplier_id="a")

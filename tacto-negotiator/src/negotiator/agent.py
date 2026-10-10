@@ -87,7 +87,7 @@ class PackageAgent:
             + "".join(f", {k.replace('_', ' ')} {v}" for k, v in terms.items() if k != "unit_price")
             + ". We look forward to your confirmation."
         )
-        claims = (evidence_for_offer(case, self.facts, threads, series_by_part=self.series_by_part)
+        claims = (evidence_for_offer(case, self.facts, threads, series_by_part=self.series_by_part, supplier_id=sid)
                   if self.evidence else [])
         refs = [ref for claim, _ in claims for ref in claim.refs]
         if claims:
