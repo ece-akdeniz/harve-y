@@ -22,13 +22,15 @@ from .claims import (
     verify,
 )
 from .context import DATA_ERRORS, build_context, content_hash
+from .cost_breakdown import arithmetic_sentence
+from .cost_breakdown import find as find_breakdown
 from .dossiers import load_package
 from .replies import evidence_constraints
 
 
 class EvidencePolicy:
     def __init__(self, package=None, tracer=None, case_types=None, interpretation=None, recent_window_types=(),
-                 rival_quote_types=(), index_window_types=(), claim_pacing=False):
+                 rival_quote_types=(), index_window_types=(), claim_pacing=False, cost_breakdown=False):
         self.recent_window_types = set(recent_window_types)
         self.default_types = set(case_types if case_types is not None else ["price_increase"])
         self.case_types = self.default_types | self.recent_window_types
@@ -43,6 +45,9 @@ class EvidencePolicy:
         # back to the deeper bank: latest index windows, scorecards, the supplier's own quote and our
         # order history with it (`claims.history_claims`). Never cherry-picked windows, never should-cost.
         self.claim_pacing = bool(claim_pacing)
+        # Opt-in (`cost_breakdown_request`): the supplier's own cost breakdown XLSX, once received, ranks the
+        # index claims and may add one ID-free arithmetic sentence after the verified index claim.
+        self.cost_breakdown = bool(cost_breakdown)
         self.package = package
         self.tracer = tracer
         self.banks = {}
@@ -145,6 +150,7 @@ class EvidencePolicy:
             ):
                 raise ValueError("context scope mismatch")
             facts = case_facts(case, self.package)
+            breakdown = find_breakdown(events) if self.cost_breakdown else None
             used = set(self.reserved.get(cid, set()))
             for events in threads.values():
                 for event in events:
@@ -184,7 +190,7 @@ class EvidencePolicy:
             if rivals:
                 bank = [c for c in bank if c.kind != "rival_quote"] + rivals
                 disclosures = DEFAULT_DISCLOSURE | {"reveals_rival"}
-            priorities, reasons = index_relevance(bank, case, self.package, threads.get(sid, []))
+            priorities, reasons = index_relevance(bank, case, self.package, threads.get(sid, []), breakdown=breakdown)
             # Each pre-existing ref conservatively consumes one checked-claim slot.
             budget = max(0, MAX_CHECKED - len(existing))
             if rfq:
@@ -202,7 +208,8 @@ class EvidencePolicy:
             queue = "preferred"
             if not chosen and self.claim_pacing and budget > 0:
                 deep = self.deep_bank(case, threads.get(sid, []), sid, usable, context)
-                priorities, reasons = index_relevance(deep, case, self.package, threads.get(sid, []))
+                priorities, reasons = index_relevance(deep, case, self.package, threads.get(sid, []),
+                                                      breakdown=breakdown)
                 chosen = pick(
                     deep, used, max_claims=budget, supplier_id=sid, case_type=case_type,
                     index_priorities=priorities, disclosures=DEFAULT_DISCLOSURE,
@@ -220,7 +227,18 @@ class EvidencePolicy:
             return move
         refs = list(dict.fromkeys([*(message.get("refs") or []), *(i for c in chosen for i in c.ids)]))
         self.reserved.setdefault(cid, set()).update(k for c in chosen for k in claim_keys(c))
-        body = message.get("body", "") + "\n\n" + "\n".join(c.sentence for c in chosen)
+        lines = [c.sentence for c in chosen]
+        if breakdown:
+            parts = case.get("parts") or []
+            for i, c in enumerate(chosen):
+                extra = arithmetic_sentence(breakdown, c, parts[0] if parts else None, self.package, facts)
+                if extra:
+                    lines.insert(i + 1, extra)
+                    if self.tracer:
+                        self.tracer.log("cost_breakdown_arithmetic", case=cid, supplier=sid, series=c.subject,
+                                        sentence=extra)
+                    break
+        body = message.get("body", "") + "\n\n" + "\n".join(lines)
         if self.tracer:
             self.tracer.log("evidence", case=cid, supplier=sid, context_version=context.version,
                             claims=[asdict(c) for c in chosen])

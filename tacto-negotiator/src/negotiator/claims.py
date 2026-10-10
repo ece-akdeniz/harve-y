@@ -813,8 +813,10 @@ def pick(bank: list[Claim], used_ids: set[str], max_claims: int = MAX_CHECKED, *
     return out
 
 
-def index_relevance(bank, case, package=None, events=()):
-    """Rank only known series mentions; supplier prose cannot authorize claims or disclosure."""
+def index_relevance(bank, case, package=None, events=(), breakdown=None):
+    """Rank only known series mentions; supplier prose cannot authorize claims or disclosure.
+    `breakdown` (opt-in, `cost_breakdown.find`): the series of the supplier's biggest moved cost element
+    ranks ahead of every other explanation - its own figures, not its prose, set the order."""
     series = {c.subject for c in bank if c.kind == "index_change" and c.subject}
     cited = {r[4:].split("@")[0] for r in case.get("refs", []) if r.startswith("idx:")}
     latest = next((e for e in reversed(events) if e.get("from") != "buyer" and e.get("body")), {})
@@ -831,10 +833,22 @@ def index_relevance(bank, case, package=None, events=()):
             except (OSError, ValueError, AttributeError):
                 pass
     stated = {sid for sid in series if re.search(rf"(?<![\w-]){re.escape(sid)}(?![\w-])", trigger)}
+    lead = None
+    if breakdown and package is not None:
+        from .cost_breakdown import lead_series
+
+        parts = case.get("parts") or []
+        windows = {}
+        for c in bank:  # the window we would cite per series: the first buyer-supporting index claim
+            if c.kind == "index_change" and c.subject and c.window and c.supports_buyer:
+                windows.setdefault(c.subject, c.window)
+        lead = lead_series(breakdown, parts[0] if parts else None, package, case_facts(case, package), windows)
     reasons = {}
     priorities = {}
     for sid in sorted(series):
-        if sid in mentioned:
+        if lead and sid == lead["series"]:
+            priority, reason = -1, f"supplier cost breakdown: biggest moved element ({lead['element']})"
+        elif sid in mentioned:
             priority, reason = 0, "latest supplier message names series"
         elif sid in stated or sid in cited:
             priority, reason = 1, "trigger document or case reference names series"

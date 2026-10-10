@@ -82,6 +82,11 @@ class PolicyConfig:
     # stated/fastest legal payment term at the price where its `supplier_value` is unchanged, floored at
     # buyer-cost parity (our C never rises).
     supplier_payment_trade: bool = False
+    # Any case type: while the supplier is open, ask once in our first two offers for its cost breakdown
+    # (the arena's XLSX: elements in EUR per unit and shares). Once one arrived, its shares rank the index
+    # claims (the biggest moved element first) and, where its share beats the listed driver weight, one
+    # ID-free arithmetic sentence follows the verified index claim. Off = byte-identical messages.
+    cost_breakdown_request: bool = False
 
     @classmethod
     def load(cls, path):
@@ -117,7 +122,7 @@ class PolicyConfig:
         for k in ("cost_neutral_lead_time", "cost_target_index_clause", "rfq_nonleading_hold", "rfq_final_guard",
                   "rfq_supplier_lead_time", "rfq_rival_offer", "rfq_supplier_payment", "rfq_rival_offer_history",
                   "rfq_undercut_reanchor", "rfq_data_claims", "rfq_data_claims_stack",
-                  "claim_pacing", "reciprocal_schedule", "supplier_payment_trade"):
+                  "claim_pacing", "reciprocal_schedule", "supplier_payment_trade", "cost_breakdown_request"):
             if type(d.get(k, False)) is not bool:
                 raise ValueError(f"{k} must be boolean")
         post = d.get("cost_target_posterior", 0.0)
