@@ -1,0 +1,84 @@
+I will take on the Evidence part of the pipeline. Tell me what it does now
+
+---
+
+Take a look at the available data and tell me which we are actually using and which we are not. Also let me know if the current data analysis is done corectly or if there are illogical steps. 
+
+Then tell me your suggestion
+
+---
+
+Can you create a detailed lan for this stage?
+
+---
+
+# Context from my IDE setup:
+
+## Active file: tacto-negotiator/docs/README.md
+
+## Open tabs:
+- README.md: tacto-negotiator/docs/README.md
+
+## My request:
+How does the current architecture look like for the evidence parts
+
+---
+
+# Context from my IDE setup:
+
+## Active file: tacto-negotiator/docs/README.md
+
+## Open tabs:
+- README.md: tacto-negotiator/docs/README.md
+
+## My request:
+I feel a bit lost. 
+Can you move me step by step, what data is available, what do we do with this data, and what is the output of the evidence layer? Is there even a clear seperation of the evidence layer and the rest of the pipeline?
+
+---
+
+# Context from my IDE setup:
+
+## Active file: tacto-negotiator/docs/README.md
+
+## Open tabs:
+- README.md: tacto-negotiator/docs/README.md
+
+## My request:
+Does it make sense to create a summary document to pass downstream, or is there a different option that makes more sense
+
+---
+
+# Context from my IDE setup:
+
+## Active file: tacto-negotiator/docs/README.md
+
+## Open tabs:
+- README.md: tacto-negotiator/docs/README.md
+
+## My request:
+How does it compare against our original plan?
+
+---
+
+# Context from my IDE setup:
+
+## Active file: tacto-negotiator/docs/README.md
+
+## Open tabs:
+- README.md: tacto-negotiator/docs/README.md
+
+## My request:
+What do you think makes sense for the first deliverable? I will implement this, tie with the rest of the team and do a run.
+
+---
+
+# Context from my IDE setup:
+
+## Active file: tacto-negotiator/docs/README.md
+
+## Open tabs:
+- README.md: tacto-negotiator/docs/README.md
+
+## My request:
+Ok then lets first implement our changes in a new branch. give me a plan for it and wait
