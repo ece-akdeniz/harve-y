@@ -1,0 +1,108 @@
+# Context from my IDE setup:
+
+## Active file: tacto-negotiator/docs/README.md
+
+## Open tabs:
+- README.md: tacto-negotiator/docs/README.md
+
+## My request:
+We’ll use a new branch, **`feat/evidence-context`**, for the first deliverable: a shared Evidence context for the existing price-increase path.
+
+1. **Prepare the branch**
+   - Check the working tree and preserve existing changes.
+   - Create the branch from the current revision.
+2. **Define `EvidenceContext`**
+   - Case, supplier and part IDs.
+   - Data-version metadata.
+   - Relevant facts with sources and units.
+   - Existing claim candidates.
+   - Supplier signals with supporting sources.
+   - Explicit gaps and failed checks.
+3. **Build the context**
+   - Add `build_context(case, package)`.
+   - Reuse existing loaders, claim generation and trait classification.
+   - Keep construction free of sends and claim reservations.
+4. **Integrate the message path**
+   - Have `PackageAgent` obtain the context and pass it to `EvidencePolicy`.
+   - Preserve claim selection, usage tracking and resume behaviour.
+   - Keep prices, term sheets and closing decisions unchanged.
+5. **Make it inspectable**
+   - Export a readable JSON representation.
+   - Trace the context version and selected claims so Evaluation can connect messages to sources.
+6. **Validate**
+   - Check P01’s notice, index and scorecard claims.
+   - Test unchanged terms, private-data exclusion, missing-data fallback and resumed claim usage.
+   - Run the required test suite and lint.
+7. **Prepare the team handoff**
+   - Document the interface and responsibilities.
+   - Provide a local P01 example and an agreed hosted-run checklist.
+
+This branch will exclude new claim types, rival disclosure, cost-pressure integration and broader supplier-policy changes. Hosted runs will be a separate step.
+
+**I’ll wait for your go-ahead before creating the branch or editing files.**
+
+---
+
+# Context from my IDE setup:
+
+## Active file: tacto-negotiator/docs/README.md
+
+## Open tabs:
+- README.md: tacto-negotiator/docs/README.md
+
+## My request:
+ok you have the go ahead, implement the plan
+
+---
+
+# Context from my IDE setup:
+
+## Active file: tacto-negotiator/docs/README.md
+
+## Open tabs:
+- README.md: tacto-negotiator/docs/README.md
+
+## My request:
+can you tell me what we changed
+
+---
+
+# Context from my IDE setup:
+
+## Active file: tacto-negotiator/docs/README.md
+
+## Open tabs:
+- README.md: tacto-negotiator/docs/README.md
+
+## My request:
+What can we add to improve the performance
+
+---
+
+# Context from my IDE setup:
+
+## Active file: tacto-negotiator/docs/README.md
+
+## Open tabs:
+- README.md: tacto-negotiator/docs/README.md
+
+## My request:
+Lets implement a new set of changes.
+
+---
+
+<send_user_message_question_reply>
+[{"questionItemId":"[\"request_user_input_async\",\"call_bt7g9rYAaTgUGWVkBpTgTaKN\",0]","question":"Which changes should this next batch include? I recommend strengthening existing claim verification and relevance first, on the current feat/evidence-context branch, with local validation.","answer":"Claim verification and relevance (Recommended)"}]
+</send_user_message_question_reply>
+
+---
+
+# Context from my IDE setup:
+
+## Active file: tacto-negotiator/docs/README.md
+
+## Open tabs:
+- README.md: tacto-negotiator/docs/README.md
+
+## My request:
+how does it look like now

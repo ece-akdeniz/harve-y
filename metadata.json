@@ -3,10 +3,22 @@
   "checkpoint_id": "01M4K6J55FS6CM6SGEBKKQYE93",
   "strategy": "manual-commit",
   "branch": "feat/evidence-context",
-  "checkpoints_count": 9,
+  "checkpoints_count": 15,
   "files_touched": [
     "tacto-negotiator/docs/15-evidence-stage-plan.md",
-    "tacto-negotiator/docs/README.md"
+    "tacto-negotiator/docs/16-evidence-context.md",
+    "tacto-negotiator/docs/README.md",
+    "tacto-negotiator/experiments/LOG.md",
+    "tacto-negotiator/src/negotiator/agent.py",
+    "tacto-negotiator/src/negotiator/claims.py",
+    "tacto-negotiator/src/negotiator/context.py",
+    "tacto-negotiator/src/negotiator/evidence.py",
+    "tacto-negotiator/tests/test_claim_checks.py",
+    "tacto-negotiator/tests/test_claims.py",
+    "tacto-negotiator/tests/test_context.py",
+    "tacto-negotiator/tests/test_evidence.py",
+    "tacto-negotiator/tests/test_policy.py",
+    "tacto-negotiator/tools/evidence_context.py"
   ],
   "sessions": [
     {
@@ -15,14 +27,21 @@
       "compact_transcript": "/0/transcript.jsonl",
       "content_hash": "/0/content_hash.txt",
       "prompt": "/0/prompt.txt"
+    },
+    {
+      "metadata": "/1/metadata.json",
+      "transcript": "/1/full.jsonl",
+      "compact_transcript": "/1/transcript.jsonl",
+      "content_hash": "/1/content_hash.txt",
+      "prompt": "/1/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 143063,
+    "input_tokens": 275888,
     "cache_creation_tokens": 0,
-    "cache_read_tokens": 1452032,
-    "output_tokens": 15360,
-    "api_call_count": 26,
+    "cache_read_tokens": 6444928,
+    "output_tokens": 57821,
+    "api_call_count": 89,
     "subagent_tokens_complete": true
   }
 }
