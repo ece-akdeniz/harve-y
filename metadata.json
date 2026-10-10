@@ -1,0 +1,21 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4KVSK97NH7S4Y93PAN2YFH0",
+  "strategy": "manual-commit",
+  "branch": "codex/score-push-small",
+  "checkpoints_count": 16,
+  "files_touched": [
+    "tacto-negotiator/configs/p01-fast-payment-run.json",
+    "tacto-negotiator/configs/p04-multi-year-tenor-run.json",
+    "tacto-negotiator/configs/p10-capacity-evidence-run.json"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": ""
+    }
+  ]
+}
