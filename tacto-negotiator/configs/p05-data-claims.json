@@ -18,5 +18,6 @@
   "rfq_nonleading_hold": true,
   "rfq_rival_offer": true,
   "rfq_rival_offer_history": true,
+  "rfq_undercut_reanchor": true,
   "rfq_data_claims": true
 }

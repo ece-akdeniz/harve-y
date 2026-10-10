@@ -997,7 +997,8 @@ Replicated 3/3 (plus 2 expired). Lever confirmed.
 
 ## 2026-10-10 — P05 screen 10 plan: one verified data fact on counters with no rival claim (F)
 
-Differs from previous: D config + `rfq_data_claims` (`configs/p05-data-claims.json`). Until now
+Differs from previous: E config (undercut re-anchor) + `rfq_data_claims` (`configs/p05-data-claims.json`);
+E's lower ask is kept because on the D base we counter at 29.00 itself and a claim cannot lower it. Until now
 RFQ cases sent no data claims at all: `evidence_types` excludes rfq and `EvidencePolicy` gates to
 single-supplier cases. Only rival-offer citations went out. Once 70210 led at 29.00, no rival
 undercut it, so later counters carried no argument and it held 29.00 (E showed that a lower
