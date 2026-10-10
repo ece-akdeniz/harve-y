@@ -29,8 +29,11 @@ It does not promise additional volume, capacity or other unvalidated benefits.
 - Compare complete package costs and valid alternatives through the shared closing
   evaluator. The runtime guidance never overrides must-haves or closing authority.
 - Seek trades across price, payment, commitment, quality and delivery using the
-  fields actually allowed by the case. Experimental package selection still needs
-  an explicit `--policy-config`; this file does not promote the frozen candidate.
+  fields actually allowed by the case. Experimental TradePolicy selection needs
+  an explicit `--policy-config`. Separately, `--memory-file` opts into a saved validated
+  snapshot for bounded initial-package preferences in the standard PackageAgent path;
+  unsupported contexts and the TradePolicy path abstain from memory selection.
+  This file does not promote either experimental candidate.
 - Multiple equivalent simultaneous offers have empirical support in human
   negotiations: [Leonardelli et al., 2019](https://www.sciencedirect.com/science/article/pii/S074959781630557X).
   Arena transfer remains a hypothesis; generic payment MESOs stay opt-in.

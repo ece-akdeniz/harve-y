@@ -14,6 +14,7 @@ from arena_kit.client import ArenaClient, ArenaError
 from arena_kit.play import RemoteTable, hosted
 
 from .guidance import RuntimeGuidance
+from .memory import MAX_MEMORY_BYTES, validate_memory
 from .play import play_all, play_case, play_waves, run_config
 from .runner import run_async, runtime_config
 from .trace import Tracer
@@ -48,6 +49,7 @@ def main(argv=None) -> int:
     r.add_argument("-v", "--verbose", action="store_true")
     for sp in (p, r):
         sp.add_argument("--policy-config", help="versioned JSON experiment policy")
+        sp.add_argument("--memory-file", type=Path, help="saved immutable memory snapshot JSON (at most 64 KiB)")
         sp.add_argument("--runner", choices=["serial", "async"], default="serial")
     rep = sub.add_parser("report", help="summarise a run directory")
     rep.add_argument("run_dir")
@@ -69,18 +71,26 @@ def main(argv=None) -> int:
     )
     run_dir = _run_dir()
     tracer = Tracer(run_dir)
-    client = ArenaClient()
 
     from .policy import PolicyConfig
 
     try:
+        memory = None
+        if args.memory_file:
+            with args.memory_file.open("rb") as source:
+                raw = source.read(MAX_MEMORY_BYTES + 1)
+            if len(raw) > MAX_MEMORY_BYTES:
+                raise ValueError("memory snapshot file too large")
+            memory = validate_memory(json.loads(raw))
         guidance = RuntimeGuidance.load()
         policy = PolicyConfig.load(args.policy_config) if args.policy_config else None
     except (OSError, ValueError, TypeError) as exc:
         ap.error(str(exc))
 
+    client = ArenaClient()
+
     def new_agent():
-        return guidance.new_agent(tracer=tracer, policy=policy)
+        return guidance.new_agent(tracer=tracer, policy=policy, memory=memory)
 
     if args.runner == "async":
         cfg = {**run_config(new_agent(), runner="async"), **runtime_config(getattr(args, "parallel", 1))}

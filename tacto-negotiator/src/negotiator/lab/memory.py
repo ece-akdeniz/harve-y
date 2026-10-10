@@ -305,7 +305,9 @@ class MemoryStore:
             raise ValueError("explicit nonempty discovery scope required")
         cases = sorted(source_cases)
         with self._connect() as db:
-            db.execute("BEGIN")
+            # Reserve the writer before reading so concurrent builders cannot
+            # invalidate a WAL read snapshot while upgrading it to an insert.
+            db.execute("BEGIN IMMEDIATE")
             sessions, observations = self._projection(db)
             selected = [
                 s

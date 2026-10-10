@@ -504,3 +504,34 @@ def test_valid_snapshot_body_substitution_is_rejected(cohort, operation):
             store.get(original["snapshot_id"])
         else:
             store.list()
+
+
+def test_concurrent_builds_use_one_consistent_write_reservation(cohort, monkeypatch):
+    import threading
+    import time
+    from concurrent.futures import ThreadPoolExecutor
+
+    # WAL read-to-write upgrades cannot retry if another builder commits after
+    # the projection's read snapshot. The correct implementation serializes before
+    # reading; synchronize entry, then briefly widen the projection window.
+    with sqlite3.connect(cohort) as db:
+        db.execute('PRAGMA journal_mode=WAL')
+    original = MemoryStore._projection.__func__
+
+    def slow_projection(cls, db):
+        result = original(cls, db)
+        time.sleep(0.05)
+        return result
+
+    monkeypatch.setattr(MemoryStore, '_projection', classmethod(slow_projection))
+    store = MemoryStore(cohort)
+    ready = threading.Barrier(2)
+
+    def concurrent():
+        ready.wait(timeout=5)
+        return store.build(arena_url=ARENA, environment='sandbox', source_cases=['case:one', 'case:two'])
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        results = list(pool.map(lambda _: concurrent(), range(2)))
+    assert results[0] == results[1]
+    assert store.list() == [results[0]]

@@ -129,6 +129,7 @@ def main(argv=None) -> int:
         "campaign",
         "evidence",
         "findings",
+        "memory",
         "restore",
     ):
         from .loop_cli import main as loop_main

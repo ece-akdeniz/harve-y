@@ -263,6 +263,7 @@ class Handler(BaseHTTPRequestHandler):
             "/app.js": ("app.js", "application/javascript"),
             "/loop.js": ("loop.js", "application/javascript"),
             "/history.js": ("history.js", "application/javascript"),
+            "/memory.js": ("memory.js", "application/javascript"),
             "/app.css": ("app.css", "text/css"),
             "/static/app.js": ("app.js", "application/javascript"),
             "/static/app.css": ("app.css", "text/css"),

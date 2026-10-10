@@ -72,7 +72,10 @@ def run_config(agent, runner="serial-play_case", facts="data/package/facts.json"
     data = hashlib.sha256(path.read_bytes()).hexdigest()[:12] if path.exists() else None
     keys = ("anchor", "rounds", "close_gap", "final_hold_s", "meso", "p_walk", "claims")
     params = {k: getattr(agent, k) for k in keys if hasattr(agent, k)}
+    from .memory import validate_memory
+
     return {
+        **({"memory": validate_memory(agent.memory)} if getattr(agent, "memory", None) is not None else {}),
         "commit": commit,
         "src_dirty": dirty,
         "agent": getattr(agent, "version", type(agent).__name__),

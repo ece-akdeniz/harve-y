@@ -18,7 +18,7 @@ The source split is fixed when the snapshot is built, before the campaign. Expli
 
 ## Team workflow and UI
 
-Add authenticated graph/snapshot read routes and bearer-only snapshot creation. CLI lets coding agents inspect evidence, build a snapshot using discovery cases, show a snapshot and create a checkpoint pinned to it. Existing campaign commands compare and promote; existing restore rolls memory back. A dashboard Memory view displays supplier history separately from candidate general lessons, supporting-supplier and case counts, conflicts, citations and snapshot IDs; explain why a candidate is ineligible. Render untrusted evidence as text. Clear memory state on logout and prevent stale fetches from repainting it.
+Add authenticated graph/snapshot read routes and bearer-only snapshot creation. CLI lets coding agents inspect evidence, build a snapshot using discovery cases, show a snapshot and create a checkpoint pinned to it. Existing campaign commands compare and promote; existing restore rolls memory back. Ordinary play/run (including final) can explicitly load a saved validated snapshot with --memory-file, pin it once at startup and record it in the run trace, without querying the lab during negotiation. A dashboard Memory view displays supplier history separately from candidate general lessons, supporting-supplier and case counts, conflicts, citations and snapshot IDs; explain why a candidate is ineligible. Render untrusted evidence as text. Clear memory state on logout and prevent stale fetches from repainting it.
 
 ## Global constraints
 
