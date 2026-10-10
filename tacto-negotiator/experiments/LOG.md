@@ -111,3 +111,59 @@ Decision:
   at status quo; rate 0.15 (wants_fast_payment). Relationship term is live even at today's price.
 - Sunday: `claims.prep(data_dir, out_path, release)` rebuilds dossiers + banks with the overlay.
 - Not integrated into agent.py; claims experiment (vs. mechanical baseline) still to run.
+
+## 2026-10-10 14:01 - compare decision v0.2 vs v0.1 (sim) (MEASURED LOCAL SIM)
+
+- Baseline: `42c7659` @ 42c76599
+- Candidate: `WORKTREE` @ c743d6b3 dirty diff a2459668c121
+- Cases × repeats: case:S01, case:S02, case:S03 × 2 (`negotiator play <case>`), arm order interleaved, seed 0; arena http://127.0.0.1:8010; data 4d8c89674035, uv.lock a0ec7fe14679
+
+| Case | Baseline runs | Base mean | Candidate runs | Cand mean | Δ |
+|---|---|---:|---|---:|---:|
+| case:S01 | 82.9 82.9 | 82.9 | 82.9 82.9 | 82.9 | +0.0 |
+| case:S02 | 86.1 86.1 | 86.1 | 86.1 86.1 | 86.1 | +0.0 |
+| case:S03 | 88.6 88.6 | 88.6 | 88.6 88.6 | 88.6 | +0.0 |
+- Baseline: mean 85.8 over 6 scored runs, worst case case:S01 82.9, min run 82.9, failures 0, timeouts 0
+- Candidate: mean 85.8 over 6 scored runs, worst case case:S01 82.9, min run 82.9, failures 0, timeouts 0
+- Raw: `experiments/runs/compare/20261010-140143-sim-decision v0.2 vs v0.1 (sim)/summary.json`
+- Decision: (fill in)
+
+## 2026-10-10 14:02 - compare decision v0.2 vs v0.1 D02 sandbox (MEASURED HOSTED SANDBOX)
+
+- Baseline: `42c7659` @ 42c76599
+- Candidate: `WORKTREE` @ c95a73ba dirty diff 28f0578cb458
+- Cases × repeats: case:D02 × 2 (`negotiator play <case>`), arm order interleaved, seed 0; arena https://arena.tacto.ai; data 4d8c89674035, uv.lock a0ec7fe14679
+
+| Case | Baseline runs | Base mean | Candidate runs | Cand mean | Δ |
+|---|---|---:|---|---:|---:|
+| case:D02 | 41.9 41.9 | 41.9 | 41.9 41.9 | 41.9 | +0.0 |
+- Baseline: mean 41.9 over 2 scored runs, worst case case:D02 41.9, min run 41.9, failures 0, timeouts 0
+- Candidate: mean 41.9 over 2 scored runs, worst case case:D02 41.9, min run 41.9, failures 0, timeouts 0
+- Raw: `experiments/runs/compare/20261010-140224-sandbox-decision v0.2 vs v0.1 D02 sandbox/summary.json`
+- Decision: (fill in)
+
+## 2026-10-10 14:05 - Runtime: async runner vs serial on D02 sandbox (MEASURED HOSTED SANDBOX)
+
+- Hypothesis: one worker per thread + coordinator (`negotiator.runner`, `--runner async`) keeps
+  RFQ threads free of timeouts with the same score as the serial loop.
+- Config: commit c95a73b + uncommitted runtime (runner/client/state), PackageAgent-v0.2, closes via
+  `evaluator.close_decision`; limiter 8 calls/s; 60 s move limit, close wait 20 s, cap margin
+  max(90 s, slowest + 15 s). Quota: 0 practice (sandbox only).
+- Run A (no send slot, 3 parallel sessions): async 0.419 ×3, thread timeouts 0/0 ×3; wall 59 s.
+  Concurrent POSTs on one hosted session each took ~16-18 s (vs ~0.5 s alone), and one close hit
+  `422 not a standing offer` (closer read the old offer while the chosen thread's reply was being
+  stored) - reconciled and re-decided, deal kept. Fixed: in-flight flag cleared only after the
+  reply is in the thread.
+- Run B (soft per-session send slot, falls back to concurrent sends 25 s before a thread's
+  deadline): async 0.419 ×3 + CLI `negotiator play case:D02 --runner async` 0.419, timeouts 0/0
+  ×4, wall 25 s for 3 parallel sessions, no close errors.
+- Serial control (`negotiator.play.play_case`, 3 parallel sessions): 0.419 ×3, timeouts 0/0 ×3,
+  wall 6 s.
+- Reading: D02 hosted replies are mostly fast, so serial does not time out on D02 either; the
+  async benefit is only shown where a supplier reply takes 30-70 s (earlier hosted probe: C1 70 s;
+  local tests with injected 30/50 s delays: async 0 timeouts, serial waiting costs a 409 late).
+  Hosted seems to serialise/penalise concurrent calls on one session -> keep the send slot.
+- Raw: `runs/20261010-140107-D02-runner-compare/`, `runs/20261010-140327-D02-runner-compare/`,
+  `runs/20261010-140410/`.
+- Decision: keep serial default; async passes D02 gate (0 timeouts, same score) and runtime tests.
+  Promote after an RFQ with slow replies (practice, budgeted) shows no regression.

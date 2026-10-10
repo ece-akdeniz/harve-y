@@ -14,6 +14,7 @@ from arena_kit.play import RemoteTable, hosted
 
 from .agent import PackageAgent
 from .play import play_all, play_case, play_waves, run_config
+from .runner import run_async, runtime_config
 from .trace import Tracer
 
 
@@ -35,6 +36,8 @@ def main(argv=None) -> int:
     r.add_argument("--parallel", type=int, default=8)
     r.add_argument("--waves", type=int, default=5)
     r.add_argument("-v", "--verbose", action="store_true")
+    for sp in (p, r):
+        sp.add_argument("--runner", choices=["serial", "async"], default="serial")
     rep = sub.add_parser("report", help="summarise a run directory")
     rep.add_argument("run_dir")
     rep.add_argument("--json", action="store_true")
@@ -60,9 +63,15 @@ def main(argv=None) -> int:
     def new_agent():
         return PackageAgent(tracer=tracer)
 
-    tracer.log("run", cmd=args.cmd, arena=os.environ.get("ARENA_URL"), **run_config(new_agent()))
+    if args.runner == "async":
+        cfg = {**run_config(new_agent(), runner="async"), **runtime_config(getattr(args, "parallel", 1))}
+    else:
+        cfg = run_config(new_agent())
+    tracer.log("run", cmd=args.cmd, arena=os.environ.get("ARENA_URL"), **cfg)
 
-    if args.cmd == "play":
+    if args.runner == "async":
+        out = run_async(args, new_agent, tracer, run_dir)
+    elif args.cmd == "play":
         table = RemoteTable(client)
         try:
             out = {args.case_id: play_case(table, args.case_id, new_agent())}
