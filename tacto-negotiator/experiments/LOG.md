@@ -871,3 +871,12 @@ by the gap-closed exit.
 Run `046127b6-2113-49dc-ac7b-2247ac95cb45`, session `2b9eb01f4eb4f8ec`. Score **41.19**, identical
 transcript (still 90-day counters): the preference only applies to `package_types`, which
 excluded rfq. Not a test of the hypothesis. Next: same config with `rfq` in package_types.
+- Follow-up (no session): even with rfq in package_types, `standard_payment` resolves to the
+  buyer's standard (90 d), so offline the first counter stays 31.68/90 d; the line cannot test
+  supplier-standard payment and is dropped. The earlier "supplier-standard payment 36.04"
+  result on the goal branch was likewise inert and masked by the gap-closed exit.
+- Decision: merge candidate = async runner + `rfq_nonleading_hold` (2/2 at 41.19, +5.15 vs
+  36.04 traced baseline, zero timeouts, 35 d lead, 30 d payment). Remaining gap to arena best
+  .4168 is ~EUR 400 (consistent with 32.00 at 45 d), ~0.0005 on the ten-case mean; not pursued.
+  `rfq_final_guard` stays off (serial-only protection; async covers the 65 s rival case).
+  Sessions consumed by this P05 work: 4.
