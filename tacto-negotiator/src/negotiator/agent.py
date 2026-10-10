@@ -345,6 +345,8 @@ class PackageAgent:
                     count += 1
             self.final_counters[supplier_id] = count
         move = self._propose(case, threads, supplier_id)
+        if self.policy and self.policy.rfq_rival_offer and case["type"] == "rfq":
+            move = self._rival_offer_claim(case, threads, supplier_id, move)
         if self.evidence and self.evidence.eligible(case, move):
             from .context import DATA_ERRORS
 
@@ -355,6 +357,37 @@ class PackageAgent:
                 return move
             return self.evidence.enrich(case, threads, supplier_id, move, context=context)
         return move
+
+    def _rival_offer_claim(self, case, threads, sid, move):
+        """Cite the lowest-priced must-have-valid standing rival offer from this session when it
+        undercuts this supplier's standing price. Figure and ID come from the live sheet; each
+        offer ID is cited at most once per receiving supplier (citing reveals it)."""
+        from .claims import offer_claim
+
+        message = move.get("message") or {}
+        if not message.get("term_sheets") or message.get("action") or len(case.get("parts") or []) != 1:
+            return move
+        own = [t["unit_price"] for _, _, t in eligible_sheets(case, threads[sid], None, alternatives=True)]
+        if not own:
+            return move
+        cited = {r for e in threads[sid] if e.get("from") == "buyer" for r in e.get("refs") or []}
+        best = None
+        for s in live_threads(threads):
+            if s == sid:
+                continue
+            for _, offer_id, terms in eligible_sheets(case, threads[s], None, alternatives=True):
+                p = terms.get("unit_price")
+                if offer_id in cited or p is None or p >= min(own) - 1e-6:
+                    continue
+                if best is None or (p, offer_id) < (best[0], best[1]):
+                    best = (p, offer_id, s)
+        if best is None:
+            return move
+        claim = offer_claim(best[1], best[0], best[2], sid, case["parts"][0])
+        refs = list(dict.fromkeys([*(message.get("refs") or []), best[1]]))
+        self._log(case, "rival_offer_claim", sid, offer_id=best[1], figure=best[0], rival=best[2])
+        return {**move, "message": {**message, "body": message.get("body", "") + "\n\n" + claim.sentence,
+                                     "refs": refs}}
 
     def _propose(self, case, threads, supplier_id):
         """The proposal for one thread given the whole snapshot: an offer move

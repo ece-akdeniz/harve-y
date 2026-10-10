@@ -75,3 +75,20 @@ def test_rfq_supplier_lead_time_counters_longest_legal_option_up_to_quote():
     assert lt(on, slow) == 42  # never 56: must-have caps lead time at 42
     assert lt(off, slow) < 42
     assert lt(on, fast) == lt(off, fast)
+
+
+def test_rfq_rival_offer_claim_cites_cheaper_standing_rival_once():
+    case = next(c for c in json.loads((Path(__file__).parent / 'fixtures/practice_cases.json').read_text())
+                if c['case_id'] == 'case:P05')
+    a, b = case['suppliers'][:2]
+    terms = {'payment_days': 30, 'lead_time_days': 35}
+    threads = {a: [msg('open', ('offer:a-1', {**terms, 'unit_price': 32.0}))],
+               b: [msg('open', ('offer:b-1', {**terms, 'unit_price': 34.0}))]}
+    agent = PackageAgent(policy=PolicyConfig(rfq_rival_offer=True))
+    move = agent.propose(case, threads, b)['message']
+    assert move['refs'] == ['offer:a-1']
+    assert f"{case['parts'][0]} at EUR 32.00 per unit (offer:a-1)" in move['body']
+    assert 'refs' not in agent.propose(case, threads, a)['message']  # never cite a dearer rival
+    threads[b].append({**move, 'from': 'buyer'})
+    threads[b].append(msg('open', ('offer:b-2', {**terms, 'unit_price': 33.5})))
+    assert 'offer:a-1' not in (agent.propose(case, threads, b)['message'].get('refs') or [])

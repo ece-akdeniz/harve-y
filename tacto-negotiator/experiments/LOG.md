@@ -900,3 +900,18 @@ Hypothesis A (`rfq_supplier_lead_time`, `configs/p05-supplier-lead.json`): when 
 quotes a lead time beyond ours, counter at the longest legal option ≤ its quote (42 d for
 70240), so it can drop its overtime premium. Offline first counters: 70240 27.72/90/42; others
 unchanged. Unit test added; suite 378 passed + known preflight failure; ruff clean.
+
+## 2026-10-10 — P05 screen 5: supplier-fit 42-day lead time (hypothesis A)
+
+Run `f42acd21-85d2-4840-9c01-2a2a9e5c96f3`, session `fee923108e98924c`, commit after `rfq_supplier_lead_time`.
+Score **41.19** (no change): sup:70210 32.00/35/30 final, 96.5 s, zero timeouts. Transcript:
+70240 accepted 42 d at once ("happy to speed up the lead time to 42 days") and dropped its
+opening from 35.00@35 d to 33.00@42 d, then 32.50/90 d, alt 32.00/60 d (C 271,517 ≈ +0.002,
+countered rather than taken), final 32.50/42/90 (score-equivalent 0.401). 70240's floor at
+42 d ≈ 70210's; no overtime-premium windfall. 56 d never offered. Line: 1 non-improving.
+
+Hypothesis B (screen 6, `configs/p05-rival-offer.json` = A + `rfq_rival_offer`): category
+goal is leverage; cite the cheapest must-have-valid standing rival offer from this session
+("Another supplier has offered part at EUR X per unit (offer:id)") to a supplier whose own
+standing price is higher, once per offer ID per supplier. Code takes figure and ID from the
+live sheet (verifiable). Unit test added; suite + ruff clean except the known preflight test.

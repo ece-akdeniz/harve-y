@@ -23,6 +23,7 @@ class PolicyConfig:
     rfq_nonleading_hold: bool = False
     rfq_final_guard: bool = False
     rfq_supplier_lead_time: bool = False
+    rfq_rival_offer: bool = False
 
     @classmethod
     def load(cls, path):
@@ -40,7 +41,8 @@ class PolicyConfig:
             if not isinstance(v, list) or any(not isinstance(x, str) or x not in TYPES for x in v):
                 raise ValueError(f"invalid {k}")
             d[k] = tuple(sorted(set(v)))
-        for k in ("cost_neutral_lead_time", "rfq_nonleading_hold", "rfq_final_guard", "rfq_supplier_lead_time"):
+        for k in ("cost_neutral_lead_time", "rfq_nonleading_hold", "rfq_final_guard", "rfq_supplier_lead_time",
+                  "rfq_rival_offer"):
             if type(d.get(k, False)) is not bool:
                 raise ValueError(f"{k} must be boolean")
         if d.get("final_offer_risk", "legacy") not in ("legacy", "opening_proxy"):
