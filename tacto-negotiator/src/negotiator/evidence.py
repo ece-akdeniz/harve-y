@@ -42,6 +42,8 @@ class EvidencePolicy:
 
     def eligible(self, case, move):
         message = move.get("message") or {}
+        if case.get("type") in self.index_window_types and self.material_hedged(case):
+            return False  # hedged supplier: index evidence is rebutted; keep the plain message
         return (
             case.get("type") in self.case_types
             and len(case.get("suppliers", [])) == 1
@@ -66,6 +68,11 @@ class EvidencePolicy:
         return self.contexts[cid]
 
     def material_hedged(self, case):
+        if self.package is None:
+            self.package = load_package()
+        return self._hedged(case)
+
+    def _hedged(self, case):
         """True when the package documents that a case supplier's material cost is fixed for now
         (its letters/notes or its quote remarks): a recent index fall then does not reach its cost."""
         pkg, sups = self.package, set(case.get("suppliers") or [])

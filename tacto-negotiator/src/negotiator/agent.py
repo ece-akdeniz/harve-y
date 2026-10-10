@@ -219,7 +219,13 @@ class PackageAgent:
         return out
 
     def _clause_on(self, case):
-        return bool(self.policy and case["type"] in self.policy.clause_variant_types)
+        if not (self.policy and case["type"] in self.policy.clause_variant_types):
+            return False
+        # With index-window evidence on, a supplier whose material is documented as hedged keeps the
+        # plain package path: P08 (hedged) lost 0.23-0.27 with variants + evidence (LOG 2026-10-10).
+        if self.evidence and case["type"] in self.evidence.index_window_types:
+            return not self.evidence.material_hedged(case)
+        return True
 
     @staticmethod
     def _clause_probed(events):

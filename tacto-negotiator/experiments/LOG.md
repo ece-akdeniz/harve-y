@@ -960,3 +960,38 @@ Findings:
 - Sessions: 8 practice sessions; quota 103 -> ~119 used/600 because other agents share it.
 Decision: P18 `configs/p18-clause-variants.json` is a measured win vs local .4062 (n=2, identical), but below the hosted
 best .4531. It is mergeable as an opt-in config only. P08: no change.
+
+## 2026-10-10 — Full-cost push on single-supplier cases (branch `codex/score-push-fullcost`)
+
+Base: `origin/codex/score-push-costgen` + merged `codex/score-push-p18p08` (clause variants).
+Tool: `tools/full_cost_tradeoffs.py` — complete C of every legal package at a reference price
+(public fixture only). Per 0.01 of price: P18 EUR 471, P08 EUR 1,883, P10 EUR 468, P11 EUR 159.
+- Payment 90 vs 30 d is worth 1.33 % of price to us (P18 0.073/kg, P08 0.071/kg). The supplier's
+  own spread is 0.10 for 76 days (P18 14 d vs 90 d), about 8.5 %/yr, so the trade is roughly zero-sum.
+- Index clause (path +6 %, share 0.45): db0 costs 3.15 % of spend, db5 0.9 %, none 0. Supplier spread db0→db5
+  is 0.10–0.12, close to our value of 0.117–0.123. Neither side gains from that trade.
+- P10: 56 vs 42 d costs us EUR 33,600 (0.72/pc); the supplier prices it at 2.00/pc, already captured.
+  36 m was already measured (20a01609: no gain).
+- P11: cb 500 saves us EUR 2,146 (0.135/pc), but costs the supplier about 1.19/pc at its 2,376 ppm.
+  Payment is fixed. The supplier's floor of 45.50 holds, so nothing is executable.
+Supplier signals: P18/P08 ask "Which figures is that based on?" and for volume. P08 supplier letter
+`doc:20260706-70710-M1` says its alloys are covered at fixed prices until March 2027.
+
+| run | session | case | hypothesis | score | terms | timeouts |
+|---|---|---|---|---|---|---|
+| 4095ad76 | 43e27ef16e05c17c | P18 | public rival quote `quote:7300008` (70710 5.45/30d/no clause, cost-checked) | 0.3191 | 5.60/db0/90/24 | 0 |
+| 8444d792 | 6989dae45e4ac642 | P18 | recent buyer index windows (AS-14404 −5.5 % 06→09, PPI-C2431 −2.3 %) | **0.4531** | 5.40/db0/90/24 | 0 |
+| fc54cd39 | 056fe5f9aab95c16 | P18 | repeat | **0.4531** | 5.40/db0/90/24 | 0 |
+| e3f1f373 | 7fdf0fcecdbb79be | P08 | same index windows | 0.3606 | 5.52/db0/90/24 | 0 |
+| 16b4c246 | c98e831efffcd084 | P08 | hedge guard (OTD claim + clause variants only) | 0.3274 | 5.55/db0/90/24 | 0 |
+
+- Rival quote: the arena marked it `irrelevant` because it is not a case ref, and the supplier went final earlier.
+  Line dropped. `rival_quote_types` stays opt-in, off.
+- Index windows: all claims verified. The P18 first counter fell from 5.60 to 5.40 db0 ("took it into account"). It was
+  final at 5.40 and replicated 2/2, up 0.0335 from .4196 and equal to the arena best. P08 supplier rebutted with its hedge.
+  The code now detects a documented hedge (supplier letters or quote remarks: "covered … fixed prices/until") and
+  then sends no raw-material evidence and no clause variants (P08 falls back to the main path; offline first
+  move = 5.31/no clause, no claims). The P08 fallback is unscreened.
+- Sessions: 5 practice. Suite 387 passed + known preflight failure; ruff clean.
+- Merge verdict: merge `configs/raw-material-index-window.json` (adds `raw_material` to `evidence_types`,
+  `index_window_types: ["raw_material"]` on top of p18 clause variants). P18 .4531 (n=2).

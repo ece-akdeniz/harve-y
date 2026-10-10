@@ -77,3 +77,13 @@ def test_recent_window_skipped_when_supplier_material_is_hedged(pkg):
     ev = EvidencePolicy(package=pkg, case_types=["raw_material"], index_window_types=["raw_material"])
     assert ev.material_hedged(CASES["case:P08"])  # doc:20260706-70710-M1, quote:7300008 remark
     assert not ev.material_hedged(CASES["case:P18"])
+
+
+def test_hedged_supplier_keeps_plain_path(pkg):
+    from negotiator.agent import configured_agent
+
+    cfg = json.loads((Path(__file__).parents[1] / "configs/raw-material-index-window.json").read_text())
+    agent = configured_agent(cfg)
+    agent.evidence.package = pkg
+    assert not agent._clause_on(CASES["case:P08"]) and agent._clause_on(CASES["case:P18"])
+    assert not agent.evidence.eligible(CASES["case:P08"], {"message": {"term_sheets": [{}]}})
