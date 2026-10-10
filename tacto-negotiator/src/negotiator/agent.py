@@ -151,7 +151,8 @@ class PackageAgent:
                 interpretation=self.model_context,
                 recent_window_types=policy.recent_index_window_types if policy else (),
                 rival_quote_types=policy.rival_quote_types if policy else (),
-                index_window_types=policy.index_window_types if policy else ())
+                index_window_types=policy.index_window_types if policy else (),
+                claim_pacing=bool(policy and policy.claim_pacing))
         self.prev = {}  # supplier -> non-price terms of our last offer
         self.final_counters = {}  # supplier -> counters sent to its final offers (at most one)
         self.beat_asked = {}  # rival supplier -> final-offer sheet id we asked it to beat

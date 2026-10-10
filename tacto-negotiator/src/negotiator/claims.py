@@ -31,19 +31,27 @@ PPM_WEAK = 1000
 DEFAULT_DISCLOSURE = frozenset({"public", "supplier_own"})
 
 KIND_ORDER = {
-    "price_increase": ("notice", "index_change", "scorecard_otd", "scorecard_ppm", "rival_quote", "should_cost"),
-    "rfq": ("rival_quote", "rival_offer", "scorecard_otd", "scorecard_ppm", "index_change", "should_cost"),
-    "quality": ("scorecard_ppm", "scorecard_otd", "rival_quote", "index_change", "notice", "should_cost"),
-    "renewal": ("notice", "rival_quote", "index_change", "scorecard_otd", "scorecard_ppm", "should_cost"),
-    "renewal_trade": ("scorecard_otd", "index_change", "scorecard_ppm", "notice", "rival_quote", "should_cost"),
+    "price_increase": ("notice", "index_change", "scorecard_otd", "scorecard_ppm", "own_quote", "po_history",
+                       "rival_quote", "should_cost"),
+    "rfq": ("rival_quote", "rival_offer", "scorecard_otd", "scorecard_ppm", "index_change", "own_quote",
+            "po_history", "should_cost"),
+    "quality": ("scorecard_ppm", "scorecard_otd", "rival_quote", "index_change", "notice", "own_quote",
+                "po_history", "should_cost"),
+    "renewal": ("notice", "rival_quote", "index_change", "own_quote", "po_history", "scorecard_otd",
+                "scorecard_ppm", "should_cost"),
+    "renewal_trade": ("scorecard_otd", "index_change", "scorecard_ppm", "notice", "own_quote", "po_history",
+                      "rival_quote", "should_cost"),
 }
-DEFAULT_ORDER = ("index_change", "rival_quote", "rival_offer", "notice", "scorecard_otd", "scorecard_ppm",
-                 "should_cost")
+DEFAULT_ORDER = ("index_change", "rival_quote", "rival_offer", "notice", "own_quote", "po_history",
+                 "scorecard_otd", "scorecard_ppm", "should_cost")
+HISTORY_ORDERS = 4  # po lines per history claim (arena: 2-8 of the same part count as one argument)
+HISTORY_QUOTE_DAYS = 365  # an own quote older than this is stale, not an argument
 
 
 @dataclass(frozen=True)
 class Claim:
     kind: str  # index_change | rival_quote | rival_offer | scorecard_otd | scorecard_ppm | notice | should_cost
+    #       | own_quote | po_history (opt-in history claims, see `history_claims`)
     ids: tuple[str, ...]
     figure: float | None
     unit: str  # "%", "EUR", "ppm", "days", ""
@@ -489,6 +497,81 @@ def public_rival_quotes(case: dict, package=None) -> list[tuple[Claim, dict]]:
     return out
 
 
+def _unit_price(fact: dict) -> float | None:
+    if not isinstance(fact, dict) or not _number(fact.get("unit_price")) or fact["unit_price"] < 0:
+        return None
+    unit = fact.get("price_unit", 1)
+    if unit is None:
+        unit = 1
+    if not _number(unit) or unit <= 0 or fact.get("currency", "EUR") != "EUR":
+        return None
+    return fact["unit_price"] / unit
+
+
+def history_claims(case: dict, package=None) -> list[Claim]:
+    """Opt-in deeper bank (`claim_pacing`): what the case supplier itself quoted and what we ordered.
+
+    `po_history`: the supplier's most recent `po:` lines for the case part (2-8 count as one argument)
+    priced at or below our current price. `own_quote`: the supplier's latest own quote for the part,
+    not older than HISTORY_QUOTE_DAYS at the trigger date, at or below our current price. Both
+    disclose nothing the supplier does not have (its own quote, our orders with it). Callers compare
+    the figure with the supplier's standing ask before citing; verification is `verify`."""
+    facts = case_facts(case, package)
+    parts = case.get("parts") or []
+    part = parts[0] if parts else None
+    current = (case.get("buyer") or {}).get("current_unit_price")
+    if not part or not _number(current):
+        return []
+    trigger = facts.get(case.get("trigger_doc") or "") or {}
+    try:
+        as_of = date.fromisoformat(trigger["date"])
+    except (KeyError, TypeError, ValueError):
+        as_of = None
+    out = []
+    for target in case.get("suppliers") or []:
+        orders = []
+        for ref, f in facts.items():
+            if not (ref.startswith("po:") and isinstance(f, dict) and f.get("supplier") == target
+                    and f.get("part") == part):
+                continue
+            price = _unit_price(f)
+            if price is None or price > current + 1e-9:
+                continue
+            orders.append((f.get("date") or "", ref, price))
+        orders.sort(reverse=True)
+        recent = orders[:HISTORY_ORDERS]
+        if len(recent) >= 2:
+            ids = tuple(sorted(r for _, r, _ in recent))
+            claim = Claim(kind="po_history", ids=ids, figure=round(max(p for *_, p in recent), 2), unit="EUR",
+                          sentence="", supplier_id=target, part_id=part, disclosure="supplier_own", subject=target,
+                          strength=round((current - max(p for *_, p in recent)) / current * 100, 2),
+                          note=f"{len(recent)} most recent orders, {recent[-1][0]} to {recent[0][0]}")
+            out.append(replace(claim, sentence=render(claim, facts)))
+        quotes = []
+        for ref, f in facts.items():
+            if not (ref.startswith("quote:") and isinstance(f, dict) and f.get("supplier") == target
+                    and f.get("part") == part):
+                continue
+            price = _unit_price(f)
+            try:
+                quoted = date.fromisoformat(f["date"])
+            except (KeyError, TypeError, ValueError):
+                continue
+            if price is None or price > current + 1e-9:
+                continue
+            if as_of is not None and not 0 <= (as_of - quoted).days <= HISTORY_QUOTE_DAYS:
+                continue
+            quotes.append((f["date"], ref, price))
+        if quotes:
+            quoted, ref, price = max(quotes)
+            claim = Claim(kind="own_quote", ids=(ref,), figure=round(price, 2), unit="EUR", sentence="",
+                          supplier_id=target, part_id=part, disclosure="supplier_own", subject=target,
+                          strength=round((current - price) / current * 100, 2), in_case_refs=ref in (case.get("refs") or []),
+                          note=f"own quote of {quoted}" + ("" if ref in (case.get("refs") or []) else "; not in case refs"))
+            out.append(replace(claim, sentence=render(claim, facts)))
+    return [c for c in out if verify(c, facts, package, case)]
+
+
 def _shift_quarter(quarter: str | None, n: int) -> str:
     if not quarter or "Q" not in quarter:
         return ""
@@ -542,6 +625,15 @@ def render(claim: Claim, facts: dict) -> str:
         return f"Another supplier has offered {claim.part_id} at EUR {figure:.2f} per unit ({ref})."
     if claim.kind == "should_cost":
         return f"Our should-cost estimate {ref} for {claim.part_id} is EUR {figure:.2f} per unit."
+    if claim.kind == "own_quote":
+        return f"Your own quote {ref} for {claim.part_id} offered EUR {figure:.2f} per unit."
+    if claim.kind == "po_history":
+        prices = [p for i in claim.ids if (p := _unit_price(facts.get(i))) is not None]
+        lo, hi = (min(prices), max(prices)) if prices else (figure, figure)
+        ids = ", ".join(claim.ids)
+        if abs(hi - lo) < 0.005:
+            return f"Our orders {ids} for {claim.part_id} were placed at EUR {hi:.2f} per unit."
+        return f"Our orders {ids} for {claim.part_id} were placed between EUR {lo:.2f} and EUR {hi:.2f} per unit."
     raise ValueError("unknown claim kind")
 
 
@@ -555,19 +647,39 @@ def _check(claim, facts, package=None, case=None):
         return "id missing from sentence"
     k = claim.kind
     units = {"index_change": "%", "scorecard_otd": "%", "scorecard_ppm": "ppm", "notice": "days",
-             "rival_quote": "EUR", "rival_offer": "EUR", "should_cost": "EUR"}
+             "rival_quote": "EUR", "rival_offer": "EUR", "should_cost": "EUR", "own_quote": "EUR",
+             "po_history": "EUR"}
     if k not in units:
         return f"unknown kind {k}"
     if claim.unit != units[k]:
         return "wrong unit"
     disclosures = {"index_change": "public", "scorecard_otd": "supplier_own", "scorecard_ppm": "supplier_own",
                    "notice": "supplier_own", "should_cost": "internal",
-                   "rival_quote": "reveals_rival", "rival_offer": "reveals_rival"}
+                   "rival_quote": "reveals_rival", "rival_offer": "reveals_rival",
+                   "own_quote": "supplier_own", "po_history": "supplier_own"}
     if claim.disclosure != disclosures[k]:
         return "wrong disclosure"
     if case is not None and claim.part_id is not None and claim.part_id not in case.get("parts", []):
         return "other case part"
-    if k == "index_change":
+    if k in ("own_quote", "po_history"):
+        if not claim.supplier_id or not claim.part_id:
+            return "history claim needs supplier and part"
+        if case is not None and claim.supplier_id not in case.get("suppliers", []):
+            return "other supplier"
+        prefix = "quote:" if k == "own_quote" else "po:"
+        if k == "own_quote" and len(rows) != 1:
+            return "needs one quote id"
+        if k == "po_history" and not 2 <= len(rows) <= 8:
+            return "needs two to eight order lines"
+        if any(not i.startswith(prefix) for i in claim.ids) or len(set(claim.ids)) != len(claim.ids):
+            return "wrong or repeated id type"
+        if any(r.get("supplier") != claim.supplier_id or r.get("part") != claim.part_id for r in rows):
+            return "other supplier or part"
+        prices = [_unit_price(r) for r in rows]
+        if any(p is None for p in prices):
+            return "invalid price basis"
+        actual = max(prices)
+    elif k == "index_change":
         if len(rows) != 2 or any(not re.fullmatch(r"idx:[^@]+@\d{4}-\d{2}", i) for i in claim.ids):
             return "needs two index ids"
         sids = {i[4:].split("@")[0] for i in claim.ids}
