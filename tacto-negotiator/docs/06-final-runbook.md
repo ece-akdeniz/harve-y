@@ -42,12 +42,21 @@ uv run --locked arena data --out data
 - [ ] Create log directory and launch the **implemented and rehearsed** final command before 12:00.
 
 ```bash
+# run from tacto-negotiator/
 mkdir -p experiments/runs
 NEGOTIATOR_JOURNAL="$PWD/experiments/runs/final-journal.jsonl" \
-caffeinate -dimsu uv run --locked negotiator run --set final --runner async --parallel 10 > experiments/runs/final.log 2>&1
+caffeinate -dimsu uv run --locked negotiator run --set final --runner auto \
+  --policy-config configs/score-push-v3.json --parallel 10 > experiments/runs/final.log 2>&1
 ```
 
-This is the candidate macOS foreground launch after async promotion and full rehearsal.
+This is the one final launch command (the same one LAB_PLAYBOOK gives). `--runner auto` routes
+each case by supplier count: more than one supplier -> async runner (package advice disabled for
+that case), one supplier -> serial runner; both share one key-wide pace. `--set final` already
+defaults to `--runner auto` and `configs/score-push-v3.json`; the flags are spelled out so the
+trace and the command agree. The case-list poll backs off and keeps polling on any HTTP (non-403)
+or network error, and a crashed decision step falls back (accept the best eligible sheet that
+beats the alternative, else repeat our last offer, else walk away; never counter a final offer).
+Rehearse with the same flags on the free sandbox (`--set sandbox`) before launch.
 This custom launch loads `src/negotiator/AGENTS.md` from the installed package.
 Check the initial `run` trace for `runtime_guidance.sha256` and `settings`; both
 serial and async custom runners use this same guidance. The starter command

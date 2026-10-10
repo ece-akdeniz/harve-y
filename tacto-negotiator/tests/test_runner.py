@@ -390,9 +390,9 @@ async def test_closer_excludes_stale_offer_of_in_flight_supplier(tmp_path):
 
 
 @pytest.mark.parametrize("attribute", ["package_advisor"])
-def test_async_rejects_model_advisers_before_open(tmp_path, attribute):
+def test_async_disables_package_advice_instead_of_raising(tmp_path, attribute):
     from types import SimpleNamespace
 
     agent = SimpleNamespace(**{attribute: object()})
-    with pytest.raises(ValueError, match="serial runner"):
-        CaseRunner(object(), "case:S02", agent, Journal(tmp_path / "journal.jsonl"))
+    CaseRunner(object(), "case:S02", agent, Journal(tmp_path / "journal.jsonl"))
+    assert getattr(agent, attribute) is None
