@@ -1,0 +1,59 @@
+# Context from my IDE setup:
+
+## Active file: tacto-negotiator/docs/21-negotiation-v2-plan-2026-10-10.md
+
+## Open tabs:
+- 21-negotiation-v2-plan-2026-10-10.md: tacto-negotiator/docs/21-negotiation-v2-plan-2026-10-10.md
+- first-three-prompts.md: tacto-negotiator/docs/v2/first-three-prompts.md
+- D-roadmap.md: tacto-negotiator/docs/v2/D-roadmap.md
+- Pasted text.txt: /home/ugur/.codex/attachments/703a5586-1c90-4c5f-ac22-cbdfdf02d856/Pasted text.txt
+- 18-main-branch-audit-2026-10-10.md: tacto-negotiator/docs/18-main-branch-audit-2026-10-10.md
+
+## My request:
+## V2 Foundation Hardening — Before T1.1d
+
+The T1.1a–c integration review identified five foundational gaps. Address these before extending the domain models.
+
+Work on the existing V2 branch at `7e861cd`, preserving all completed tasks and V1 behavior.
+
+**1. Establish regression tests first.**
+
+Add focused tests reproducing:
+
+- Equivalent Decimal representations producing different semantic hashes.
+- Arbitrary or incorrect package fingerprints being accepted.
+- Invalid dates, identifiers, hashes, and boolean numeric values.
+- Ambiguous or invalid supplier-reported term values.
+- Unverified configurations reaching executable boundaries.
+
+Include positive, negative, and round-trip cases. Preserve existing golden fixtures unless an approved contract correction explicitly requires a versioned update.
+
+**2. Resolve contract ambiguities.**
+
+Clarify that raw supplier statements may be incomplete, ambiguous, or malformed, but structured contractual values must be valid. Supplier-reported constraints never acquire binding authority.
+
+Define the boundary between parsed configuration and verified executable configuration. Only registry-validated configurations with verified hashes may reach runtime construction.
+
+Document these decisions in the existing interface specification. Avoid introducing unnecessary new abstractions.
+
+**3. Correct the implementation.**
+
+Implement semantic Decimal normalization, verified package fingerprint construction, strict field validation, and configuration trust enforcement.
+
+Preserve canonical source information where necessary for provenance.
+
+Do not change the established Protocol interfaces unless a demonstrated incompatibility requires an explicit contract revision.
+
+**4. Verify integration.**
+
+Run all new regression tests, T1.1a–c focused tests, boundary tests, Ruff, and the complete V2 contract and acceptance suites.
+
+Ensure previously passing tests do not regress and remaining expected failures belong exclusively to deferred functionality.
+
+**5. Deliver a bounded result.**
+
+Update roadmap evidence, document any approved contract clarifications, and commit the hardening changes separately.
+
+Do not implement T1.1d, persistence, strategy, economic services, or LLM functionality in this task.
+
+**Completion criterion:** All five identified gaps have explicit contract decisions and passing regression tests. Previously completed T1.1a–c functionality remains intact.
