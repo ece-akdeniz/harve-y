@@ -120,6 +120,7 @@ class PackageAgent:
         self.beat_asked = {}  # rival supplier -> final-offer sheet id we asked it to beat
         self.reanchored = set()  # rfq suppliers re-anchored after undercutting our own ask
         self.lead_traded = {}  # rfq supplier -> (non-price terms before the lead trade, its C then)
+        self.burst_done = set()  # rfq suppliers that got the multi-claim counter
         self.final_seen = {}  # final-offer sheet id -> monotonic time first seen
         if estimates is None and os.environ.get("NEGOTIATOR_ESTIMATES") != "1":
             estimates = {}  # dossier estimates are opt-in until calibrated (docs: experiments/LOG.md)
@@ -381,7 +382,17 @@ class PackageAgent:
                 except DATA_ERRORS as exc:
                     self.evidence.fallback(case, exc)
                     return move
-                return self.evidence.enrich(case, threads, supplier_id, move, context=context, rfq_claims=1)
+                n_claims = 1
+                burst = self.policy.rfq_data_claims_burst
+                if burst > 1 and supplier_id not in self.burst_done and self._ours(threads[supplier_id]):
+                    # The supplier's one "clarify internally" step answers our second counter:
+                    # back that counter with every honest claim we have (max 3 checked).
+                    n_claims = burst
+                enriched = self.evidence.enrich(case, threads, supplier_id, move, context=context,
+                                                rfq_claims=n_claims)
+                if n_claims > 1 and enriched is not move:
+                    self.burst_done.add(supplier_id)
+                return enriched
         if self.evidence and self.evidence.eligible(case, move):
             from .context import DATA_ERRORS
 
@@ -625,10 +636,29 @@ class PackageAgent:
                         self.lead_traded[sid] = (dict(n), ref_c)
                         n = {**n, "lead_time_days": max(legal)}
                         self.prev[sid] = n
+                give = None
+                if self.policy.rfq_reciprocal_reanchor:
+                    # Reciprocity: move to the supplier's own payment term (what it closes on anyway)
+                    # so the lower ask comes with a real move from our side, plus a conditional award.
+                    sheet = (latest(events).get("term_sheets") or [{}])[0].get("terms") or {}
+                    pay = sheet.get("payment_days") or std.get("payment_days")
+                    if pay is not None and pay != n.get("payment_days") and pay >= 30:
+                        give = pay
+                        n = {**n, "payment_days": pay}
+                        self.prev[sid] = n
                 self._log(case, "undercut_reanchor", sid, their=p, ours_last=last_p, counter=price,
-                          lead_time_days=n.get("lead_time_days"))
+                          lead_time_days=n.get("lead_time_days"), payment_days=n.get("payment_days"))
                 terms = complete_offer(case, {**n, "unit_price": price})
-                return self._offer(case, sid, terms, std, sup, c_alt, "undercut our ask: re-anchor")
+                move = self._offer(case, sid, terms, std, sup, c_alt, "undercut our ask: re-anchor")
+                if give is not None and move.get("message", {}).get("term_sheets"):
+                    vol = case.get("fixed_terms", {}).get("volume_per_year")
+                    move["message"]["body"] += (
+                        f" We move to your {give}-day payment term, as you asked. If you can confirm"
+                        f" EUR {price:.2f} on these terms, we award you the full"
+                        + (f" {vol} pcs per year" if vol else " volume")
+                        + " today."
+                    )
+                return move
             match = {**n, "unit_price": p}
             if total_cost(case, match, std, sup) < ref_c - 1e-6 and ours[-1] != match:
                 return self._offer(case, sid, match, std, sup, c_alt, "gap closed: their price, our terms")

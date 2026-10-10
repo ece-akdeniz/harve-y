@@ -1117,3 +1117,22 @@ on 70210 plus offline/screen-5 evidence for 70240); no repeat. `rfq_lead_trade` 
 
 Verdict: keep `configs/p05-data-claims.json` (F, .7723 ×2). Award choice closed offline.
 Sessions this task: 1 (c54ee30b); 4 of 5 left unused.
+
+## 2026-10-10 — P05 rethink (target from leaderboard .96 ≈ 26.7 on 70210 35/30; not used at runtime)
+
+Reread all 70210 threads (11 sessions). Its behaviour is the same every time: r1 rival claim →
+32.00 + "clarify internally"; **r2 = one boss-approved drop whose size tracks the r2 evidence**
+(no claim → 29.00 [E, screen 8]; PPI −3.7 % → 29.00 [stack]; OTD 80.8 % → 28.50 [F ×2]); after
+that it holds ("massive drop last time"), and a backward counter brings a final at r3. Rivals
+never got below 32.00 (70250, "clarify internally" still pending when we closed) / 32.50 (70240).
+What 70210 values: cash ("30 days is a must", overdue-invoice letter, "faster payment welcome" —
+14 d is out of bounds for us), free capacity (lead time worth nothing to it: screen 13), Hollerau as
+reference customer. Volume/tenor are fixed by the RFQ. Index windows: only PPI-D351 −3.7 %
+(latest) supports us; AS-14404/PPI-C2431/LCI-C rose; older drops are cherry-picked, so not used.
+
+## 2026-10-10 — P05 screen 14 plan: claim burst in the clarification round (J)
+
+Differs from F: `rfq_data_claims_burst: 3` (`configs/p05-claims-burst.json`). 70210's r2 counter
+carries every honest unused claim: OTD 80.8 % **and** PPI-D351 −3.7 % (PPM 1863 shares
+sc:70210@2026Q3 → duplicate, skipped). Why: the r2 drop is the only big move and scaled with r2
+evidence; F used one claim there and saved PPI for r3, where it changed nothing.

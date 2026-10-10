@@ -30,6 +30,8 @@ class PolicyConfig:
     rfq_data_claims: bool = False
     rfq_data_claims_stack: bool = False
     rfq_lead_trade: bool = False
+    rfq_reciprocal_reanchor: bool = False
+    rfq_data_claims_burst: int = 0
 
     @classmethod
     def load(cls, path):
@@ -50,11 +52,14 @@ class PolicyConfig:
         for k in ("cost_neutral_lead_time", "rfq_nonleading_hold", "rfq_final_guard", "rfq_supplier_lead_time",
                   "rfq_rival_offer", "rfq_supplier_payment",
                   "rfq_rival_offer_history", "rfq_undercut_reanchor", "rfq_data_claims",
-                  "rfq_data_claims_stack", "rfq_lead_trade"):
+                  "rfq_data_claims_stack", "rfq_lead_trade", "rfq_reciprocal_reanchor"):
             if type(d.get(k, False)) is not bool:
                 raise ValueError(f"{k} must be boolean")
         if d.get("final_offer_risk", "legacy") not in ("legacy", "opening_proxy"):
             raise ValueError("invalid final_offer_risk")
+        burst = d.get("rfq_data_claims_burst", 0)
+        if type(burst) is not int or not 0 <= burst <= 3:
+            raise ValueError("rfq_data_claims_burst must be 0..3")
         if d.get("preference", "default") not in ("default", "standard_payment", "longer_tenor", "lower_chargeback"):
             raise ValueError("invalid preference")
         steps = d.get("chargeback_steps", 1)
