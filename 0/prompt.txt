@@ -1,0 +1,1490 @@
+# Context from my IDE setup:
+
+## Active file: tacto-negotiator/.env
+
+## Active selection of the file:
+REDACTED
+## Open tabs:
+- .env: tacto-negotiator/.env
+- 17-inference-setup.md: tacto-negotiator/docs/17-inference-setup.md
+- .env.example: tacto-negotiator/.env.example
+- README.md: tacto-negotiator/docs/README.md
+
+## My request:
+I want you to take a look at the current main branch and tell me what it exacty does. 
+Look for the design descision, how the information flow, which data we use  and which we dont. where we actualy deploy models and agents, and which steps are done deterministicly. 
+see if you can spot logical errors, missed opportunities and un/misused data.
+Give me a very detailed report
+
+---
+
+# Context from my IDE setup:
+
+## Open tabs:
+- .env: tacto-negotiator/.env
+- 17-inference-setup.md: tacto-negotiator/docs/17-inference-setup.md
+- .env.example: tacto-negotiator/.env.example
+- README.md: tacto-negotiator/docs/README.md
+
+## My request:
+These are good findings. Lets have a detailed plan for each proposed fix in a plan document
+
+---
+
+# Context from my IDE setup:
+
+## Active file: tacto-negotiator/docs/18-main-branch-audit-2026-10-10.md
+
+## Open tabs:
+- 18-main-branch-audit-2026-10-10.md: tacto-negotiator/docs/18-main-branch-audit-2026-10-10.md
+- 19-main-branch-remediation-plan-2026-10-10.md: tacto-negotiator/docs/19-main-branch-remediation-plan-2026-10-10.md
+- .env: tacto-negotiator/.env
+- 17-inference-setup.md: tacto-negotiator/docs/17-inference-setup.md
+- .env.example: tacto-negotiator/.env.example
+
+## My request:
+some changes were made according to this plan in a branch. check them and suggest some tests if needed.
+
+---
+
+# Context from my IDE setup:
+
+## Active file: tacto-negotiator/docs/18-main-branch-audit-2026-10-10.md
+
+## Active selection of the file:
+# Main branch audit — 10 October 2026
+
+## 1. Scope and overall assessment
+
+Audited revision: **`3653046bce6dd7cbbeffe00ecf5dfd9c3edbc0ab`**, the checked-out `main` branch. The local `origin/main` reference points to the same revision. The checkout was clean before this review. I did not fetch the remote, so this identifies the available main snapshot, not a guarantee that GitHub has received no subsequent pushes.
+
+The official kit is a submodule and a locked dependency at **`1b5516bb95ef28e37f69aa446dc62168864bca53`**. The review covers the custom buyer, official arithmetic/readers used by it, data package, configuration, serial and asynchronous execution, experiment Lab, deployment scripts, tests, and recorded experiments. No hosted negotiation, inference request, quota-consuming experiment, publication, or deployment was performed. Environment secret values were not needed for this analysis and are omitted.
+
+**The implemented product is a deterministic procurement negotiator with optional evidence, experimental package trades, and a narrowly constrained LLM package selector.** It is accompanied by a substantial experiment platform. It does not implement the full model-driven writer, reply interpreter, supplier-belief engine, or offline planning system described in the architecture documents.
+
+The strongest architectural choice is to calculate prices and complete-package costs in code and retain one closing decision function. The largest strategic limitation is that most rich supplier information either never enters the default decision path or is read without affecting the next move. The largest operational concerns are exceptional paths in asynchronous execution and inconsistent agent construction across launch paths.
+
+The code is substantially more capable than the old scaffold checklist suggests. Equally, passing its tests does not establish all the runtime guarantees stated in the design. This review distinguishes:
+
+- **Confirmed implementation:** directly followed in code.
+- **Reproduced defect:** exercised offline during this audit.
+- **Code-path risk:** the problematic behavior is visible, but its hosted consequence was not exercised.
+- **Recorded measurement:** reported by existing experiment artifacts, not newly measured here.
+- **Opportunity:** a plausible improvement requiring a controlled experiment.
+
+## 2. What happens when it negotiates
+
+### 2.1 Normal CLI launch
+
+`negotiator play` and `negotiator run` load environment configuration through the official CLI helper. They load the packaged `src/negotiator/AGENTS.md` with `RuntimeGuidance.load()`, validate its JSON block, optionally load a `PolicyConfig`, construct a `PackageAgent`, and dispatch to the serial or async runner.
+
+The runtime AGENTS file is executable configuration, not a model prompt. Its current values are:
+
+| Setting | Current value | Meaning |
+|---|---:|---|
+| `anchor` | 0.12 | Initial price reference is discounted by 12% |
+| `rounds` | 5 | Five-step concession schedule |
+| `close_gap` | 0.005 | Convergence threshold of 0.5% of the supplier reference price |
+| `final_hold_s` | 40 | How long a leading final offer is held while another supplier remains open |
+| `p_walk` | 0.25 | Assumed withdrawal probability when countering a final offer |
+| `conditional_exchange` | true | Deterministic wording states that non-price terms are conditional on price |
+
+The entire file hash and effective values appear in normal CLI run provenance. Prose and research links outside its structured settings do not alter policy.
+
+The default runner is **serial**. The default agent does not call a model. Claims, dossier supplier estimates, and generic payment MESOs default off, unless enabled through their environment switches or an explicit policy.
+
+Sources: [CLI](../src/negotiator/cli.py), [runtime guidance loader](../src/negotiator/guidance.py), [packaged settings](../src/negotiator/AGENTS.md), [agent initialization](../src/negotiator/agent.py).
+
+### 2.2 Opening and document handling
+
+Opening a session returns the case and supplier threads. Opening PDFs and later attachments are downloaded and converted to text by official readers. PDFs use `pypdf`; XLSX files use `openpyxl`, with formula strings retained rather than recalculated.
+
+The code searches the latest quote attachment for its **standard terms**. Those standards supply omitted closing fields. The official resolution order implemented by `closing_terms` is:
+
+1. Buyer-plan defaults.
+2. Quote standard terms.
+3. Case fixed terms.
+4. Explicit offer terms.
+
+This precedence is significant: the case's fixed terms override standards, and explicit sheet terms override both in the arithmetic. Offer-schema enforcement must therefore keep unauthorized fields from entering the sheet.
+
+The PDF parser recognizes specific labels and section headings. The policy consumes the parsed standard section; it does not generally mine all attachment content for commercial signals. Downloading a cost-breakdown workbook does not mean its cost elements are used.
+
+Sources: [serial loop](../src/negotiator/play.py), [async document handling](../src/negotiator/runner.py), official `arena_kit/docs.py` and `arena_kit/cost.py`.
+
+### 2.3 Candidate terms and price negotiation
+
+For each supplier, the agent considers priced sheets in its latest message, checks must-haves, and calculates complete costs. It distinguishes the supplier's first, standing sheet from other alternatives. Alternatives can be copied into a counteroffer, but are not accepted directly by ID.
+
+On its first ordinary offer, `best_terms` enumerates combinations of permitted non-price options at a supplied reference price and chooses the cheapest compliant combination. This is a finite enumeration over terms, not a search over all possible prices or supplier acceptance behavior.
+
+The agent generally retains its previous non-price package. It can adopt a cheaper supplier package when the supplier has actually quoted the previous package at a worse complete cost. It also adopts individual supplier-requested changes when they preserve must-haves and do not increase buyer cost at the same price.
+
+The price concession schedule is essentially:
+
+```text
+floor = opening-package-equivalent price × (1 − 0.12)
+proposal = floor + (current reference price − floor) × min(1, offers_sent / 5)
+```
+
+The code converts prices between packages using a numerical inverse of total cost. It tries to avoid backtracking on its own concessions in cost terms, limits proposals to the supplier reference, and can cap a rival's offer below a leading final offer.
+
+When the buyer/supplier price gap becomes small, it can re-offer its own terms at the supplier's price, convert a cheaper alternative sheet into a counteroffer, or request a case close.
+
+This is a rule-based negotiation schedule. The default path does not learn supplier preferences, estimate a concession curve, update withdrawal probabilities, or decide whether a particular argument worked.
+
+Sources: [agent package and decision logic](../src/negotiator/agent.py), [optimizer](../src/negotiator/optimizer.py), [inverse pricing and sheet evaluation](../src/negotiator/evaluator.py).
+
+### 2.4 Optional deterministic package trades
+
+An explicit policy can enable `TradePolicy` for selected case types. It can:
+
+- Evaluate opening package combinations at the anchored price as well as the quoted price.
+- Recognize the historical `multi_year_only` trait and propose an allowed longer commitment.
+- Use configured supplier-standard payment terms.
+- Relax quality or chargeback terms according to allowed options and the configured experiment.
+- Detect stagnation from three supplier price surfaces.
+- Switch one relevant package dimension, with at most two non-price switches, enough remaining moves, and a nominal 20-second time check.
+
+Its stagnation switch order is predetermined. It uses only a small subset of the many available traits. Payment switching is triggered by a specific trait or literal English phrases. Commitment, quality, chargeback, and index-clause switches follow fixed rules.
+
+`revealed_deltas` calculates one-field price differences between supplier sheets, but those differences are currently logged rather than used as a learned supplier valuation model.
+
+The longer-lead flag adds a tie-break: when legal opening packages have exactly the same complete cost, prefer a longer lead time. It has recorded capacity-case evidence and remains opt-in.
+
+Sources: [trade policy](../src/negotiator/trades.py), [policy schema](../src/negotiator/policy.py), [lead-time tie-break](../src/negotiator/optimizer.py).
+
+### 2.5 Evidence selection and sending
+
+Evidence is appended to an already generated move. `EvidencePolicy` constructs a case-scoped context, verifies canonical claims, selects at most three, appends their sentences, and attaches their IDs.
+
+By default the evidence feature is restricted to single-supplier price-increase cases. An explicit policy can enable other types, but the single-supplier restriction remains. The combined candidate enables evidence for price-increase and quality cases.
+
+The claim machinery supports index changes, supplier scorecards, notice periods, rival quotes, live-offer claim records, and should-cost estimates. Actual automatic delivery is narrower:
+
+- Only buyer-supporting claims are selected by default.
+- Adverse facts remain candidates for internal inspection.
+- Cherry-picked index windows are generated and flagged, but excluded by default.
+- Internal should-cost claims are not sent.
+- Rival disclosure is excluded by the default disclosure set.
+- RFQs do not pass the current evidence eligibility gate.
+- The live-offer helper is not wired into automatic selection from current session offers.
+
+The canonical renderer and checker are a strong improvement: changing a claim figure without changing its sentence fails verification. Notice claims check supplier, part applicability, dates, the trigger letter, and the contract's required period. Scorecard sentences correctly describe supplier-wide rolling metrics rather than claiming part-specific performance.
+
+Used IDs are reconstructed from buyer-history `refs`, and proposed claims are reserved in memory before sending. Failed or unsent proposals can therefore consume evidence conservatively. This avoids easy duplicates but may waste useful claims. The code does not adapt evidence selection from the supplier's returned `claim_results`.
+
+Sources: [evidence delivery](../src/negotiator/evidence.py), [context](../src/negotiator/context.py), [claims](../src/negotiator/claims.py).
+
+### 2.6 Closing
+
+`close_decision` owns the final economic comparison. It selects the cheapest acceptable standing sheet across live threads whose complete cost is strictly below the supplied alternative's cost. If none qualifies, it walks away.
+
+This shared evaluator is used for ordinary closes, `agreed`, final offers, exhausted moves, and wave-deadline fallback. A supplier saying `agreed` therefore does not bypass economic checks.
+
+A missing usable alternative price is represented as infinity. That lets finite valid deals pass the comparison, but it also creates infinite loss in some final-counter risk calculations. It is important to distinguish three quantities: an executable alternate offer, operational fallback procurement, and the arena score for no deal. They are not interchangeable.
+
+For final offers, the policy normally allows at most one counter, estimates potential gain against loss if the supplier withdraws, and uses the fixed `p_walk=0.25`. An optional `opening_proxy` mode provides an opening-relative heuristic for cases without an alternate quote. It is explicitly a proxy, not expected normalized score.
+
+Sources: [closing evaluator](../src/negotiator/evaluator.py), [final-offer logic](../src/negotiator/agent.py), [alternative cost](../src/negotiator/optimizer.py).
+
+## 3. Information flow and authority
+
+```mermaid
+flowchart TD
+    B[Base SQLite, facts, documents] --> D[Dossiers and traits]
+    B --> F[Merged factual evidence]
+    R[Release facts, CSV IDs and documents] --> F
+    R --> D
+    C[Case metadata and case facts] --> F
+    C --> P[Deterministic package and price policy]
+    T[Supplier messages and term sheets] --> P
+    Q[Quote PDF standard terms] --> P
+    D --> E[Optional supplier economics]
+    E --> P
+    D --> TR[Optional deterministic trades]
+    TR --> P
+    P --> A[Optional serial model package selector]
+    D --> A
+    F --> EV[Verified claim selection]
+    P --> EV
+    A --> S[Send approved term sheets]
+    EV --> S
+    P --> S
+    S --> T
+    T --> CL[Shared close evaluator]
+    E --> CL
+    CL --> O[Accept or walk away]
+    S --> J[Journal and traces]
+    O --> J
+    J --> L[Reports, Lab and replay inspection]
+```
+
+The arrow from release data to dossiers has a boundary: merged news/doc IDs can be read, but many dossier fields still come from base SQLite queries. Case dossier enrichment currently adds new case news only. The arrow through the model exists only for the explicitly enabled serial selector.
+
+Authority is distributed sensibly in the ordinary path:
+
+| Input | What it may influence | What it cannot authorize |
+|---|---|---|
+| Case schema, fixed terms, buyer rates and must-haves | Legal options and economic evaluation | Arbitrary fields outside the case |
+| Supplier standing term sheet | A possible acceptance | Automatic acceptance without checks |
+| Other supplier sheets | Counteroffer candidates | Direct acceptance of a non-standing ID |
+| Quote standard terms | Defaults for omitted closing fields | Bypassing the case schema |
+| Facts and contracts | Canonical verified claims | Executable instructions |
+| Notes, news and supplier prose | Traits, relevance, optional model choice | Inventing binding terms or new facts |
+| Model output | Selection of a code-approved package ID | Pricing, custom claims, free-form outgoing prose, closing |
+| Historical scores, Cbest and public board | Human evaluation and experiments | Runtime strategy targets |
+
+The live input path does not read the public benchmark artifacts for strategy. Async requests block listed spectator endpoint paths. The serial buyer currently calls permitted methods, but its underlying official client exposes leaderboard/backoffice methods and has no equivalent custom endpoint guard; separation depends on call-site discipline.
+
+## 4. Economic evaluation: what is deterministic
+
+The official cost function includes:
+
+| Component | Data used |
+|---|---|
+| Price | Commitment quantity, covered duration, unit price, current price, effective date |
+| Uncovered need | Fixed demand, fixed horizon, committed coverage, fallback unit price |
+| Fallback risk | Uncovered cost and category-specific percentage |
+| Payment | Actual spend, buyer rate, reference days, agreed days |
+| Freight | Committed quantity and Incoterm cost map |
+| Late delivery | Days beyond buyer need and daily penalty |
+| Quality | Committed quantity, ppm, defect cost less capped chargeback |
+| Tooling | Agreed tooling amount |
+| Index clause | Published buyer index path, material share, deadband |
+| Index risk | Published risk percentage and indexed exposure |
+| Relationship | Estimated supplier cash value, full cost, sustainable margin and goal penalty |
+
+The relationship component is zero locally without a supplier estimate. This is especially consequential for `stabilise` and `secure_supply` cases: a mechanically cheaper deal can be worse under the supplier-health penalty used in scoring.
+
+Supplier estimates are hypotheses built from should-cost, master terms, scorecards, and traits. Assumed rates are 8% normally, 15% for cash-short suppliers, and 20% for liquidity crisis. When should-cost is absent, the estimator assumes a 6% margin on the current price. It records an uncertainty interval, but the live decision code uses the point estimate; it does not optimize or report decisions over the interval.
+
+The following are deterministic: file loading, facts merging, regex traits, option enumeration, complete-cost arithmetic, offer ranking, most package switches, price scheduling, claim rendering/checking/picking, template messages, shared closing, request journals, Lab gates, and score summaries. Deterministic buyer code can still receive stochastic supplier replies. Optional model calls also introduce variability, and time-dependent decisions depend on runtime conditions.
+
+The code does not deploy or train a pricing model, fine-tune a language model, or run an autonomous multi-agent deliberation system. Workers are orchestration tasks, not independent LLM decision agents.
+
+## 5. Data inventory: used, partially used, and unused
+
+The checked-in base SQLite has **22 tables**, **447 suppliers**, **60 parts**, and **10,356 citable facts**. Fifty parts use price unit 1, nine use 100, and one uses 1,000. These are actual local inventory counts, not assumptions from the documentation.
+
+“Available” is different from “used to decide.” The default agent mainly consumes the case, live messages/sheets, and quote standards. Merely loading a dossier or including a fact in an internal context does not mean policy uses it.
+
+| Source | Rows | Current implemented use | Gap / missed opportunity |
+|---|---:|---|---|
+| `suppliers` | 447 | Dossier name, country, category, master defaults | Default negotiator does not tailor behavior from these; supplier alias not resolved |
+| `supplier_intel` | 46 | Dossier; credit deterioration trait; optional rate hypotheses | Turnover, ownership, audits, financial context mostly do not affect policy |
+| `parts` | 60 | Mainly available through case part IDs / research | No general live unit-and-part normalization layer |
+| `sourcing` | 90 | Offline prep builds active supplier-part banks | No live alternative or sourcing strategy engine |
+| `price_conditions` | 339 | Prep chooses latest recorded price | No effective-date filter or unit conversion in that prep query; live historical price analysis absent |
+| `negotiation_history` | 300 | Loaded into dossiers | Asked/settled history does not calibrate anchor, concessions, final-offer risk or price expectations |
+| `contracts` | 46 | Notice-period checks and document part scope | Broader obligations and renewal/index rights are not reasoned over |
+| `contract_clauses` | 280 | Available in facts/readers | No general clause-aware strategy or existing index-clause analysis |
+| `po_lines` | 5,400 | Available as citable facts | No generated historical-price claims, order-volume leverage or stale-condition investigation |
+| `goods_receipts` | 5,580 | Available | Not used to calculate delivery patterns or partial-lot behavior |
+| `invoices` | 5,578 | Mean paid date minus due date in dossiers | No discount analysis, payment distribution, overdue balance or controlled payment trade based on records |
+| `quality_notifications` | 1,033 | Available as facts | No QN claim builder, 8D follow-up, complaint economics or chargeback recovery analysis |
+| `scorecards` | 414 | Latest dossier metrics; verified OTD/ppm claims; optional supplier ppm | No full trend/risk model; current thresholds are broad heuristics |
+| `forecasts` | 720 | Available as `fc` facts | No forecast claims or demand-confidence strategy |
+| `forecast_lines` | 8,640 | Available | No seasonality, capacity schedule or evidence-backed volume planning |
+| `rfqs` | 47 | Available | No general historical benchmark/RFQ context generator |
+| `quotes` | 108 | Case-referenced rival quote claim candidates | Automatic rival disclosure remains off; old quote validity not generally evaluated |
+| `spend_cube` | 1,137 | Available | No account importance, basket leverage, tail consolidation or vendor-alias aggregation |
+| `index_series` | 33 | Names, metadata; facts used in claims | Source unit/freshness not fully propagated into every decision |
+| `index_values` | 2,258 | Calendar-aware index changes from facts | Mixed series publication lags; no comprehensive hedge/pass-through model |
+| `cost_drivers` | 166 | Claim candidate series, weights/ranking, offline partial cost pressure | Weighted pressure does not reach the live package/price policy |
+| `should_cost` | 28 | Internal claims, optional supplier economics | Point estimates only; overlay precedence and price-basis safeguards need work |
+| `news` | 39 | Dossier topics, traits, case-news addition | Freshness unchecked; no standalone generated news-claim strategy |
+| `documents` | 208 | Letters, notes, regex traits, notice scope, optional selector notes | Rich negotiation-specific semantics mostly unused; some document categories excluded |
+
+### 5.1 What is intentionally excluded
+
+The agent intentionally keeps internal budgets, reservation costs, target prices, lack of alternatives, urgency, should-cost estimates, unverified weighted aggregates, adverse claims, and rival quotes out of default outward messaging. Most of these are sensible disclosure constraints.
+
+That does not justify leaving the same data unused internally. In particular, adverse commodity data should affect the buyer's assessment of a credible ask even if it is not sent as a concessionary argument. The current policy does not use those facts to update its mechanical 12% opening anchor.
+
+The dossier builder excludes five named document subjects: holiday shutdown, new contact person, ISO certificate, packaging, and trade-fair invitation. Some are likely noise, but shutdown, certification and packaging could be operationally relevant in a future logistics/quality case. Exclusion should be case-aware.
+
+### 5.2 Offline preparation is not on the live dependency path
+
+`negotiator prep` writes `experiments/prep.json`. Other tools write dossier exports and sensitivity analyses. There is no reader of `prep.json` in the live buyer.
+
+When enabled, evidence and estimates rebuild data structures from the package at runtime. `TradePolicy.prepare` can run before opening in the async runner if metadata is available. In the serial path, dossier preparation may happen during the first decision after clocks start. Evidence contexts recursively hash package files and construct claims/dossiers on the live path. Each separately constructed agent can repeat work.
+
+This is both a missed latency improvement and a misleading aspect of the apparent pipeline: running prep does not automatically make the subsequent negotiation consume the prepared evidence.
+
+### 5.3 Current claim-bank verification across the fixture set
+
+During this audit all **19** saved practice cases successfully built a verified bank. This supersedes the older coverage artifact reporting `float(None)` failures on non-price-increase cases.
+
+| Case | Verified candidates | Default first-recipient pick, before runtime eligibility |
+|---|---:|---|
+| P01 | 9 | Notice 51 days; index −3.7%; OTD 85.2% |
+| P02 | 9 | PPM 273 |
+| P03 | 9 | OTD 84.6% |
+| P04 | 5 | OTD 85.0% |
+| P05 | 15 | OTD 80.8%; index −3.7% |
+| P06 | 10 | OTD 74.5%; index −3.7% |
+| P07 | 5 | OTD 88.6% |
+| P08 | 8 | OTD 88.0% |
+| P09 | 8 | Index −3.7%; OTD 56.0% |
+| P10 | 5 | OTD 79.5% |
+| P11 | 7 | PPM 2,376; index −3.7% |
+| P12 | 6 | PPM 4,118; index −3.7% |
+| P13 | 8 | Notice 35 days; index −3.7%; OTD 82.1% |
+| P14 | 6 | OTD 88.5% |
+| P15 | 4 | None |
+| P16 | 6 | None |
+| P17 | 6 | OTD 85.7% |
+| P18 | 8 | OTD 81.0% |
+| P19 | 5 | OTD 86.5% |
+
+This table demonstrates preparation, not delivery or persuasion. P05/P06, for example, remain excluded by the multi-supplier gate. Nine fixture cases are not hosted practice cases. A bank with zero default selected claims is a valid outcome when available facts are adverse, internal, or otherwise excluded.
+
+### 5.4 Release and case overlays
+
+The official `DataPackage` merges release `facts.json`, indexes release CSV IDs, and can read release documents. It does **not** turn release CSVs into additions to arbitrary SQL query results. Dossier SQL reads remain against base SQLite.
+
+The evidence facts layer correctly applies case facts over package facts and records collisions in its context. The economics estimator uses a different path and can disagree with that precedence. Case dossier enrichment only appends new case news; it does not replace existing news by ID or merge case letters into dossier notes. The optional model selector obtains base/release dossier notes directly, without that case enrichment.
+
+No automatic release downloader or comprehensive final-machine release preflight is implemented in the custom runtime. Supplying `ARENA_RELEASE` is a loading mechanism, not proof the Sunday release has been retrieved, integrated and rehearsed.
+
+## 6. Where models and agents actually run
+
+| Component | Execution location | Model use | Deployment status supported by the repository |
+|---|---|---|---|
+| Normal custom buyer | Machine running `negotiator play/run`, usually a teammate laptop | None by default | CLI process; no dedicated buyer cloud deployment described |
+| Async supplier workers | Tasks inside the same buyer process | No independent worker models | Concurrency/orchestration, not separately deployed agents |
+| Optional package adviser | Calling buyer process; inference at configured external endpoint | Approved package ID plus supporting quote only | Implemented, opt-in, serial only |
+| Inference probe | Standalone serial Lab run using `negotiator.inference:InferenceProbeAgent` | Fixed prompt selects one of two closing phrases | Implemented connection test; not economic intelligence |
+| General writer / reply reader / belief model | No execution path | Planned | `NotImplementedError` stubs |
+| Official starter `arena --agent llm` | Starter CLI process and chosen provider | General starter implementation | Separate agent; does not use custom guidance/policy |
+| Tacto supplier role bots | Hosted Arena | Organizer's supplier-side models/roles | External service; not deployed by this repository |
+| Experiment Lab | Local host, recorded Azure VM, and configured Nebius VM deployment | No buyer inference execution in the dashboard | Shared records, comparisons, recommendations and artifacts |
+
+### 6.1 The real optional model selector
+
+`PackageAdvisor` calls an OpenAI-compatible `/chat/completions` endpoint using `LLM_BASE_URL`, `LLM_API_KEY`, `LLM_MODEL`, and optionally `LLM_EFFORT`. It does not branch on `LLM_PROVIDER`. It requests strict JSON-schema output and uses `max_completion_tokens`, unlike the connectivity probe's simpler `max_tokens` protocol. A successful probe therefore does not prove the adviser protocol is supported.
+
+Code generates legal one-field package variants for payment, commitment, lead time, and index clause, triggered by broad keyword signals. Candidates must meet the scheduled package's buyer-cost ceiling. Price reductions compensate expensive term changes when inverse pricing is safe. Previously proposed packages and a two-switch history budget limit repetition.
+
+The model sees the latest supplier body (up to 6,000 characters), up to eight recent messages, approved terms, scheduled terms, and up to twelve note texts (2,000 characters each). Buyer cost estimates, reservation costs, targets and score benchmarks are not supplied as structured fields. Notes are copied through a constrained interface, although the content of historical notes still needs appropriate data handling.
+
+The model returns `selected_id` and `supporting_quote`. A changed package needs an exact substring of the latest reply of at least eight characters. Code rechecks legality and cost, then sends a fixed template and the selected sheet. No model-written prose is sent.
+
+The call has an eight-second total waiting bound and a process-wide semaphore of four model calls. Timed-out daemon calls may continue until their HTTP operation exits; they are not forcibly cancelled. Missing credentials, errors, invalid output or unsupported quotations fall back to the deterministic move. Final offers, actions, multiple sheets, existing evidence refs, or less than 20 nominal seconds remaining skip advice.
+
+The current adviser is enabled by `configs/package-advice.json` for **capacity only**. The async runner rejects an agent with this feature before opening a session. This means the measured semantic improvement cannot currently be combined with the async final runner by merely adding a flag.
+
+The exact-quote check proves provenance of a substring, not that the selected exchange is commercially sensible. Avoiding a refused package and understanding role authority remain model judgments. Structured output protects numeric/action authority but does not prove semantic correctness.
+
+### 6.2 The separate connection probe
+
+`InferenceProbeAgent` inherits deterministic economics. At most once per case it sends a fixed prompt containing no supplier or private procurement data. It accepts only `concise` or `collaborative` and appends the corresponding fixed phrase. It records call/fallback counts and elapsed times.
+
+It is useful for endpoint connectivity and response-shape checks. It does not read a supplier, choose an economic trade, deploy a model, or validate the package-adviser protocol. Its 0.1–5-second HTTP timeout is a phase timeout, not a hard total move deadline.
+
+### 6.3 Lab cloud hosting
+
+The Azure documentation and experiment log record a deployment on an Ubuntu VM, with Caddy terminating HTTPS and the Python Lab bound to loopback port 8000. Its persistent store is SQLite. Those are recorded deployment observations; I did not contact the VM during this audit.
+
+The current `main` CI workflow also deploys the Lab to a Nebius VM at the hostname documented in `ops/nebius/README.md`. On pushes to main it runs Lab-server tests and Ruff, archives tracked project source, sends it over pinned SSH, installs locked dependencies into a revision release, switches a `current` symlink, restarts the service, and rolls back if the local health check fails. Data and credentials remain outside the archive under `/var/lib/y-agent-lab`.
+
+That workflow deploys the **dashboard**, not buyer agents or model weights. Deployment tests cover `test_lab_server.py`, not the entire negotiation suite. The local health check expects unauthenticated `/api/runs` to return 401; the external check fetches the root page. Neither proves a negotiation policy is operational or that a specific revision is serving after every possible deployment race.
+
+The repo still contains laptop-tunnel, Azure, and Nebius connection instructions. There is no single canonical active endpoint encoded across them. A teammate following the inference setup doc can still get an old tunnel endpoint. Which host is currently used by each teammate and what revision is live require operational verification outside this code review.
+
+Sources: [Nebius deployment](../../ops/nebius/README.md), [CI workflow](../../.github/workflows/deploy-nebius-lab.yml), [deployment script](../../ops/nebius/deploy-lab.sh), [Azure runbook](15-azure-lab-hosting.md), [inference setup](17-inference-setup.md).
+
+## 7. Launch-path differences that matter
+
+| Path | Agent construction | Guidance loaded? | Recovery / feature implications |
+|---|---|---|---|
+| `negotiator play/run` serial | `RuntimeGuidance.new_agent` | Yes | Current guidance wording; ordinary serial transport is not durably journalled |
+| `negotiator play/run` async | Same guided construction | Yes | Durable journal and reconciliation; package adviser rejected |
+| Standalone `negotiator lab run --agent package` | Direct `PackageAgent(**config)` | No | Serial; durable POST transport; standalone publication and records |
+| Standalone custom Lab factory | Imported `module:factory` | Only if factory implements it | Can run probe or a wrapper; does not automatically inherit CLI behavior |
+| Lab checkpoint campaign | Direct `PackageAgent(**manifest['config'])` | No | Frozen checkout/data, lease/budget gates, serial or async worker |
+| Starter `arena --agent llm/naive` | Official agent implementation | No | Different economics, policy and model use |
+
+The checkpoint configuration schema only accepts the basic schedule values, `meso`, `claims`, and `estimates`. It rejects `policy`, `cost_neutral_lead_time`, `package_advice_types`, and `conditional_exchange`. The worker also hardcodes `PackageAgent`; it cannot select `InferenceProbeAgent` through a checkpoint.
+
+Therefore the current immutable campaign mechanism cannot express the newly added policy improvements through its existing config. A checkpoint captures source bytes, but capturing the new adviser code does not activate it. A Lab recommendation also does not automatically activate a normal CLI agent: normal play/run does not read the recommendation registry.
+
+An explicit policy overrides `claims` based on whether `evidence_types` is nonempty. With an evidence policy loaded, passing `claims=False` or setting the claims environment flag off does not disable those policy-enabled types. Conversely a policy with no evidence types turns claims off. This is implemented precedence that must be made visible in experiment records and commands.
+
+Sources: [standalone factory](../src/negotiator/lab/runner.py), [checkpoint config](../src/negotiator/lab/checkpoints.py), [worker](../src/negotiator/lab/worker.py), [agent constructor](../src/negotiator/agent.py).
+
+## 8. Confirmed defects and operational risks
+
+### F1 — Inverse price search fails with supplier-health penalties
+
+**Severity: high when supplier estimates are enabled. Reproduced offline.**
+
+`price_for_cost` assumes total cost rises monotonically with price and binary-searches from zero. Relationship cost invalidates that assumption: lowering the price can increase the supplier-health penalty faster than it reduces buyer spend. The trade policy and package adviser recognize this and disable some inversions with estimates, but the main agent's `_ask_on`, concession conversion, final-counter logic, and payment variants still use this function with supplier estimates.
+
+Using the existing `STABILISE` test fixture and its supplier estimate:
+
+| Unit price | Complete cost |
+|---:|---:|
+| 20 | €1,534,600.00 |
+| 30 | €831,266.67 |
+| 40 | €519,600.00 |
+| 45 | €429,044.44 |
+| 48 | €397,273.61 |
+| 49 | €401,600.00 |
+| 55 | €449,600.00 |
+
+Inverting the valid target cost €401,600 returned **price 0.0**. Evaluating that returned price caused **`ZeroDivisionError`** in supplier margin arithmetic. A valid price of 49 was already available.
+
+Keep the fast inverse for proven monotonic cases. For relationship cases, use a positive-domain search that identifies feasible cost intervals and roots, or enumerate a bounded price grid and refine appropriate intervals. Define behavior when the target is below the minimum possible cost. Validate every resulting price and cost before sending.
+
+Source: [evaluator, `price_for_cost`, line 88](../src/negotiator/evaluator.py); [agent callers](../src/negotiator/agent.py); official relationship arithmetic.
+
+### F2 — A failed close can be recorded as a finished case while the server is still open
+
+**Severity: high. Reproduced offline.**
+
+After three close attempts, `CaseRunner._close` fetches server state and calls `_end` with a fallback result even if the server still reports `status='open'`. This does not prove an accept or walk-away occurred.
+
+Offline reproduction with a fake server rejecting each close with 422:
+
+```text
+server status: open
+local ended: true
+local result: {deal: false, end_reason: null}
+```
+
+The normal `run()` path can then write that result into the journal and abandon pending intents. A future launch using the same journal can return the local result without resuming the still-open server session. The CLI generally treats the missing score as failure, which helps visibility, but the internal terminal-state claim is wrong.
+
+Only record completed/ended after authoritative terminal state or a confirmed close response. Preserve an unresolved operational state after exhausted attempts and keep recovery possible.
+
+Source: [runner, close fallback, line 531](../src/negotiator/runner.py), [run result journalling, line 567](../src/negotiator/runner.py).
+
+### F3 — An unhandled worker error can strand an async run
+
+**Severity: high. Reproduced offline.**
+
+`run()` creates worker tasks but awaits the watchdog first. If a worker raises during proposal generation, attachment processing, or another unhandled operation, its error is not supervised. The thread can remain marked workable or in flight. The watchdog need not observe a condition that ends the case.
+
+With an offline agent whose `propose` raises `ValueError`, the worker terminated, the runner remained pending, the thread remained workable, and Python reported an uncollected task exception. In practice/sandbox, there may be no wave deadline to rescue it. In a final wave, the cap can eventually intervene, but much of the usable time has already been lost.
+
+Supervise worker completion/errors, reconcile server state, and explicitly fail or safely close the case. Cancel/gather remaining tasks in a guaranteed cleanup path. Distinguish recoverable thread failures from a case-wide invalid economic evaluator.
+
+Source: [runner, worker line 340 and run line 553](../src/negotiator/runner.py).
+
+### F4 — Supplier estimates retain stale master standards over current quote standards
+
+**Severity: high for relationship estimates. Reproduced offline.**
+
+`supplier_for` uses `est.get('standard') or standard`, so any nonempty estimate standard suppresses the current quote PDF's standard dictionary. Dossier estimates normally supply a nonempty standard.
+
+Providing an estimate with payment 60/FCA and a current quote with payment 30/DAP returned the estimate standards **60/FCA**. Supplier cash value is then measured against the wrong payment/freight reference. This contradicts the estimator's documented instruction to override master defaults with current quote terms.
+
+Merge defaults and current quote standards field by field, with quote fields taking precedence. Test the resulting supplier value and relationship penalty, not just the dictionary shape.
+
+Source: [evaluator, `supplier_for`, line 21](../src/negotiator/evaluator.py), [dossier estimator, line 142](../src/negotiator/dossiers.py).
+
+### F5 — Economics and evidence use inconsistent case-fact precedence
+
+**Severity: medium/high when estimates and overlays are used. Reproduced offline.**
+
+The claim layer overlays case facts on package facts. `_cost_row` first reads base SQLite and ignores a case cost fact when its ID is already present. It can also return the package supplier row before a newly appended case-specific row.
+
+A case fact overriding `cost:310010` to 999 still produced the base value **132.64**. This is a synthetic precedence test, not an assertion that 999 is a real supplier cost.
+
+Release cost facts are not generally merged into that SQL-based economics path either. Build one typed, versioned cost-source resolver shared with evidence. Preserve explicit source priority and collisions.
+
+Source: [dossiers, `_cost_row`, line 122](../src/negotiator/dossiers.py), [claims fact merge](../src/negotiator/claims.py).
+
+### F6 — Invalid explicit data paths can silently use another package
+
+**Severity: medium/high for experiment validity. Reproduced offline.**
+
+`load_package` searches the explicit path, then the environment, then `data/package` and `/tmp/nak/data`. An invalid explicit path returned the valid environment package during this audit.
+
+That convenience behavior conflicts with strict checkpoint preflight. A missing frozen package must not quietly use unrelated laptop data. Existing tests catch this only when a fallback package happens to be present; the experiment log documents exactly such an environment-dependent failure.
+
+Use strict loading for explicit experiment/runtime mappings and opt-in discovery for interactive research. Record the actual resolved root and content hash.
+
+Source: [dossier loader, line 35](../src/negotiator/dossiers.py), [worker preflight](../src/negotiator/lab/worker.py).
+
+### F7 — The final outgoing-offer validator is not implemented
+
+**Severity: medium/high for new or malformed cases. Partly reproduced, broader effect is a code-path risk.**
+
+`guards.check` raises `NotImplementedError` and is not called. `_offer` formats and sends terms after a phrase-based leak assertion; it does not independently validate all case options, positive finite price, complete fields, or must-haves.
+
+`best_terms` returns its initial buyer-plan package when no legal combination exists. A synthetic case requiring payment at least 1,000 days returned a package with 60 days, and `must_haves_ok` was false. The closing evaluator protects acceptance, but offering an infeasible package can waste rounds or undermine trust.
+
+Make infeasibility explicit and validate every outgoing package immediately before journalling/transmission. Reject rather than silently snapping untrusted values. Model-selected candidates already receive stronger checks than the ordinary deterministic send path.
+
+Sources: [guards](../src/negotiator/guards.py), [optimizer, line 43](../src/negotiator/optimizer.py), [offer builder, line 161](../src/negotiator/agent.py).
+
+### F8 — Unresolved POSTs can be abandoned without proof of their outcome
+
+**Severity: high in transport failure. Code-path risk.**
+
+`_settle_pending` retries a journalled operation three times; if each outcome remains uncertain, it marks the intent abandoned and refreshes state. Clearing in-flight state permits later decisions. An unresolved POST might still be executing.
+
+The same method can reset a thread deadline to a fresh 60 seconds after obtaining an idempotent cached response, even though the original response's buyer window may have started earlier. It verifies a pending accept's standing ID before retrying, but does not rerun the complete economic evaluator for every recovered close payload.
+
+A finite retry count is sensible; treating exhaustion as proof of abandonment is not. Keep ambiguity durable and prevent conflicting new operations until an authoritative outcome or invalidation is established. Reconstruct deadlines from server evidence instead of cached-response receipt time.
+
+Source: [runner, `_settle_pending`, line 288](../src/negotiator/runner.py).
+
+### F9 — Coordinator holds its state lock across awaited decision work
+
+**Severity: medium/high under slow preparation or custom models. Confirmed code behavior; hosted consequence untested.**
+
+The worker holds `self.lock` while awaiting `asyncio.to_thread(propose, ...)`. Proposal work can perform dossier loading, recursive evidence hashing, claim construction, and custom model work. A hung proposal also delays a closer needing that lock.
+
+This contradicts the design's short-lock/snapshot/revalidation contract. Supplier replies and refreshes modify thread state outside the same lock, so the awaited proposal is not protected by a full state-version scheme either. A close can begin while another proposal is awaiting preparation; that proposal does not recheck the closing flag after the await before creating a send intent.
+
+Compute proposals outside the lock from immutable snapshots, then acquire the lock briefly to check state version, in-flight ownership, closing state and deadlines before persisting a send.
+
+Source: [runner, worker line 344](../src/negotiator/runner.py).
+
+### F10 — Deadline controls are weaker than the documented guarantees
+
+**Severity: medium/high under slow networks/concurrent RFQs. Confirmed gaps; hosted consequence untested.**
+
+`NEGOTIATOR_MOVE_BUDGET_S` is read by the unused Settings class. The async runner uses a constant 35-second warning target; it does not enforce a total buyer-work deadline. Arena HTTP retries can each wait up to the 180-second phase timeout. The serial loop warns if decision generation is slow but cannot interrupt it.
+
+The serial loop assigns every live trade thread a fresh nominal 60 seconds at the start of each decision. That is not the actual remaining budget of a thread left idle while another supplier replied. Consequently the model's 20-second skip check is only as reliable as this invented remaining value.
+
+Async deadline refresh adds `seconds_left` to the time after fetching/parsing the thread, rather than the timestamp of the session snapshot. The snapshot can already be stale. Opening deadlines are similarly inferred at local receipt rather than guaranteed from server timing.
+
+Use authoritative timestamps where available, conservatively charge all fetching/parsing/limiter time, propagate a total attempt deadline into model/transport operations, and check final-wave capacity before opening late queued cases.
+
+Sources: [Settings](../src/negotiator/config.py), [serial timing](../src/negotiator/play.py), [async timing](../src/negotiator/runner.py), [HTTP client](../src/negotiator/client.py).
+
+### F11 — Rate limiting is shared within a process, not universally per team key
+
+**Severity: medium/high with teammates or multiple commands. Confirmed scope limitation.**
+
+The normal serial set shares its ArenaClient limiter across its case threads. The async set shares its AsyncArena limiter. Separate processes or laptops have independent limiters. Ten sessions are bounded locally, not reserved globally.
+
+The Lab campaign lease serializes cooperating campaign workers and its local lock prevents competing execution of one campaign. Plain play/run, starter commands, standalone Lab runs, and ad hoc scripts do not acquire that campaign lease. Several well-behaved processes can exceed the team key's rate/open-session limits together.
+
+Choose an explicit shared-key execution owner or a common broker/lease discipline across all allowed launch paths, and include that scope in final rehearsal.
+
+Sources: [async limiter](../src/negotiator/client.py), official ArenaClient, [campaign execution](../src/negotiator/lab/campaign.py), [Lab leases](../src/negotiator/lab/loop_store.py).
+
+### F12 — Server-counted rounds are not consistently used
+
+**Severity: medium after timeouts/resume. Confirmed implementation gap.**
+
+The imported `moves_left` computes the remaining budget by counting buyer messages. Async refresh records timeout counts, but does not explicitly reconcile its proposal budget with server-counted rounds or offers. Serial 409 recovery synthesizes a timeout response and can append the rejected buyer message as history, even when the 409 was a round-limit or other state conflict.
+
+Whether every server history shape happens to make buyer-message counting equivalent remains unproven. It should not be assumed after late-move replay, resume, or failed sends. Use authoritative round evidence and keep send attempts separate from accepted messages.
+
+Sources: official `arena_kit/play.py::moves_left`; [serial 409 path](../src/negotiator/play.py); [async refresh](../src/negotiator/runner.py).
+
+### F13 — Restart does not reconstruct all strategic state in the default policy
+
+**Severity: medium. Confirmed code-path difference.**
+
+`PackageAgent.propose` reconstructs previous terms and final-counter counts from buyer history only when `self.policy` is truthy. A default guided agent without an explicit policy can resume with empty `prev`, final-counter, beat-request and final-seen state. Price concessions use history, but some package/risk decisions use reset memory.
+
+Even explicit-policy reconstruction does not recover every timer or cross-thread beat request. UTC request/deadline handling is better than restoring old monotonic clocks, but strategy recovery is incomplete.
+
+Rebuild history-derived strategic state independently of experimental policy activation. Persist or derive final-offer observation times and rival-challenge state from authoritative events.
+
+Source: [agent, propose line 313 and final logic](../src/negotiator/agent.py).
+
+### F14 — Price units, uncertainty, and payment helper need clearer contracts
+
+**Severity: medium for evidence/extensions. Confirmed inconsistencies and helper approximation.**
+
+Case negotiation prices use the part's `price_unit`. Rival/should-cost claim builders divide fact prices by `price_unit` and compare some normalized figures with raw `current_unit_price`. Supplier economics keeps raw should-cost and adds a warning rather than enforcing case-basis compatibility. There is no shared typed price representation.
+
+Do not divide all case arithmetic by price_unit blindly: the arena's case quantities and price basis must remain internally consistent. Instead validate basis at every join and render explicit units. Hosted claim-checker behavior for non-unit-price claims needs a focused contract check before enabling them.
+
+`payment_breakeven_pct` returns the first-order interest approximation. If only spend/payment changes, define `a = r(ref−from)/360` and `b = r(ref−to)/360`; exact discount is `1−(1+a)/(1+b)`. For reference to faster payment this becomes `x/(1+x)`, not `x`. Main package comparisons mostly use complete costs, so this helper is a dormant extension risk rather than the primary negotiation calculation.
+
+The estimated cost uncertainty range is recorded but unused in closing/switch risk analysis. A provenance record is not a sensitivity analysis.
+
+Sources: [claim prices](../src/negotiator/claims.py), [estimator](../src/negotiator/dossiers.py), [payment helper](../src/negotiator/optimizer.py).
+
+## 9. Strategic opportunities and underused evidence
+
+### 9.1 Supplier willingness must complement buyer-cost optimization
+
+The baseline chooses the cheapest non-price terms at a reference price and then asks for cheaper prices. That can yield packages the supplier has no reason to accept. The recorded P04 example demonstrates this clearly: the baseline kept a 12-month package while supplier notes identified multi-year agreements as the discount lever. The package experiment changed that and materially improved the recorded score.
+
+The same issue appears with fast payment, constrained capacity, hedged material costs, fixed lists, and approval committees. The relevant data already exists. The next useful engine would generate a small number of supplier-plausible trades from case-valid fields, estimate buyer cost in code, and choose which trade to test based on the actual reply. It should not simply enable every trait globally.
+
+### 9.2 Turn observed package prices into valuations
+
+The code already has complete supplier sheets and one-field revealed deltas. Use them to estimate supplier premiums for payment, contract length, freight and delivery, with uncertainty. Compare a quote-supported trade against hypothetical equal-buyer-cost packages. When sheets change several fields, retain that as a combined observation rather than falsely attributing its entire price difference to one field.
+
+`beliefs.py` would be a natural place for this, but its update and prior functions are currently stubs. A small deterministic observation record could deliver value before a sophisticated model is needed.
+
+### 9.3 Ask useful questions and use requested documents
+
+The message contract permits question-only moves. The policy mostly emits attached packages and does not implement a question strategy. `Move.question` is scaffolded, but `next_move` is a stub.
+
+Open-book traits and recorded supplier notes provide a specific reason to request a cost breakdown. Logistics and quality roles can return delivery schedules and 8D reports. Currently the buyer downloads these attachments but does not systematically extract facts that change its next proposal.
+
+Add a bounded document-request action only when its expected information value exceeds a scarce round and timing cost. Parse known workbook structures deterministically. Keep rendered financial figures separate from untrusted prose.
+
+### 9.4 Use adverse data internally
+
+P01's claim bank preserves rising wages and material indices, but their effect stops largely at inspection. The weighted cost-pressure helper estimates only partial cost coverage and is appropriately marked unverified. It should not become a claim that the entire ask is unjustified.
+
+It could still help internally: acknowledge which drivers rose, distinguish hedged versus spot exposure, and ask a specific question about uncovered cost components. Avoid turning partial weighted index arithmetic into a hard reservation price.
+
+### 9.5 Payment evidence should drive a bounded trade
+
+The dossier calculates average lateness across paid invoices, mixing early and late payments. That can hide important cash-flow behavior. The provided research example filters out discounted invoices; the runtime dossier does not. Supplier aliases are not aggregated.
+
+Use distributions of lateness, overdue exposure, legitimate versus late discounts, and linked invoice quantities to assess whether payment timing is a credible lever. Offer a schema-valid exchange and compare complete costs. Recorded D02 MESO regression is a reason to limit and test this feature rather than roll it out indiscriminately.
+
+### 9.6 Multi-part and supplier-account context is thin
+
+Claim generation, cost-driver lookup, and supplier estimates select `case['parts'][0]`. P07 and P15 contain multiple parts. Case-level basket economics can still be evaluated using the published aggregate schema, but the agent lacks corresponding basket evidence and account-level leverage.
+
+Build a scoped basket context across all parts, and keep supplier-wide metrics distinct from part-specific claims. Account importance from spend and sourcing can guide commitment dialogue without promising unauthorized volume.
+
+### 9.7 Evidence quality and usefulness are different objectives
+
+The new evidence context records source layers, hashes, units, failures and gaps. This is valuable for inspectability. Its signals are explicitly classifier hypotheses with unchecked freshness and do not automatically change policy.
+
+Add a feedback record joining each sent claim with `verified`, `contradicted`, `irrelevant` or `duplicate`, the supplier's explanation, and subsequent package movement. Do not interpret verification as proof of persuasion. Existing general thresholds, such as OTD below 90%, may miss case-relevant leverage between 90% and the 95% target.
+
+## 10. Experiments: what has actually been demonstrated
+
+These are historical repository observations. They are not new hosted results from this audit, and different rows are not one comparable frozen release.
+
+| Change / case | Recorded control | Recorded candidate | Interpretation |
+|---|---:|---:|---|
+| Local S01–S03 package economics | Mean 57.1 | Mean 85.8 | Scripted simulator validates plumbing/economic behavior, not hosted persuasion |
+| P01 checked claims | 80.0 | 92.8 | Two observed candidate runs; supports a narrow evidence hypothesis |
+| P04 package trade | 5.64 | 86.04 | Longer commitment unlocked a substantially better package in recorded screens/confirmation |
+| P08 package policy | 15.62 | 59.30 | Repeated recorded improvement; supports raw-material package exploration |
+| P02 claims | 29.34 | 29.34 | No incremental effect in recorded repeats |
+| P05 supplier-standard payment policy | 36.04 | 36.04 | No incremental effect; omitted from combined candidate |
+| P10 cost-neutral lead tie-break | 45.32 | 55.47 | Two recorded candidate sessions; identical replies limit independence |
+| P10 model package adviser | 55.47 delivery-only | 65.51 | One exploratory observation; further €60,624 cost reduction, including late penalty |
+
+The P10 adviser experiment recorded model `gpt-6.1-sol`, effort low, with calls lasting 3.46 and 1.94 seconds. Those settings describe that experiment, not a model hardcoded in main. The delivered package changed from €33.80/42 days/24 months to €31.80/56 days/24 months at unchanged annual quantity.
+
+The P10 code port was validated locally, without a new hosted comparison against current guidance wording. The package-advice config deliberately enables only capacity; no raw-material model benefit is claimed.
+
+The combined candidate's twenty-session paired ten-case regression was explicitly deferred in the recorded work. There is no completed, fresh ten-case fixed-config mean for current main plus all later ports. Old “best observed by case” means mix configurations and cannot support a single release performance claim. Repeated cached/identical replies are reproducibility evidence, not independent statistical samples.
+
+The Lab adds meaningful rigor: immutable source checkpoints, locked environments, data hashes, durable attempt identity, bounded campaigns, complete-sample gates, per-case regressions, known timeout evidence, and preserved operational failure history. Its ordinary comparison UI can still calculate deltas over complete common cases despite unmatched cases or fingerprint warnings; only the stricter campaign eligibility logic should support promotion.
+
+Sources: [experiment log](../experiments/LOG.md), [coverage artifact](../experiments/coverage-20261010.json), [deferred comparison manifest](../experiments/final-comparison-manifest.json), [campaign evaluation](../src/negotiator/lab/policy.py), [ordinary comparison](../src/negotiator/lab/models.py).
+
+## 11. Trace, reporting, configuration, and documentation gaps
+
+### 11.1 Traces do not always describe the move actually sent
+
+The deterministic offer decision is logged before optional model selection. A changed model package is logged separately as `package_advice`, but the ordinary report's offer history follows `decision` events. The apparent offered terms can therefore describe the pre-adviser move. Evidence is similarly appended after the initial offer log, though separate evidence events are consumed by the report.
+
+Async closing traces record action/reason but do not consistently record the evaluator's complete cost components or assumptions. Serial decisions usually log total cost rather than a component breakdown. The target trace schema's state versions and expiry are not implemented uniformly. The result can have the official cost breakdown, but that does not explain every intermediate decision.
+
+Log the final validated send payload and economic evaluation once, and connect prior candidate/model/evidence records to it. Record proposal versus sent versus acknowledged state distinctly.
+
+### 11.2 Reports can make partial success look better than the whole run
+
+The normal report averages scored cases and separately lists failures. That number is an observed partial mean, not a complete-run mean. The Lab metrics are more careful: `mean_score` is unavailable for incomplete plans while `observed_mean` is separate.
+
+Repeated hosted dumps are indexed by case ID, so a single dump can be used to fill missing information in multiple trace repeats of the same case. Join authoritative evidence by session ID as well as case. Report fallback counts also follow decision fields and do not fully incorporate adviser/probe/evidence fallback events.
+
+Journal results are written before enrichment with session ID and timeout counts, so returning an already-finished journal result can omit those later diagnostic fields. Default normal trace directories have second-level names, allowing two commands launched within the same second to share a path.
+
+### 11.3 Settings exist without one effective configuration model
+
+`Settings` is not the normal buyer's configuration authority. `PREP_LLM_MODEL` has no implemented prep-model path. The advertised move budget is not enforced. Package-adviser behavior depends on explicit policy plus endpoint environment; the probe interprets provider selection differently. Policies override claim switches, while normal guidance and Lab config paths differ.
+
+Resolve and log one immutable effective configuration before opening: economics, feature switches, guidance, policy hash, runner, data versions, model identity/protocol, and recovery settings. Check that each relevant launch path uses it.
+
+### 11.4 Documentation has aged at different speeds
+
+Examples of drift:
+
+- README/checklist say model interpretation is unimplemented, but the optional selector now interprets replies in a tightly bounded way.
+- The old coverage artifact's non-price-increase claim-bank failures no longer reproduce on current main.
+- Some README descriptions of research tools as base-SQLite-only have been superseded by their current DataPackage-based implementation, though SQL overlay limitations remain.
+- The architecture's state/version/deadline requirements are often targets rather than current guarantees.
+- The inference setup doc describes a connectivity probe and old tunnel endpoint; the later adviser and cloud hosting have separate paths.
+- The experiment log's older “not integrated” entries are historical and should not be read as current status.
+- Stub modules/docstrings can suggest capabilities that are not called.
+
+Keep a short current capability matrix and generated effective-config summary. Preserve history, but link superseded states explicitly.
+
+## 12. Validation performed for this audit
+
+**Full Python suite: 364 passed in 28.87 seconds. Ruff: all checks passed.**
+
+The ordinary shell lacked `uv` on PATH; an already available executable at `/tmp/evidence-tools/bin/uv` was used. Dependencies were locked and offline, with a temporary writable cache. The checked-in data package was supplied explicitly.
+
+Initial sandboxed attempts failed local socket creation and stalled async tests. Those results were environmental, not counted as product regressions. Re-running the full suite with permitted local sockets resolved them. The full suite was not repaired or edited to obtain the pass.
+
+Separate offline checks exercised behavior not covered by the existing assertions:
+
+1. Nonmonotonic relationship cost and inverse price returning zero.
+2. Current quote standards failing to override estimate standards.
+3. Case cost facts failing to replace an existing SQLite cost ID.
+4. Invalid explicit data path falling back to another package.
+5. Impossible must-haves producing an unchecked optimizer fallback.
+6. Checkpoint schema rejecting current policy/adviser/guidance fields.
+7. Worker exception leaving the runner pending.
+8. Three rejected closes marking a server-open case ended locally.
+9. Verified banks across all nineteen saved practice cases.
+10. Actual SQLite counts and price-unit distribution.
+
+These reproductions used test fixtures, fake Arena responses, and local data. They consumed no hosted quota or inference spend. No production source was changed. JavaScript/visual browser verification was not performed in this audit; Node was not available on the shell PATH.
+
+## 13. Recommended order of work
+
+| Priority | Work | Completion evidence |
+|---|---|---|
+| 1 | Correct async terminal-state handling and supervise worker errors | Failed closes remain resumable; injected proposal/send/parser failures terminate or recover without abandoned active sessions |
+| 2 | Preserve uncertain operation ownership until reconciled | Repeated lost replies cannot create a conflicting new logical move; same ID/payload survives restart |
+| 3 | Fix estimate standards, cost-source precedence, and nonmonotonic inverse pricing | Quote-based supplier value, case/release overrides, positive prices and valid cost roots across relationship fixtures |
+| 4 | Add one shared outgoing-send validator | Impossible must-haves and malformed prices/options cannot be transmitted; infeasibility is explicit |
+| 5 | Unify effective configuration across CLI, standalone Lab and checkpoint workers | Same frozen config produces the same first proposal and feature activation through each supported path |
+| 6 | Enforce real deadline and shared-key execution budgets | Ten-case workload, slow attachments, rate limiting, queued calls, wave closure and restart on the intended final host |
+| 7 | Make preparation an actual runtime input | Versioned prebuilt artifacts loaded before clocks, with content checks and case overlay handling |
+| 8 | Use supplier replies, quoted deltas and claim outcomes to select bounded trades | One clearly isolated policy hypothesis; complete-cost and safety comparison; no invented terms or claims |
+| 9 | Expand evidence selectively | Case-relevant basket/payment/quality/index evidence with exact source scope, current units and measured usefulness |
+| 10 | Freeze and validate a release candidate | One common config, complete per-case results, documented failures, release overlay, timing/recovery rehearsal and no mixed-history mean |
+
+The current architecture gives a strong foundation for keeping economic authority in code while adding semantic interpretation. Its next improvement should be to connect reliable supplier evidence to valid, measurable trades and make exceptional runtime paths as disciplined as the ordinary closing path. More model freedom is not required to address the highest-priority defects.
+
+## Open tabs:
+- 18-main-branch-audit-2026-10-10.md: tacto-negotiator/docs/18-main-branch-audit-2026-10-10.md
+- 19-main-branch-remediation-plan-2026-10-10.md: tacto-negotiator/docs/19-main-branch-remediation-plan-2026-10-10.md
+- .env: tacto-negotiator/.env
+- 17-inference-setup.md: tacto-negotiator/docs/17-inference-setup.md
+- .env.example: tacto-negotiator/.env.example
+
+## My request:
+wait i am a bit lost in our process. 
+
+My main desire is to actually add intelligence to our pipeline instead of purely deterministic reasoning and proper use of the evidence. 
+
+Tell me what we neeed to to
+
+---
+
+# Context from my IDE setup:
+
+## Active file: tacto-negotiator/docs/18-main-branch-audit-2026-10-10.md
+
+## Active selection of the file:
+# Main branch audit — 10 October 2026
+
+## 1. Scope and overall assessment
+
+Audited revision: **`3653046bce6dd7cbbeffe00ecf5dfd9c3edbc0ab`**, the checked-out `main` branch. The local `origin/main` reference points to the same revision. The checkout was clean before this review. I did not fetch the remote, so this identifies the available main snapshot, not a guarantee that GitHub has received no subsequent pushes.
+
+The official kit is a submodule and a locked dependency at **`1b5516bb95ef28e37f69aa446dc62168864bca53`**. The review covers the custom buyer, official arithmetic/readers used by it, data package, configuration, serial and asynchronous execution, experiment Lab, deployment scripts, tests, and recorded experiments. No hosted negotiation, inference request, quota-consuming experiment, publication, or deployment was performed. Environment secret values were not needed for this analysis and are omitted.
+
+**The implemented product is a deterministic procurement negotiator with optional evidence, experimental package trades, and a narrowly constrained LLM package selector.** It is accompanied by a substantial experiment platform. It does not implement the full model-driven writer, reply interpreter, supplier-belief engine, or offline planning system described in the architecture documents.
+
+The strongest architectural choice is to calculate prices and complete-package costs in code and retain one closing decision function. The largest strategic limitation is that most rich supplier information either never enters the default decision path or is read without affecting the next move. The largest operational concerns are exceptional paths in asynchronous execution and inconsistent agent construction across launch paths.
+
+The code is substantially more capable than the old scaffold checklist suggests. Equally, passing its tests does not establish all the runtime guarantees stated in the design. This review distinguishes:
+
+- **Confirmed implementation:** directly followed in code.
+- **Reproduced defect:** exercised offline during this audit.
+- **Code-path risk:** the problematic behavior is visible, but its hosted consequence was not exercised.
+- **Recorded measurement:** reported by existing experiment artifacts, not newly measured here.
+- **Opportunity:** a plausible improvement requiring a controlled experiment.
+
+## 2. What happens when it negotiates
+
+### 2.1 Normal CLI launch
+
+`negotiator play` and `negotiator run` load environment configuration through the official CLI helper. They load the packaged `src/negotiator/AGENTS.md` with `RuntimeGuidance.load()`, validate its JSON block, optionally load a `PolicyConfig`, construct a `PackageAgent`, and dispatch to the serial or async runner.
+
+The runtime AGENTS file is executable configuration, not a model prompt. Its current values are:
+
+| Setting | Current value | Meaning |
+|---|---:|---|
+| `anchor` | 0.12 | Initial price reference is discounted by 12% |
+| `rounds` | 5 | Five-step concession schedule |
+| `close_gap` | 0.005 | Convergence threshold of 0.5% of the supplier reference price |
+| `final_hold_s` | 40 | How long a leading final offer is held while another supplier remains open |
+| `p_walk` | 0.25 | Assumed withdrawal probability when countering a final offer |
+| `conditional_exchange` | true | Deterministic wording states that non-price terms are conditional on price |
+
+The entire file hash and effective values appear in normal CLI run provenance. Prose and research links outside its structured settings do not alter policy.
+
+The default runner is **serial**. The default agent does not call a model. Claims, dossier supplier estimates, and generic payment MESOs default off, unless enabled through their environment switches or an explicit policy.
+
+Sources: [CLI](../src/negotiator/cli.py), [runtime guidance loader](../src/negotiator/guidance.py), [packaged settings](../src/negotiator/AGENTS.md), [agent initialization](../src/negotiator/agent.py).
+
+### 2.2 Opening and document handling
+
+Opening a session returns the case and supplier threads. Opening PDFs and later attachments are downloaded and converted to text by official readers. PDFs use `pypdf`; XLSX files use `openpyxl`, with formula strings retained rather than recalculated.
+
+The code searches the latest quote attachment for its **standard terms**. Those standards supply omitted closing fields. The official resolution order implemented by `closing_terms` is:
+
+1. Buyer-plan defaults.
+2. Quote standard terms.
+3. Case fixed terms.
+4. Explicit offer terms.
+
+This precedence is significant: the case's fixed terms override standards, and explicit sheet terms override both in the arithmetic. Offer-schema enforcement must therefore keep unauthorized fields from entering the sheet.
+
+The PDF parser recognizes specific labels and section headings. The policy consumes the parsed standard section; it does not generally mine all attachment content for commercial signals. Downloading a cost-breakdown workbook does not mean its cost elements are used.
+
+Sources: [serial loop](../src/negotiator/play.py), [async document handling](../src/negotiator/runner.py), official `arena_kit/docs.py` and `arena_kit/cost.py`.
+
+### 2.3 Candidate terms and price negotiation
+
+For each supplier, the agent considers priced sheets in its latest message, checks must-haves, and calculates complete costs. It distinguishes the supplier's first, standing sheet from other alternatives. Alternatives can be copied into a counteroffer, but are not accepted directly by ID.
+
+On its first ordinary offer, `best_terms` enumerates combinations of permitted non-price options at a supplied reference price and chooses the cheapest compliant combination. This is a finite enumeration over terms, not a search over all possible prices or supplier acceptance behavior.
+
+The agent generally retains its previous non-price package. It can adopt a cheaper supplier package when the supplier has actually quoted the previous package at a worse complete cost. It also adopts individual supplier-requested changes when they preserve must-haves and do not increase buyer cost at the same price.
+
+The price concession schedule is essentially:
+
+```text
+floor = opening-package-equivalent price × (1 − 0.12)
+proposal = floor + (current reference price − floor) × min(1, offers_sent / 5)
+```
+
+The code converts prices between packages using a numerical inverse of total cost. It tries to avoid backtracking on its own concessions in cost terms, limits proposals to the supplier reference, and can cap a rival's offer below a leading final offer.
+
+When the buyer/supplier price gap becomes small, it can re-offer its own terms at the supplier's price, convert a cheaper alternative sheet into a counteroffer, or request a case close.
+
+This is a rule-based negotiation schedule. The default path does not learn supplier preferences, estimate a concession curve, update withdrawal probabilities, or decide whether a particular argument worked.
+
+Sources: [agent package and decision logic](../src/negotiator/agent.py), [optimizer](../src/negotiator/optimizer.py), [inverse pricing and sheet evaluation](../src/negotiator/evaluator.py).
+
+### 2.4 Optional deterministic package trades
+
+An explicit policy can enable `TradePolicy` for selected case types. It can:
+
+- Evaluate opening package combinations at the anchored price as well as the quoted price.
+- Recognize the historical `multi_year_only` trait and propose an allowed longer commitment.
+- Use configured supplier-standard payment terms.
+- Relax quality or chargeback terms according to allowed options and the configured experiment.
+- Detect stagnation from three supplier price surfaces.
+- Switch one relevant package dimension, with at most two non-price switches, enough remaining moves, and a nominal 20-second time check.
+
+Its stagnation switch order is predetermined. It uses only a small subset of the many available traits. Payment switching is triggered by a specific trait or literal English phrases. Commitment, quality, chargeback, and index-clause switches follow fixed rules.
+
+`revealed_deltas` calculates one-field price differences between supplier sheets, but those differences are currently logged rather than used as a learned supplier valuation model.
+
+The longer-lead flag adds a tie-break: when legal opening packages have exactly the same complete cost, prefer a longer lead time. It has recorded capacity-case evidence and remains opt-in.
+
+Sources: [trade policy](../src/negotiator/trades.py), [policy schema](../src/negotiator/policy.py), [lead-time tie-break](../src/negotiator/optimizer.py).
+
+### 2.5 Evidence selection and sending
+
+Evidence is appended to an already generated move. `EvidencePolicy` constructs a case-scoped context, verifies canonical claims, selects at most three, appends their sentences, and attaches their IDs.
+
+By default the evidence feature is restricted to single-supplier price-increase cases. An explicit policy can enable other types, but the single-supplier restriction remains. The combined candidate enables evidence for price-increase and quality cases.
+
+The claim machinery supports index changes, supplier scorecards, notice periods, rival quotes, live-offer claim records, and should-cost estimates. Actual automatic delivery is narrower:
+
+- Only buyer-supporting claims are selected by default.
+- Adverse facts remain candidates for internal inspection.
+- Cherry-picked index windows are generated and flagged, but excluded by default.
+- Internal should-cost claims are not sent.
+- Rival disclosure is excluded by the default disclosure set.
+- RFQs do not pass the current evidence eligibility gate.
+- The live-offer helper is not wired into automatic selection from current session offers.
+
+The canonical renderer and checker are a strong improvement: changing a claim figure without changing its sentence fails verification. Notice claims check supplier, part applicability, dates, the trigger letter, and the contract's required period. Scorecard sentences correctly describe supplier-wide rolling metrics rather than claiming part-specific performance.
+
+Used IDs are reconstructed from buyer-history `refs`, and proposed claims are reserved in memory before sending. Failed or unsent proposals can therefore consume evidence conservatively. This avoids easy duplicates but may waste useful claims. The code does not adapt evidence selection from the supplier's returned `claim_results`.
+
+Sources: [evidence delivery](../src/negotiator/evidence.py), [context](../src/negotiator/context.py), [claims](../src/negotiator/claims.py).
+
+### 2.6 Closing
+
+`close_decision` owns the final economic comparison. It selects the cheapest acceptable standing sheet across live threads whose complete cost is strictly below the supplied alternative's cost. If none qualifies, it walks away.
+
+This shared evaluator is used for ordinary closes, `agreed`, final offers, exhausted moves, and wave-deadline fallback. A supplier saying `agreed` therefore does not bypass economic checks.
+
+A missing usable alternative price is represented as infinity. That lets finite valid deals pass the comparison, but it also creates infinite loss in some final-counter risk calculations. It is important to distinguish three quantities: an executable alternate offer, operational fallback procurement, and the arena score for no deal. They are not interchangeable.
+
+For final offers, the policy normally allows at most one counter, estimates potential gain against loss if the supplier withdraws, and uses the fixed `p_walk=0.25`. An optional `opening_proxy` mode provides an opening-relative heuristic for cases without an alternate quote. It is explicitly a proxy, not expected normalized score.
+
+Sources: [closing evaluator](../src/negotiator/evaluator.py), [final-offer logic](../src/negotiator/agent.py), [alternative cost](../src/negotiator/optimizer.py).
+
+## 3. Information flow and authority
+
+```mermaid
+flowchart TD
+    B[Base SQLite, facts, documents] --> D[Dossiers and traits]
+    B --> F[Merged factual evidence]
+    R[Release facts, CSV IDs and documents] --> F
+    R --> D
+    C[Case metadata and case facts] --> F
+    C --> P[Deterministic package and price policy]
+    T[Supplier messages and term sheets] --> P
+    Q[Quote PDF standard terms] --> P
+    D --> E[Optional supplier economics]
+    E --> P
+    D --> TR[Optional deterministic trades]
+    TR --> P
+    P --> A[Optional serial model package selector]
+    D --> A
+    F --> EV[Verified claim selection]
+    P --> EV
+    A --> S[Send approved term sheets]
+    EV --> S
+    P --> S
+    S --> T
+    T --> CL[Shared close evaluator]
+    E --> CL
+    CL --> O[Accept or walk away]
+    S --> J[Journal and traces]
+    O --> J
+    J --> L[Reports, Lab and replay inspection]
+```
+
+The arrow from release data to dossiers has a boundary: merged news/doc IDs can be read, but many dossier fields still come from base SQLite queries. Case dossier enrichment currently adds new case news only. The arrow through the model exists only for the explicitly enabled serial selector.
+
+Authority is distributed sensibly in the ordinary path:
+
+| Input | What it may influence | What it cannot authorize |
+|---|---|---|
+| Case schema, fixed terms, buyer rates and must-haves | Legal options and economic evaluation | Arbitrary fields outside the case |
+| Supplier standing term sheet | A possible acceptance | Automatic acceptance without checks |
+| Other supplier sheets | Counteroffer candidates | Direct acceptance of a non-standing ID |
+| Quote standard terms | Defaults for omitted closing fields | Bypassing the case schema |
+| Facts and contracts | Canonical verified claims | Executable instructions |
+| Notes, news and supplier prose | Traits, relevance, optional model choice | Inventing binding terms or new facts |
+| Model output | Selection of a code-approved package ID | Pricing, custom claims, free-form outgoing prose, closing |
+| Historical scores, Cbest and public board | Human evaluation and experiments | Runtime strategy targets |
+
+The live input path does not read the public benchmark artifacts for strategy. Async requests block listed spectator endpoint paths. The serial buyer currently calls permitted methods, but its underlying official client exposes leaderboard/backoffice methods and has no equivalent custom endpoint guard; separation depends on call-site discipline.
+
+## 4. Economic evaluation: what is deterministic
+
+The official cost function includes:
+
+| Component | Data used |
+|---|---|
+| Price | Commitment quantity, covered duration, unit price, current price, effective date |
+| Uncovered need | Fixed demand, fixed horizon, committed coverage, fallback unit price |
+| Fallback risk | Uncovered cost and category-specific percentage |
+| Payment | Actual spend, buyer rate, reference days, agreed days |
+| Freight | Committed quantity and Incoterm cost map |
+| Late delivery | Days beyond buyer need and daily penalty |
+| Quality | Committed quantity, ppm, defect cost less capped chargeback |
+| Tooling | Agreed tooling amount |
+| Index clause | Published buyer index path, material share, deadband |
+| Index risk | Published risk percentage and indexed exposure |
+| Relationship | Estimated supplier cash value, full cost, sustainable margin and goal penalty |
+
+The relationship component is zero locally without a supplier estimate. This is especially consequential for `stabilise` and `secure_supply` cases: a mechanically cheaper deal can be worse under the supplier-health penalty used in scoring.
+
+Supplier estimates are hypotheses built from should-cost, master terms, scorecards, and traits. Assumed rates are 8% normally, 15% for cash-short suppliers, and 20% for liquidity crisis. When should-cost is absent, the estimator assumes a 6% margin on the current price. It records an uncertainty interval, but the live decision code uses the point estimate; it does not optimize or report decisions over the interval.
+
+The following are deterministic: file loading, facts merging, regex traits, option enumeration, complete-cost arithmetic, offer ranking, most package switches, price scheduling, claim rendering/checking/picking, template messages, shared closing, request journals, Lab gates, and score summaries. Deterministic buyer code can still receive stochastic supplier replies. Optional model calls also introduce variability, and time-dependent decisions depend on runtime conditions.
+
+The code does not deploy or train a pricing model, fine-tune a language model, or run an autonomous multi-agent deliberation system. Workers are orchestration tasks, not independent LLM decision agents.
+
+## 5. Data inventory: used, partially used, and unused
+
+The checked-in base SQLite has **22 tables**, **447 suppliers**, **60 parts**, and **10,356 citable facts**. Fifty parts use price unit 1, nine use 100, and one uses 1,000. These are actual local inventory counts, not assumptions from the documentation.
+
+“Available” is different from “used to decide.” The default agent mainly consumes the case, live messages/sheets, and quote standards. Merely loading a dossier or including a fact in an internal context does not mean policy uses it.
+
+| Source | Rows | Current implemented use | Gap / missed opportunity |
+|---|---:|---|---|
+| `suppliers` | 447 | Dossier name, country, category, master defaults | Default negotiator does not tailor behavior from these; supplier alias not resolved |
+| `supplier_intel` | 46 | Dossier; credit deterioration trait; optional rate hypotheses | Turnover, ownership, audits, financial context mostly do not affect policy |
+| `parts` | 60 | Mainly available through case part IDs / research | No general live unit-and-part normalization layer |
+| `sourcing` | 90 | Offline prep builds active supplier-part banks | No live alternative or sourcing strategy engine |
+| `price_conditions` | 339 | Prep chooses latest recorded price | No effective-date filter or unit conversion in that prep query; live historical price analysis absent |
+| `negotiation_history` | 300 | Loaded into dossiers | Asked/settled history does not calibrate anchor, concessions, final-offer risk or price expectations |
+| `contracts` | 46 | Notice-period checks and document part scope | Broader obligations and renewal/index rights are not reasoned over |
+| `contract_clauses` | 280 | Available in facts/readers | No general clause-aware strategy or existing index-clause analysis |
+| `po_lines` | 5,400 | Available as citable facts | No generated historical-price claims, order-volume leverage or stale-condition investigation |
+| `goods_receipts` | 5,580 | Available | Not used to calculate delivery patterns or partial-lot behavior |
+| `invoices` | 5,578 | Mean paid date minus due date in dossiers | No discount analysis, payment distribution, overdue balance or controlled payment trade based on records |
+| `quality_notifications` | 1,033 | Available as facts | No QN claim builder, 8D follow-up, complaint economics or chargeback recovery analysis |
+| `scorecards` | 414 | Latest dossier metrics; verified OTD/ppm claims; optional supplier ppm | No full trend/risk model; current thresholds are broad heuristics |
+| `forecasts` | 720 | Available as `fc` facts | No forecast claims or demand-confidence strategy |
+| `forecast_lines` | 8,640 | Available | No seasonality, capacity schedule or evidence-backed volume planning |
+| `rfqs` | 47 | Available | No general historical benchmark/RFQ context generator |
+| `quotes` | 108 | Case-referenced rival quote claim candidates | Automatic rival disclosure remains off; old quote validity not generally evaluated |
+| `spend_cube` | 1,137 | Available | No account importance, basket leverage, tail consolidation or vendor-alias aggregation |
+| `index_series` | 33 | Names, metadata; facts used in claims | Source unit/freshness not fully propagated into every decision |
+| `index_values` | 2,258 | Calendar-aware index changes from facts | Mixed series publication lags; no comprehensive hedge/pass-through model |
+| `cost_drivers` | 166 | Claim candidate series, weights/ranking, offline partial cost pressure | Weighted pressure does not reach the live package/price policy |
+| `should_cost` | 28 | Internal claims, optional supplier economics | Point estimates only; overlay precedence and price-basis safeguards need work |
+| `news` | 39 | Dossier topics, traits, case-news addition | Freshness unchecked; no standalone generated news-claim strategy |
+| `documents` | 208 | Letters, notes, regex traits, notice scope, optional selector notes | Rich negotiation-specific semantics mostly unused; some document categories excluded |
+
+### 5.1 What is intentionally excluded
+
+The agent intentionally keeps internal budgets, reservation costs, target prices, lack of alternatives, urgency, should-cost estimates, unverified weighted aggregates, adverse claims, and rival quotes out of default outward messaging. Most of these are sensible disclosure constraints.
+
+That does not justify leaving the same data unused internally. In particular, adverse commodity data should affect the buyer's assessment of a credible ask even if it is not sent as a concessionary argument. The current policy does not use those facts to update its mechanical 12% opening anchor.
+
+The dossier builder excludes five named document subjects: holiday shutdown, new contact person, ISO certificate, packaging, and trade-fair invitation. Some are likely noise, but shutdown, certification and packaging could be operationally relevant in a future logistics/quality case. Exclusion should be case-aware.
+
+### 5.2 Offline preparation is not on the live dependency path
+
+`negotiator prep` writes `experiments/prep.json`. Other tools write dossier exports and sensitivity analyses. There is no reader of `prep.json` in the live buyer.
+
+When enabled, evidence and estimates rebuild data structures from the package at runtime. `TradePolicy.prepare` can run before opening in the async runner if metadata is available. In the serial path, dossier preparation may happen during the first decision after clocks start. Evidence contexts recursively hash package files and construct claims/dossiers on the live path. Each separately constructed agent can repeat work.
+
+This is both a missed latency improvement and a misleading aspect of the apparent pipeline: running prep does not automatically make the subsequent negotiation consume the prepared evidence.
+
+### 5.3 Current claim-bank verification across the fixture set
+
+During this audit all **19** saved practice cases successfully built a verified bank. This supersedes the older coverage artifact reporting `float(None)` failures on non-price-increase cases.
+
+| Case | Verified candidates | Default first-recipient pick, before runtime eligibility |
+|---|---:|---|
+| P01 | 9 | Notice 51 days; index −3.7%; OTD 85.2% |
+| P02 | 9 | PPM 273 |
+| P03 | 9 | OTD 84.6% |
+| P04 | 5 | OTD 85.0% |
+| P05 | 15 | OTD 80.8%; index −3.7% |
+| P06 | 10 | OTD 74.5%; index −3.7% |
+| P07 | 5 | OTD 88.6% |
+| P08 | 8 | OTD 88.0% |
+| P09 | 8 | Index −3.7%; OTD 56.0% |
+| P10 | 5 | OTD 79.5% |
+| P11 | 7 | PPM 2,376; index −3.7% |
+| P12 | 6 | PPM 4,118; index −3.7% |
+| P13 | 8 | Notice 35 days; index −3.7%; OTD 82.1% |
+| P14 | 6 | OTD 88.5% |
+| P15 | 4 | None |
+| P16 | 6 | None |
+| P17 | 6 | OTD 85.7% |
+| P18 | 8 | OTD 81.0% |
+| P19 | 5 | OTD 86.5% |
+
+This table demonstrates preparation, not delivery or persuasion. P05/P06, for example, remain excluded by the multi-supplier gate. Nine fixture cases are not hosted practice cases. A bank with zero default selected claims is a valid outcome when available facts are adverse, internal, or otherwise excluded.
+
+### 5.4 Release and case overlays
+
+The official `DataPackage` merges release `facts.json`, indexes release CSV IDs, and can read release documents. It does **not** turn release CSVs into additions to arbitrary SQL query results. Dossier SQL reads remain against base SQLite.
+
+The evidence facts layer correctly applies case facts over package facts and records collisions in its context. The economics estimator uses a different path and can disagree with that precedence. Case dossier enrichment only appends new case news; it does not replace existing news by ID or merge case letters into dossier notes. The optional model selector obtains base/release dossier notes directly, without that case enrichment.
+
+No automatic release downloader or comprehensive final-machine release preflight is implemented in the custom runtime. Supplying `ARENA_RELEASE` is a loading mechanism, not proof the Sunday release has been retrieved, integrated and rehearsed.
+
+## 6. Where models and agents actually run
+
+| Component | Execution location | Model use | Deployment status supported by the repository |
+|---|---|---|---|
+| Normal custom buyer | Machine running `negotiator play/run`, usually a teammate laptop | None by default | CLI process; no dedicated buyer cloud deployment described |
+| Async supplier workers | Tasks inside the same buyer process | No independent worker models | Concurrency/orchestration, not separately deployed agents |
+| Optional package adviser | Calling buyer process; inference at configured external endpoint | Approved package ID plus supporting quote only | Implemented, opt-in, serial only |
+| Inference probe | Standalone serial Lab run using `negotiator.inference:InferenceProbeAgent` | Fixed prompt selects one of two closing phrases | Implemented connection test; not economic intelligence |
+| General writer / reply reader / belief model | No execution path | Planned | `NotImplementedError` stubs |
+| Official starter `arena --agent llm` | Starter CLI process and chosen provider | General starter implementation | Separate agent; does not use custom guidance/policy |
+| Tacto supplier role bots | Hosted Arena | Organizer's supplier-side models/roles | External service; not deployed by this repository |
+| Experiment Lab | Local host, recorded Azure VM, and configured Nebius VM deployment | No buyer inference execution in the dashboard | Shared records, comparisons, recommendations and artifacts |
+
+### 6.1 The real optional model selector
+
+`PackageAdvisor` calls an OpenAI-compatible `/chat/completions` endpoint using `LLM_BASE_URL`, `LLM_API_KEY`, `LLM_MODEL`, and optionally `LLM_EFFORT`. It does not branch on `LLM_PROVIDER`. It requests strict JSON-schema output and uses `max_completion_tokens`, unlike the connectivity probe's simpler `max_tokens` protocol. A successful probe therefore does not prove the adviser protocol is supported.
+
+Code generates legal one-field package variants for payment, commitment, lead time, and index clause, triggered by broad keyword signals. Candidates must meet the scheduled package's buyer-cost ceiling. Price reductions compensate expensive term changes when inverse pricing is safe. Previously proposed packages and a two-switch history budget limit repetition.
+
+The model sees the latest supplier body (up to 6,000 characters), up to eight recent messages, approved terms, scheduled terms, and up to twelve note texts (2,000 characters each). Buyer cost estimates, reservation costs, targets and score benchmarks are not supplied as structured fields. Notes are copied through a constrained interface, although the content of historical notes still needs appropriate data handling.
+
+The model returns `selected_id` and `supporting_quote`. A changed package needs an exact substring of the latest reply of at least eight characters. Code rechecks legality and cost, then sends a fixed template and the selected sheet. No model-written prose is sent.
+
+The call has an eight-second total waiting bound and a process-wide semaphore of four model calls. Timed-out daemon calls may continue until their HTTP operation exits; they are not forcibly cancelled. Missing credentials, errors, invalid output or unsupported quotations fall back to the deterministic move. Final offers, actions, multiple sheets, existing evidence refs, or less than 20 nominal seconds remaining skip advice.
+
+The current adviser is enabled by `configs/package-advice.json` for **capacity only**. The async runner rejects an agent with this feature before opening a session. This means the measured semantic improvement cannot currently be combined with the async final runner by merely adding a flag.
+
+The exact-quote check proves provenance of a substring, not that the selected exchange is commercially sensible. Avoiding a refused package and understanding role authority remain model judgments. Structured output protects numeric/action authority but does not prove semantic correctness.
+
+### 6.2 The separate connection probe
+
+`InferenceProbeAgent` inherits deterministic economics. At most once per case it sends a fixed prompt containing no supplier or private procurement data. It accepts only `concise` or `collaborative` and appends the corresponding fixed phrase. It records call/fallback counts and elapsed times.
+
+It is useful for endpoint connectivity and response-shape checks. It does not read a supplier, choose an economic trade, deploy a model, or validate the package-adviser protocol. Its 0.1–5-second HTTP timeout is a phase timeout, not a hard total move deadline.
+
+### 6.3 Lab cloud hosting
+
+The Azure documentation and experiment log record a deployment on an Ubuntu VM, with Caddy terminating HTTPS and the Python Lab bound to loopback port 8000. Its persistent store is SQLite. Those are recorded deployment observations; I did not contact the VM during this audit.
+
+The current `main` CI workflow also deploys the Lab to a Nebius VM at the hostname documented in `ops/nebius/README.md`. On pushes to main it runs Lab-server tests and Ruff, archives tracked project source, sends it over pinned SSH, installs locked dependencies into a revision release, switches a `current` symlink, restarts the service, and rolls back if the local health check fails. Data and credentials remain outside the archive under `/var/lib/y-agent-lab`.
+
+That workflow deploys the **dashboard**, not buyer agents or model weights. Deployment tests cover `test_lab_server.py`, not the entire negotiation suite. The local health check expects unauthenticated `/api/runs` to return 401; the external check fetches the root page. Neither proves a negotiation policy is operational or that a specific revision is serving after every possible deployment race.
+
+The repo still contains laptop-tunnel, Azure, and Nebius connection instructions. There is no single canonical active endpoint encoded across them. A teammate following the inference setup doc can still get an old tunnel endpoint. Which host is currently used by each teammate and what revision is live require operational verification outside this code review.
+
+Sources: [Nebius deployment](../../ops/nebius/README.md), [CI workflow](../../.github/workflows/deploy-nebius-lab.yml), [deployment script](../../ops/nebius/deploy-lab.sh), [Azure runbook](15-azure-lab-hosting.md), [inference setup](17-inference-setup.md).
+
+## 7. Launch-path differences that matter
+
+| Path | Agent construction | Guidance loaded? | Recovery / feature implications |
+|---|---|---|---|
+| `negotiator play/run` serial | `RuntimeGuidance.new_agent` | Yes | Current guidance wording; ordinary serial transport is not durably journalled |
+| `negotiator play/run` async | Same guided construction | Yes | Durable journal and reconciliation; package adviser rejected |
+| Standalone `negotiator lab run --agent package` | Direct `PackageAgent(**config)` | No | Serial; durable POST transport; standalone publication and records |
+| Standalone custom Lab factory | Imported `module:factory` | Only if factory implements it | Can run probe or a wrapper; does not automatically inherit CLI behavior |
+| Lab checkpoint campaign | Direct `PackageAgent(**manifest['config'])` | No | Frozen checkout/data, lease/budget gates, serial or async worker |
+| Starter `arena --agent llm/naive` | Official agent implementation | No | Different economics, policy and model use |
+
+The checkpoint configuration schema only accepts the basic schedule values, `meso`, `claims`, and `estimates`. It rejects `policy`, `cost_neutral_lead_time`, `package_advice_types`, and `conditional_exchange`. The worker also hardcodes `PackageAgent`; it cannot select `InferenceProbeAgent` through a checkpoint.
+
+Therefore the current immutable campaign mechanism cannot express the newly added policy improvements through its existing config. A checkpoint captures source bytes, but capturing the new adviser code does not activate it. A Lab recommendation also does not automatically activate a normal CLI agent: normal play/run does not read the recommendation registry.
+
+An explicit policy overrides `claims` based on whether `evidence_types` is nonempty. With an evidence policy loaded, passing `claims=False` or setting the claims environment flag off does not disable those policy-enabled types. Conversely a policy with no evidence types turns claims off. This is implemented precedence that must be made visible in experiment records and commands.
+
+Sources: [standalone factory](../src/negotiator/lab/runner.py), [checkpoint config](../src/negotiator/lab/checkpoints.py), [worker](../src/negotiator/lab/worker.py), [agent constructor](../src/negotiator/agent.py).
+
+## 8. Confirmed defects and operational risks
+
+### F1 — Inverse price search fails with supplier-health penalties
+
+**Severity: high when supplier estimates are enabled. Reproduced offline.**
+
+`price_for_cost` assumes total cost rises monotonically with price and binary-searches from zero. Relationship cost invalidates that assumption: lowering the price can increase the supplier-health penalty faster than it reduces buyer spend. The trade policy and package adviser recognize this and disable some inversions with estimates, but the main agent's `_ask_on`, concession conversion, final-counter logic, and payment variants still use this function with supplier estimates.
+
+Using the existing `STABILISE` test fixture and its supplier estimate:
+
+| Unit price | Complete cost |
+|---:|---:|
+| 20 | €1,534,600.00 |
+| 30 | €831,266.67 |
+| 40 | €519,600.00 |
+| 45 | €429,044.44 |
+| 48 | €397,273.61 |
+| 49 | €401,600.00 |
+| 55 | €449,600.00 |
+
+Inverting the valid target cost €401,600 returned **price 0.0**. Evaluating that returned price caused **`ZeroDivisionError`** in supplier margin arithmetic. A valid price of 49 was already available.
+
+Keep the fast inverse for proven monotonic cases. For relationship cases, use a positive-domain search that identifies feasible cost intervals and roots, or enumerate a bounded price grid and refine appropriate intervals. Define behavior when the target is below the minimum possible cost. Validate every resulting price and cost before sending.
+
+Source: [evaluator, `price_for_cost`, line 88](../src/negotiator/evaluator.py); [agent callers](../src/negotiator/agent.py); official relationship arithmetic.
+
+### F2 — A failed close can be recorded as a finished case while the server is still open
+
+**Severity: high. Reproduced offline.**
+
+After three close attempts, `CaseRunner._close` fetches server state and calls `_end` with a fallback result even if the server still reports `status='open'`. This does not prove an accept or walk-away occurred.
+
+Offline reproduction with a fake server rejecting each close with 422:
+
+```text
+server status: open
+local ended: true
+local result: {deal: false, end_reason: null}
+```
+
+The normal `run()` path can then write that result into the journal and abandon pending intents. A future launch using the same journal can return the local result without resuming the still-open server session. The CLI generally treats the missing score as failure, which helps visibility, but the internal terminal-state claim is wrong.
+
+Only record completed/ended after authoritative terminal state or a confirmed close response. Preserve an unresolved operational state after exhausted attempts and keep recovery possible.
+
+Source: [runner, close fallback, line 531](../src/negotiator/runner.py), [run result journalling, line 567](../src/negotiator/runner.py).
+
+### F3 — An unhandled worker error can strand an async run
+
+**Severity: high. Reproduced offline.**
+
+`run()` creates worker tasks but awaits the watchdog first. If a worker raises during proposal generation, attachment processing, or another unhandled operation, its error is not supervised. The thread can remain marked workable or in flight. The watchdog need not observe a condition that ends the case.
+
+With an offline agent whose `propose` raises `ValueError`, the worker terminated, the runner remained pending, the thread remained workable, and Python reported an uncollected task exception. In practice/sandbox, there may be no wave deadline to rescue it. In a final wave, the cap can eventually intervene, but much of the usable time has already been lost.
+
+Supervise worker completion/errors, reconcile server state, and explicitly fail or safely close the case. Cancel/gather remaining tasks in a guaranteed cleanup path. Distinguish recoverable thread failures from a case-wide invalid economic evaluator.
+
+Source: [runner, worker line 340 and run line 553](../src/negotiator/runner.py).
+
+### F4 — Supplier estimates retain stale master standards over current quote standards
+
+**Severity: high for relationship estimates. Reproduced offline.**
+
+`supplier_for` uses `est.get('standard') or standard`, so any nonempty estimate standard suppresses the current quote PDF's standard dictionary. Dossier estimates normally supply a nonempty standard.
+
+Providing an estimate with payment 60/FCA and a current quote with payment 30/DAP returned the estimate standards **60/FCA**. Supplier cash value is then measured against the wrong payment/freight reference. This contradicts the estimator's documented instruction to override master defaults with current quote terms.
+
+Merge defaults and current quote standards field by field, with quote fields taking precedence. Test the resulting supplier value and relationship penalty, not just the dictionary shape.
+
+Source: [evaluator, `supplier_for`, line 21](../src/negotiator/evaluator.py), [dossier estimator, line 142](../src/negotiator/dossiers.py).
+
+### F5 — Economics and evidence use inconsistent case-fact precedence
+
+**Severity: medium/high when estimates and overlays are used. Reproduced offline.**
+
+The claim layer overlays case facts on package facts. `_cost_row` first reads base SQLite and ignores a case cost fact when its ID is already present. It can also return the package supplier row before a newly appended case-specific row.
+
+A case fact overriding `cost:310010` to 999 still produced the base value **132.64**. This is a synthetic precedence test, not an assertion that 999 is a real supplier cost.
+
+Release cost facts are not generally merged into that SQL-based economics path either. Build one typed, versioned cost-source resolver shared with evidence. Preserve explicit source priority and collisions.
+
+Source: [dossiers, `_cost_row`, line 122](../src/negotiator/dossiers.py), [claims fact merge](../src/negotiator/claims.py).
+
+### F6 — Invalid explicit data paths can silently use another package
+
+**Severity: medium/high for experiment validity. Reproduced offline.**
+
+`load_package` searches the explicit path, then the environment, then `data/package` and `/tmp/nak/data`. An invalid explicit path returned the valid environment package during this audit.
+
+That convenience behavior conflicts with strict checkpoint preflight. A missing frozen package must not quietly use unrelated laptop data. Existing tests catch this only when a fallback package happens to be present; the experiment log documents exactly such an environment-dependent failure.
+
+Use strict loading for explicit experiment/runtime mappings and opt-in discovery for interactive research. Record the actual resolved root and content hash.
+
+Source: [dossier loader, line 35](../src/negotiator/dossiers.py), [worker preflight](../src/negotiator/lab/worker.py).
+
+### F7 — The final outgoing-offer validator is not implemented
+
+**Severity: medium/high for new or malformed cases. Partly reproduced, broader effect is a code-path risk.**
+
+`guards.check` raises `NotImplementedError` and is not called. `_offer` formats and sends terms after a phrase-based leak assertion; it does not independently validate all case options, positive finite price, complete fields, or must-haves.
+
+`best_terms` returns its initial buyer-plan package when no legal combination exists. A synthetic case requiring payment at least 1,000 days returned a package with 60 days, and `must_haves_ok` was false. The closing evaluator protects acceptance, but offering an infeasible package can waste rounds or undermine trust.
+
+Make infeasibility explicit and validate every outgoing package immediately before journalling/transmission. Reject rather than silently snapping untrusted values. Model-selected candidates already receive stronger checks than the ordinary deterministic send path.
+
+Sources: [guards](../src/negotiator/guards.py), [optimizer, line 43](../src/negotiator/optimizer.py), [offer builder, line 161](../src/negotiator/agent.py).
+
+### F8 — Unresolved POSTs can be abandoned without proof of their outcome
+
+**Severity: high in transport failure. Code-path risk.**
+
+`_settle_pending` retries a journalled operation three times; if each outcome remains uncertain, it marks the intent abandoned and refreshes state. Clearing in-flight state permits later decisions. An unresolved POST might still be executing.
+
+The same method can reset a thread deadline to a fresh 60 seconds after obtaining an idempotent cached response, even though the original response's buyer window may have started earlier. It verifies a pending accept's standing ID before retrying, but does not rerun the complete economic evaluator for every recovered close payload.
+
+A finite retry count is sensible; treating exhaustion as proof of abandonment is not. Keep ambiguity durable and prevent conflicting new operations until an authoritative outcome or invalidation is established. Reconstruct deadlines from server evidence instead of cached-response receipt time.
+
+Source: [runner, `_settle_pending`, line 288](../src/negotiator/runner.py).
+
+### F9 — Coordinator holds its state lock across awaited decision work
+
+**Severity: medium/high under slow preparation or custom models. Confirmed code behavior; hosted consequence untested.**
+
+The worker holds `self.lock` while awaiting `asyncio.to_thread(propose, ...)`. Proposal work can perform dossier loading, recursive evidence hashing, claim construction, and custom model work. A hung proposal also delays a closer needing that lock.
+
+This contradicts the design's short-lock/snapshot/revalidation contract. Supplier replies and refreshes modify thread state outside the same lock, so the awaited proposal is not protected by a full state-version scheme either. A close can begin while another proposal is awaiting preparation; that proposal does not recheck the closing flag after the await before creating a send intent.
+
+Compute proposals outside the lock from immutable snapshots, then acquire the lock briefly to check state version, in-flight ownership, closing state and deadlines before persisting a send.
+
+Source: [runner, worker line 344](../src/negotiator/runner.py).
+
+### F10 — Deadline controls are weaker than the documented guarantees
+
+**Severity: medium/high under slow networks/concurrent RFQs. Confirmed gaps; hosted consequence untested.**
+
+`NEGOTIATOR_MOVE_BUDGET_S` is read by the unused Settings class. The async runner uses a constant 35-second warning target; it does not enforce a total buyer-work deadline. Arena HTTP retries can each wait up to the 180-second phase timeout. The serial loop warns if decision generation is slow but cannot interrupt it.
+
+The serial loop assigns every live trade thread a fresh nominal 60 seconds at the start of each decision. That is not the actual remaining budget of a thread left idle while another supplier replied. Consequently the model's 20-second skip check is only as reliable as this invented remaining value.
+
+Async deadline refresh adds `seconds_left` to the time after fetching/parsing the thread, rather than the timestamp of the session snapshot. The snapshot can already be stale. Opening deadlines are similarly inferred at local receipt rather than guaranteed from server timing.
+
+Use authoritative timestamps where available, conservatively charge all fetching/parsing/limiter time, propagate a total attempt deadline into model/transport operations, and check final-wave capacity before opening late queued cases.
+
+Sources: [Settings](../src/negotiator/config.py), [serial timing](../src/negotiator/play.py), [async timing](../src/negotiator/runner.py), [HTTP client](../src/negotiator/client.py).
+
+### F11 — Rate limiting is shared within a process, not universally per team key
+
+**Severity: medium/high with teammates or multiple commands. Confirmed scope limitation.**
+
+The normal serial set shares its ArenaClient limiter across its case threads. The async set shares its AsyncArena limiter. Separate processes or laptops have independent limiters. Ten sessions are bounded locally, not reserved globally.
+
+The Lab campaign lease serializes cooperating campaign workers and its local lock prevents competing execution of one campaign. Plain play/run, starter commands, standalone Lab runs, and ad hoc scripts do not acquire that campaign lease. Several well-behaved processes can exceed the team key's rate/open-session limits together.
+
+Choose an explicit shared-key execution owner or a common broker/lease discipline across all allowed launch paths, and include that scope in final rehearsal.
+
+Sources: [async limiter](../src/negotiator/client.py), official ArenaClient, [campaign execution](../src/negotiator/lab/campaign.py), [Lab leases](../src/negotiator/lab/loop_store.py).
+
+### F12 — Server-counted rounds are not consistently used
+
+**Severity: medium after timeouts/resume. Confirmed implementation gap.**
+
+The imported `moves_left` computes the remaining budget by counting buyer messages. Async refresh records timeout counts, but does not explicitly reconcile its proposal budget with server-counted rounds or offers. Serial 409 recovery synthesizes a timeout response and can append the rejected buyer message as history, even when the 409 was a round-limit or other state conflict.
+
+Whether every server history shape happens to make buyer-message counting equivalent remains unproven. It should not be assumed after late-move replay, resume, or failed sends. Use authoritative round evidence and keep send attempts separate from accepted messages.
+
+Sources: official `arena_kit/play.py::moves_left`; [serial 409 path](../src/negotiator/play.py); [async refresh](../src/negotiator/runner.py).
+
+### F13 — Restart does not reconstruct all strategic state in the default policy
+
+**Severity: medium. Confirmed code-path difference.**
+
+`PackageAgent.propose` reconstructs previous terms and final-counter counts from buyer history only when `self.policy` is truthy. A default guided agent without an explicit policy can resume with empty `prev`, final-counter, beat-request and final-seen state. Price concessions use history, but some package/risk decisions use reset memory.
+
+Even explicit-policy reconstruction does not recover every timer or cross-thread beat request. UTC request/deadline handling is better than restoring old monotonic clocks, but strategy recovery is incomplete.
+
+Rebuild history-derived strategic state independently of experimental policy activation. Persist or derive final-offer observation times and rival-challenge state from authoritative events.
+
+Source: [agent, propose line 313 and final logic](../src/negotiator/agent.py).
+
+### F14 — Price units, uncertainty, and payment helper need clearer contracts
+
+**Severity: medium for evidence/extensions. Confirmed inconsistencies and helper approximation.**
+
+Case negotiation prices use the part's `price_unit`. Rival/should-cost claim builders divide fact prices by `price_unit` and compare some normalized figures with raw `current_unit_price`. Supplier economics keeps raw should-cost and adds a warning rather than enforcing case-basis compatibility. There is no shared typed price representation.
+
+Do not divide all case arithmetic by price_unit blindly: the arena's case quantities and price basis must remain internally consistent. Instead validate basis at every join and render explicit units. Hosted claim-checker behavior for non-unit-price claims needs a focused contract check before enabling them.
+
+`payment_breakeven_pct` returns the first-order interest approximation. If only spend/payment changes, define `a = r(ref−from)/360` and `b = r(ref−to)/360`; exact discount is `1−(1+a)/(1+b)`. For reference to faster payment this becomes `x/(1+x)`, not `x`. Main package comparisons mostly use complete costs, so this helper is a dormant extension risk rather than the primary negotiation calculation.
+
+The estimated cost uncertainty range is recorded but unused in closing/switch risk analysis. A provenance record is not a sensitivity analysis.
+
+Sources: [claim prices](../src/negotiator/claims.py), [estimator](../src/negotiator/dossiers.py), [payment helper](../src/negotiator/optimizer.py).
+
+## 9. Strategic opportunities and underused evidence
+
+### 9.1 Supplier willingness must complement buyer-cost optimization
+
+The baseline chooses the cheapest non-price terms at a reference price and then asks for cheaper prices. That can yield packages the supplier has no reason to accept. The recorded P04 example demonstrates this clearly: the baseline kept a 12-month package while supplier notes identified multi-year agreements as the discount lever. The package experiment changed that and materially improved the recorded score.
+
+The same issue appears with fast payment, constrained capacity, hedged material costs, fixed lists, and approval committees. The relevant data already exists. The next useful engine would generate a small number of supplier-plausible trades from case-valid fields, estimate buyer cost in code, and choose which trade to test based on the actual reply. It should not simply enable every trait globally.
+
+### 9.2 Turn observed package prices into valuations
+
+The code already has complete supplier sheets and one-field revealed deltas. Use them to estimate supplier premiums for payment, contract length, freight and delivery, with uncertainty. Compare a quote-supported trade against hypothetical equal-buyer-cost packages. When sheets change several fields, retain that as a combined observation rather than falsely attributing its entire price difference to one field.
+
+`beliefs.py` would be a natural place for this, but its update and prior functions are currently stubs. A small deterministic observation record could deliver value before a sophisticated model is needed.
+
+### 9.3 Ask useful questions and use requested documents
+
+The message contract permits question-only moves. The policy mostly emits attached packages and does not implement a question strategy. `Move.question` is scaffolded, but `next_move` is a stub.
+
+Open-book traits and recorded supplier notes provide a specific reason to request a cost breakdown. Logistics and quality roles can return delivery schedules and 8D reports. Currently the buyer downloads these attachments but does not systematically extract facts that change its next proposal.
+
+Add a bounded document-request action only when its expected information value exceeds a scarce round and timing cost. Parse known workbook structures deterministically. Keep rendered financial figures separate from untrusted prose.
+
+### 9.4 Use adverse data internally
+
+P01's claim bank preserves rising wages and material indices, but their effect stops largely at inspection. The weighted cost-pressure helper estimates only partial cost coverage and is appropriately marked unverified. It should not become a claim that the entire ask is unjustified.
+
+It could still help internally: acknowledge which drivers rose, distinguish hedged versus spot exposure, and ask a specific question about uncovered cost components. Avoid turning partial weighted index arithmetic into a hard reservation price.
+
+### 9.5 Payment evidence should drive a bounded trade
+
+The dossier calculates average lateness across paid invoices, mixing early and late payments. That can hide important cash-flow behavior. The provided research example filters out discounted invoices; the runtime dossier does not. Supplier aliases are not aggregated.
+
+Use distributions of lateness, overdue exposure, legitimate versus late discounts, and linked invoice quantities to assess whether payment timing is a credible lever. Offer a schema-valid exchange and compare complete costs. Recorded D02 MESO regression is a reason to limit and test this feature rather than roll it out indiscriminately.
+
+### 9.6 Multi-part and supplier-account context is thin
+
+Claim generation, cost-driver lookup, and supplier estimates select `case['parts'][0]`. P07 and P15 contain multiple parts. Case-level basket economics can still be evaluated using the published aggregate schema, but the agent lacks corresponding basket evidence and account-level leverage.
+
+Build a scoped basket context across all parts, and keep supplier-wide metrics distinct from part-specific claims. Account importance from spend and sourcing can guide commitment dialogue without promising unauthorized volume.
+
+### 9.7 Evidence quality and usefulness are different objectives
+
+The new evidence context records source layers, hashes, units, failures and gaps. This is valuable for inspectability. Its signals are explicitly classifier hypotheses with unchecked freshness and do not automatically change policy.
+
+Add a feedback record joining each sent claim with `verified`, `contradicted`, `irrelevant` or `duplicate`, the supplier's explanation, and subsequent package movement. Do not interpret verification as proof of persuasion. Existing general thresholds, such as OTD below 90%, may miss case-relevant leverage between 90% and the 95% target.
+
+## 10. Experiments: what has actually been demonstrated
+
+These are historical repository observations. They are not new hosted results from this audit, and different rows are not one comparable frozen release.
+
+| Change / case | Recorded control | Recorded candidate | Interpretation |
+|---|---:|---:|---|
+| Local S01–S03 package economics | Mean 57.1 | Mean 85.8 | Scripted simulator validates plumbing/economic behavior, not hosted persuasion |
+| P01 checked claims | 80.0 | 92.8 | Two observed candidate runs; supports a narrow evidence hypothesis |
+| P04 package trade | 5.64 | 86.04 | Longer commitment unlocked a substantially better package in recorded screens/confirmation |
+| P08 package policy | 15.62 | 59.30 | Repeated recorded improvement; supports raw-material package exploration |
+| P02 claims | 29.34 | 29.34 | No incremental effect in recorded repeats |
+| P05 supplier-standard payment policy | 36.04 | 36.04 | No incremental effect; omitted from combined candidate |
+| P10 cost-neutral lead tie-break | 45.32 | 55.47 | Two recorded candidate sessions; identical replies limit independence |
+| P10 model package adviser | 55.47 delivery-only | 65.51 | One exploratory observation; further €60,624 cost reduction, including late penalty |
+
+The P10 adviser experiment recorded model `gpt-6.1-sol`, effort low, with calls lasting 3.46 and 1.94 seconds. Those settings describe that experiment, not a model hardcoded in main. The delivered package changed from €33.80/42 days/24 months to €31.80/56 days/24 months at unchanged annual quantity.
+
+The P10 code port was validated locally, without a new hosted comparison against current guidance wording. The package-advice config deliberately enables only capacity; no raw-material model benefit is claimed.
+
+The combined candidate's twenty-session paired ten-case regression was explicitly deferred in the recorded work. There is no completed, fresh ten-case fixed-config mean for current main plus all later ports. Old “best observed by case” means mix configurations and cannot support a single release performance claim. Repeated cached/identical replies are reproducibility evidence, not independent statistical samples.
+
+The Lab adds meaningful rigor: immutable source checkpoints, locked environments, data hashes, durable attempt identity, bounded campaigns, complete-sample gates, per-case regressions, known timeout evidence, and preserved operational failure history. Its ordinary comparison UI can still calculate deltas over complete common cases despite unmatched cases or fingerprint warnings; only the stricter campaign eligibility logic should support promotion.
+
+Sources: [experiment log](../experiments/LOG.md), [coverage artifact](../experiments/coverage-20261010.json), [deferred comparison manifest](../experiments/final-comparison-manifest.json), [campaign evaluation](../src/negotiator/lab/policy.py), [ordinary comparison](../src/negotiator/lab/models.py).
+
+## 11. Trace, reporting, configuration, and documentation gaps
+
+### 11.1 Traces do not always describe the move actually sent
+
+The deterministic offer decision is logged before optional model selection. A changed model package is logged separately as `package_advice`, but the ordinary report's offer history follows `decision` events. The apparent offered terms can therefore describe the pre-adviser move. Evidence is similarly appended after the initial offer log, though separate evidence events are consumed by the report.
+
+Async closing traces record action/reason but do not consistently record the evaluator's complete cost components or assumptions. Serial decisions usually log total cost rather than a component breakdown. The target trace schema's state versions and expiry are not implemented uniformly. The result can have the official cost breakdown, but that does not explain every intermediate decision.
+
+Log the final validated send payload and economic evaluation once, and connect prior candidate/model/evidence records to it. Record proposal versus sent versus acknowledged state distinctly.
+
+### 11.2 Reports can make partial success look better than the whole run
+
+The normal report averages scored cases and separately lists failures. That number is an observed partial mean, not a complete-run mean. The Lab metrics are more careful: `mean_score` is unavailable for incomplete plans while `observed_mean` is separate.
+
+Repeated hosted dumps are indexed by case ID, so a single dump can be used to fill missing information in multiple trace repeats of the same case. Join authoritative evidence by session ID as well as case. Report fallback counts also follow decision fields and do not fully incorporate adviser/probe/evidence fallback events.
+
+Journal results are written before enrichment with session ID and timeout counts, so returning an already-finished journal result can omit those later diagnostic fields. Default normal trace directories have second-level names, allowing two commands launched within the same second to share a path.
+
+### 11.3 Settings exist without one effective configuration model
+
+`Settings` is not the normal buyer's configuration authority. `PREP_LLM_MODEL` has no implemented prep-model path. The advertised move budget is not enforced. Package-adviser behavior depends on explicit policy plus endpoint environment; the probe interprets provider selection differently. Policies override claim switches, while normal guidance and Lab config paths differ.
+
+Resolve and log one immutable effective configuration before opening: economics, feature switches, guidance, policy hash, runner, data versions, model identity/protocol, and recovery settings. Check that each relevant launch path uses it.
+
+### 11.4 Documentation has aged at different speeds
+
+Examples of drift:
+
+- README/checklist say model interpretation is unimplemented, but the optional selector now interprets replies in a tightly bounded way.
+- The old coverage artifact's non-price-increase claim-bank failures no longer reproduce on current main.
+- Some README descriptions of research tools as base-SQLite-only have been superseded by their current DataPackage-based implementation, though SQL overlay limitations remain.
+- The architecture's state/version/deadline requirements are often targets rather than current guarantees.
+- The inference setup doc describes a connectivity probe and old tunnel endpoint; the later adviser and cloud hosting have separate paths.
+- The experiment log's older “not integrated” entries are historical and should not be read as current status.
+- Stub modules/docstrings can suggest capabilities that are not called.
+
+Keep a short current capability matrix and generated effective-config summary. Preserve history, but link superseded states explicitly.
+
+## 12. Validation performed for this audit
+
+**Full Python suite: 364 passed in 28.87 seconds. Ruff: all checks passed.**
+
+The ordinary shell lacked `uv` on PATH; an already available executable at `/tmp/evidence-tools/bin/uv` was used. Dependencies were locked and offline, with a temporary writable cache. The checked-in data package was supplied explicitly.
+
+Initial sandboxed attempts failed local socket creation and stalled async tests. Those results were environmental, not counted as product regressions. Re-running the full suite with permitted local sockets resolved them. The full suite was not repaired or edited to obtain the pass.
+
+Separate offline checks exercised behavior not covered by the existing assertions:
+
+1. Nonmonotonic relationship cost and inverse price returning zero.
+2. Current quote standards failing to override estimate standards.
+3. Case cost facts failing to replace an existing SQLite cost ID.
+4. Invalid explicit data path falling back to another package.
+5. Impossible must-haves producing an unchecked optimizer fallback.
+6. Checkpoint schema rejecting current policy/adviser/guidance fields.
+7. Worker exception leaving the runner pending.
+8. Three rejected closes marking a server-open case ended locally.
+9. Verified banks across all nineteen saved practice cases.
+10. Actual SQLite counts and price-unit distribution.
+
+These reproductions used test fixtures, fake Arena responses, and local data. They consumed no hosted quota or inference spend. No production source was changed. JavaScript/visual browser verification was not performed in this audit; Node was not available on the shell PATH.
+
+## 13. Recommended order of work
+
+| Priority | Work | Completion evidence |
+|---|---|---|
+| 1 | Correct async terminal-state handling and supervise worker errors | Failed closes remain resumable; injected proposal/send/parser failures terminate or recover without abandoned active sessions |
+| 2 | Preserve uncertain operation ownership until reconciled | Repeated lost replies cannot create a conflicting new logical move; same ID/payload survives restart |
+| 3 | Fix estimate standards, cost-source precedence, and nonmonotonic inverse pricing | Quote-based supplier value, case/release overrides, positive prices and valid cost roots across relationship fixtures |
+| 4 | Add one shared outgoing-send validator | Impossible must-haves and malformed prices/options cannot be transmitted; infeasibility is explicit |
+| 5 | Unify effective configuration across CLI, standalone Lab and checkpoint workers | Same frozen config produces the same first proposal and feature activation through each supported path |
+| 6 | Enforce real deadline and shared-key execution budgets | Ten-case workload, slow attachments, rate limiting, queued calls, wave closure and restart on the intended final host |
+| 7 | Make preparation an actual runtime input | Versioned prebuilt artifacts loaded before clocks, with content checks and case overlay handling |
+| 8 | Use supplier replies, quoted deltas and claim outcomes to select bounded trades | One clearly isolated policy hypothesis; complete-cost and safety comparison; no invented terms or claims |
+| 9 | Expand evidence selectively | Case-relevant basket/payment/quality/index evidence with exact source scope, current units and measured usefulness |
+| 10 | Freeze and validate a release candidate | One common config, complete per-case results, documented failures, release overlay, timing/recovery rehearsal and no mixed-history mean |
+
+The current architecture gives a strong foundation for keeping economic authority in code while adding semantic interpretation. Its next improvement should be to connect reliable supplier evidence to valid, measurable trades and make exceptional runtime paths as disciplined as the ordinary closing path. More model freedom is not required to address the highest-priority defects.
+
+## Open tabs:
+- 18-main-branch-audit-2026-10-10.md: tacto-negotiator/docs/18-main-branch-audit-2026-10-10.md
+- 19-main-branch-remediation-plan-2026-10-10.md: tacto-negotiator/docs/19-main-branch-remediation-plan-2026-10-10.md
+- .env: tacto-negotiator/.env
+- 17-inference-setup.md: tacto-negotiator/docs/17-inference-setup.md
+- .env.example: tacto-negotiator/.env.example
+
+## My request:
+we identified some logical problems and false tools that can fail and go unvalidated. we did do some fixes but i did not verify if they are complte. can you have a look and give me a report?
