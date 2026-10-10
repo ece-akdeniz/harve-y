@@ -1,0 +1,42 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4M2DBC8PYM2114BVV19PYZX",
+  "session_id": "92215476-e6f3-4b32-94d9-5f6fe77e7280",
+  "strategy": "manual-commit",
+  "created_at": "2026-10-10T23:29:46.108096Z",
+  "branch": "codex/fresh-h4",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "tacto-negotiator/tests/test_release_check.py",
+    "tacto-negotiator/tests/test_replay_decisions.py",
+    "tacto-negotiator/tools/release_check.py",
+    "tacto-negotiator/tools/replay_decisions.py"
+  ],
+  "agent": "Cursor",
+  "model": "unknown",
+  "turn_id": "50ab42f8162d",
+  "checkpoint_transcript_start": 104,
+  "transcript_lines_at_start": 104,
+  "compact_transcript_start": 18,
+  "initial_attribution": {
+    "calculated_at": "2026-10-10T23:29:46.090662Z",
+    "agent_lines": 900,
+    "agent_removed": 0,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 900,
+    "total_lines_changed": 900,
+    "agent_percentage": 100,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    }
+  ]
+}
