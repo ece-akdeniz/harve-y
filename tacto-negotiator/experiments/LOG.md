@@ -864,3 +864,33 @@ Findings:
 - Sessions: 8 practice sessions; quota 103 -> ~119 used/600 because other agents share it.
 Decision: P18 `configs/p18-clause-variants.json` is a measured win vs local .4062 (n=2, identical), but below the hosted
 best .4531. It is mergeable as an opt-in config only. P08: no change.
+
+## 2026-10-10 — Raw-material screens, branch `codex/score-push-rawmat` (P08/P18 owner)
+
+Read before spending: main LOG/runs, `origin/codex/benchmark-goal-20261010`, and the p18-*,
+openbook and fullcost branches. P18 best to beat: **.4531** (session `336d373e78ee87f1`,
+confirmed `e7f60b71102745a0`, 5.40/db0/90d/24m; config `configs/retained-package-policy.json`,
+copied here with its replay fixture). P08 best: **.5930** (5.31/db0/90d/24m). Already lost or
+tied, not repeated here: P08 hedge argument, P08 36m, P18 clause variants/db5 track/rounds=7,
+P18 LLM package advice, fixed-scope wording (both), out-of-case rival quote, scorecard,
+estimates and MESO payment sheets. Index-window evidence is the fullcost worker's lane.
+
+What the .4531 transcript shows moved the supplier: we never offered a clause; each no-clause
+counter (5.37 -> 5.43 -> 5.46) got a db0 step (5.60 -> 5.50 -> 5.40, each <2%, matching the
+supplier's "pricing committee above 2 %" note); our 5.40 match turned it final at 5.40.
+P08 .5930 is the same shape: our 5.31/5.36/5.38 vs its 5.45/5.36/5.31, final at **our own
+opening price**. In both, the final db0 price lands at roughly our 12% opening anchor.
+Accepting a clause early (variants) produced `agreed` at our higher counter instead.
+
+### Screen R1 planned — P18, deeper raw-material opening anchor (16%)
+
+- Differs from every previous attempt: only the opening depth for `raw_material` changes
+  (12% -> 16% below the supplier's price on our package: first counter 5.12 instead of 5.37);
+  the rest of the schedule, no-clause stance, wording, closing evaluator are the retained policy.
+  New opt-in `PolicyConfig.anchors` (per case type, 0..0.3). Config `configs/rawmat-anchor16.json`.
+- Why it could work: both suppliers' final db0 price converged to our opening level while
+  stepping <2% per round; a lower opening may move the convergence point. Risk: a lowball
+  opening may slow its steps or end earlier at a higher price; supplier floor unknown.
+- No hidden scores, c_best or other teams' outcomes in runtime; 16% is not derived from them.
+- Offline: replay on the .4531 thread changes only message 1 (5.12); later counters 5.37/5.43
+  and the 5.40 acceptance logic unchanged. Tests pass. Budget: 1 of my 12 sessions.

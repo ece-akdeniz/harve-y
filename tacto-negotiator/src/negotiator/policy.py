@@ -21,6 +21,11 @@ class PolicyConfig:
     cost_neutral_lead_time: bool = False
     package_advice_types: tuple[str, ...] = ()
     clause_variant_types: tuple[str, ...] = ()
+    # Opening depth per case type (fraction below the supplier's price on our package).
+    # Omitted types keep the agent's constructor anchor.
+    anchors: dict[str, float] = field(default_factory=dict)
+    # Case types whose first buyer message asks an open-book supplier for its cost breakdown.
+    open_book_types: tuple[str, ...] = ()
 
     @classmethod
     def load(cls, path):
@@ -33,7 +38,14 @@ class PolicyConfig:
             raise ValueError("unknown policy fields")
         if type(d.get("version")) is not int or d["version"] != 1:
             raise ValueError("policy version must be 1")
-        for k in ("package_types", "evidence_types", "package_advice_types", "clause_variant_types"):
+        anchors = d.get("anchors", {})
+        if not isinstance(anchors, dict) or any(
+            k not in TYPES or isinstance(v, bool) or not isinstance(v, (int, float)) or not 0 <= v <= 0.3
+            for k, v in anchors.items()
+        ):
+            raise ValueError("anchors must map case types to 0..0.3")
+        d["anchors"] = {k: float(v) for k, v in anchors.items()}
+        for k in ("package_types", "evidence_types", "package_advice_types", "clause_variant_types", "open_book_types"):
             v = d.get(k, [])
             if not isinstance(v, list) or any(not isinstance(x, str) or x not in TYPES for x in v):
                 raise ValueError(f"invalid {k}")

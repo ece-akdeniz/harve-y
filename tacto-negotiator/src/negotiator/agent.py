@@ -215,6 +215,12 @@ class PackageAgent:
                 out.append(complete_offer(case, v))
         return out
 
+    def _anchor_for(self, case):
+        """Opening depth: the policy's per-case-type anchor, else the constructor anchor."""
+        if self.policy and case.get("type") in self.policy.anchors:
+            return self.policy.anchors[case["type"]]
+        return self.anchor
+
     def _clause_on(self, case):
         return bool(self.policy and case["type"] in self.policy.clause_variant_types)
 
@@ -278,7 +284,9 @@ class PackageAgent:
         if self.trades and case["type"] in self.policy.package_types:
             if prev is not None:
                 return self._clause_track(case, sid, events, prev, ref_terms)
-            return self.trades.initial(case, sid, ref_terms["unit_price"], self.anchor, std, sup, reference=ref_terms)
+            return self.trades.initial(
+                case, sid, ref_terms["unit_price"], self._anchor_for(case), std, sup, reference=ref_terms
+            )
         if prev is None:
             n = nonprice(case, best_terms(
                 case, ref_terms["unit_price"], std, sup,
@@ -552,7 +560,7 @@ class PackageAgent:
                 return self._offer(case, sid, alt, std, sup, c_alt, "gap closed: take alternative")
             return {"close": True, "reason": "gap closed"}
 
-        floor = p_open * (1 - self.anchor)
+        floor = p_open * (1 - self._anchor_for(case))
         price = floor + (p - floor) * min(1.0, k / self.rounds)
         if last_p is not None:
             price = max(price, _ceil2(last_p))  # no backtracking on our own concessions (by C)
