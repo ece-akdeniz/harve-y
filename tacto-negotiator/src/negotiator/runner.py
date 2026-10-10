@@ -568,13 +568,35 @@ class CaseRunner:
         if not self.st.ended:
             workers = [asyncio.create_task(self._worker(sid)) for sid in self.st.threads]
             watchdog = asyncio.create_task(self._watchdog())
-            await watchdog
-            if not self.st.ended:
-                await self._close("watchdog exit", wait=False)
-            for w in workers:
-                if not w.done():
-                    w.cancel()
-            await asyncio.gather(*workers, return_exceptions=True)
+            tasks = [*workers, watchdog]
+            worker_error = None
+            try:
+                done, _ = await asyncio.wait(tasks, return_when=asyncio.FIRST_EXCEPTION)
+                for task in done:
+                    if task is not watchdog and not task.cancelled() and task.exception() is not None:
+                        worker_error = task.exception()
+                        break
+                if worker_error is not None:
+                    # An exception says nothing about the remote POST's fate. Reconcile
+                    # state and preserve the session for an operator if it remains open.
+                    try:
+                        await self._refresh_all()
+                    except Exception:
+                        log.exception("%s: reconciliation after worker failure failed", self.case_id)
+                elif not self.st.ended:
+                    await watchdog
+            finally:
+                for task in tasks:
+                    if not task.done():
+                        task.cancel()
+                await asyncio.gather(*tasks, return_exceptions=True)
+            if worker_error is not None and not self.st.ended:
+                return {
+                    "status": "unresolved",
+                    "session_id": self.st.session_id,
+                    "recovery_required": True,
+                    "error": type(worker_error).__name__,
+                }
         if self.st.ended:
             for p in self.journal.pending(session_id=self.st.session_id):
                 self.journal.outcome(p["move_id"], "abandoned", why="case ended")
