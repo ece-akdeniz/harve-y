@@ -1,0 +1,131 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4JWV7PP23WCNRNCTH11F433",
+  "session_id": "f2782f51-3c61-4fce-af35-739a9a07821a",
+  "strategy": "manual-commit",
+  "created_at": "2026-10-10T12:33:15.129061Z",
+  "branch": "main",
+  "checkpoints_count": 6,
+  "save_step_count": 7,
+  "files_touched": [
+    "tacto-negotiator/AGENTS.md",
+    "tacto-negotiator/README.md",
+    "tacto-negotiator/docs/06-final-runbook.md",
+    "tacto-negotiator/docs/10-implementation-checklist.md",
+    "tacto-negotiator/docs/README.md",
+    "tacto-negotiator/experiments/LOG.md",
+    "tacto-negotiator/src/negotiator/runner.py"
+  ],
+  "agent": "Cursor",
+  "model": "default",
+  "turn_id": "68bad56e2f75",
+  "compact_transcript_start": 0,
+  "token_usage": {
+    "input_tokens": 52173,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 109440,
+    "output_tokens": 1772,
+    "api_call_count": 4
+  },
+  "session_metrics": {
+    "turn_count": 7
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-10-10T12:33:15.123708Z",
+    "agent_lines": 0,
+    "agent_removed": 0,
+    "human_added": 893,
+    "human_modified": 57,
+    "human_removed": 0,
+    "total_committed": 907,
+    "total_lines_changed": 950,
+    "agent_percentage": 0,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    },
+    {
+      "checkpoint_number": 3,
+      "user_lines_added": 235,
+      "user_lines_removed": 26,
+      "agent_lines_added": 14,
+      "agent_lines_removed": 0,
+      "user_added_per_file": {
+        ".codex/hooks.json": 88,
+        ".cursor/hooks.json": 40,
+        "tacto-negotiator/AGENTS.md": 2,
+        "tacto-negotiator/README.md": 33,
+        "tacto-negotiator/docs/06-final-runbook.md": 7,
+        "tacto-negotiator/docs/10-implementation-checklist.md": 16,
+        "tacto-negotiator/docs/README.md": 2,
+        "tacto-negotiator/experiments/LOG.md": 47
+      },
+      "user_removed_per_file": {
+        "tacto-negotiator/AGENTS.md": 2,
+        "tacto-negotiator/README.md": 8,
+        "tacto-negotiator/docs/06-final-runbook.md": 4,
+        "tacto-negotiator/docs/10-implementation-checklist.md": 10,
+        "tacto-negotiator/docs/README.md": 2
+      }
+    },
+    {
+      "checkpoint_number": 4,
+      "user_lines_added": 163,
+      "user_lines_removed": 0,
+      "agent_lines_added": 121,
+      "agent_lines_removed": 26,
+      "user_added_per_file": {
+        ".codex/hooks.json": 88,
+        ".cursor/hooks.json": 40,
+        "tacto-negotiator/tests/test_runtime_estimates.py": 35
+      }
+    },
+    {
+      "checkpoint_number": 5,
+      "user_lines_added": 180,
+      "user_lines_removed": 0,
+      "agent_lines_added": 121,
+      "agent_lines_removed": 26,
+      "user_added_per_file": {
+        ".codex/hooks.json": 88,
+        ".cursor/hooks.json": 40,
+        "tacto-negotiator/experiments/LOG.md": 17,
+        "tacto-negotiator/tests/test_runtime_estimates.py": 35
+      }
+    },
+    {
+      "checkpoint_number": 6,
+      "user_lines_added": 163,
+      "user_lines_removed": 0,
+      "agent_lines_added": 138,
+      "agent_lines_removed": 26,
+      "user_added_per_file": {
+        ".codex/hooks.json": 88,
+        ".cursor/hooks.json": 40,
+        "tacto-negotiator/tests/test_runtime_estimates.py": 35
+      }
+    },
+    {
+      "checkpoint_number": 7,
+      "user_lines_added": 173,
+      "user_lines_removed": 30,
+      "agent_lines_added": 138,
+      "agent_lines_removed": 26,
+      "user_added_per_file": {
+        ".codex/hooks.json": 88,
+        ".cursor/hooks.json": 40,
+        "tacto-negotiator/src/negotiator/runner.py": 10,
+        "tacto-negotiator/tests/test_runtime_estimates.py": 35
+      },
+      "user_removed_per_file": {
+        "tacto-negotiator/src/negotiator/runner.py": 30
+      }
+    }
+  ]
+}

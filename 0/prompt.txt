@@ -1,0 +1,25 @@
+Hey, so AWS Bedrock doesn't work, why? Here even though I have configured it and turned it on.
+
+---
+
+Hey, so AWS Bedrock doesn't work, why? Here even though I have configured it and turned it on.
+
+---
+
+Here's the model id, how do I do it: anthropic.claude-opus-5-5
+
+---
+
+Here bro, what the fuck
+
+---
+
+Does it work now?
+
+---
+
+Hello?
+
+---
+
+Where can I set this up? Like get the access key id and secret access key
