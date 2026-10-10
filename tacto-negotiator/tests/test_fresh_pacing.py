@@ -27,11 +27,13 @@ def _policy(package, pacing):
 
 
 def _move(price=5.5):
-    return {"supplier_id": "sup:70740", "message": {"body": "Offer.", "term_sheets": [{"terms": {"unit_price": price}}]}}
+    return {"supplier_id": "sup:70740",
+            "message": {"body": "Offer.", "term_sheets": [{"terms": {"unit_price": price}}]}}
 
 
 def _supplier(price, status="open"):
-    return {"from": "supplier", "status": status, "body": "Our price.", "term_sheets": [{"terms": {"unit_price": price}}]}
+    return {"from": "supplier", "status": status, "body": "Our price.",
+            "term_sheets": [{"terms": {"unit_price": price}}]}
 
 
 def test_history_claims_verify_against_facts_and_stay_below_current_price(package):
@@ -67,7 +69,8 @@ def test_history_claim_checks_fail_closed():
     assert check(good, facts, None, case) is None
     assert "between EUR 5.00 and EUR 5.20" in good.sentence
     bad = Claim(**{**good.__dict__, "ids": ("po:1", "po:3")})
-    assert check(Claim(**{**bad.__dict__, "sentence": render(bad, facts)}), facts, None, case) == "other supplier or part"
+    bad = Claim(**{**bad.__dict__, "sentence": render(bad, facts)})
+    assert check(bad, facts, None, case) == "other supplier or part"
     single = Claim(**{**good.__dict__, "ids": ("po:1",), "figure": 5.0})
     assert check(Claim(**{**single.__dict__, "sentence": render(single, facts)}), facts, None, case) \
         == "needs two to eight order lines"
@@ -92,7 +95,8 @@ def test_pacing_releases_one_claim_per_message_then_deeper_bank(package):
         events = [*events, {"from": "buyer", **out["message"]}, _supplier(6.0)]
     non_empty = [r for r in sent if r]
     # one argument per message: index windows first (two series), then the deeper bank
-    assert all(len({r.split("@")[0] for r in refs}) <= 1 or all(r.startswith("po:") for r in refs) for refs in non_empty)
+    assert all(len({r.split("@")[0] for r in refs}) <= 1 or all(r.startswith("po:") for r in refs)
+               for refs in non_empty)
     assert len(non_empty) >= 3
     assert non_empty[0] == ["idx:AS-14404@2026-06", "idx:AS-14404@2026-09"]
     kinds = ["po" if refs[0].startswith("po:") else refs[0].split(":")[0] for refs in non_empty]

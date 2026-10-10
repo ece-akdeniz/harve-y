@@ -523,6 +523,7 @@ def history_claims(case: dict, package=None) -> list[Claim]:
     if not part or not _number(current):
         return []
     trigger = facts.get(case.get("trigger_doc") or "") or {}
+    refs = set(case.get("refs") or [])
     try:
         as_of = date.fromisoformat(trigger["date"])
     except (KeyError, TypeError, ValueError):
@@ -566,8 +567,8 @@ def history_claims(case: dict, package=None) -> list[Claim]:
             quoted, ref, price = max(quotes)
             claim = Claim(kind="own_quote", ids=(ref,), figure=round(price, 2), unit="EUR", sentence="",
                           supplier_id=target, part_id=part, disclosure="supplier_own", subject=target,
-                          strength=round((current - price) / current * 100, 2), in_case_refs=ref in (case.get("refs") or []),
-                          note=f"own quote of {quoted}" + ("" if ref in (case.get("refs") or []) else "; not in case refs"))
+                          strength=round((current - price) / current * 100, 2), in_case_refs=ref in refs,
+                          note=f"own quote of {quoted}" + ("" if ref in refs else "; not in case refs"))
             out.append(replace(claim, sentence=render(claim, facts)))
     return [c for c in out if verify(c, facts, package, case)]
 
