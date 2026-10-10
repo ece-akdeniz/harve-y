@@ -1,0 +1,20 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4KEY3QDK1712MAW3ZV1RYSK",
+  "strategy": "manual-commit",
+  "branch": "codex/p05-advice-screen",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "tacto-negotiator/configs/rfq-async-advice-lab.json",
+    "tacto-negotiator/experiments/LOG.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": ""
+    }
+  ]
+}
