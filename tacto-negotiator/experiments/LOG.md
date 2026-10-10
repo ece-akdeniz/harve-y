@@ -813,3 +813,35 @@ Port validation: full suite **363 passed, one existing preflight failure** descr
 in the preceding entry; the same failure reproduces with the unchanged current
 `origin/main` production modules. All 22 focused delivery/adviser tests pass.
 `ruff check .` passes. No unrelated preflight fix is included.
+
+## P10 package-advice replication + P02 expected-C clause target (branch codex/score-push-p10p02, 2026-10-10)
+
+### P10 replication — run 3b0588df-1f6d-4558-aa1b-176bd028fd8d (`configs/package-advice.json` via configured_agent, aa5fb3c)
+- Attempt 1, session c6daa8ddecf71416: **0.6551**, EUR 31.80 / 56 d / 24 mo / 23,400 pcs, 0 timeouts, 3 rounds.
+  Exactly reproduces d612dda9 (0.6551).
+- Attempt 2, session 29c667f997fb006e: **0.0**. The agent process crashed (platform error), so no buyer
+  message was sent. The supplier issued a final offer and then walked away (`end_reason: timeout`).
+  Infrastructure loss, not policy evidence. Verified owned (session ID recorded by the runner) and ended;
+  the outcome was reconciled into `reconciliation.json` and the original attempt evidence was preserved.
+- Verdict: P10 0.6551 replicates (n=2 clean, incl. d612dda9). No change.
+
+### P02 expected-C target — new opt-in `cost_target_types` + `cost_target_index_clause` (`configs/p02-cost-target.json`)
+- Triage: price-only bargaining at 90 d with no clause hits the supplier floor (~373.6); below a 0.5 %
+  supplier margin the kit adds a relationship cost of up to ~EUR 140k (see 5eccc847: 349.37 → 0.087).
+  The supplier accepts a lower price for the CU clause.
+- Change: for single-supplier relationship cases with a public dossier full-cost estimate, value each
+  permitted package by expected C over a uniform 41-point grid on the public `full_cost_range`
+  (356.20–393.70). Target = the expected-C-minimising package, restricted to clause packages when the
+  flag is set. The longest payment term wins near-ties. Offers never go below the target price; the agent
+  accepts when the standing sheet on our package meets our offer by expected C. There is one counter to a
+  final offer. Uses no hidden c_best or historical scores. Target: **366.23 / 90 d / CU 5 % deadband**.
+- Tests: `tests/test_cost_target.py` (8). Full suite 375 passed + 1 known preflight failure; Ruff clean.
+- Screen 1, run eb38bb1b, session 9d8f14858aa93c6d: agent KeyError before the first move. Hosted quote
+  standard terms lack `payment_days`. Fixed by merging them with the dossier standard terms (commit 2).
+  Session later timed out at **0.0** (no deal, no buyer move). Reconciled as owned + ended. Wasted session.
+- Screen 1b, run 609f2b93, session 49fe810f2e30a206: **0.5993**. The supplier agreed to 366.23 / 90 d /
+  CU 5 % immediately. c_deal 2,254,487 (relationship 12,647, index risk 17,901, payment −14,918). 0 timeouts, 2 rounds.
+- Repeat, run 3e377fb3, sessions e1d31ee67f3036aa / 4dead4329811769a: **0.5993 / 0.5993**, identical terms.
+- Verdict: **P02 0.2934 → 0.5993 (n=3, deterministic)**. Merge candidate. Next lever (not screened):
+  the supplier accepted the opening without countering, so a lower opening (e.g. ~361, the min-C
+  price under lower-fc scenarios) may still be accepted. Risk: it raises relationship cost if fc is high.
