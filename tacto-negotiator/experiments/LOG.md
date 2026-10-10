@@ -969,3 +969,28 @@ Accepting a clause early (variants) produced `agreed` at our higher counter inst
   would go lower, so not worth a session. Volume and index-timing: not legal (fixed terms).
 - Recommendation: retain P08 0.5930 config and P18 index-window 0.5200; stop spending sessions
   on raw_material. 9 of 12 sessions unused.
+
+### Hypothesis H-NC: no-clause package at a premium (hedge rationale) — offline, **not screened**
+
+- Kit break-even (`total_cost`, 90d/24m): no-clause = db0 at **P08 5.4784** (vs 5.31 db0,
+  C 1,031,777.60) and **P18 5.4681** (vs 5.30 db0, C 257,458.63). A gain needs acceptance below that.
+- Prior evidence (owned-session threads / retained run.json, read-only):
+  - P18 `cbf98484048a9282`: buyer no-clause 24m single sheets 5.37 / 5.43 / 5.46 / **5.51** / 5.50,
+    no compensation beyond price + 90d/24m. Supplier: "a fixed price over a 24-month period is not
+    feasible"; final 5.50 db0 / 5.70 db5; on our 5.50 no-clause it **walked** ("cannot reach an
+    agreement on the inclusion of the AS-14404 index clause"). It refused no-clause *above* break-even.
+  - P08 `6ddf266d690d2113` (36m): buyer no-clause 5.31 / 5.36 / 5.39 / **5.47 / 5.49**, conditional
+    commitment wording; supplier kept requiring the clause and closed 5.36 db0 (.5376). 5.49 is above
+    the 24m break-even; still refused.
+  - P08 baseline `ebc8321509c623e7`: every buyer sheet no-clause; supplier "fixed price without an
+    index clause is not possible for a 24-month contract", final 5.31 db0.
+  - P08 12m (`190e869c...` and 3 repeats): supplier does accept no clause, but at 5.84 and half the
+    need uncovered (.1562). Its price for removing the clause is far above our break-even.
+  - P08 buyer db0 sheets early (`7fdf0fce...` .3606, `c98e831e...` .3274): supplier then closed
+    5.52 / 5.55 db0. So a db0 fallback sheet in the opening multi-sheet risks the lock-high pattern.
+- Hedge: covers alloy only to 03/2027, i.e. 3 of 24 months from the 2027-01-01 effective date;
+  it does not remove 21 months of exposure, so it is a weak argument for a fixed 24m price, and
+  P08 already rejected index-window claims citing that hedge.
+- Verdict: no-clause is a hard rule for >12m on both suppliers, refused at and above break-even;
+  a db0 fallback sheet has a negative record. Expected value of a screen <= 0. Not screened.
+  Sessions used by this chat stay **3** of 12.
