@@ -1,0 +1,30 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4KVFBYJ5K68V5D55AW1GVRN",
+  "strategy": "manual-commit",
+  "branch": "codex/score-push-behavior",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "tacto-negotiator/configs/score-push-v3-l1.json",
+    "tacto-negotiator/src/negotiator/agent.py",
+    "tacto-negotiator/src/negotiator/policy.py",
+    "tacto-negotiator/src/negotiator/value_swap.py",
+    "tacto-negotiator/tests/test_value_swap.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": ""
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 6863,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 460567,
+    "output_tokens": 4243,
+    "api_call_count": 4
+  }
+}
