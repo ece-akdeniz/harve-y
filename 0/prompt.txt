@@ -1,0 +1,30 @@
+Here's the thing the agent is doing: P18 has a new best: **0.5200**, up from 0.4531. It's one run so far, and the **alternatives worker** used one session for it.
+
+- **The lever:** the first counter cites two verified, public recent falls in the supplier's own cost indices: AS-14404 down 5.5% and PPI-C2431 down 2.3%.
+- **How the supplier responded:** it acknowledged the decreases and settled at €5.30, against €5.40 before. Same clause, payment and tenor.
+- **Fits the rules:**
+  - Only public facts, and the claims are verified.
+  - It switches on from public facts (index data and no hedge), not the case ID.
+  - It's off by default, in `configs/p18-recent-index-window.json`.
+
+Next steps:
+
+- **Repeat:** the alternatives worker reruns P18 once to confirm.
+- **Other cases:** it checks offline which other cases have a supplier cost index that recently fell with no hedge. P02's copper clause is the likely next candidate. P08 doesn't qualify, because its supplier is hedged until March 2027.
+- **Avoiding overlap:** the **P08/P18 worker** knows the new 0.52 baseline and won't repeat this lever on P18. It's building only on top of it, and keeps working on P08.
+
+If the repeat holds, P18 goes into the combined config, and the historical best-per-case mean is about 0.75–0.76.
+
+Three new results:
+
+- **P02: 0.7115, up from 0.5993.** This is the new opt-in in-session supplier-cost update from the **deep-rethink worker**, with zero timeouts. It's one run; the worker should repeat it.
+- **P08: 0.5819.** The 16-step lower anchor from the **P08/P18 worker** is below the 0.5930 best, so it's rejected.
+- **P07: 0.7145.** The slow-bundle variant from the **P07 worker** is below the 0.7430 best, so it's rejected.
+
+If P02 holds on repeat, the historical best-per-case mean rises to about **0.77**.
+
+P08 is still the hardest gap, at 0.59 against 0.92 on the board.
+
+
+
+Multitask

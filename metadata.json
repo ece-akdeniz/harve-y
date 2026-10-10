@@ -1,0 +1,37 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4KRCB8VJG1GZ25QT9F0QJG4",
+  "strategy": "manual-commit",
+  "branch": "codex/mean85",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "tacto-negotiator/configs/mean85-base.json",
+    "tacto-negotiator/configs/mean85-capacity-evidence.json",
+    "tacto-negotiator/configs/mean85-quality-zero.json",
+    "tacto-negotiator/configs/p18-recent-index-window.json",
+    "tacto-negotiator/experiments/LOG.md",
+    "tacto-negotiator/src/negotiator/agent.py",
+    "tacto-negotiator/src/negotiator/claims.py",
+    "tacto-negotiator/src/negotiator/evidence.py",
+    "tacto-negotiator/src/negotiator/policy.py",
+    "tacto-negotiator/tests/fixtures/p18_retained_thread.json",
+    "tacto-negotiator/tests/test_recent_index_window.py",
+    "tacto-negotiator/tests/test_rfq_final_guard.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 14765,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 427382,
+    "output_tokens": 1534,
+    "api_call_count": 3
+  }
+}

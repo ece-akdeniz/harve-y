@@ -1,0 +1,82 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4KRCB8VJG1GZ25QT9F0QJG4",
+  "session_id": "01a12781-3d1b-7082-a7e4-1162c9764c80",
+  "strategy": "manual-commit",
+  "created_at": "2026-10-10T20:34:28.138174Z",
+  "branch": "codex/mean85",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "tacto-negotiator/configs/mean85-base.json",
+    "tacto-negotiator/configs/mean85-capacity-evidence.json",
+    "tacto-negotiator/configs/mean85-quality-zero.json",
+    "tacto-negotiator/configs/p18-recent-index-window.json",
+    "tacto-negotiator/experiments/LOG.md",
+    "tacto-negotiator/src/negotiator/agent.py",
+    "tacto-negotiator/src/negotiator/claims.py",
+    "tacto-negotiator/src/negotiator/evidence.py",
+    "tacto-negotiator/src/negotiator/policy.py",
+    "tacto-negotiator/tests/fixtures/p18_retained_thread.json",
+    "tacto-negotiator/tests/test_recent_index_window.py",
+    "tacto-negotiator/tests/test_rfq_final_guard.py"
+  ],
+  "agent": "Codex",
+  "model": "gpt-6-astra",
+  "turn_id": "1b58d03397cb",
+  "checkpoint_transcript_start": 199,
+  "transcript_lines_at_start": 199,
+  "compact_transcript_start": 23,
+  "token_usage": {
+    "input_tokens": 14765,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 427382,
+    "output_tokens": 1534,
+    "api_call_count": 3
+  },
+  "skill_events_version": 1,
+  "skill_events": [
+    {
+      "id": "prompt-skill-codex-goal-2026-10-10T20:31:04.900524Z",
+      "event_type": "prompt_invocation",
+      "skill": {
+        "name": "goal"
+      },
+      "source": {
+        "agent": "codex",
+        "signal": "prompt_slash_command",
+        "confidence": "explicit"
+      },
+      "turn_id": "821f1dce452d",
+      "timestamp": "2026-10-10T20:31:04.900524Z",
+      "native": {
+        "command": "/goal"
+      },
+      "collapse": {
+        "target": "user_message",
+        "label": "/goal",
+        "default_collapsed": true
+      }
+    }
+  ],
+  "initial_attribution": {
+    "calculated_at": "2026-10-10T20:34:28.094732Z",
+    "agent_lines": 1597,
+    "agent_removed": 44,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 1597,
+    "total_lines_changed": 1641,
+    "agent_percentage": 100,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    }
+  ]
+}
