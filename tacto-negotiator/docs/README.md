@@ -54,6 +54,11 @@ Hosted timing is measured. Then scale to multiple cases.
   conditional 52-session ceiling, stop gates and FAQ implications. Supersedes document 12's budget.
 
 - [14 — Measured demo](14-measured-demo.md): two defensible replay stories and their limits.
+- [12 — Experiment dashboard](12-experiment-dashboard.md): shared laptop-hosted dashboard,
+  local experiment runners, comparisons, buffering and importing previous attempts.
+
+- [13 — Agent experiment loop](13-agent-experiment-loop.md): immutable checkpoints, bounded
+  comparisons, cited findings, recovery and safe local/recommendation restore.
 
 ## Sources and evidence labels
 
