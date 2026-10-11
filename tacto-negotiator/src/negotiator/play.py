@@ -188,10 +188,22 @@ def agent_estimates(agent, case):
 
 def play_case(table, case_id, agent, deadline=None):
     """Play one case to its end. `deadline` (time.time(), or a function returning it): a Live Final
-    wave's cap - shortly before it, `close_decision` closes the case."""
+    wave's cap - shortly before it, `close_decision` closes the case. The agent's wave time guard
+    (`time_left_fn` / `round_estimate_fn`, see `agent.TIME_GUARD_ROUNDS`) is fed from the same cap
+    and the slowest round measured here, as the async runner does; without a cap it stays inactive."""
     from .prewarm import prewarm_case
 
     prewarm_case(agent, getattr(table, "case", None))  # per-case caches before the session opens
+    timing = {"slowest": 0.0}
+
+    def time_left():
+        cap = deadline() if callable(deadline) else deadline
+        return None if not cap else cap - time.time()
+
+    if hasattr(agent, "time_left_fn"):
+        agent.time_left_fn = time_left
+    if hasattr(agent, "round_estimate_fn"):
+        agent.round_estimate_fn = lambda: timing["slowest"]
     case, threads = table.open(case_id)
     if (tracer := getattr(agent, "tracer", None)) and getattr(table, "session_id", None):
         base = os.environ.get("ARENA_URL", "").rstrip("/")
@@ -202,9 +214,9 @@ def play_case(table, case_id, agent, deadline=None):
     for events in threads.values():
         for m in events:
             fetch_documents(table, m)
-    slowest = 0.0
     while live_threads(threads):
         t0 = time.monotonic()
+        slowest = timing["slowest"]
         if getattr(agent, "trades", None):
             for sid in live_threads(threads):
                 agent.trades.deadlines[sid] = time.time() + MOVE_LIMIT_S
@@ -243,7 +255,7 @@ def play_case(table, case_id, agent, deadline=None):
         if tracer:
             tracer.log("supplier_reply", case=case_id, supplier=sid, message=reply)
         threads[sid] += [{**msg, "from": "buyer"}, fetch_documents(table, reply)]
-        slowest = max(slowest, time.monotonic() - t0)
+        timing["slowest"] = max(timing["slowest"], time.monotonic() - t0)
         log.info("%s %s %s", sid, reply.get("status"), standing(threads[sid])[1])
     return table.result()
 

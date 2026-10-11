@@ -189,3 +189,31 @@ def test_reciprocal_schedule_is_bypassed_under_the_guard():
     # the standing 5.80 sheet beats P18's alternative: the guard accepts it instead of another token step
     assert guard["action"] == "accept"
     assert move["message"]["action"] == {"type": "accept", "term_sheet_id": "offer:sim-4"}
+
+
+def test_serial_play_case_wires_the_clock_from_the_wave_cap():
+    """The auto runner's serial path (one-supplier final cases, `play.play_case`) feeds the same guard:
+    time left from the wave cap, slowest round measured by the loop; no cap -> None -> guard off."""
+    import time as _time
+
+    from test_final_robust import CHEAP, FakeTable, one_supplier
+
+    from negotiator import play
+
+    class Probe(PackageAgent):
+        seen = []
+
+        def decide(self, case, threads):
+            Probe.seen.append((self.time_left_fn(), self.round_estimate_fn()))
+            sid = next(iter(threads))
+            return {"supplier_id": sid, "message": {"action": {"type": "walk_away"}}}
+
+    case = one_supplier()
+    play.play_case(FakeTable(case, {"sup:J": [msg("open", ("o:1", CHEAP))]}), case["case_id"], Probe())
+    assert Probe.seen == [(None, 0.0)]  # practice/sandbox: no cap, guard inactive
+    Probe.seen.clear()
+    cap = _time.time() + 300
+    play.play_case(FakeTable(case, {"sup:J": [msg("open", ("o:1", CHEAP))]}), case["case_id"], Probe(),
+                   deadline=lambda: cap)
+    (left, slowest), = Probe.seen
+    assert 290 < left <= 300 and slowest == 0.0
