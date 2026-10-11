@@ -1,0 +1,38 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4N5R1ZHK4FT8VQTRW3K6EAV",
+  "session_id": "01a128e2-b1c8-7552-a5f3-a2ed488fd1eb",
+  "strategy": "manual-commit",
+  "created_at": "2026-10-11T09:47:17.62901048Z",
+  "branch": "main",
+  "checkpoints_count": 5,
+  "files_touched": [
+    "tacto-negotiator/LAB_PLAYBOOK.md",
+    "tacto-negotiator/docs/06-final-runbook.md",
+    "tacto-negotiator/experiments/LOG.md",
+    "tacto-negotiator/src/negotiator/cli.py",
+    "tacto-negotiator/tests/test_final_robust.py",
+    "tacto-negotiator/tools/final_launch.sh"
+  ],
+  "agent": "Codex",
+  "model": "gpt-6.1-sol",
+  "turn_id": "ff0afdf123b7",
+  "checkpoint_transcript_start": 672,
+  "transcript_lines_at_start": 672,
+  "compact_transcript_start": 119,
+  "session_metrics": {
+    "turn_count": 5
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-10-11T09:47:17.584675405Z",
+    "agent_lines": 0,
+    "agent_removed": 0,
+    "human_added": 1228,
+    "human_modified": 611,
+    "human_removed": 0,
+    "total_committed": 1228,
+    "total_lines_changed": 1839,
+    "agent_percentage": 0,
+    "metric_version": 2
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4N5R1ZHK4FT8VQTRW3K6EAV",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 5,
+  "files_touched": [
+    "tacto-negotiator/LAB_PLAYBOOK.md",
+    "tacto-negotiator/docs/06-final-runbook.md",
+    "tacto-negotiator/experiments/LOG.md",
+    "tacto-negotiator/src/negotiator/cli.py",
+    "tacto-negotiator/tests/test_final_robust.py",
+    "tacto-negotiator/tools/final_launch.sh"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": ""
+    }
+  ]
+}
