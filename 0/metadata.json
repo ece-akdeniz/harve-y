@@ -1,0 +1,94 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4MV7NFG4QJ7MQ44C2C8ZXKC",
+  "session_id": "01a12863-b959-7e02-a5d4-6be0c4c46461",
+  "strategy": "manual-commit",
+  "created_at": "2026-10-11T06:43:38.633541Z",
+  "branch": "codex/harvey-intelligence-desk",
+  "checkpoints_count": 2,
+  "save_step_count": 2,
+  "files_touched": [],
+  "agent": "Codex",
+  "model": "gpt-5.6-sol",
+  "turn_id": "71bbb9892908",
+  "checkpoint_transcript_start": 7420,
+  "transcript_lines_at_start": 7420,
+  "compact_transcript_start": 971,
+  "token_usage": {
+    "input_tokens": 1182429,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 87810790,
+    "output_tokens": 189654,
+    "api_call_count": 589,
+    "subagent_tokens_complete": false
+  },
+  "skill_events_version": 1,
+  "skill_events": [
+    {
+      "id": "prompt-skill-codex-goal-2026-10-11T00:37:17.241787Z",
+      "event_type": "prompt_invocation",
+      "skill": {
+        "name": "goal"
+      },
+      "source": {
+        "agent": "codex",
+        "signal": "prompt_slash_command",
+        "confidence": "explicit"
+      },
+      "turn_id": "b82a7dd301af",
+      "timestamp": "2026-10-11T00:37:17.241787Z",
+      "native": {
+        "command": "/goal"
+      },
+      "collapse": {
+        "target": "user_message",
+        "label": "/goal",
+        "default_collapsed": true
+      }
+    }
+  ],
+  "session_metrics": {
+    "turn_count": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 328,
+      "user_lines_removed": 4,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0,
+      "user_added_per_file": {
+        "tacto-negotiator/configs/p02-fast-cost-target-run.json": 27,
+        "tacto-negotiator/configs/p02-fast-cost-target.json": 23,
+        "tacto-negotiator/configs/p10-long-opening-run.json": 55,
+        "tacto-negotiator/configs/p10-long-opening.json": 51,
+        "tacto-negotiator/configs/p18-rival-stack-run.json": 55,
+        "tacto-negotiator/configs/p18-rival-stack.json": 51,
+        "tacto-negotiator/src/negotiator/agent.py": 11,
+        "tacto-negotiator/src/negotiator/cost_target.py": 4,
+        "tacto-negotiator/src/negotiator/policy.py": 5,
+        "tacto-negotiator/tests/test_cost_target.py": 11,
+        "tacto-negotiator/tests/test_recent_index_window.py": 35
+      },
+      "user_removed_per_file": {
+        "tacto-negotiator/src/negotiator/agent.py": 1,
+        "tacto-negotiator/src/negotiator/cost_target.py": 2,
+        "tacto-negotiator/src/negotiator/policy.py": 1
+      }
+    },
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 328,
+      "agent_lines_removed": 4
+    },
+    {
+      "checkpoint_number": 3,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 328,
+      "agent_lines_removed": 4
+    }
+  ]
+}
