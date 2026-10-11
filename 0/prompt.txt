@@ -123,3 +123,17 @@ ok lets not over do this stuff we are in a time crunch, if we are done, lets mov
 
 ## My request:
 did we push
+
+---
+
+# Context from my IDE setup:
+
+## Open tabs:
+- 20261008-70650-S10.md: tacto-negotiator/data/release-sunday/correspondence/20261008-70650-S10.md
+- 20261001-70510-S5.md: tacto-negotiator/data/release-sunday/correspondence/20261001-70510-S5.md
+- 20261002-70720-S6.md: tacto-negotiator/data/release-sunday/correspondence/20261002-70720-S6.md
+- 20261005-70250-S2.md: tacto-negotiator/data/release-sunday/correspondence/20261005-70250-S2.md
+- news.csv: tacto-negotiator/data/release-sunday/data/news.csv
+
+## My request:
+lets merge this to main, or if it is going to be easier, discard main and make this the main
