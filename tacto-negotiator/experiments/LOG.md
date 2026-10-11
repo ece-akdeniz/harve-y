@@ -1940,3 +1940,14 @@ it is not a new score improvement or a fresh full-suite evaluation.
   the kit volume. Term sheets are code-identical (replay). If a cited, direct answer is what the supplier's
   "which volume" question is waiting for, the round-3/4 concession should be larger than in v3 → beat .7600.
   Config `configs/fresh-llm-run.json`, 1 session, `--runner auto`.
+- **P07 run `b345ac83` / session `08212a2168ec1008`: .7665 (baseline .7600, +.0065).** 5 rounds, 0 timeouts,
+  must-haves ok, 59 s. Deal 5.38 / 90 d / 24 m vs v3 5.39. Price path identical to v3 (5.74 → 5.59 → 5.49 →
+  5.42 → final 5.38 vs 5.39). LLM: traits 3.0 s; 3 answers 3.5 / 6.9 / 3.9 s, 0 fallbacks. The only body that
+  differed from v3 was round 3, where the supplier asked "Which figures is that based on? … Which volume can you
+  commit to?". Our reply cited the kit volume plus fc:360012@2026-09 / fc:360030@2026-09, then the template.
+  Backoffice round 3: fresh-llm "Read the buyer's e-mail: … term sheet and … cited facts to check" vs v3
+  "… term sheet". The supplier checked the facts and replied "The volume data you provided was already fully
+  factored into our previous calculations, limiting our room for further adjustments". Round 3 still landed at
+  5.42; the final was "our pricing committee has approved only a marginal further reduction" (5.38).
+  Observation: +1 cent on the final. The answer was read as cited facts but not as new information. This is
+  within one-cent noise of an LLM supplier, so it needs the repeat before any claim.
