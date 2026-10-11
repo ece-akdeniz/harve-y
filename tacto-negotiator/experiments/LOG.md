@@ -1925,3 +1925,18 @@ it is not a new score improvement or a fresh full-suite evaluation.
   unanswered, which may move the 31.80 final down. Decisions are code-identical to v3 (replay), and the
   supplier replied identically to identical messages in 6b162c54, so if it asks no direct question the
   expected result is exactly .6551. Config `configs/fresh-llm-run.json`, 1 session, `--runner auto`.
+- **P10 run `584f6bc7` / session `bf8830937e31634d`: .6551 (= baseline, not a win).** 3 rounds, 0 timeouts,
+  must-haves ok. Deal 31.80 / 56 d / 23,400 / 24 m. Messages and term sheets byte-identical to v3 (6b162c54).
+  The supplier never asked a question, so `model_answers` never fired; LLM = 1 traits call 2.6 s at case start
+  (cached thereafter), 0 answer calls. Supplier moves: 32.20 → 32.00 ("reflecting the adjusted volume and
+  contract duration") → 31.80 final_offer ("best effort under the current parameters"), accepted (not countered).
+  Backoffice: round 1/2 "Read the buyer's e-mail: … term sheet; we answer with our offer" → "My call: counter",
+  then final. The supplier reacts to the term sheet (volume+24 m bought 0.20), not to e-mail arguments; the
+  "firm, long-term commitments" lever would need a different term (36 m / binding volume) in the sheet, which is
+  a code decision, not an answer. Decision: P10 not repeated; next P07 ×1.
+- **P07 hypothesis (before the run)**: in 6b162c54 the P07 supplier asked "Which volume can you commit to?" in
+  rounds 2–4 (plus which figures the volume rests on). v3 repeats the bundle template; fresh-llm keeps the
+  template and adds a direct answer citing the public forecasts (fc:360012@2026-09, fc:360030@2026-09) behind
+  the kit volume. Term sheets are code-identical (replay). If a cited, direct answer is what the supplier's
+  "which volume" question is waiting for, the round-3/4 concession should be larger than in v3 → beat .7600.
+  Config `configs/fresh-llm-run.json`, 1 session, `--runner auto`.
