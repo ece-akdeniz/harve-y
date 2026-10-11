@@ -12,6 +12,13 @@ globalThis.HarveyWorkspace = (() => {
   const url = (s,n) => `#supplier/${encodeURIComponent(s.key)}/${encodeURIComponent(n.id)}`;
   const issue = n => n.stale || ['failed','interrupted'].includes(n.status) || n.must_haves_ok === false || (finite(n.timeouts) && n.timeouts > 0);
   const status = n => n.stale ? 'Update overdue' : n.must_haves_ok === false ? 'Requirements failed' : label(n.status);
+  function reviewReason(n) {
+    if (n.stale) return {label:'Update overdue', copy:'The source runner has not uploaded for over two minutes. Check the session state before acting.', priority:0};
+    if (n.must_haves_ok === false) return {label:'Requirements failed', copy:'The recorded outcome missed a mandatory requirement. Inspect the terms and recovery evidence.', priority:1};
+    if (finite(n.timeouts) && n.timeouts > 0) return {label:`${n.timeouts} timeout${n.timeouts === 1 ? '' : 's'} recorded`, copy:'Inspect the conversation and recovery evidence before reusing this result.', priority:2};
+    if (['failed','interrupted'].includes(n.status)) return {label:label(n.status), copy:'Inspect the original failure and any recovered outcome before planning another move.', priority:3};
+    return {label:'Review recorded outcome', copy:'Read the conversation and recorded evidence before applying this result.', priority:4};
+  }
   function badge(text) { return el('span', text, 'badge'); }
   function panel(title, copy) {const n=el('section',null,'workspace-panel'); n.append(el('h3',title)); if(copy)n.append(el('p',copy)); return n;}
   function fields(value) {
@@ -35,7 +42,7 @@ globalThis.HarveyWorkspace = (() => {
     HarveyKnowledge.reset();
     state.request++; state.signedIn=false;state.data=null;state.detail=null;state.signature='';
     $('shell').hidden=true;$('sign-in').hidden=false;
-    for(const id of ['supplier-content','supplier-list','attention','activity','metrics','supplier-summary','negotiation','knowledge-root'])$(id).replaceChildren();
+    for(const id of ['supplier-content','supplier-list','attention','activity','decision-brief','operational-strip','supplier-summary','negotiation','knowledge-root'])$(id).replaceChildren();
     $('supplier-name').textContent='';$('supplier-meta').textContent='';
   }
   async function api(path,options={}) {
@@ -45,23 +52,72 @@ globalThis.HarveyWorkspace = (() => {
     return response.json();
   }
   function activity(s,n,attention=false) {
-    const a=el('a',null,'activity-row');a.href=url(s,n);
-    a.append(el('strong',s.name),el('p',`${n.case_id} · ${status(n)} · ${date(n.updated_at)}`));
-    if(attention)a.append(el('p',n.stale?'The source runner has not uploaded for over two minutes. Check its state before taking action.':n.must_haves_ok===false?'The recorded result failed mandatory requirements.':n.timeouts>0?`${n.timeouts} recorded timeouts. Inspect the conversation and recovery evidence.`:'Inspect the original failure and any recovered outcome.'));
+    const a=el('a',null,attention ? 'activity-row triage-row' : 'activity-row evidence-row');a.href=url(s,n);
+    const reason=reviewReason(n),meta=el('div',null,'activity-meta');
+    meta.append(badge(attention ? reason.label : status(n)),el('span',`${n.case_id} · ${date(n.updated_at)}`));
+    a.append(el('strong',s.name),meta);
+    a.append(el('p',attention ? reason.copy : n.status==='completed' ? 'Completed negotiation with saved conversation and outcome evidence.' : `${status(n)} negotiation with saved conversation evidence.`));
+    a.append(el('span',attention ? 'Open review →' : 'Open evidence →','row-action'));
     return a;
   }
+  function emptyState(title, copy) {
+    const box=el('div',null,'overview-empty');box.append(el('strong',title),el('p',copy));return box;
+  }
+  function overviewLoading() {
+    const placeholder=className=>el('div',null,`overview-skeleton ${className}`);
+    $('decision-brief').replaceChildren(placeholder('brief-skeleton'));
+    $('operational-strip').replaceChildren(placeholder('strip-skeleton'));
+    $('attention').replaceChildren(placeholder('rows-skeleton'));
+    $('activity').replaceChildren(placeholder('rows-skeleton'));
+    $('overview-status').textContent='Loading negotiation intelligence.';
+  }
+  function decisionBrief(d, rows, attention) {
+    const s=d.summary,root=$('decision-brief');root.replaceChildren();
+    const value=el('div',null,'value-story');
+    value.append(el('span','Simulated cost reduction','value-label'),el('strong',finite(s.savings_eur)?money(s.savings_eur):'Not available','value-amount'));
+    const coverage=finite(s.savings_eur)
+      ? `${s.savings_covered} of ${s.savings_cases} latest cases have comparable valid outcomes${finite(s.savings_pct)?` · ${number(s.savings_pct)}% of recorded opening cost`:''}.`
+      : `No comparable valid outcome is available across ${s.savings_cases} latest case${s.savings_cases === 1 ? '' : 's'}.`;
+    value.append(el('p',coverage,'value-context'));
+    const evidence=el('details',null,'brief-evidence');evidence.append(el('summary','View calculation basis'),el('p',d.savings_basis));value.append(evidence);
+    const next=el('aside',null,'next-review');
+    if(attention.length) {
+      const {s:supplier,n}=attention[0],reason=reviewReason(n);
+      next.append(el('span','Review next','next-label'),badge(reason.label),el('h2',supplier.name),el('p',`${n.case_id} · ${reason.copy}`));
+      const link=el('a','Open negotiation →','button primary');link.href=url(supplier,n);next.append(link);
+    } else if(rows.length) {
+      const {s:supplier,n}=rows[0];
+      next.append(el('span','Review next','next-label'),el('h2',supplier.name),el('p',`${n.case_id} is the latest recorded negotiation. Review its evidence before the next run.`));
+      const link=el('a','Open latest evidence →','button primary');link.href=url(supplier,n);next.append(link);
+    } else {
+      next.append(el('span','Review next','next-label'),el('h2','Waiting for evidence'),el('p','Run a tracked negotiation to create the first supplier record for this environment.'));
+    }
+    root.append(value,next);
+  }
+  function operationalStrip(summary, attentionCount) {
+    const root=$('operational-strip');root.replaceChildren();
+    const entries=[
+      ['Active sessions',summary.running,'Sessions still running'],
+      ['Supplier coverage',summary.suppliers,'Suppliers with saved evidence'],
+      ['Needs review',attentionCount,attentionCount ? 'Recorded issues require a check' : 'No recorded issues'],
+    ];
+    for(const [name,value,copy] of entries) {const item=el('div',null,'operational-item');item.append(el('span',name),el('strong',value),el('small',copy));root.append(item);}
+  }
   function overview() {
-    const d=state.data,s=d.summary,root=$('metrics');root.replaceChildren();
-    const entries=[['SIMULATED COST REDUCTION',finite(s.savings_eur)?money(s.savings_eur):'Unavailable',`${s.savings_covered} / ${s.savings_cases} latest cases with comparable valid outcomes${finite(s.savings_pct)?` · ${number(s.savings_pct)}%`:''}`],['SUPPLIERS',s.suppliers,'With saved negotiation evidence'],['SESSIONS',s.sessions,'Deduplicated recorded sessions'],['MARKED RUNNING',s.running,'Check update time before acting']];
-    for(const [title,value,foot] of entries){const card=el('article');card.append(el('span',title),el('strong',value),el('small',foot));root.append(card);}
+    const d=state.data,s=d.summary;
     $('savings-basis').textContent=d.savings_basis;
     const rows=d.suppliers.flatMap(s=>s.negotiations.map(n=>({s,n}))).sort((a,b)=>b.n.updated_at.localeCompare(a.n.updated_at));
-    const attention=rows.filter(({n})=>issue(n));$('attention').replaceChildren();
-    attention.slice(0,8).forEach(({s,n})=>$('attention').append(activity(s,n,true)));
-    if(!attention.length)$('attention').append(el('p','No recorded failures, overdue updates or requirement violations in this environment.','notice'));
-    if(attention.length>8)$('attention').append(el('p',`Showing 8 of ${attention.length} supplier threads needing review. Filter the directory to see all.`,'table-note'));
-    $('activity').replaceChildren();rows.slice(0,8).forEach(({s,n})=>$('activity').append(activity(s,n)));
-    if(!rows.length)$('activity').append(el('p','No saved supplier conversations in this environment. Choose another environment or wait for a tracked run to upload.','notice'));
+    const attention=rows.filter(({n})=>issue(n)).sort((a,b)=>reviewReason(a.n).priority-reviewReason(b.n).priority || b.n.updated_at.localeCompare(a.n.updated_at));
+    decisionBrief(d,rows,attention);operationalStrip(s,attention.length);
+    $('overview-status').textContent=`${attention.length} negotiation${attention.length === 1 ? '' : 's'} need${attention.length === 1 ? 's' : ''} review. ${s.suppliers} suppliers have saved evidence.`;
+    $('attention').replaceChildren();
+    attention.slice(0,6).forEach(({s,n})=>$('attention').append(activity(s,n,true)));
+    if(!attention.length)$('attention').append(emptyState('No negotiations need review','There are no recorded failures, overdue updates, timeouts, or requirement violations in this environment.'));
+    if(attention.length>6)$('attention').append(el('p',`Showing 6 of ${attention.length} supplier threads needing review. Open the supplier directory to see all.`, 'table-note'));
+    const evidence=rows.filter(({n})=>!issue(n));$('activity').replaceChildren();
+    evidence.slice(0,6).forEach(({s,n})=>$('activity').append(activity(s,n)));
+    if(!rows.length)$('activity').append(emptyState('No evidence captured yet','Run a tracked negotiation and its conversation, outcome, and source context will appear here.'));
+    else if(!evidence.length)$('activity').append(emptyState('Evidence is waiting for review','Resolve the listed issues before treating these negotiation records as learnings.'));
   }
   function directory() {
     if(!state.data)return;
@@ -158,8 +214,8 @@ globalThis.HarveyWorkspace = (() => {
     const r=route(),view=r.view==='supplier'?'supplier':r.view==='suppliers'?'suppliers':r.view==='knowledge'?'knowledge':'overview';
     for(const v of ['overview','suppliers','supplier','knowledge'])$(v+'-view').hidden=v!==view;
     $('breadcrumb').textContent=view==='overview'?'Overview':view==='knowledge'?'Shared knowledge':'Suppliers';
-    $('page-title').textContent=view==='overview'?'Your negotiation overview':view==='suppliers'?'Your suppliers':view==='knowledge'?'Supplier intelligence':'Supplier workspace';
-    $('page-subtitle').textContent=view==='overview'?'Track Harvey’s AI negotiations, review results and spot what needs attention.':view==='suppliers'?'Choose a supplier to review conversations, offers and results.':view==='knowledge'?'Choose a supplier. Read the brief. Prepare your next negotiation.':'Review the latest exchange or open Shared knowledge for the full relationship.';
+    $('page-title').textContent=view==='overview'?'Negotiation Intelligence Lab':view==='suppliers'?'Your suppliers':view==='knowledge'?'Supplier intelligence':'Supplier workspace';
+    $('page-subtitle').textContent=view==='overview'?'See what Harvey learned, where value changed, and what deserves review next.':view==='suppliers'?'Choose a supplier to review conversations, offers and results.':view==='knowledge'?'Choose a supplier. Read the brief. Prepare your next negotiation.':'Review the latest exchange or open Shared knowledge for the full relationship.';
     for(const v of ['overview','suppliers','knowledge']){$('nav-'+v).classList.toggle('active',v===(view==='supplier'?'suppliers':view));$('nav-'+v).setAttribute('aria-current',v===(view==='supplier'?'suppliers':view)?'page':'false');}
   }
   async function refresh() {
@@ -200,7 +256,7 @@ globalThis.HarveyWorkspace = (() => {
     $('refresh').addEventListener('click',()=>{HarveyKnowledge.reset();refresh();});
     $('environment').addEventListener('change',()=>{
       HarveyKnowledge.reset();state.signature='';state.data=null;state.detail=null;
-      for(const id of ['supplier-list','metrics','attention','activity'])$(id).replaceChildren();
+      $('supplier-list').replaceChildren();overviewLoading();
       $('supplier-count').textContent='Loading suppliers…';
       location.hash='overview';refresh();
     });
