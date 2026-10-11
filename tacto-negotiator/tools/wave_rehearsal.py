@@ -33,6 +33,7 @@ from arena_kit.sim import Fail, Sim
 
 from negotiator.agent import configured_agent
 from negotiator.client import UncertainOutcome
+from negotiator.prewarm import prewarm_async, prewarm_case_async
 from negotiator.runner import CaseRunner, Clock
 from negotiator.state import Journal
 
@@ -126,23 +127,37 @@ def facts():
 
 
 async def play_wave(label, cfg, cases, known, *, delay_s, guard, clock, journal_dir, compression=True,
-                    trace_out=None):
+                    prewarm=True, trace_out=None):
     trace = Trace()
-    arena = SimArena(cases, known, clock, delay_s)
+    # As hosted: the listing carries `hosted`, the opened session's case does not (context cache key).
+    arena = SimArena({k: {f: v for f, v in c.items() if f != "hosted"} for k, c in cases.items()}, known, clock,
+                     delay_s)
     t0 = clock.time()
     cap = t0 + WAVE_S
 
-    async def one(case_id):
+    def make_agent():
         policy = dict(cfg["policy_config"])
         # Package advice (an LLM call) is serial-runner only; the async wave runner rejects it, and the
         # rehearsal is offline. Dropped here; everything else in the policy is live.
         policy.pop("package_advice_types", None)
+        policy["prewarm"] = bool(prewarm)
         agent = configured_agent(policy, tracer=trace, estimates=cfg.get("estimates", {}),
                                  meso=cfg.get("meso", False))
         if not guard:
             agent.time_guard_rounds = 0
         agent.compressed_schedule = compression
-        variant = f"{label}-guard{'on' if guard else 'off'}-comp{'on' if compression else 'off'}"
+        return agent
+
+    if prewarm:  # as `runner.run_waves`: once, before the wave's cases are polled/started
+        await prewarm_async(make_agent, tracer=trace)
+    wave_t0 = clock.time()
+
+    async def one(case_id):
+        agent = make_agent()
+        if prewarm:  # as `runner.play_case`: per case, in a thread, before the session opens
+            await prewarm_case_async(agent, cases[case_id], tracer=trace)
+        variant = (f"{label}-guard{'on' if guard else 'off'}-comp{'on' if compression else 'off'}"
+                   f"-prewarm{'on' if prewarm else 'off'}")
         runner = CaseRunner(arena, case_id, agent, Journal(Path(journal_dir) / f"{variant}-{case_id[5:]}.jsonl"),
                             case=cases[case_id], deadline=lambda: cap, clock=clock, tracer=trace)
         try:
@@ -151,6 +166,7 @@ async def play_wave(label, cfg, cases, known, *, delay_s, guard, clock, journal_
             return {"error": f"{type(exc).__name__}: {exc}", "session_id": runner.st.session_id if runner.st else None}
 
     results = dict(zip(cases, await asyncio.gather(*(one(c) for c in cases)), strict=True))
+    warm = [r for r in trace.rows if r["event"] == "prewarm"]
     rows = []
     for case_id, result in results.items():
         sid = result.get("session_id")
@@ -163,9 +179,15 @@ async def play_wave(label, cfg, cases, known, *, delay_s, guard, clock, journal_
         end = next((r for r in trace.rows if r["event"] == "case_end" and r.get("case") == case_id), {})
         comps = [r for r in trace.rows if r["event"] == "decision" and r.get("kind") == "compression"
                  and r.get("case") == case_id]
+        warm_case = next((r for r in trace.rows if r["event"] == "prewarm_case" and r.get("case") == case_id), None)
+        firsts = [r["decide_s"] for r in rounds if r.get("round") == 1]
         rows.append({
-            "config": label, "guard": guard, "compression": compression, "delay_s": delay_s, "case": case_id,
-            "type": cases[case_id]["type"],
+            "config": label, "guard": guard, "compression": compression, "prewarm": prewarm, "delay_s": delay_s,
+            "case": case_id, "type": cases[case_id]["type"],
+            "first_decide_s": max(firsts) if firsts else None,
+            "prewarm_case_s": warm_case.get("seconds") if warm_case else None,
+            "prewarm_s": warm[0].get("seconds") if warm else None,
+            "wave_start_offset_s": round(wave_t0 - t0, 2),
             "compression_ratio": max([c.get("ratio") or 0 for c in comps] or [0]),
             "compression_rounds": len(comps),
             "rounds_available": [c.get("rounds_available") for c in comps],
@@ -187,7 +209,8 @@ async def play_wave(label, cfg, cases, known, *, delay_s, guard, clock, journal_
         with open(trace_out, "a") as f:
             for r in trace.rows:
                 f.write(json.dumps({"wave": f"{label} guard={'on' if guard else 'off'} "
-                                            f"compression={'on' if compression else 'off'}", **r}, default=str) + "\n")
+                                            f"compression={'on' if compression else 'off'} "
+                                            f"prewarm={'on' if prewarm else 'off'}", **r}, default=str) + "\n")
     return rows
 
 
@@ -203,16 +226,19 @@ def _runs(actions):
 
 
 def table(rows):
-    head = ("config", "guard", "comp", "delay", "case", "type", "deal", "score", "end_reason", "case_s", "rounds",
-            "slowest_round_s", "guard_fired", "guard_actions", "comp_ratio")
+    head = ("config", "guard", "comp", "prewarm", "delay", "case", "type", "deal", "score", "end_reason", "case_s",
+            "rounds", "slowest_round_s", "first_decide_s", "prewarm_case_s", "guard_fired", "guard_actions",
+            "comp_ratio")
     out = [" | ".join(head)]
     for r in rows:
         rounds = "/".join(str(t["rounds"]) for t in r["threads"].values())
         slow = max([t["slowest_round_s"] for t in r["threads"].values()] or [0])
         out.append(" | ".join(str(x) for x in (
-            r["config"], "on" if r["guard"] else "off", "on" if r["compression"] else "off", r["delay_s"], r["case"],
+            r["config"], "on" if r["guard"] else "off", "on" if r["compression"] else "off",
+            "on" if r["prewarm"] else "off", r["delay_s"], r["case"],
             r["type"], r["deal"], None if r["score"] is None else round(r["score"], 3), r["end_reason"] or r["error"],
-            r["case_s"], rounds, slow, r["guard_fired"], ",".join(_runs(r["guard_actions"])),
+            r["case_s"], rounds, slow, r["first_decide_s"], r["prewarm_case_s"], r["guard_fired"],
+            ",".join(_runs(r["guard_actions"])),
             round(r["compression_ratio"], 2) if r["compression_ratio"] else "-")))
     return "\n".join(out)
 
@@ -227,15 +253,20 @@ async def main_async(args):
         cfg, label = load_config(path), Path(path).stem
         for guard in {"on": [True], "off": [False], "both": [True, False]}[args.guard]:
             for comp in {"on": [True], "off": [False], "both": [True, False]}[args.compression]:
-                # One wave at a time: a wave's cases run in parallel (as hosted), variants do not share CPU.
-                rows += await play_wave(label, cfg, cases, known, delay_s=args.delay, guard=guard,
-                                        clock=ScaledClock(args.scale), journal_dir=journal_dir, compression=comp,
-                                        trace_out=args.trace_out)
-                print(f"wave done: {label} guard={'on' if guard else 'off'} compression={'on' if comp else 'off'}",
-                      file=sys.stderr, flush=True)
+                for prewarm in {"on": [True], "off": [False], "both": [True, False]}[args.prewarm]:
+                    # One wave at a time: a wave's cases run in parallel (as hosted), variants do not share CPU.
+                    rows += await play_wave(label, cfg, cases, known, delay_s=args.delay, guard=guard,
+                                            clock=ScaledClock(args.scale), journal_dir=journal_dir,
+                                            compression=comp, prewarm=prewarm, trace_out=args.trace_out)
+                    print(f"wave done: {label} guard={'on' if guard else 'off'} "
+                          f"compression={'on' if comp else 'off'} prewarm={'on' if prewarm else 'off'}",
+                          file=sys.stderr, flush=True)
     print(table(rows))
     slowest_decide = max(t["slowest_decide_s"] for r in rows for t in r["threads"].values())
     print(f"\nagent decision time: slowest {slowest_decide} s")
+    first = max((r["first_decide_s"] or 0) for r in rows)
+    warm = [r["prewarm_s"] for r in rows if r["prewarm_s"] is not None]
+    print(f"first decision per case: slowest {first} s; package prewarm {warm[0] if warm else None} s")
     worst = max(rows, key=lambda r: r["case_s"] or 0)
     print(f"\nworst-case thread/case duration: {worst['case_s']} s ({worst['config']} guard="
           f"{'on' if worst['guard'] else 'off'} {worst['case']}); wave cap {WAVE_S:.0f} s")
@@ -255,8 +286,10 @@ def main(argv=None):
     ap.add_argument("--delay", type=float, default=0.0, help="injected supplier reply delay, seconds")
     ap.add_argument("--scale", type=float, default=1.0, help="clock compression (1 = real wall clock)")
     ap.add_argument("--guard", choices=["on", "off", "both"], default="on", help="agent wave time guard")
-    ap.add_argument("--compression", choices=["on", "off", "both"], default="on",
-                    help="agent time-compressed schedule (policy `compressed_schedule`)")
+    ap.add_argument("--compression", choices=["on", "off", "both"], default="off",
+                    help="agent time-compressed schedule (policy `compressed_schedule`; default off, as in v4)")
+    ap.add_argument("--prewarm", choices=["on", "off", "both"], default="on",
+                    help="pre-warm the package/dossiers before the wave and each case before it opens")
     ap.add_argument("--case", action="append", help="restrict to these case ids")
     ap.add_argument("--trace-out", help="append every agent/runner trace row of every wave here (JSONL)")
     ap.add_argument("--out", help="JSON output path")

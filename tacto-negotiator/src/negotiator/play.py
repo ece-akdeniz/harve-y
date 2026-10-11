@@ -189,6 +189,9 @@ def agent_estimates(agent, case):
 def play_case(table, case_id, agent, deadline=None):
     """Play one case to its end. `deadline` (time.time(), or a function returning it): a Live Final
     wave's cap - shortly before it, `close_decision` closes the case."""
+    from .prewarm import prewarm_case
+
+    prewarm_case(agent, getattr(table, "case", None))  # per-case caches before the session opens
     case, threads = table.open(case_id)
     if (tracer := getattr(agent, "tracer", None)) and getattr(table, "session_id", None):
         base = os.environ.get("ARENA_URL", "").rstrip("/")
@@ -285,6 +288,9 @@ def play_waves(client, new_agent, waves=5, parallel=10, poll=5.0, sleep=time.sle
             log.exception("%s failed", case["case_id"])
             return e
 
+    from .prewarm import prewarm
+
+    prewarm(agent=new_agent())  # package, dossiers, facts: before the first poll
     with ThreadPoolExecutor(max_workers=parallel) as pool:
         while len(closed) < waves or not all(f.done() for f in started.values()):
             try:

@@ -106,6 +106,12 @@ class PolicyConfig:
     # reached by round rounds_available - 1 (agent.PackageAgent.compression). Without a cap neither acts.
     time_guard: bool = True
     compressed_schedule: bool = False
+    # Runtime (decision-neutral): load the data package, every supplier dossier, facts.json and the
+    # package file scan once at launch, before the wave-case polling starts, and build each case's
+    # evidence context / estimates / traits in parallel before its session opens (`negotiator.prewarm`).
+    # Same objects and values as the lazy first-decision loads; only the first decision gets faster.
+    # Default on: with ten cases starting at once the lazy loads cost 11-27 s of the first 60 s window.
+    prewarm: bool = True
 
     @classmethod
     def load(cls, path):
@@ -145,7 +151,7 @@ class PolicyConfig:
                   "alt_clause_counter", "cost_breakdown_request"):
             if type(d.get(k, False)) is not bool:
                 raise ValueError(f"{k} must be boolean")
-        for k in ("time_guard", "compressed_schedule"):
+        for k in ("time_guard", "compressed_schedule", "prewarm"):
             if type(d.get(k, True)) is not bool:
                 raise ValueError(f"{k} must be boolean")
         post = d.get("cost_target_posterior", 0.0)
