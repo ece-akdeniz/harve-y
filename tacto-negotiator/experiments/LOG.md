@@ -1873,3 +1873,8 @@ it is not a new score improvement or a fresh full-suite evaluation.
   remain unchanged. No hosted experiments, provider calls, quota or score claim.
 - Local/live browser verification and full required checks are recorded in the shared
   handoff and `reviews/supplier-simple-20261011` evidence outside this checkout.
+- Integrated current main `8e35fcb`, preserving prioritized review and evidence separation.
+  Removed the onboarding section at the user's request. Validation: 852 Python tests,
+  full Ruff, 36 existing frontend checks and the overview DOM check passed. Fixed the
+  latter's missing browser globals in its test harness. Browser flows passed on desktop
+  and mobile, including environment switching and logout.

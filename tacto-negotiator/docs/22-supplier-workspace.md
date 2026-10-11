@@ -153,5 +153,6 @@ available under Data settings / Data sources. Case-specific memory retains its c
 Chat history uses compact case/outcome rows, a two-change recap and shorter message
 previews. Full messages and offer details are expandable, and evidence links still open
 the exact message. Overview and supplier cards use fewer rows and shorter labels.
-Environment controls and onboarding help are tucked away; content uses larger body text.
+Environment controls are tucked away, onboarding help is removed at the user’s request,
+and content uses larger body text.
 No API, reporting arithmetic, evidence scope or runtime negotiation behavior changed.
