@@ -1,0 +1,46 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4ME6ND70RHSFMX3T79JEBXH",
+  "session_id": "d9a1be87-133f-4919-94ec-c2b6de20b1d5",
+  "strategy": "manual-commit",
+  "created_at": "2026-10-11T02:55:51.250035Z",
+  "branch": "codex/v5-breakthrough",
+  "checkpoints_count": 1,
+  "save_step_count": 1,
+  "files_touched": [
+    "tacto-negotiator/src/negotiator/agent.py",
+    "tacto-negotiator/src/negotiator/policy.py"
+  ],
+  "agent": "Cursor",
+  "model": "unknown",
+  "turn_id": "14e67094d1a3",
+  "checkpoint_transcript_start": 108,
+  "transcript_lines_at_start": 108,
+  "compact_transcript_start": 15,
+  "session_metrics": {
+    "turn_count": 5,
+    "context_tokens": 281472,
+    "context_window_size": 300000
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-10-11T02:55:51.236213Z",
+    "agent_lines": 0,
+    "agent_removed": 2,
+    "human_added": 1090,
+    "human_modified": 23,
+    "human_removed": 0,
+    "total_committed": 1106,
+    "total_lines_changed": 1117,
+    "agent_percentage": 0.17905102954341987,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    }
+  ]
+}
