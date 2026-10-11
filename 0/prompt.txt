@@ -58,3 +58,11 @@ Push back if you think the plan is wrong. Go now; the code freeze is Sun 12:00.
 ---
 
 Continue
+
+---
+
+Good. Two things, then keep going without waiting for me:
+1. Before building the explorer, append your Phase 1 shortlist to /Users/sametdegirmenci/Downloads/ysamet-coord/ACKS.md: per case (P08/P18/P05/P02), the 2–3 picked strategies, one line each with the evidence (transcript or back-office quote). Also read /Users/sametdegirmenci/Downloads/ysamet-coord/COORDINATION.md items A1–A5 and B1–B3.
+2. Then build the explorer and run your sessions (cap 12) autonomously. I'm asleep, so don't stop to ask for approval. After EVERY hosted run, append one line to ACKS.md: case, score, run id, what moved the supplier (quote). Repeat any run that beats our best once.
+Known facts to use: P18 supplier named volume commitment as its only price lever (volume is fixed at 23,700/yr, so state that truthfully as binding); the P05 late 14-day payment chip works (.8136 ×2); a P02 opening at 361.09 scored .735 once (vs .7115).
+When you finish or hit the cap, do item [A6]: commit and push, write the handoff block to ACKS.md, and stop.
