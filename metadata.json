@@ -1,0 +1,31 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4MKPRQ5JKBFRBXX8AXD22ER",
+  "strategy": "manual-commit",
+  "branch": "codex/v5-intelligence",
+  "checkpoints_count": 5,
+  "files_touched": [
+    "tacto-negotiator/configs/score-push-v5-intelligence.json",
+    "tacto-negotiator/docs/v5-intelligence-architecture-2026-10-11.md",
+    "tacto-negotiator/docs/v5-intelligence-implementation-2026-10-11.md",
+    "tacto-negotiator/docs/v5-intelligence-p10-trial-2026-10-11.md",
+    "tacto-negotiator/docs/v5-intelligence-supplier-trade-repair-2026-10-11.md",
+    "tacto-negotiator/experiments/LOG.md",
+    "tacto-negotiator/src/negotiator/advice.py",
+    "tacto-negotiator/src/negotiator/agent.py",
+    "tacto-negotiator/src/negotiator/package_advisor.py",
+    "tacto-negotiator/src/negotiator/play.py",
+    "tacto-negotiator/src/negotiator/policy.py",
+    "tacto-negotiator/tests/fixtures/p10-capacity-advice-repair.json",
+    "tacto-negotiator/tests/test_capacity_advice.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": ""
+    }
+  ]
+}
