@@ -19,8 +19,9 @@ from .play import play_all, play_case, play_waves, run_config
 from .runner import run_async, runtime_config
 from .trace import Tracer
 
-# Live Final default policy: the measured score-push v3 config (sandbox D01 .9192, D02 .5239).
-FINAL_POLICY = Path(__file__).resolve().parents[2] / "configs" / "score-push-v3.json"
+# Live Final default policy: the measured score-push v5 config (v4 + raw_material fixed-volume ladder;
+# live-confirmed P08 .7036 / P18 .5870, byte-identical to v4 on every other practice case).
+FINAL_POLICY = Path(__file__).resolve().parents[2] / "configs" / "score-push-v5.json"
 
 
 def _run_dir() -> Path:
@@ -51,7 +52,7 @@ def main(argv=None) -> int:
     r.add_argument("--waves", type=int, default=5)
     r.add_argument("-v", "--verbose", action="store_true")
     for sp in (p, r):
-        sp.add_argument("--policy-config", help="versioned JSON experiment policy (final default: v3)")
+        sp.add_argument("--policy-config", help="versioned JSON experiment policy (final default: v5)")
         sp.add_argument("--memory-file", type=Path, help="saved immutable memory snapshot JSON (at most 64 KiB)")
         sp.add_argument(
             "--runner", choices=["serial", "async", "auto"], default=None,
@@ -77,7 +78,7 @@ def main(argv=None) -> int:
     if args.runner is None:
         args.runner = "auto" if final else "serial"
     if final and not args.policy_config:
-        args.policy_config = str(FINAL_POLICY)  # the measured score-push v3 policy
+        args.policy_config = str(FINAL_POLICY)  # the measured score-push v5 policy
     logging.basicConfig(
         level=logging.INFO if args.verbose else logging.WARNING, format="%(asctime)s %(message)s", datefmt="%H:%M:%S"
     )

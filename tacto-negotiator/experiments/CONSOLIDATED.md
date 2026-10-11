@@ -147,33 +147,42 @@ Both attempts `completed`, run `completed`, practice quota untouched (298 left, 
 
 ## 5. Ten-case run command (NOT run)
 
+> **Superseded on `codex/release-v5`** (`experiments/RELEASE-v5.md`): the ten-case confirmation and the
+> Live Final now use `configs/score-push-v5.json` (= v4 + raw_material fixed-volume ladder), and
+> `FINAL_POLICY` in `cli.py` points at v5, so `negotiator run --set final` needs no `--policy-config`.
+> The v4 command below is kept for the record; the live command is the v5 one that follows it.
+
 Same launch pattern as the lane runs (`fresh-p05-fp-s1`, `fresh-p18-h1h2-s1`) and the v2 ten-case
 confirmation (`score-push-final-confirm`): tracked `lab run`, `configured_agent`, `--runner auto`
 (rfq → async, single-supplier → serial), inline JSON config, one repetition, max 10 sessions.
 
 ```bash
-cd /Users/sametdegirmenci/Downloads/ysamet-consolidated/tacto-negotiator
+cd /Users/sametdegirmenci/Downloads/ysamet-release/tacto-negotiator
 export ARENA_DATA=/Users/sametdegirmenci/Downloads/ysamet/tacto-negotiator/data/package
 mkdir -p experiments/runs
 caffeinate -dimsu uv run --locked negotiator lab run \
-  --name score-push-v4-confirm \
-  --hypothesis "codex/consolidated + score-push-v4 (claim_pacing per-kind, rfq_fast_payment_reanchor): ten-case practice mean >= .7619 projected, P05 .8136, P18 .5325, others = v3" \
+  --name score-push-v5-confirm \
+  --hypothesis "codex/release-v5 + score-push-v5 (v4 + raw_material fixed-volume ladder, wave guard, prewarm): ten-case practice mean >= .7726 projected, P08 .7036, P18 .5870, others = v4" \
   --author samet \
   --agent negotiator.agent:configured_agent --runner auto \
-  --config "$(cat configs/score-push-v4-run.json)" \
+  --config "$(cat configs/score-push-v5-run.json)" \
   --cases case:P01 case:P02 case:P03 case:P04 case:P05 case:P07 case:P08 case:P10 case:P11 case:P18 \
   --repetitions 1 --max-sessions 10 --environment practice \
-  2>&1 | tee experiments/runs/score-push-v4-confirm.log
+  2>&1 | tee experiments/runs/score-push-v5-confirm.log
 ```
+
+Historical v4 form (`codex/consolidated`, `7dba7c0`): same command with `ysamet-consolidated`,
+`--name score-push-v4-confirm`, `--config "$(cat configs/score-push-v4-run.json)"` and the v4 hypothesis
+("ten-case practice mean >= .7619 projected, P05 .8136, P18 .5325, others = v3").
 
 Run it in the foreground of a long-blocking call (LOG.md 1026: detached `lab run` lost its coordinator).
 Working tree must be clean (no `--allow-dirty`), otherwise provenance records a patch. To record the
-decision trace add `"trace_dir": "experiments/traces/score-push-v4-confirm"` to the inline config.
-Expected from the replay: P01/P02/P03/P04/P07/P08/P10/P11 reproduce v3 (.9602/.5993+/.8998/.8604/
-.7600/.5930/.6551/.7902 or their v3 values), P05 .8136, P18 .5325.
+decision trace add `"trace_dir": "experiments/traces/score-push-v5-confirm"` to the inline config.
+Expected from the replay: P01/P02/P03/P04/P07/P10/P11 reproduce v4 (= v3 except P05 .8136 / P18), P05
+.8136, P08 .7036 (v5, live n=2), P18 .5870 (v5, live n=2).
 
-For the Live Final the runbook command needs the v4 config spelled out
-(`--policy-config configs/score-push-v4.json`), since `--set final` defaults to v3.
+For the Live Final `--set final` now defaults to v5 (`FINAL_POLICY`); spelling the config out
+(`--policy-config configs/score-push-v5.json`) is harmless and recommended for the log.
 
 ## 6. Open merges pending
 
@@ -191,8 +200,7 @@ For the Live Final the runbook command needs the v4 config spelled out
 
 ## 7. Blockers / decisions for the 08:30 run
 
-1. `FINAL_POLICY` (cli.py) still = v3: pass `--config "$(cat configs/score-push-v4-run.json)"` (lab) or
-   `--policy-config configs/score-push-v4.json` (`negotiator run`) explicitly, or decide to repoint it.
-2. The wave guard is not in; the ten-case practice run can go without it, the Live Final should not.
+1. ~~`FINAL_POLICY` (cli.py) still = v3~~ — repointed to `score-push-v5.json` on `codex/release-v5`.
+2. ~~The wave guard is not in~~ — in since `codex/safety-wave-prewarm` (`f31b4dd`), always-on with a cap.
 3. All ten practice cases replayed (172 transcripts): only P05 (14 d re-anchor) and P18 (paced index
    claims) change vs v3; P01/P02/P03/P04/P07/P08/P10/P11 are byte-identical.

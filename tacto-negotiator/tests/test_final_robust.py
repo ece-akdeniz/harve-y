@@ -21,6 +21,7 @@ from negotiator.runner import CaseRunner, SharedPace, fallback_propose, run_set,
 from negotiator.state import Journal
 
 V3 = Path(__file__).resolve().parents[1] / "configs" / "score-push-v3.json"
+V5 = Path(__file__).resolve().parents[1] / "configs" / "score-push-v5.json"  # FINAL_POLICY
 CHEAP = {"unit_price": 15.0, "payment_days": 60, "lead_time_days": 35, "incoterm": "DAP"}  # beats alt 19.9
 DEAR = {"unit_price": 25.0, "payment_days": 60, "lead_time_days": 35, "incoterm": "DAP"}
 OURS = {"unit_price": 17.0, "payment_days": 60, "lead_time_days": 35, "incoterm": "DAP"}
@@ -226,11 +227,13 @@ def _cli(monkeypatch, tmp_path, argv):
     return seen
 
 
-def test_final_cli_defaults_to_auto_runner_and_v3_policy(monkeypatch, tmp_path):
+def test_final_cli_defaults_to_auto_runner_and_v5_policy(monkeypatch, tmp_path):
     seen = _cli(monkeypatch, tmp_path, ["run", "--set", "final"])
     assert seen["args"].runner == "auto"
-    assert Path(seen["args"].policy_config) == V3
-    assert seen["agent"].policy == PolicyConfig.load(V3)
+    assert Path(seen["args"].policy_config) == V5 == cli.FINAL_POLICY
+    assert seen["agent"].policy == PolicyConfig.load(V5)
+    assert seen["agent"].policy.prewarm is True  # prewarm fires on the final launch
+    assert seen["agent"].policy.fixed_volume_types == ("raw_material",)
     assert seen["agent"].conditional_exchange is False  # lab parity for measured policy scores
     assert '"runner": "auto"' in (tmp_path / "trace.jsonl").read_text()
 
