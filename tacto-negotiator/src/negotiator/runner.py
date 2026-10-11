@@ -199,10 +199,13 @@ class CaseRunner:
         move_limit_s: float = MOVE_LIMIT_S,
         send_slots: int | None = 1,
     ):
-        if getattr(agent, "package_advisor", None) is not None:
+        advice_skipped = getattr(agent, "package_advisor", None) is not None
+        if advice_skipped:
             # Package advice is serial-only; the async runner plays this case without it.
             log.warning("%s: package advice disabled for the async runner", case_id)
             agent.package_advisor = None
+            if getattr(agent, "final_advisor", None) is not None:
+                agent.final_advisor = None
         self.arena, self.case_id, self.agent, self.journal = arena, case_id, agent, journal
         self.case_meta, self.deadline_fn = case, deadline
         self.clock = clock or Clock()
@@ -215,6 +218,8 @@ class CaseRunner:
         self.closing = False
         self.docs: dict[str, str] = {}
         self.slot = asyncio.Semaphore(send_slots) if send_slots else None
+        if advice_skipped:
+            self._trace("package_advice_capability_skip", reason="async_runner")
 
     # -- helpers -------------------------------------------------------------------------------
     def _trace(self, event, **fields):
@@ -426,12 +431,21 @@ class CaseRunner:
         t = self.st.threads[sid]
         while not self.closing and not self.st.ended and not t.closed and not t.parked:
             t0 = self.clock.time()
+            prepared_response = None
             if getattr(self.agent, "model_assist", None):
                 snap = self._live_snapshot()
                 try:
                     await asyncio.to_thread(self.agent.prepare_email, self.st.case, snap, sid)
                 except Exception:
                     log.exception("%s %s: e-mail interpretation failed; continuing without", self.case_id, sid)
+            if getattr(self.agent, "response_writer", None):
+                snap = self._live_snapshot()
+                try:
+                    prepared_response = await asyncio.to_thread(
+                        self.agent.prepare_response, self.st.case, snap, sid,
+                        remaining_s=max(0.0, (t.deadline_utc or 0) - self.clock.time()))
+                except Exception:
+                    log.exception("%s %s: response preview failed; continuing without", self.case_id, sid)
             async with self.lock:  # decide + journal only; no HTTP under the lock
                 if self.closing or self.st.ended:
                     return
@@ -455,6 +469,12 @@ class CaseRunner:
                 t.decide_s = self.clock.time() - d0
                 t.slowest_decide_s = max(t.slowest_decide_s, t.decide_s)
                 if kind == "send":
+                    if prepared_response and what == prepared_response["original"]:
+                        what = {**what, "body": prepared_response["body"]}
+                    from .decision_contract import decision_record
+
+                    record = decision_record(self.agent, self.st.case, snap,
+                                             {"supplier_id": sid, "message": what}, runner="async")
                     events = t.events
                     offer = (latest(events).get("term_sheets") or [{}])[0].get("term_sheet_id")
                     intent = self.journal.intent(
@@ -465,6 +485,7 @@ class CaseRunner:
                         what,
                         buyer_count=sum(m.get("from") == "buyer" for m in events),
                         offer_id=offer,
+                        decision_record=record,
                     )
                     t.in_flight = intent["move_id"]
                     t.events.append({**what, "from": "buyer"})
@@ -604,7 +625,11 @@ class CaseRunner:
             )
             if wait or pending_only:
                 now = self.clock.time()
-                until = now + CLOSE_WAIT_S
+                cap = self._cap()
+                # A cap close with every sheet pending can use the reserved wave window.
+                # The ordinary 20-second wait may end before a healthy supplier reply.
+                until = (cap - CLOSE_BUDGET_S if pending_only and reason == "wave cap"
+                         and cap is not None else now + CLOSE_WAIT_S)
                 waiting = [
                     t.deadline_utc
                     for t in self.st.threads.values()
@@ -612,7 +637,7 @@ class CaseRunner:
                 ]
                 if waiting:
                     until = min(until, min(waiting) - CLOSE_BUDGET_S)
-                if (cap := self._cap()) is not None:
+                if cap is not None:
                     # A cap-triggered close with every reply pending needs one current
                     # sheet; use the reserved closing window rather than stale offers.
                     margin = CLOSE_BUDGET_S if pending_only else self._cap_margin()
@@ -639,7 +664,11 @@ class CaseRunner:
                         )
                     d = self.close_fn(self.st.case, live, estimates, reason)
                     sid, msg = d["supplier_id"], d["message"]
-                    intent = self.journal.intent(self.case_id, self.st.session_id, sid, "close", msg, reason=reason)
+                    from .decision_contract import decision_record
+
+                    record = decision_record(self.agent, self.st.case, live, d, runner="async")
+                    intent = self.journal.intent(self.case_id, self.st.session_id, sid, "close", msg,
+                                                 reason=reason, decision_record=record)
                 self._trace("close", supplier=sid, action=msg.get("action"), reason=reason)
                 try:
                     reply = await self.arena.send(self.st.session_id, sid, msg, intent["move_id"])
@@ -703,6 +732,8 @@ class CaseRunner:
         early = await self._open()
         if early is not None:
             return early
+        if budget := getattr(self.agent, "model_budget", None):
+            budget.bind(self.st.session_id, self.journal.path)
         if not self.st.ended:
             workers = [asyncio.create_task(self._worker(sid)) for sid in self.st.threads]
             watchdog = asyncio.create_task(self._watchdog())

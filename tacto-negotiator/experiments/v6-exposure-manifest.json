@@ -1,0 +1,173 @@
+{
+  "schema_version": 1,
+  "status": "development_exposure_manifest",
+  "basis": "All checked-in practice cases are developer-accessible; prior exposure is treated as exposed. No clean hosted holdout is claimed.",
+  "case_source": {
+    "path": "tests/fixtures/practice_cases.json",
+    "sha256": "d9ea5348907c21bd2edc556d646fac5717324604ac603e774db74ea272aaa7ac"
+  },
+  "cases": [
+    {
+      "case_id": "case:P01",
+      "case_type": "price_increase",
+      "supplier_ids": [
+        "sup:70110"
+      ],
+      "exposure": "development"
+    },
+    {
+      "case_id": "case:P02",
+      "case_type": "price_increase",
+      "supplier_ids": [
+        "sup:70510"
+      ],
+      "exposure": "development"
+    },
+    {
+      "case_id": "case:P03",
+      "case_type": "renewal",
+      "supplier_ids": [
+        "sup:70530"
+      ],
+      "exposure": "development"
+    },
+    {
+      "case_id": "case:P04",
+      "case_type": "renewal",
+      "supplier_ids": [
+        "sup:70620"
+      ],
+      "exposure": "development"
+    },
+    {
+      "case_id": "case:P05",
+      "case_type": "rfq",
+      "supplier_ids": [
+        "sup:70210",
+        "sup:70240",
+        "sup:70250"
+      ],
+      "exposure": "development"
+    },
+    {
+      "case_id": "case:P06",
+      "case_type": "rfq",
+      "supplier_ids": [
+        "sup:70120",
+        "sup:70150"
+      ],
+      "exposure": "development"
+    },
+    {
+      "case_id": "case:P07",
+      "case_type": "bundling",
+      "supplier_ids": [
+        "sup:70610"
+      ],
+      "exposure": "development"
+    },
+    {
+      "case_id": "case:P08",
+      "case_type": "raw_material",
+      "supplier_ids": [
+        "sup:70710"
+      ],
+      "exposure": "development"
+    },
+    {
+      "case_id": "case:P09",
+      "case_type": "capacity",
+      "supplier_ids": [
+        "sup:70220"
+      ],
+      "exposure": "development"
+    },
+    {
+      "case_id": "case:P10",
+      "case_type": "capacity",
+      "supplier_ids": [
+        "sup:70410"
+      ],
+      "exposure": "development"
+    },
+    {
+      "case_id": "case:P11",
+      "case_type": "quality",
+      "supplier_ids": [
+        "sup:70140"
+      ],
+      "exposure": "development"
+    },
+    {
+      "case_id": "case:P12",
+      "case_type": "quality",
+      "supplier_ids": [
+        "sup:70310"
+      ],
+      "exposure": "development"
+    },
+    {
+      "case_id": "case:P13",
+      "case_type": "price_increase",
+      "supplier_ids": [
+        "sup:70230"
+      ],
+      "exposure": "development"
+    },
+    {
+      "case_id": "case:P14",
+      "case_type": "renewal",
+      "supplier_ids": [
+        "sup:70560"
+      ],
+      "exposure": "development"
+    },
+    {
+      "case_id": "case:P15",
+      "case_type": "bundling",
+      "supplier_ids": [
+        "sup:70430"
+      ],
+      "exposure": "development"
+    },
+    {
+      "case_id": "case:P16",
+      "case_type": "raw_material",
+      "supplier_ids": [
+        "sup:70720"
+      ],
+      "exposure": "development"
+    },
+    {
+      "case_id": "case:P17",
+      "case_type": "price_increase",
+      "supplier_ids": [
+        "sup:70550"
+      ],
+      "exposure": "development"
+    },
+    {
+      "case_id": "case:P18",
+      "case_type": "raw_material",
+      "supplier_ids": [
+        "sup:70740"
+      ],
+      "exposure": "development"
+    },
+    {
+      "case_id": "case:P19",
+      "case_type": "renewal",
+      "supplier_ids": [
+        "sup:70640"
+      ],
+      "exposure": "development"
+    }
+  ],
+  "additional_exposed_evidence": [
+    "experiments/RELEASE-v5.md",
+    "experiments/V5.md",
+    "experiments/traces/v6-p10-s1/trace.jsonl",
+    "tests/fixtures/p10-capacity-advice-repair.json"
+  ],
+  "hidden_cases_tested": false
+}

@@ -93,6 +93,9 @@ class Journal:
     def result(self, case_id: str, session_id: str | None, result: dict) -> dict:
         return self._write({"rec": "result", "case": case_id, "session": session_id, "result": result})
 
+    def decision(self, record: dict) -> dict:
+        return self._write({"rec": "decision_record", **record})
+
     # -- reads ---------------------------------------------------------------------------------
     def session_for(self, case_id: str) -> str | None:
         """The session this run already opened for the case (latest), if any."""

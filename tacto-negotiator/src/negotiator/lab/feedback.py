@@ -9,7 +9,10 @@ class FeedbackAgent:
         body = run.model_dump() if hasattr(run, "model_dump") else run
         findings, memory_context, current_data_context = [], [], []
         model_usage = {"calls": 0, "fallbacks": 0, "input_tokens": 0, "output_tokens": 0,
-                       "latency_s": []}
+                       "usage_reported_calls": 0, "unknown_usage_calls": 0, "latency_s": []}
+        advice_usage = {"calls": 0, "fallbacks": 0, "reported_input_tokens": 0,
+                        "reported_output_tokens": 0, "usage_reported_calls": 0,
+                        "unknown_usage_calls": 0, "latency_s": []}
         data_matches = bool(data_sha256 and data_sha256 == (body.get("provenance") or {}).get("data_sha256"))
         public_nodes = (public_graph or {}).get("nodes", []) if data_matches else []
 
@@ -25,11 +28,22 @@ class FeedbackAgent:
         for attempt in body["attempts"]:
             result = attempt.get("result") or {}
             model = (result.get("agent_metrics") or {}).get("model") or {}
-            for key in ("calls", "fallbacks", "input_tokens", "output_tokens"):
+            for key in ("calls", "fallbacks", "input_tokens", "output_tokens",
+                        "usage_reported_calls", "unknown_usage_calls"):
                 if type(model.get(key)) is int and model[key] >= 0:
                     model_usage[key] += model[key]
+            if "unknown_usage_calls" not in model and type(model.get("calls")) is int:
+                model_usage["unknown_usage_calls"] += max(0, model["calls"])
             model_usage["latency_s"].extend(
                 value for value in (model.get("latency_s") or [])[:100]
+                if type(value) in (int, float) and 0 <= value <= 180
+            )
+            advice = (result.get("agent_metrics") or {}).get("package_advice") or {}
+            for key in advice_usage.keys() - {"latency_s"}:
+                if type(advice.get(key)) is int and advice[key] >= 0:
+                    advice_usage[key] += advice[key]
+            advice_usage["latency_s"].extend(
+                value for value in (advice.get("latency_s") or [])[:100]
                 if type(value) in (int, float) and 0 <= value <= 180
             )
             if attempt["status"] != "completed":
@@ -120,7 +134,8 @@ class FeedbackAgent:
         return {"schema_version": 1, "run_id": body["run_id"], "source_sha256": fingerprint(body),
                 "findings": findings, "limitation": limitation,
                 "policy_changed": False, "model_calls": model_usage["calls"],
-                "model_usage": model_usage, "memory_context": memory_context,
+                "model_usage": model_usage, "package_advice_usage": advice_usage,
+                "memory_context": memory_context,
                 "current_data_context": current_data_context,
                 "package_validation": "matched public data; session overrides unknown" if data_matches else
                 "skipped: no matching historical data fingerprint"}

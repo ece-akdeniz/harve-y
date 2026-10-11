@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 from arena_kit.cost import must_haves_ok, total_cost
 
+from negotiator.advice import AdviceCompletion
 from negotiator.agent import PackageAgent
 from negotiator.package_advisor import PackageAdvisor, approved_packages
 from negotiator.policy import PolicyConfig
@@ -235,3 +236,18 @@ def test_serial_package_selection_precedes_single_evidence_decoration():
     assert decorated[0]['message']['term_sheets'][0]['terms']['contract_months'] == 36
     assert result['message']['refs'] == ['sc:verified']
     assert result['message']['body'].endswith('Verified supplier delivery record.')
+
+
+def test_legacy_adviser_counts_provider_attempts_and_unknown_usage():
+    case, threads, move = fixture()
+    advisor = PackageAdvisor(lambda *_: AdviceCompletion(
+        {'selected_id': 'keep', 'supporting_quote': ''},
+        {'prompt_tokens': 41, 'completion_tokens': 7}))
+    advisor.select(case, threads, move, remaining_s=60)
+    metrics = advisor.metrics()
+    assert metrics['calls'] == metrics['usage_reported_calls'] == 1
+    assert metrics['reported_input_tokens'] == 41
+    assert metrics['unknown_usage_calls'] == 0
+    advisor = PackageAdvisor(lambda *_: {'selected_id': 'keep', 'supporting_quote': ''})
+    advisor.select(case, threads, move, remaining_s=60)
+    assert advisor.metrics()['unknown_usage_calls'] == 1

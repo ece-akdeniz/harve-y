@@ -43,7 +43,12 @@ def main(argv=None) -> int:
     load_env()
     ap = argparse.ArgumentParser(prog="negotiator")
     sub = ap.add_subparsers(dest="cmd", required=True)
-    sub.add_parser("prep", help="build dossiers and the claim bank from the data package")
+    prep_parser = sub.add_parser("prep", help="build dossiers, claim bank and optional supplier briefs")
+    prep_parser.add_argument("--briefs", action="store_true", help="compile extractive briefs for all suppliers")
+    prep_parser.add_argument("--brief-model", action="store_true",
+                             help="use the configured LLM for explicitly selected suppliers")
+    prep_parser.add_argument("--brief-supplier", action="append", default=[],
+                             help="supplier ID to compile; repeat for more suppliers")
     p = sub.add_parser("play", help="play one case")
     p.add_argument("case_id")
     p.add_argument("-v", "--verbose", action="store_true")
@@ -72,7 +77,32 @@ def main(argv=None) -> int:
     if args.cmd == "prep":
         from .claims import prep
 
-        print(json.dumps(prep()))
+        result = prep()
+        if args.briefs or args.brief_model or args.brief_supplier:
+            from .dossiers import build, load_package
+            from .supplier_briefs import brief_path, compile_brief, extractive_brief, load_brief, save_brief
+
+            if args.brief_model and not args.brief_supplier:
+                raise ValueError("--brief-model requires at least one --brief-supplier")
+            package = load_package()
+            known = build(package)
+            suppliers = sorted(set(args.brief_supplier)) if args.brief_supplier else sorted(known)
+            if any(sid not in known for sid in suppliers):
+                raise ValueError("brief supplier not in the data package")
+            if args.brief_model and len(suppliers) > 12:
+                raise ValueError("at most 12 model briefs per prep call")
+            paths = []
+            statuses = {"model": 0, "extractive": 0}
+            for sid in suppliers:
+                brief = (compile_brief(package, sid) if args.brief_model
+                         else load_brief(package, sid))
+                if not args.brief_model and brief["status"] != "model":
+                    brief = extractive_brief(package, sid)
+                paths.append(str(save_brief(package, brief)))
+                statuses[brief["status"]] += 1
+            result.update(briefs=len(paths), brief_status_counts=statuses,
+                          brief_directory=str(brief_path(package, suppliers[0]).parent) if suppliers else None)
+        print(json.dumps(result))
         return 0
 
     final = args.cmd == "run" and args.set_ == "final"
@@ -117,11 +147,15 @@ def main(argv=None) -> int:
             agent.conditional_exchange = False
         if args.model_assist:
             from .model_assist import ModelAssist
+            from .model_budget import SessionModelBudget
 
             agent.model_assist = ModelAssist(
                 memory_path=os.environ.get("NEGOTIATOR_APPROVED_MEMORY"),
                 data_sha256=os.environ.get("NEGOTIATOR_DATA_SHA256"),
             )
+            if agent.model_budget is None:
+                agent.model_budget = SessionModelBudget()
+            agent.model_assist.model_budget = agent.model_budget
         return agent
 
     probe = new_agent()

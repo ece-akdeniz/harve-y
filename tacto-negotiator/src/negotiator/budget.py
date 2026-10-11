@@ -13,22 +13,42 @@ timeouts add up to. Call sites (module -> bound -> fallback):
 """
 
 import threading
-from concurrent.futures import Future
+from concurrent.futures import Future, InvalidStateError
 
 HARD_TIMEOUT_S = 8.0
+_SLOTS = threading.BoundedSemaphore(4)
 
 
 def bounded(fn, timeout_s, *args, **kwargs):
-    """`fn(*args, **kwargs)` in a daemon thread; its result within min(timeout_s, HARD_TIMEOUT_S)
-    seconds of wall clock, else TimeoutError (the thread is abandoned, never joined)."""
+    """Return within the wall limit; request local cancellation and discard late output.
+
+    The daemon thread stays in one of four slots until its provider call completes.
+    A client timeout cannot prove the remote server stopped work.
+    """
     limit = max(0.01, min(float(timeout_s), HARD_TIMEOUT_S))
+    if not _SLOTS.acquire(blocking=False):
+        raise TimeoutError("model capacity busy")
     future = Future()
+    cancelled = threading.Event()
 
     def call():
         try:
-            future.set_result(fn(*args, **kwargs))
+            result = fn(*args, **kwargs)
+            if not cancelled.is_set():
+                future.set_result(result)
         except BaseException as exc:  # the caller decides; a worker thread must never die silently
-            future.set_exception(exc)
+            if not cancelled.is_set() and not isinstance(exc, InvalidStateError):
+                try:
+                    future.set_exception(exc)
+                except InvalidStateError:
+                    pass
+        finally:
+            _SLOTS.release()
 
     threading.Thread(target=call, daemon=True).start()
-    return future.result(timeout=limit)
+    try:
+        return future.result(timeout=limit)
+    except TimeoutError:
+        cancelled.set()
+        future.cancel()  # local cancellation request; remote completion remains uncertain
+        raise

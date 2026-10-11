@@ -35,9 +35,24 @@ Hosted timing is measured. Then scale to multiple cases.
 
 ## Document map
 
-- [V6 supplier intelligence plan](v6-supplier-intelligence-plan-2026-10-11.md): proposed
-  supplier assessment, supported action selection, latency gates and generalization evaluation;
-  implementation and hosted experiments have not started on the planning branch.
+- [V6 supplier intelligence plan](v6-supplier-intelligence-plan-2026-10-11.md): staged
+  supplier assessment, action selection, questions and final review.
+  [P0/P1 record](v6-p0-p1-implementation-2026-10-11.md) covers guarded execution;
+  [P2–P6 record](v6-p2-p6-implementation-2026-10-11.md) covers the local opt-in
+  implementation and pending hosted gates. The
+  [final-offer LLM review record](v6-final-offer-advice-implementation-2026-10-11.md)
+  covers the later opt-in closing review. The
+  [strategy LLM layer](v6-strategy-llm-layer-2026-10-11.md) covers the packaged
+  negotiation skill and opt-in review of prepared moves. The
+  [supplier brief architecture](v6-supplier-brief-architecture-2026-10-11.md)
+  records the source compiler and runtime handoff. The
+  [role skills and model-written responses](v6-skilled-response-implementation-2026-10-11.md)
+  record the first opt-in writing path. The
+  [all-case response coverage](v6-all-case-response-coverage-2026-10-11.md)
+  records the later seven-type opt-in path. P10 practice runs are recorded in the log.
+  The [reliability implementation](v6-supplier-intelligence-reliability-implementation-2026-10-11.md)
+  records the field admission, constrained writing, shared budget and local gates
+  from the [improvement plan](v6-supplier-intelligence-improvement-plan-2026-10-11.md).
 - [Coding-agent lab playbook](../LAB_PLAYBOOK.md): laptop setup and the tracked experiment workflow.
 - [00 — Challenge contract](00-challenge.md): official rules, score, limits and schedule.
 - [01 — Research](01-research.md): reproduced findings, estimates and hypotheses.

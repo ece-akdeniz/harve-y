@@ -1,6 +1,6 @@
 # V6 supplier assessment and action selection
 
-Date: 11 October 2026. Status: **plan only; implementation not started**.
+Date: 11 October 2026. Status: **P0–P5 local opt-in implementation; P6 provider probe failed the inference gate; Arena comparison and promotion withheld**.
 
 Branch: `codex/v6-supplier-intelligence-plan`.
 Base: `43ea2052de86b1c0077567b4c73e785e260deda2`, policy `configs/score-push-v6.json`.
@@ -23,10 +23,22 @@ Deliver in stages: reliable inference, source-linked assessment, supported packa
 targeted questions, then a separately evaluated final-counter policy. Preserve ordinary
 V6 closing until the final-counter stage passes its own gates.
 
-This branch contains documentation only. It authorizes no implementation, provider calls,
-Arena sessions, publication, promotion, or change to the final launch configuration.
+The original planning branch contained documentation only. The subsequent P0/P1
+implementation is recorded in [its implementation record](v6-p0-p1-implementation-2026-10-11.md).
+The initial implementation included no provider calls or Arena sessions. A subsequent
+single P10 practice run is recorded in [the experiment log](../experiments/LOG.md).
+No promotion or change to the final launch configuration followed.
+The subsequent local implementation of P2–P5 and the P6 gate audit are recorded in
+[the implementation and gate record](v6-p2-p6-implementation-2026-10-11.md).
 Any future implementation uses explicit opt-in configuration. A proposed test budget below
 is a design input, not an allowance to consume quota.
+The subsequent opt-in [strategy LLM layer](v6-strategy-llm-layer-2026-10-11.md)
+adds a packaged negotiation skill and a smaller review contract for prepared
+nonclosing moves. It has local checks only; no provider or Arena result is claimed.
+The later [supplier brief architecture](v6-supplier-brief-architecture-2026-10-11.md)
+adds versioned source-linked briefs from the permanent data package to that
+reviewer and the final-offer reviewer. Its provider-only compilation and local
+checks are recorded separately from live negotiation results.
 
 ## 2. Evidence informing the design
 

@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+import math
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Literal
@@ -15,11 +16,20 @@ class PolicyConfig:
     package_types: tuple[str, ...] = ()
     evidence_types: tuple[str, ...] = ()
     final_offer_risk: str = "legacy"
+    final_review_max_walk_probability: float = 0.0
+    final_advice_mode: str = "off"
+    final_explore_max_loss_fraction: float = 0.0
     preference: str = "default"
     chargeback_steps: int = 1
     preferences: dict[str, str] = field(default_factory=dict)
     cost_neutral_lead_time: bool = False
     package_advice_types: tuple[str, ...] = ()
+    package_advice_mode: str = "legacy"
+    llm_response_mode: str = "off"
+    package_advice_max_calls: int = 8
+    package_advice_total_s: float = 24.0
+    model_budget_max_calls: int = 8
+    model_budget_total_s: float = 32.0
     cost_target_types: tuple[str, ...] = ()
     cost_target_index_clause: bool = False
     clause_variant_types: tuple[str, ...] = ()
@@ -157,8 +167,64 @@ class PolicyConfig:
         if isinstance(post, bool) or not isinstance(post, (int, float)) or not 0 <= post <= 1:
             raise ValueError("cost_target_posterior must be a number in [0, 1]")
         d["cost_target_posterior"] = float(post)
-        if d.get("final_offer_risk", "legacy") not in ("legacy", "opening_proxy"):
+        if d.get("package_advice_mode", "legacy") not in (
+            "legacy", "guarded-v1", "shadow-v1", "select-v1", "questions-v1",
+            "strategy-v1", "strategy-shadow-v1"
+        ):
+            raise ValueError("invalid package_advice_mode")
+        if d.get("llm_response_mode", "off") not in ("off", "skill-v1", "all-v1"):
+            raise ValueError("invalid llm_response_mode")
+        if d.get("llm_response_mode") == "skill-v1" and (
+            d.get("package_advice_mode") != "strategy-v1"
+            or d.get("final_advice_mode", "off") not in ("select-v1", "explore-v1")
+        ):
+            raise ValueError("skill-v1 response writing requires live strategy and final advisers")
+        calls = d.get("package_advice_max_calls", 8)
+        if type(calls) is not int or not 0 <= calls <= 20:
+            raise ValueError("invalid package_advice_max_calls")
+        total = d.get("package_advice_total_s", 24.0)
+        if type(total) not in (int, float) or not math.isfinite(total) or not 0 <= total <= 60:
+            raise ValueError("invalid package_advice_total_s")
+        d["package_advice_total_s"] = float(total)
+        shared_calls = d.get("model_budget_max_calls", 8)
+        shared_total = d.get("model_budget_total_s", 32.0)
+        if (type(shared_calls) is not int or not 1 <= shared_calls <= 30
+                or type(shared_total) not in (int, float) or not math.isfinite(shared_total)
+                or not 0 < shared_total <= 120):
+            raise ValueError("invalid shared model budget")
+        d["model_budget_total_s"] = float(shared_total)
+        if d.get("package_advice_mode") == "guarded-v1" and d["package_advice_types"] != ("capacity",):
+            raise ValueError("guarded-v1 supports capacity advice only")
+        if d.get("package_advice_mode") in ("shadow-v1", "select-v1", "questions-v1",
+                                            "strategy-v1", "strategy-shadow-v1") and (
+            not d["package_advice_types"] or
+            any(kind not in ("capacity", "renewal") for kind in d["package_advice_types"])
+        ):
+            raise ValueError("supplier intelligence initially supports capacity and renewal only")
+        if d.get("final_offer_risk", "legacy") not in ("legacy", "opening_proxy", "bounded_review"):
             raise ValueError("invalid final_offer_risk")
+        if d.get("final_advice_mode", "off") not in ("off", "shadow-v1", "select-v1", "explore-v1"):
+            raise ValueError("invalid final_advice_mode")
+        if d.get("final_advice_mode", "off") != "off" and (
+            d.get("package_advice_mode") not in ("guarded-v1", "shadow-v1", "select-v1", "questions-v1",
+                                                 "strategy-v1", "strategy-shadow-v1")
+            or not d["package_advice_types"]
+            or any(kind not in ("capacity", "renewal") for kind in d["package_advice_types"])
+        ):
+            raise ValueError("final advice requires the serial capacity/renewal adviser")
+        risk = d.get("final_review_max_walk_probability", 0.0)
+        if (type(risk) not in (int, float) or not math.isfinite(risk) or not 0 <= risk <= .5
+                or (d.get("final_offer_risk") == "bounded_review" and risk == 0)
+                or (d.get("final_advice_mode") == "select-v1" and risk == 0)):
+            raise ValueError("invalid final_review_max_walk_probability")
+        d["final_review_max_walk_probability"] = float(risk)
+        loss_fraction = d.get("final_explore_max_loss_fraction", 0.0)
+        if (type(loss_fraction) not in (int, float) or not math.isfinite(loss_fraction)
+                or not 0 <= loss_fraction <= 1
+                or (d.get("final_advice_mode") == "explore-v1" and loss_fraction == 0)
+                or (d.get("final_advice_mode") != "explore-v1" and loss_fraction != 0)):
+            raise ValueError("invalid final_explore_max_loss_fraction")
+        d["final_explore_max_loss_fraction"] = float(loss_fraction)
         if d.get("preference", "default") not in ("default", "standard_payment", "longer_tenor", "lower_chargeback"):
             raise ValueError("invalid preference")
         steps = d.get("chargeback_steps", 1)

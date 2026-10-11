@@ -1,0 +1,487 @@
+{
+  "source": "reconstructed P10 development requests; exact original provider request unavailable",
+  "mode": "provider_only",
+  "planned_calls": 30,
+  "execution_order": "sequential",
+  "transport_setup": "new HTTP client per call",
+  "model": "gpt-6-sol",
+  "effort": null,
+  "timing_gap": "provider HTTP and response parsing are measured together",
+  "calls": [
+    {
+      "variant": "saved_p10_opening",
+      "contract": "legacy",
+      "repeat": 1,
+      "status": "ok",
+      "transport": "fresh_http_client",
+      "provider_and_parse_s": 3.0154,
+      "usage": {
+        "prompt_tokens": 1049,
+        "completion_tokens": 113
+      },
+      "schema_valid": true,
+      "validation_s": 0.0,
+      "total_wall_s": 3.0154
+    },
+    {
+      "variant": "saved_p10_opening",
+      "contract": "legacy",
+      "repeat": 2,
+      "status": "ok",
+      "transport": "fresh_http_client",
+      "provider_and_parse_s": 2.7638,
+      "usage": {
+        "prompt_tokens": 1049,
+        "completion_tokens": 136
+      },
+      "schema_valid": true,
+      "validation_s": 0.0,
+      "total_wall_s": 2.7638
+    },
+    {
+      "variant": "saved_p10_opening",
+      "contract": "legacy",
+      "repeat": 3,
+      "status": "ok",
+      "transport": "fresh_http_client",
+      "provider_and_parse_s": 2.4086,
+      "usage": {
+        "prompt_tokens": 1049,
+        "completion_tokens": 142
+      },
+      "schema_valid": true,
+      "validation_s": 0.0,
+      "total_wall_s": 2.4086
+    },
+    {
+      "variant": "saved_p10_opening",
+      "contract": "legacy",
+      "repeat": 4,
+      "status": "ok",
+      "transport": "fresh_http_client",
+      "provider_and_parse_s": 2.4353,
+      "usage": {
+        "prompt_tokens": 1049,
+        "completion_tokens": 138
+      },
+      "schema_valid": true,
+      "validation_s": 0.0,
+      "total_wall_s": 2.4354
+    },
+    {
+      "variant": "saved_p10_opening",
+      "contract": "legacy",
+      "repeat": 5,
+      "status": "ok",
+      "transport": "fresh_http_client",
+      "provider_and_parse_s": 2.2327,
+      "usage": {
+        "prompt_tokens": 1049,
+        "completion_tokens": 115
+      },
+      "schema_valid": true,
+      "validation_s": 0.0,
+      "total_wall_s": 2.2327
+    },
+    {
+      "variant": "saved_p10_opening",
+      "contract": "capacity-advice-v2",
+      "repeat": 1,
+      "status": "ReadTimeout",
+      "transport": "fresh_http_client",
+      "usage": "unknown",
+      "schema_valid": false,
+      "total_wall_s": 8.1558
+    },
+    {
+      "variant": "saved_p10_opening",
+      "contract": "capacity-advice-v2",
+      "repeat": 2,
+      "status": "JSONDecodeError",
+      "transport": "fresh_http_client",
+      "usage": "unknown",
+      "schema_valid": false,
+      "total_wall_s": 7.923
+    },
+    {
+      "variant": "saved_p10_opening",
+      "contract": "capacity-advice-v2",
+      "repeat": 3,
+      "status": "JSONDecodeError",
+      "transport": "fresh_http_client",
+      "usage": "unknown",
+      "schema_valid": false,
+      "total_wall_s": 7.6675
+    },
+    {
+      "variant": "saved_p10_opening",
+      "contract": "capacity-advice-v2",
+      "repeat": 4,
+      "status": "ReadTimeout",
+      "transport": "fresh_http_client",
+      "usage": "unknown",
+      "schema_valid": false,
+      "total_wall_s": 8.1439
+    },
+    {
+      "variant": "saved_p10_opening",
+      "contract": "capacity-advice-v2",
+      "repeat": 5,
+      "status": "JSONDecodeError",
+      "transport": "fresh_http_client",
+      "usage": "unknown",
+      "schema_valid": false,
+      "total_wall_s": 7.78
+    },
+    {
+      "variant": "capacity_delivery",
+      "contract": "legacy",
+      "repeat": 1,
+      "status": "ok",
+      "transport": "fresh_http_client",
+      "provider_and_parse_s": 1.9947,
+      "usage": {
+        "prompt_tokens": 839,
+        "completion_tokens": 117
+      },
+      "schema_valid": true,
+      "validation_s": 0.0,
+      "total_wall_s": 1.9947
+    },
+    {
+      "variant": "capacity_delivery",
+      "contract": "legacy",
+      "repeat": 2,
+      "status": "ok",
+      "transport": "fresh_http_client",
+      "provider_and_parse_s": 1.7439,
+      "usage": {
+        "prompt_tokens": 839,
+        "completion_tokens": 94
+      },
+      "schema_valid": true,
+      "validation_s": 0.0,
+      "total_wall_s": 1.7439
+    },
+    {
+      "variant": "capacity_delivery",
+      "contract": "legacy",
+      "repeat": 3,
+      "status": "ok",
+      "transport": "fresh_http_client",
+      "provider_and_parse_s": 1.7356,
+      "usage": {
+        "prompt_tokens": 839,
+        "completion_tokens": 81
+      },
+      "schema_valid": true,
+      "validation_s": 0.0,
+      "total_wall_s": 1.7356
+    },
+    {
+      "variant": "capacity_delivery",
+      "contract": "legacy",
+      "repeat": 4,
+      "status": "ok",
+      "transport": "fresh_http_client",
+      "provider_and_parse_s": 1.6465,
+      "usage": {
+        "prompt_tokens": 839,
+        "completion_tokens": 80
+      },
+      "schema_valid": true,
+      "validation_s": 0.0,
+      "total_wall_s": 1.6465
+    },
+    {
+      "variant": "capacity_delivery",
+      "contract": "legacy",
+      "repeat": 5,
+      "status": "ok",
+      "transport": "fresh_http_client",
+      "provider_and_parse_s": 1.601,
+      "usage": {
+        "prompt_tokens": 839,
+        "completion_tokens": 83
+      },
+      "schema_valid": true,
+      "validation_s": 0.0,
+      "total_wall_s": 1.601
+    },
+    {
+      "variant": "capacity_delivery",
+      "contract": "capacity-advice-v2",
+      "repeat": 1,
+      "status": "ok",
+      "transport": "fresh_http_client",
+      "provider_and_parse_s": 3.5114,
+      "usage": {
+        "prompt_tokens": 1682,
+        "completion_tokens": 282
+      },
+      "schema_valid": true,
+      "validation_s": 0.0,
+      "total_wall_s": 3.5114
+    },
+    {
+      "variant": "capacity_delivery",
+      "contract": "capacity-advice-v2",
+      "repeat": 2,
+      "status": "ok",
+      "transport": "fresh_http_client",
+      "provider_and_parse_s": 3.1487,
+      "usage": {
+        "prompt_tokens": 1682,
+        "completion_tokens": 236
+      },
+      "schema_valid": true,
+      "validation_s": 0.0,
+      "total_wall_s": 3.1488
+    },
+    {
+      "variant": "capacity_delivery",
+      "contract": "capacity-advice-v2",
+      "repeat": 3,
+      "status": "ok",
+      "transport": "fresh_http_client",
+      "provider_and_parse_s": 3.3889,
+      "usage": {
+        "prompt_tokens": 1682,
+        "completion_tokens": 274
+      },
+      "schema_valid": true,
+      "validation_s": 0.0,
+      "total_wall_s": 3.3889
+    },
+    {
+      "variant": "capacity_delivery",
+      "contract": "capacity-advice-v2",
+      "repeat": 4,
+      "status": "ok",
+      "transport": "fresh_http_client",
+      "provider_and_parse_s": 3.3106,
+      "usage": {
+        "prompt_tokens": 1682,
+        "completion_tokens": 259
+      },
+      "schema_valid": true,
+      "validation_s": 0.0,
+      "total_wall_s": 3.3107
+    },
+    {
+      "variant": "capacity_delivery",
+      "contract": "capacity-advice-v2",
+      "repeat": 5,
+      "status": "ok",
+      "transport": "fresh_http_client",
+      "provider_and_parse_s": 2.6166,
+      "usage": {
+        "prompt_tokens": 1682,
+        "completion_tokens": 231
+      },
+      "schema_valid": true,
+      "validation_s": 0.0,
+      "total_wall_s": 2.6166
+    },
+    {
+      "variant": "conditional_commitment",
+      "contract": "legacy",
+      "repeat": 1,
+      "status": "ok",
+      "transport": "fresh_http_client",
+      "provider_and_parse_s": 2.1525,
+      "usage": {
+        "prompt_tokens": 837,
+        "completion_tokens": 129
+      },
+      "schema_valid": true,
+      "validation_s": 0.0,
+      "total_wall_s": 2.1525
+    },
+    {
+      "variant": "conditional_commitment",
+      "contract": "legacy",
+      "repeat": 2,
+      "status": "ok",
+      "transport": "fresh_http_client",
+      "provider_and_parse_s": 2.0574,
+      "usage": {
+        "prompt_tokens": 837,
+        "completion_tokens": 107
+      },
+      "schema_valid": true,
+      "validation_s": 0.0,
+      "total_wall_s": 2.0574
+    },
+    {
+      "variant": "conditional_commitment",
+      "contract": "legacy",
+      "repeat": 3,
+      "status": "ok",
+      "transport": "fresh_http_client",
+      "provider_and_parse_s": 1.8383,
+      "usage": {
+        "prompt_tokens": 837,
+        "completion_tokens": 123
+      },
+      "schema_valid": true,
+      "validation_s": 0.0,
+      "total_wall_s": 1.8384
+    },
+    {
+      "variant": "conditional_commitment",
+      "contract": "legacy",
+      "repeat": 4,
+      "status": "ok",
+      "transport": "fresh_http_client",
+      "provider_and_parse_s": 2.0419,
+      "usage": {
+        "prompt_tokens": 837,
+        "completion_tokens": 145
+      },
+      "schema_valid": true,
+      "validation_s": 0.0,
+      "total_wall_s": 2.0419
+    },
+    {
+      "variant": "conditional_commitment",
+      "contract": "legacy",
+      "repeat": 5,
+      "status": "ok",
+      "transport": "fresh_http_client",
+      "provider_and_parse_s": 1.7763,
+      "usage": {
+        "prompt_tokens": 837,
+        "completion_tokens": 88
+      },
+      "schema_valid": true,
+      "validation_s": 0.0,
+      "total_wall_s": 1.7763
+    },
+    {
+      "variant": "conditional_commitment",
+      "contract": "capacity-advice-v2",
+      "repeat": 1,
+      "status": "ok",
+      "transport": "fresh_http_client",
+      "provider_and_parse_s": 6.0034,
+      "usage": {
+        "prompt_tokens": 1681,
+        "completion_tokens": 630
+      },
+      "schema_valid": true,
+      "validation_s": 0.0,
+      "total_wall_s": 6.0034
+    },
+    {
+      "variant": "conditional_commitment",
+      "contract": "capacity-advice-v2",
+      "repeat": 2,
+      "status": "ok",
+      "transport": "fresh_http_client",
+      "provider_and_parse_s": 2.6657,
+      "usage": {
+        "prompt_tokens": 1681,
+        "completion_tokens": 267
+      },
+      "schema_valid": true,
+      "validation_s": 0.0,
+      "total_wall_s": 2.6657
+    },
+    {
+      "variant": "conditional_commitment",
+      "contract": "capacity-advice-v2",
+      "repeat": 3,
+      "status": "ok",
+      "transport": "fresh_http_client",
+      "provider_and_parse_s": 3.9117,
+      "usage": {
+        "prompt_tokens": 1681,
+        "completion_tokens": 333
+      },
+      "schema_valid": true,
+      "validation_s": 0.0,
+      "total_wall_s": 3.9118
+    },
+    {
+      "variant": "conditional_commitment",
+      "contract": "capacity-advice-v2",
+      "repeat": 4,
+      "status": "ok",
+      "transport": "fresh_http_client",
+      "provider_and_parse_s": 4.7882,
+      "usage": {
+        "prompt_tokens": 1681,
+        "completion_tokens": 519
+      },
+      "schema_valid": true,
+      "validation_s": 0.0,
+      "total_wall_s": 4.7883
+    },
+    {
+      "variant": "conditional_commitment",
+      "contract": "capacity-advice-v2",
+      "repeat": 5,
+      "status": "ok",
+      "transport": "fresh_http_client",
+      "provider_and_parse_s": 3.7089,
+      "usage": {
+        "prompt_tokens": 1681,
+        "completion_tokens": 332
+      },
+      "schema_valid": true,
+      "validation_s": 0.0,
+      "total_wall_s": 3.709
+    }
+  ],
+  "requests": [
+    {
+      "variant": "saved_p10_opening",
+      "contract": "legacy",
+      "sha256": "a5f1c58d41dcfe374d01f9cb9346c948de92ad49a57e1c0d9ee4ca446c4929b2",
+      "context_bytes": 2832,
+      "supplier_messages": 1,
+      "candidates": 4
+    },
+    {
+      "variant": "saved_p10_opening",
+      "contract": "capacity-advice-v2",
+      "sha256": "97276f11033313410196aacc69f754a4c2379cd1ea53b5b8a42176509f6aa36e",
+      "context_bytes": 3874,
+      "supplier_messages": 1,
+      "candidates": 5
+    },
+    {
+      "variant": "capacity_delivery",
+      "contract": "legacy",
+      "sha256": "0950b25fad9d73355db4541f6f69e38c495f702d7288af8ed051e2f0719ad6a3",
+      "context_bytes": 1976,
+      "supplier_messages": 1,
+      "candidates": 4
+    },
+    {
+      "variant": "capacity_delivery",
+      "contract": "capacity-advice-v2",
+      "sha256": "d0e9805a7cf8ffa65aed121511e0fe9521a2e919ab1ecea7ea9e43e4533dab05",
+      "context_bytes": 3446,
+      "supplier_messages": 1,
+      "candidates": 5
+    },
+    {
+      "variant": "conditional_commitment",
+      "contract": "legacy",
+      "sha256": "69368e46436ea6cf73644376cd38974f78f20006e5e9fef9c29311de49e05c8d",
+      "context_bytes": 1994,
+      "supplier_messages": 1,
+      "candidates": 4
+    },
+    {
+      "variant": "conditional_commitment",
+      "contract": "capacity-advice-v2",
+      "sha256": "37ec6aff4371e8ad737a6dd60e3dad6a1a75cc7dd04356e02332e6153e2e4632",
+      "context_bytes": 3455,
+      "supplier_messages": 1,
+      "candidates": 5
+    }
+  ]
+}

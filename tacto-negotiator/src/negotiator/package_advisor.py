@@ -10,7 +10,7 @@ import math
 import os
 import threading
 import time
-from concurrent.futures import Future
+from concurrent.futures import Future, InvalidStateError
 
 import httpx
 from arena_kit.cost import complete_offer, must_haves_ok, total_cost
@@ -35,54 +35,143 @@ Return only selected_id and supporting_quote. For keep, use an empty supporting_
 _SLOTS = threading.BoundedSemaphore(4)
 
 
+class ModelResponseError(ValueError):
+    """Stable provider failure code; raw output stays in private local evidence."""
+
+    def __init__(self, code, raw=None):
+        super().__init__(code)
+        self.code, self.raw = code, raw
+
+
+def failure_reason(exc):
+    if isinstance(exc, ModelResponseError):
+        return exc.code
+    if isinstance(exc, TimeoutError):
+        return "capacity_busy" if "capacity busy" in str(exc) else "timeout"
+    return type(exc).__name__
+
+
 def bounded_call(fn, context, timeout_s):
     """Total wall-clock bound even if a compatible endpoint stalls; no queued retries."""
     if not _SLOTS.acquire(blocking=False):
         raise TimeoutError('model capacity busy')
     future = Future()
+    cancelled = threading.Event()
 
     def call():
         try:
-            future.set_result(fn(context, timeout_s))
+            result = fn(context, timeout_s)
+            if not cancelled.is_set():
+                future.set_result(result)
         except Exception as exc:
-            future.set_exception(exc)
+            if not cancelled.is_set() and not isinstance(exc, InvalidStateError):
+                try:
+                    future.set_exception(exc)
+                except InvalidStateError:
+                    pass
         finally:
             _SLOTS.release()
 
     threading.Thread(target=call, daemon=True).start()
-    return future.result(timeout=timeout_s)
+    try:
+        return future.result(timeout=timeout_s)
+    except TimeoutError:
+        cancelled.set()
+        future.cancel()  # best-effort local cancellation; the remote request may continue
+        raise
 
 
 def complete(context, timeout_s):
-    base = os.environ.get('LLM_BASE_URL', '').rstrip('/')
-    key, model = os.environ.get('LLM_API_KEY'), os.environ.get('LLM_MODEL')
+    validation = context.get('response_contract') == 'validation-repair-v1'
+    base = (os.environ.get('VALIDATION_LLM_BASE_URL') if validation else None) or os.environ.get('LLM_BASE_URL', '')
+    base = base.rstrip('/')
+    key = (os.environ.get('VALIDATION_LLM_API_KEY') if validation else None) or os.environ.get('LLM_API_KEY')
+    model = (os.environ.get('VALIDATION_LLM_MODEL') if validation else None) or os.environ.get('LLM_MODEL')
     if not base or not key or not model:
         raise ValueError('LLM endpoint, key and model must be configured')
     schema = {
         'type': 'object', 'additionalProperties': False,
         'properties': {
-            'selected_id': {'type': 'string', 'enum': ['keep', *context['approved_packages']]},
+            'selected_id': {'type': 'string', 'enum': ['keep', *context.get('approved_packages', {})]},
             'supporting_quote': {'type': 'string'},
         },
         'required': ['selected_id', 'supporting_quote'],
     }
+    system = SYSTEM
+    if context.get('response_contract') in ('capacity-advice-v2', 'supplier-actions-v1'):
+        from .advice import QUESTION_SYSTEM, response_schema
+        from .advice import SYSTEM as ADVICE_SYSTEM
+        schema = response_schema(context)
+        system = QUESTION_SYSTEM if context['response_contract'] == 'supplier-actions-v1' else ADVICE_SYSTEM
+    elif context.get('response_contract') == 'final-offer-advice-v1':
+        from .final_advice import response_schema as final_schema
+        from .final_advice import system_prompt as final_prompt
+        schema = final_schema(context)
+        system = final_prompt(context['skill_sha256'])
+    elif context.get('response_contract') == 'negotiation-strategy-v1':
+        from .strategy_advisor import response_schema as strategy_schema
+        from .strategy_advisor import system_prompt
+        schema = strategy_schema(context)
+        system = system_prompt(context['skill_sha256'])
+    elif context.get('response_contract') == 'supplier-brief-v1':
+        from .supplier_briefs import response_schema as brief_schema
+        from .supplier_briefs import system_prompt as brief_prompt
+        schema = brief_schema(context)
+        system = brief_prompt(context['skill_sha256'])
+    elif context.get('response_contract') == 'buyer-response-v1':
+        from .response_writer import response_schema as writer_schema
+        from .response_writer import system_prompt as writer_prompt
+        schema = writer_schema(context)
+        system = writer_prompt(context['skill_sha256'])
+    elif context.get('response_contract') == 'validation-repair-v1':
+        from .validation_repair import response_schema as repair_schema
+        from .validation_repair import system_prompt as repair_prompt
+        schema = repair_schema(context)
+        system = repair_prompt(context['skill_sha256'])
     payload = {
-        'model': model, 'messages': [{'role': 'system', 'content': SYSTEM},
+        'model': model, 'messages': [{'role': 'system', 'content': system},
                                    {'role': 'user', 'content': json.dumps(context, ensure_ascii=False)}],
-        'max_completion_tokens': 500,
+        'max_completion_tokens': (1200 if context.get('response_contract') == 'buyer-response-v1'
+                                  else 3000 if context.get('response_contract') == 'supplier-brief-v1'
+                                  else 600 if context.get('response_contract') == 'negotiation-strategy-v1'
+                                  and context.get('write_response') else 350
+                                  if context.get('response_contract') == 'negotiation-strategy-v1'
+                                  else 650 if context.get('response_contract') == 'final-offer-advice-v1'
+                                  and context.get('write_response') else 400
+                                  if context.get('response_contract') == 'final-offer-advice-v1'
+                                  else 900 if context.get('response_contract') else 500),
         'response_format': {'type': 'json_schema', 'json_schema': {
             'name': 'supplier_package_choice', 'strict': True, 'schema': schema}},
     }
-    if effort := os.environ.get('LLM_EFFORT'):
+    if effort := ((os.environ.get('VALIDATION_LLM_EFFORT') if validation else None)
+                  or os.environ.get('LLM_EFFORT')):
         payload['reasoning_effort'] = effort
     with httpx.Client(timeout=httpx.Timeout(timeout_s, connect=min(2.0, timeout_s))) as client:
         response = client.post(base + '/chat/completions', json=payload,
                                headers={'Authorization': 'Bearer ' + key})
-        response.raise_for_status()
-        message = response.json()['choices'][0]['message']
+        try:
+            response.raise_for_status()
+        except httpx.HTTPStatusError as exc:
+            raise ModelResponseError("schema_rejection" if exc.response.status_code in (400, 422)
+                                     else "provider_http_error") from exc
+        try:
+            result = response.json()
+        except (ValueError, TypeError) as exc:
+            raise ModelResponseError("invalid_json") from exc
+        try:
+            message = result['choices'][0]['message']
+        except (KeyError, IndexError, TypeError) as exc:
+            raise ModelResponseError("response_schema") from exc
         if message.get('refusal'):
-            raise ValueError('model refused')
-        return json.loads(message['content'])
+            raise ModelResponseError("provider_refusal")
+        if not isinstance(message.get('content'), str) or not message['content'].strip():
+            raise ModelResponseError("empty_output")
+        from .advice import AdviceCompletion
+        try:
+            parsed = json.loads(message['content'])
+        except json.JSONDecodeError as exc:
+            raise ModelResponseError("invalid_json", message['content'][:16000]) from exc
+        return AdviceCompletion(parsed, result.get('usage') or {})
 
 
 def _legal(case, terms, standard):
@@ -151,6 +240,16 @@ class PackageAdvisor:
         self.complete_fn = complete_fn
         self.timeout_s = min(8.0, max(0.01, timeout_s))
         self.cache = {}
+        self.calls = self.fallbacks = self.usage_reported_calls = 0
+        self.input_tokens = self.output_tokens = 0
+        self.latencies = []
+
+    def metrics(self):
+        return {'contract': 'legacy', 'calls': self.calls, 'fallbacks': self.fallbacks,
+                'latency_s': list(self.latencies), 'reported_input_tokens': self.input_tokens,
+                'reported_output_tokens': self.output_tokens,
+                'usage_reported_calls': self.usage_reported_calls,
+                'unknown_usage_calls': self.calls - self.usage_reported_calls}
 
     def select(self, case, threads, move, *, supplier=None, public_notes=(), remaining_s=None):
         message = move.get('message') or {}
@@ -188,8 +287,30 @@ class PackageAdvisor:
         cached = key in self.cache
         try:
             if not cached:
+                if budget := getattr(self, "model_budget", None):
+                    from .advice import digest
+
+                    allowed, reason, _ = budget.reserve("legacy-package", move['supplier_id'],
+                                                        key, digest(context), self.timeout_s,
+                                                        remaining_s=remaining_s or 60)
+                    if not allowed:
+                        return move, {'status': 'skipped', 'reason': reason}
+                self.calls += 1
                 self.cache[key] = bounded_call(self.complete_fn, context, self.timeout_s)
+                if budget:
+                    budget.artifact("legacy-package", key, context,
+                                    response=self.cache[key].response if hasattr(self.cache[key], "response")
+                                    else self.cache[key])
             advice = self.cache[key]
+            from .advice import AdviceCompletion
+            if isinstance(advice, AdviceCompletion):
+                usage = advice.usage
+                if not cached and all(type(usage.get(k)) is int and usage[k] >= 0
+                                      for k in ('prompt_tokens', 'completion_tokens')):
+                    self.input_tokens += usage['prompt_tokens']
+                    self.output_tokens += usage['completion_tokens']
+                    self.usage_reported_calls += 1
+                advice = advice.response
             if not isinstance(advice, dict) or set(advice) != {'selected_id', 'supporting_quote'}:
                 raise ValueError('invalid package advice')
             selected, quote = advice['selected_id'], advice['supporting_quote']
@@ -213,6 +334,11 @@ class PackageAdvisor:
                             'elapsed_s': time.monotonic() - started, 'cached': cached,
                             'model': os.environ.get('LLM_MODEL')}
         except Exception as exc:
+            if (budget := getattr(self, "model_budget", None)) and not cached:
+                budget.artifact("legacy-package", key, context, error=exc)
+            self.fallbacks += 1
             self.cache[key] = None
-            return move, {'status': 'fallback', 'error_type': type(exc).__name__,
+            return move, {'status': 'fallback', 'error_type': failure_reason(exc),
                           'elapsed_s': time.monotonic() - started}
+        finally:
+            self.latencies.append(round(time.monotonic() - started, 4))
