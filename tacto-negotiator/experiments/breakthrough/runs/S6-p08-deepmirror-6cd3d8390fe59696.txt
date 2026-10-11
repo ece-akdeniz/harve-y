@@ -1,0 +1,148 @@
+SESSION 6cd3d8390fe59696 case=case:P08 end=accepted rounds=4
+score=0.7589560078586178 c_open=1135887.28 c_deal=1002631.34 c_alt=1157019.84 supplier=sup:70710
+terms={"payment_days": 90, "lead_time_days": 10, "volume_per_year": 94800, "contract_months": 24, "effective_date": "2027-01-01", "index_clause": {"series": "AS-14404", "material_share": 0.45, "deadband_pct": 0.0, "base_month": "2026-08"}, "incoterm": "DAP", "tooling_eur": 0.0, "ppm_commitment": 50, "chargeback_eur_per_complaint": 0.0, "unit_price": 5.16}
+breakdown={"price": 978336.0, "uncovered_need": 0.0, "fallback_risk": 0.0, "payment_terms": -6522.24, "freight": 0.0, "late_delivery": 0.0, "quality": 0.0, "tooling": 0.0, "index_clause": 26415.07, "index_risk": 4402.51, "relationship": 0.0}
+
+--- round 0 actor=sup:70710 status=open
+Dear customer,
+Thank you for your enquiry. Please find our Angebot below.
+Our terms: a price of €6.05 per unit, Zahlungsziel 30 days net, a contract term of 12 months, no Preisgleitklausel.
+Here is the background.
+AS-14404 rose 5.9 % in twelve months and is 45 % of our cost.
+LCI-C rose 2.7 % in twelve months and is 5 % of our cost.
+PPI-C2431 rose 12.3 % in twelve months and is 38 % of our cost.
+And while we are at it: our whole range is at your disposal, so if there is anything else on your list, just send it over - we are happy to quote.
+Mit freundlichen Grüßen
+Georg Aigner
+Inside Sales, Edelstahl-Service Donautal GmbH
+  SUPPLIER OFFER offer:70710-0: {"unit_price": 6.05, "payment_days": 30, "index_clause": null, "contract_months": 12}
+  REASONS: ["AS-14404 rose … in twelve months and is … of our cost.", "LCI-C rose … in twelve months and is … of our cost.", "PPI-C2431 rose … in twelve months and is … of our cost."]
+
+--- round 1 actor=buyer status=None
+Dear Mr Aigner,
+
+Thank you for your offer and for explaining the alloy, labour and processing cost drivers. We appreciate your support from stock. For this business, please assess a dedicated volume tier rather than the quoted package.
+
+Our proposed agreement covers a fixed annual volume of 94800 kg throughout a 24-month contract. The latest shared monthly forecast is attached; see the figures below for the supporting demand data. This gives you a concrete basis for planning the volume tier.
+
+We propose EUR 4.58 per kg, with payment at 90 days net and no price adjustment clause, for the 24-month term. Please review these terms as a complete package and confirm the dedicated volume-tier price you can offer on that basis.
+
+Kind regards,
+Hollerau Pumpenwerke GmbH, Purchasing
+
+Our shared demand forecast fc:370010@2026-09 for part:370010 shows a change of +1.9 % against the previous snapshot.
+  TS: {"unit_price": 4.58, "index_clause": null, "payment_days": 90, "contract_months": 24}
+  REFS: ['fc:370010@2026-09']
+
+--- round 1 actor=sup:70710 status=open
+Dear customer,
+Thank you very much for your message - it is always a pleasure to hear from you, and we are glad to help wherever we can.
+We have reviewed your offer and can adjust our Angebot as follows.
+Our terms: a price of €5.45 per unit, Zahlungsziel 90 days net, a contract term of 24 months, a Preisgleitklausel on AS-14404.
+A few words on this from our side.
+We checked the volume change data you cited; it holds and we took it into account.
+Thank you for the volume forecast; we are pleased to accept your request for a 24-month agreement and 90 days payment terms.
+For a contract of this duration, we cannot offer a fixed price and must include the AS-14404 index clause to manage raw material volatility.
+By applying the index clause, we can remove the long-term risk premium and offer a significantly reduced base price of €5.57 per kg.
+Alternatively, with a Preisgleitklausel on AS-14404: €5.57 per unit.
+Our price follows our main cost drivers: AS-14404, PPI-C2431, LCI-C.
+We can offer a Preisgleitklausel on AS-14404, AS-14404, AS-14404.
+Our standard Zahlungsziel is 30 days net.
+We look forward to doing good business together, and our team is always there for you.
+Mit freundlichen Grüßen
+Georg Aigner
+Inside Sales, Edelstahl-Service Donautal GmbH
+  SUPPLIER OFFER offer:70710-1: {"unit_price": 5.45, "payment_days": 90, "index_clause": {"series": "AS-14404", "material_share": 0.45, "deadband_pct": 0.0, "base_month": "2026-08"}, "contract_months": 24}
+  ALT offer:70710-1-a: {"unit_price": 5.57, "payment_days": 90, "index_clause": {"series": "AS-14404", "material_share": 0.45, "deadband_pct": 5.0, "base_month": "2026-08"}, "contract_months": 24}
+  CLAIMS: [{'index': 0, 'result': 'verified'}]
+  REASONS: ["We checked the volume change data you cited; it holds and we took it into account.", "Thank you for the volume forecast; we are pleased to accept your request for a 24-month agreement and … days payment terms.", "For a contract of this duration, we cannot offer a fixed price and must include the AS-14404 index clause to manage raw material volatility.", "By applying the index clause, we can remove the long-term risk premium and offer a significantly reduced base price of €… per kg.", "Alternatively, with a Preisgleitklausel on AS-14404: €… per unit.", "Our price follows our main cost drivers: AS-14404, PPI-C2431, LCI-C.", "We can offer a Preisgleitklausel on AS-14404, AS-14404, AS-14404.", "Our standard Zahlungsziel is … days net."]
+
+--- round 2 actor=buyer status=None
+Dear Mr Aigner,
+
+Thank you for accepting the 24-month term and payment at 90 days net, and for taking the forecast into account. Those terms give us a useful basis for the agreement.
+
+I understand your concern about raw-material volatility and the reason for including an AS-14404 clause. Your fixed-price material cover described in your letter does, however, provide some protection against that exposure. Please reconsider a fixed price for the agreed term on the committed volume basis.
+
+Our purchase-order history also provides a concrete reference for the business already placed with you; see the figures below. Please take that trading history into account alongside the forecast when reviewing the volume-tier price.
+
+We can improve our proposal to EUR 4.77 per kg, with payment at 90 days net, a 24-month contract and no price adjustment clause. Please review this revised package and let us know how far you can reduce your price on that basis.
+
+Kind regards,
+Hollerau Pumpenwerke GmbH, Purchasing
+
+Our purchase orders po:4500013152-10, po:4500013196-10 and po:4500013278-10 for part:370010 were placed with you at EUR 5.17 per unit.
+  TS: {"unit_price": 4.77, "index_clause": null, "payment_days": 90, "contract_months": 24}
+  REFS: ['po:4500013152-10', 'po:4500013196-10', 'po:4500013278-10']
+
+--- round 2 actor=sup:70710 status=open
+Dear customer,
+Thank you very much for your message - it is always a pleasure to hear from you, and we are glad to help wherever we can.
+We have reviewed your offer and can adjust our Angebot as follows.
+Our terms: a price of €5.31 per unit, Zahlungsziel 90 days net, a contract term of 24 months, a Preisgleitklausel on AS-14404.
+Here is the background.
+We checked the price history data you cited; it holds, but it does not change our calculation.
+As our fixed-price material cover only extends until March 2027, we cannot offer a fixed price for a 24-month agreement and must include the AS-14404 index clause.
+Alternatively, with a Preisgleitklausel on AS-14404: €5.43 per unit.
+Our price follows our main cost drivers: AS-14404, PPI-C2431, LCI-C.
+We can offer a Preisgleitklausel on AS-14404, AS-14404, AS-14404.
+We look forward to doing good business together, and our team is always there for you.
+Mit freundlichen Grüßen
+Georg Aigner
+Inside Sales, Edelstahl-Service Donautal GmbH
+  SUPPLIER OFFER offer:70710-2: {"unit_price": 5.31, "payment_days": 90, "index_clause": {"series": "AS-14404", "material_share": 0.45, "deadband_pct": 0.0, "base_month": "2026-08"}, "contract_months": 24}
+  ALT offer:70710-2-a: {"unit_price": 5.43, "payment_days": 90, "index_clause": {"series": "AS-14404", "material_share": 0.45, "deadband_pct": 5.0, "base_month": "2026-08"}, "contract_months": 24}
+  CLAIMS: [{'index': 0, 'result': 'verified'}]
+  REASONS: ["We checked the price history data you cited; it holds, but it does not change our calculation.", "As our fixed-price material cover only extends until March … we cannot offer a fixed price for a 24-month agreement and must include the AS-14404 index clause.", "Alternatively, with a Preisgleitklausel on AS-14404: €… per unit.", "Our price follows our main cost drivers: AS-14404, PPI-C2431, LCI-C.", "We can offer a Preisgleitklausel on AS-14404, AS-14404, AS-14404."]
+
+--- round 3 actor=buyer status=None
+Dear Mr Aigner,
+
+Thank you for reducing your offer and confirming payment at 90 days net over the 24-month term. I also appreciate your verification of our purchase-order history, even though you have not changed your calculation on that basis.
+
+I understand that your material cover does not extend over the full agreement and that this is why you require an alloy index clause. Separately, the recent movement in PPI-C2431 warrants a review of the processing component of your price; see the figures below. Please take that movement into account alongside the annual volume already discussed.
+
+We can raise our proposal to EUR 4.87 per kg, with payment at 90 days net, a 24-month contract and no price adjustment clause. This remains our proposed fixed-price package, rather than acceptance of the indexed offer. Please review the revised price and confirm what further reduction you can offer.
+
+Kind regards,
+Hollerau Pumpenwerke GmbH, Purchasing
+
+The PPI-C2431 index fell 2.3 % between idx:PPI-C2431@2026-06 and idx:PPI-C2431@2026-08.
+  TS: {"unit_price": 4.87, "index_clause": null, "payment_days": 90, "contract_months": 24}
+  REFS: ['idx:PPI-C2431@2026-06', 'idx:PPI-C2431@2026-08']
+
+--- round 3 actor=sup:70710 status=final_offer
+Dear customer,
+
+Thank you for your ongoing partnership with us. We always strive to provide you with the best service from our extensive product range.
+
+Regarding our cost structure, AS-14404 rose 5.9 % in twelve months and is 45 % of our cost. That remains. LCI-C rose 2.7 % in twelve months and is 5 % of our cost. That remains. PPI-C2431 rose 12.3 % in twelve months and is 38 % of our cost. That remains. Our price follows our main cost drivers: AS-14404, PPI-C2431, LCI-C. Material accounts for about 45 % of our cost; more detail we do not share. We have verified the recent drop in the PPI-C2431 index and have adjusted our calculation to pass these processing cost savings on to you. However, as our fixed-price material cover only extends until March 2027, we cannot offer a fixed price for a 24-month agreement and must maintain the AS-14404 index clause.
+
+This is our final offer (letztes Angebot). Please decide.
+
+Our current proposal stands at a price of €5.16 per unit, Zahlungsziel 90 days net, a contract term of 24 months, a Preisgleitklausel on AS-14404. 
+
+Alternatively, with a Preisgleitklausel on AS-14404: a price of €5.29 per unit, Zahlungsziel 90 days net, a contract term of 24 months, a Preisgleitklausel on AS-14404.
+
+Please note that this Angebot is valid for 7 days.
+
+Mit freundlichen Grüßen
+Georg Aigner
+Inside Sales, Edelstahl-Service Donautal GmbH
+  SUPPLIER OFFER offer:70710-3: {"unit_price": 5.16, "payment_days": 90, "index_clause": {"series": "AS-14404", "material_share": 0.45, "deadband_pct": 0.0, "base_month": "2026-08"}, "contract_months": 24}
+  ALT offer:70710-3-a: {"unit_price": 5.29, "payment_days": 90, "index_clause": {"series": "AS-14404", "material_share": 0.45, "deadband_pct": 5.0, "base_month": "2026-08"}, "contract_months": 24}
+  CLAIMS: [{'index': 0, 'result': 'verified'}]
+  REASONS: ["AS-14404 rose … in twelve months and is … of our cost. That remains.", "LCI-C rose … in twelve months and is … of our cost. That remains.", "PPI-C2431 rose … in twelve months and is … of our cost. That remains.", "We have verified the recent drop in the PPI-C2431 index and have adjusted our calculation to pass these processing cost savings on to you.", "However, as our fixed-price material cover only extends until March … we cannot offer a fixed price for a 24-month agreement and must maintain the AS-14404 index clause.", "Alternatively, with a Preisgleitklausel on AS-14404: €… per unit.", "Our price follows our main cost drivers: AS-14404, PPI-C2431, LCI-C.", "Material accounts for about … of our cost; more detail we do not share."]
+
+--- round 3 actor=buyer status=None
+
+=== BACKOFFICE ===
+r0 Inside Sales->team: quote attached (quote-offer-70710-0.pdf)
+r1 Inside Sales->team: My call: counter.
+r1 Inside Sales->team: Read the buyer's e-mail: … term sheet and … cited fact to check; we answer with our offer.
+r2 Inside Sales->team: My call: counter.
+r2 Inside Sales->team: Read the buyer's e-mail: … term sheet and … cited fact to check; we answer with our offer.
+r3 Inside Sales->team: My call: counter.
+r3 Inside Sales->team: Read the buyer's e-mail: … term sheet and … cited fact to check; we answer with our final offer.
+r3 Inside Sales->team: quote attached (quote-offer-70710-3.pdf)
+r3 Inside Sales->team: order confirmation attached (order-confirmation-offer-70710-3.pdf)
