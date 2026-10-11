@@ -1,0 +1,130 @@
+# Context from my IDE setup:
+
+## Active file: tacto-negotiator/.env
+
+## Active selection of the file:
+Experiment Lab from LAB_PLAYBOOK.md
+## Open tabs:
+- .env: tacto-negotiator/.env
+- report.json: /tmp/v2-hosted-comparison-first-run/report.json
+- hosted-comparison-results-2026-10-11.md: tacto-negotiator/docs/v2/hosted-comparison-results-2026-10-11.md
+- assignment-2-completion-2026-10-11.md: tacto-negotiator/docs/v2/assignment-2-completion-2026-10-11.md
+- strategic-alignment-review-2026-10-11.md: tacto-negotiator/docs/v2/strategic-alignment-review-2026-10-11.md
+
+# Files pasted by the user:
+
+## "# Assignment: V2 LLM Stabilization, Semantic Reliability, # and Experiment Lab …": /home/ugur/.codex/attachments/62c060f6-6e8c-4220-9c4a-945e42311c0b/Pasted text.txt
+
+Pasted text contains the user's request.
+
+## My request:
+
+---
+
+# Context from my IDE setup:
+
+## Active file: tacto-negotiator/.env
+
+## Active selection of the file:
+REDACTED
+## Open tabs:
+- .env: tacto-negotiator/.env
+- report.json: /tmp/v2-hosted-comparison-first-run/report.json
+- hosted-comparison-results-2026-10-11.md: tacto-negotiator/docs/v2/hosted-comparison-results-2026-10-11.md
+- assignment-2-completion-2026-10-11.md: tacto-negotiator/docs/v2/assignment-2-completion-2026-10-11.md
+- strategic-alignment-review-2026-10-11.md: tacto-negotiator/docs/v2/strategic-alignment-review-2026-10-11.md
+
+## My request:
+we dont really care about v1, if that is a blocker just leave it
+
+---
+
+# Context from my IDE setup:
+
+## Active file: tacto-negotiator/docs/v2/llm-stabilization-and-lab-integration-2026-10-11.md
+
+## Open tabs:
+- llm-stabilization-and-lab-integration-2026-10-11.md: tacto-negotiator/docs/v2/llm-stabilization-and-lab-integration-2026-10-11.md
+- .env: tacto-negotiator/.env
+- report.json: /tmp/v2-hosted-comparison-first-run/report.json
+- hosted-comparison-results-2026-10-11.md: tacto-negotiator/docs/v2/hosted-comparison-results-2026-10-11.md
+- assignment-2-completion-2026-10-11.md: tacto-negotiator/docs/v2/assignment-2-completion-2026-10-11.md
+
+## My request:
+# Next Assignment: Hosted Semantic Validation and Lab Failure Analysis
+
+Review the existing V2 documentation, latest stabilization report, and `LAB_PLAYBOOK.md` before proceeding. Follow established interfaces and avoid unnecessary architectural changes.
+
+## Objectives
+
+1. **Analyze the three no-deal Experiment Lab runs.**
+   - Inspect negotiation transcripts and simulator outcomes.
+   - Identify why agreement was not reached.
+   - Distinguish limitations of the fixed strategy from integration issues.
+   - Recommend improvements relevant to future LLM strategies.
+
+2. **Validate the improved LLM interfaces with real inference.**
+   - Prepare the proposed 19-call experiment using `gpt-4.1-mini`.
+   - Evaluate interpretation admission, semantic correctness, grounding, and selection behavior.
+   - Compare against the previous hosted experiment.
+   - Preserve frozen held-out labels and independently assess semantic expectations.
+   - Obtain explicit authorization before any hosted inference.
+
+3. **Verify Experiment Lab readiness for strategy research.**
+   - Confirm that interchangeable LLM strategies can use the existing V2/Lab interfaces.
+   - Identify remaining blockers to LLM-driven proposal generation (Assignment 4).
+   - Ensure future strategies can be compared against identical baselines and scenarios.
+
+## Constraints
+
+- Preserve official economics, independent validation, and safety boundaries.
+- Do not weaken validators to improve admission rates.
+- Do not build additional deterministic negotiation strategies.
+- Avoid new infrastructure unless necessary.
+- Keep hosted experiments separate from local mock evaluations.
+- Do not initiate Arena negotiations.
+
+## Deliverables
+
+- Root-cause analysis of the three no-deal negotiations.
+- Hosted experiment results, if separately authorized; otherwise an exact runnable experiment plan.
+- Assessment of LLM interpretation and selection reliability.
+- Updated readiness assessment for Assignment 4.
+- Recommended next implementation step.
+
+**Primary goal:** Establish reliable supplier understanding and prepare to transition from infrastructure development to research-based LLM negotiation strategies.
+
+Prioritize meaningful negotiation intelligence over additional framework complexity.
+
+---
+
+# Context from my IDE setup:
+
+## Active file: tacto-negotiator/docs/v2/hosted-semantic-validation-and-lab-failure-analysis-2026-10-11.md
+
+## Open tabs:
+- hosted-semantic-validation-and-lab-failure-analysis-2026-10-11.md: tacto-negotiator/docs/v2/hosted-semantic-validation-and-lab-failure-analysis-2026-10-11.md
+- llm-stabilization-and-lab-integration-2026-10-11.md: tacto-negotiator/docs/v2/llm-stabilization-and-lab-integration-2026-10-11.md
+- .env: tacto-negotiator/.env
+- report.json: /tmp/v2-hosted-comparison-first-run/report.json
+- hosted-comparison-results-2026-10-11.md: tacto-negotiator/docs/v2/hosted-comparison-results-2026-10-11.md
+
+## My request:
+I authorize **one hosted semantic-validation experiment** using direct OpenAI `gpt-4.1-mini-2025-04-14`, under the prepared and reviewed configuration.
+
+**Limits:**
+
+- Maximum 19 model calls.
+- Absolute expenditure ceiling of USD 1.00.
+- Maximum 311,296 reserved tokens under the documented conservative UTF-8 byte/schema accounting convention, including framing overhead.
+- No retries or automatic reruns.
+- No Arena negotiations or remote Experiment Lab writes.
+- No changes to validators, prompts, schemas, or frozen evaluation labels during execution.
+
+Execute the prepared experiment once and analyze the results, including structural admission, semantic correctness, grounding failures, fallback behavior, and P10 selection.
+
+Clearly distinguish automated semantic scores from independent human evaluation. Do not claim the semantic acceptance gate has passed while human review remains pending.
+
+Compare the results against the previous hosted experiment and provide a recommendation on whether we are ready to proceed with Assignment 4.
+
+Do not implement Assignment 4 in this task.
