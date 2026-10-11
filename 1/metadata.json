@@ -3,8 +3,8 @@
   "checkpoint_id": "01M4MB3G07G3XCJ0M4B8DJNPXF",
   "session_id": "d9a1be87-133f-4919-94ec-c2b6de20b1d5",
   "strategy": "manual-commit",
-  "created_at": "2026-10-11T02:01:41.405984Z",
-  "branch": "codex/fresh-wave",
+  "created_at": "2026-10-11T02:09:42.411257Z",
+  "branch": "codex/consolidated",
   "checkpoints_count": 1,
   "save_step_count": 1,
   "files_touched": [
@@ -23,15 +23,15 @@
     "context_window_size": 300000
   },
   "initial_attribution": {
-    "calculated_at": "2026-10-11T02:01:41.391579Z",
+    "calculated_at": "2026-10-11T02:09:42.398199Z",
     "agent_lines": 0,
     "agent_removed": 2,
-    "human_added": 1361,
-    "human_modified": 29,
+    "human_added": 1317,
+    "human_modified": 30,
     "human_removed": 0,
-    "total_committed": 1377,
-    "total_lines_changed": 1415,
-    "agent_percentage": 0.1413427561837456,
+    "total_committed": 1333,
+    "total_lines_changed": 1372,
+    "agent_percentage": 0.1457725947521866,
     "metric_version": 2
   },
   "prompt_attributions": [

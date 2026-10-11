@@ -2,7 +2,7 @@
   "cli_version": "0.11.4",
   "checkpoint_id": "01M4MB3G07G3XCJ0M4B8DJNPXF",
   "strategy": "manual-commit",
-  "branch": "codex/fresh-wave",
+  "branch": "codex/consolidated",
   "checkpoints_count": 2,
   "files_touched": [
     "tacto-negotiator/src/negotiator/agent.py",
