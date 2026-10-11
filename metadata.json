@@ -3,7 +3,7 @@
   "checkpoint_id": "01M4MGHHM8HKRWZDVZ2EX0EC0T",
   "strategy": "manual-commit",
   "branch": "codex-negotiator-v2-t1-1a-2026-10-10",
-  "checkpoints_count": 39,
+  "checkpoints_count": 42,
   "files_touched": [
     "tacto-negotiator/LAB_PLAYBOOK.md",
     "tacto-negotiator/docs/21-negotiation-v2-plan-2026-10-10.md",
@@ -23,7 +23,9 @@
     "tacto-negotiator/docs/v2/implementation-order-addendum-2026-10-10.md",
     "tacto-negotiator/docs/v2/inference-probe-finalization-repair-2026-10-11.md",
     "tacto-negotiator/docs/v2/intelligent-negotiation-milestone-2026-10-11.md",
+    "tacto-negotiator/docs/v2/negotiation-repair-d01-trial-2026-10-11.md",
     "tacto-negotiator/docs/v2/negotiation-repair-fast-plan-2026-10-11.md",
+    "tacto-negotiator/docs/v2/negotiation-repair-implementation-2026-10-11.md",
     "tacto-negotiator/docs/v2/pd1-lifecycle-implementation-2026-10-11.md",
     "tacto-negotiator/docs/v2/pd1-terminal-publication-implementation-2026-10-11.md",
     "tacto-negotiator/docs/v2/post-d01-development-roadmap.md",
@@ -86,6 +88,7 @@
     "tacto-negotiator/src/negotiator/v2/intelligence/interpreter.py",
     "tacto-negotiator/src/negotiator/v2/intelligence/prompts/bounded-proposal-v1.txt",
     "tacto-negotiator/src/negotiator/v2/intelligence/prompts/bounded-proposal-v2.txt",
+    "tacto-negotiator/src/negotiator/v2/intelligence/prompts/bounded-proposal-v3.txt",
     "tacto-negotiator/src/negotiator/v2/intelligence/prompts/grounded-selection-v1.txt",
     "tacto-negotiator/src/negotiator/v2/intelligence/prompts/grounded-supplier-v1.txt",
     "tacto-negotiator/src/negotiator/v2/intelligence/prompts/grounded-supplier-v3.txt",
@@ -221,14 +224,21 @@
       "compact_transcript": "/12/transcript.jsonl",
       "content_hash": "/12/content_hash.txt",
       "prompt": "/12/prompt.txt"
+    },
+    {
+      "metadata": "/13/metadata.json",
+      "transcript": "/13/full.jsonl",
+      "compact_transcript": "/13/transcript.jsonl",
+      "content_hash": "/13/content_hash.txt",
+      "prompt": "/13/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 4174942,
+    "input_tokens": 4486991,
     "cache_creation_tokens": 0,
-    "cache_read_tokens": 148500761,
-    "output_tokens": 913566,
-    "api_call_count": 1396,
+    "cache_read_tokens": 169114393,
+    "output_tokens": 964962,
+    "api_call_count": 1592,
     "subagent_tokens_complete": true
   }
 }
