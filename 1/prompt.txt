@@ -1,13 +1,3 @@
-<environment_context>
-  <cwd>/home/ugur/harve-y</cwd>
-  <shell>bash</shell>
-  <current_date>2026-10-11</current_date>
-  <timezone>Europe/Zurich</timezone>
-  <filesystem><workspace_roots><root>/home/ugur/harve-y</root></workspace_roots><permission_profile type="managed"><file_system type="restricted"><entry access="read"><special>:root</special></entry><entry access="write"><path>/home/ugur/harve-y</path></entry><entry access="write"><special>:slash_tmp</special></entry><entry access="write"><special>:tmpdir</special></entry><entry access="read"><path>/home/ugur/harve-y/.git</path></entry><entry access="read"><path>/home/ugur/harve-y/.agents</path></entry><entry access="read"><path>/home/ugur/harve-y/.codex</path></entry><entry access="read"><path>/home/ugur/harve-y/.aws</path></entry></file_system></permission_profile></filesystem>
-</environment_context>
-
----
-
 # Context from my IDE setup:
 
 ## Open tabs:
