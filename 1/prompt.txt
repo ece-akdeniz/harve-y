@@ -8,6 +8,90 @@
 - news.csv: tacto-negotiator/data/release-sunday/data/news.csv
 
 ## My request:
+[V6 supplier intelligence improvement plan](/tmp/harvey-v6-supplier-intelligence-plan/tacto-negotiator/docs/v6-supplier-intelligence-improvement-plan-2026-10-11.md). implement these proposed changes
+
+---
+
+# Context from my IDE setup:
+
+## Open tabs:
+- 20261008-70650-S10.md: tacto-negotiator/data/release-sunday/correspondence/20261008-70650-S10.md
+- 20261001-70510-S5.md: tacto-negotiator/data/release-sunday/correspondence/20261001-70510-S5.md
+- 20261002-70720-S6.md: tacto-negotiator/data/release-sunday/correspondence/20261002-70720-S6.md
+- 20261005-70250-S2.md: tacto-negotiator/data/release-sunday/correspondence/20261005-70250-S2.md
+- news.csv: tacto-negotiator/data/release-sunday/data/news.csv
+
+## My request:
+run 5 random practice runs
+
+---
+
+# Context from my IDE setup:
+
+## Open tabs:
+- 20261008-70650-S10.md: tacto-negotiator/data/release-sunday/correspondence/20261008-70650-S10.md
+- 20261001-70510-S5.md: tacto-negotiator/data/release-sunday/correspondence/20261001-70510-S5.md
+- 20261002-70720-S6.md: tacto-negotiator/data/release-sunday/correspondence/20261002-70720-S6.md
+- 20261005-70250-S2.md: tacto-negotiator/data/release-sunday/correspondence/20261005-70250-S2.md
+- news.csv: tacto-negotiator/data/release-sunday/data/news.csv
+
+## My request:
+Did we do any fallbacks in this case? CAn you tell me why this happended?
+
+---
+
+# Context from my IDE setup:
+
+## Open tabs:
+- 20261008-70650-S10.md: tacto-negotiator/data/release-sunday/correspondence/20261008-70650-S10.md
+- 20261001-70510-S5.md: tacto-negotiator/data/release-sunday/correspondence/20261001-70510-S5.md
+- 20261002-70720-S6.md: tacto-negotiator/data/release-sunday/correspondence/20261002-70720-S6.md
+- 20261005-70250-S2.md: tacto-negotiator/data/release-sunday/correspondence/20261005-70250-S2.md
+- news.csv: tacto-negotiator/data/release-sunday/data/news.csv
+
+## My request:
+Lets robostify this. Unless something catastrophic happens, we should not fall back to the deterministic case. Lets try to handle this. also, even if the fallback happens, the validation llm should always be up and ready to intervene. if needed, it should take over and make the counter offer
+
+---
+
+# Context from my IDE setup:
+
+## Open tabs:
+- 20261008-70650-S10.md: tacto-negotiator/data/release-sunday/correspondence/20261008-70650-S10.md
+- 20261001-70510-S5.md: tacto-negotiator/data/release-sunday/correspondence/20261001-70510-S5.md
+- 20261002-70720-S6.md: tacto-negotiator/data/release-sunday/correspondence/20261002-70720-S6.md
+- 20261005-70250-S2.md: tacto-negotiator/data/release-sunday/correspondence/20261005-70250-S2.md
+- news.csv: tacto-negotiator/data/release-sunday/data/news.csv
+
+## My request:
+commit and push this
+
+---
+
+# Context from my IDE setup:
+
+## Open tabs:
+- 20261008-70650-S10.md: tacto-negotiator/data/release-sunday/correspondence/20261008-70650-S10.md
+- 20261001-70510-S5.md: tacto-negotiator/data/release-sunday/correspondence/20261001-70510-S5.md
+- 20261002-70720-S6.md: tacto-negotiator/data/release-sunday/correspondence/20261002-70720-S6.md
+- 20261005-70250-S2.md: tacto-negotiator/data/release-sunday/correspondence/20261005-70250-S2.md
+- news.csv: tacto-negotiator/data/release-sunday/data/news.csv
+
+## My request:
+ok now do a full practice test for all ten cases
+
+---
+
+# Context from my IDE setup:
+
+## Open tabs:
+- 20261008-70650-S10.md: tacto-negotiator/data/release-sunday/correspondence/20261008-70650-S10.md
+- 20261001-70510-S5.md: tacto-negotiator/data/release-sunday/correspondence/20261001-70510-S5.md
+- 20261002-70720-S6.md: tacto-negotiator/data/release-sunday/correspondence/20261002-70720-S6.md
+- 20261005-70250-S2.md: tacto-negotiator/data/release-sunday/correspondence/20261005-70250-S2.md
+- news.csv: tacto-negotiator/data/release-sunday/data/news.csv
+
+## My request:
 [🧪](https://discord.com/assets/e5aa5c7ba473596f.svg) **NEW: rehearse the final on your laptop.** `git pull` the kit, `uv sync` in `starter-kit/`, then `uv run arena-sim serve --final-rehearsal --data data/package` and run `arena run --set final --waves 2` against it. Two short waves with the real rules: the 403 wait, the wave start, one session per case, `seconds_left`, the cap. [⏱️](https://discord.com/assets/0936447be3e254dd.svg) **The 8 minutes are yours.** The kit stops countering 90 s before the cap and takes the best offer on the table: one constant, `CLOSE_BEFORE_CAP_S` in `arena_kit/play.py`. Tune it if you like, but a supplier's reply can take a minute. [📦](https://discord.com/assets/00919cc6b0d09360.svg) **08:00** Sunday release: `uv run arena data` again. Some hidden cases cite it. [✈️](https://discord.com/assets/57f6f4c986c34c56.svg) **09:00** Pre-flight on arena.tacto.ai: one practice case, then start your final runner for a minute. It must *wait* (403 until wave 1).
 
 Lets try this
