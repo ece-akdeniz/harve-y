@@ -3,7 +3,7 @@
   "checkpoint_id": "01M4MGHHM8HKRWZDVZ2EX0EC0T",
   "strategy": "manual-commit",
   "branch": "codex-negotiator-v2-t1-1a-2026-10-10",
-  "checkpoints_count": 26,
+  "checkpoints_count": 32,
   "files_touched": [
     "tacto-negotiator/LAB_PLAYBOOK.md",
     "tacto-negotiator/docs/21-negotiation-v2-plan-2026-10-10.md",
@@ -22,6 +22,8 @@
     "tacto-negotiator/docs/v2/hosted-semantic-validation-results-2026-10-11.md",
     "tacto-negotiator/docs/v2/implementation-order-addendum-2026-10-10.md",
     "tacto-negotiator/docs/v2/intelligent-negotiation-milestone-2026-10-11.md",
+    "tacto-negotiator/docs/v2/pd1-lifecycle-implementation-2026-10-11.md",
+    "tacto-negotiator/docs/v2/pd1-terminal-publication-implementation-2026-10-11.md",
     "tacto-negotiator/docs/v2/post-d01-development-roadmap.md",
     "tacto-negotiator/docs/v2/real-llm-readiness-2026-10-11.md",
     "tacto-negotiator/docs/v2/strategic-alignment-review-2026-10-11.md",
@@ -36,6 +38,7 @@
     "tacto-negotiator/experiments/v2/export_arena_integration.py",
     "tacto-negotiator/experiments/v2/p10-offline-input.json",
     "tacto-negotiator/experiments/v2/run_adaptive_milestone.py",
+    "tacto-negotiator/experiments/v2/run_d01_inference_probe.py",
     "tacto-negotiator/experiments/v2/run_hosted_comparison.py",
     "tacto-negotiator/experiments/v2/run_hosted_sandbox.py",
     "tacto-negotiator/experiments/v2/run_lab_local.py",
@@ -44,6 +47,7 @@
     "tacto-negotiator/experiments/v2/run_semantic_validation.py",
     "tacto-negotiator/experiments/v2/semantic-expectations-review.json",
     "tacto-negotiator/src/negotiator/lab/cli.py",
+    "tacto-negotiator/src/negotiator/lab/lifecycle.py",
     "tacto-negotiator/src/negotiator/lab/runner.py",
     "tacto-negotiator/src/negotiator/lab/transport.py",
     "tacto-negotiator/src/negotiator/v2/adapters/__init__.py",
@@ -62,6 +66,7 @@
     "tacto-negotiator/src/negotiator/v2/core/question_actions.py",
     "tacto-negotiator/src/negotiator/v2/core/supplier_grounding.py",
     "tacto-negotiator/src/negotiator/v2/economics/__init__.py",
+    "tacto-negotiator/src/negotiator/v2/economics/effects.py",
     "tacto-negotiator/src/negotiator/v2/economics/estimates.py",
     "tacto-negotiator/src/negotiator/v2/economics/finite.py",
     "tacto-negotiator/src/negotiator/v2/economics/official.py",
@@ -78,6 +83,7 @@
     "tacto-negotiator/src/negotiator/v2/intelligence/fallback.py",
     "tacto-negotiator/src/negotiator/v2/intelligence/interpreter.py",
     "tacto-negotiator/src/negotiator/v2/intelligence/prompts/bounded-proposal-v1.txt",
+    "tacto-negotiator/src/negotiator/v2/intelligence/prompts/bounded-proposal-v2.txt",
     "tacto-negotiator/src/negotiator/v2/intelligence/prompts/grounded-selection-v1.txt",
     "tacto-negotiator/src/negotiator/v2/intelligence/prompts/grounded-supplier-v1.txt",
     "tacto-negotiator/src/negotiator/v2/intelligence/prompts/grounded-supplier-v3.txt",
@@ -110,6 +116,7 @@
     "tacto-negotiator/tests/v2/dto_spec.py",
     "tacto-negotiator/tests/v2/integration/test_adaptive_proposal.py",
     "tacto-negotiator/tests/v2/integration/test_arena_observations.py",
+    "tacto-negotiator/tests/v2/integration/test_commercial_effects.py",
     "tacto-negotiator/tests/v2/integration/test_consumer_regressions.py",
     "tacto-negotiator/tests/v2/integration/test_grounded_model.py",
     "tacto-negotiator/tests/v2/integration/test_grounded_selection.py",
@@ -117,7 +124,8 @@
     "tacto-negotiator/tests/v2/integration/test_hosted_sandbox.py",
     "tacto-negotiator/tests/v2/integration/test_lab_integration.py",
     "tacto-negotiator/tests/v2/integration/test_offline_decision.py",
-    "tacto-negotiator/tests/v2/integration/test_semantic_validation_plan.py"
+    "tacto-negotiator/tests/v2/integration/test_semantic_validation_plan.py",
+    "tacto-negotiator/tests/v2/integration/test_terminal_publication.py"
   ],
   "sessions": [
     {
@@ -189,14 +197,21 @@
       "compact_transcript": "/9/transcript.jsonl",
       "content_hash": "/9/content_hash.txt",
       "prompt": "/9/prompt.txt"
+    },
+    {
+      "metadata": "/10/metadata.json",
+      "transcript": "/10/full.jsonl",
+      "compact_transcript": "/10/transcript.jsonl",
+      "content_hash": "/10/content_hash.txt",
+      "prompt": "/10/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 2962737,
+    "input_tokens": 3829299,
     "cache_creation_tokens": 0,
-    "cache_read_tokens": 87026585,
-    "output_tokens": 664375,
-    "api_call_count": 802,
+    "cache_read_tokens": 134694041,
+    "output_tokens": 863441,
+    "api_call_count": 1260,
     "subagent_tokens_complete": true
   }
 }

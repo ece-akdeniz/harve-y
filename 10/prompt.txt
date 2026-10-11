@@ -1,0 +1,982 @@
+# Context from my IDE setup:
+
+## Active file: tacto-negotiator/docs/v2/post-d01-development-roadmap.md
+
+## Active selection of the file:
+# V2 Negotiator: post-D01 architecture review and development roadmap
+
+Date: 11 October 2026 (Europe/Zurich). Status: **planning for review; no implementation or experiment authorization**.
+
+## A. Executive assessment
+
+V2 is a usable, bounded decision pipeline with a real, narrowly authorized Arena bridge. It is not yet a demonstrated intelligent hosted negotiator or the complete durable runtime described in the original architecture. Preserve the evidence resolver, official economics, citation admission, independent validation, templates, journals, Lab records and V1. Fix lifecycle ownership before expanding strategy or supplier concurrency.
+
+The first hosted D01 established that one authorized session could be created, its actual history and quote ingested, two real inference requests accounted for, an unsent model package independently evaluated and validated, and one immutable failed run published and retrieved. It established **neither successful model interpretation nor a single buyer submission**. Its score of zero is an execution outcome, not evidence against the strategy's negotiated performance.
+
+Three demonstrated problems dominate:
+
+1. Inference timeout/cancellation and dispatch eligibility have inconsistent ownership. A cancellation race spent a second request; stopping inference then stopped even validated action dispatch. The synchronous-stop patch closes the observed race but does not establish an operational fallback path.
+2. Commercial reasoning lacks explicit reference terms and checked effects. The proposer described payment in 45 rather than 30 days as helping supplier cash flow. A valid package and an existing citation do not establish correct reciprocity.
+3. Final publication preceded authoritative termination. Remote D01 contains `terminal_json: "null"`; the later three-timeout withdrawal is local only. Terminal capture has been patched, but interruption, transient read failure and uncertain publication remain to be verified.
+
+Recommended target: one decision budget owner; inference availability separate from execution safety; a compact commercial-effects representation over existing assessment/state; bounded LLM strategy with code-derived economic feedback; independent final validation and closing; a durable terminal-evidence/publication barrier. Keep sequential inference as the repair baseline. Evaluate a combined interpretation/proposal call as a treatment after the baseline is measurable; logical module boundaries need not imply separate network requests.
+
+Critical path: lifecycle repair and terminal barrier → commercial-effects/provenance checks → authorized small real-model probes plus integrated offline fault tests → fresh authorization for one controlled D01 → explicit capability review → D02. Do not adapt the predecessor gate simply to admit the failed D01.
+
+## Evidence basis and limitations
+
+Paths in this document are relative to `tacto-negotiator/` unless absolute. Reviewed workspace HEAD is `a88bf86820214be9fdf4e0d4e679675d946e0607`; it has extensive pre-existing tracked and untracked V2 changes. HEAD alone cannot reproduce this workspace. The executed source is separately identified by its approved digest and retained patch; current post-run code must never be represented as the executed code.
+
+Read the original [architecture](B-architecture.md), [contracts](C-interfaces.md), [roadmap](D-roadmap.md), [task specifications](task-specs.md), [implementation guide](implementation-guide.md), [evaluation](E-evaluation.md), [research queue](F-research-backlog.md), and the dated implementation/integration/readiness reports. Some headers still say “unimplemented,” and task histories contain older test counts. The assessment below follows concrete composition and artifacts, rather than those labels.
+
+| Evidence | Identity / inspected content | What it establishes |
+|---|---|---|
+| [D01 report](hosted-d01-results-2026-10-11.md) | Session `de6f67ea54658727`, Lab run `04a6789d-593b-4722-a7f4-5f289da374f1` | Narrative cross-checked against original artifacts |
+| `/tmp/v2-d01-hosted-execution-2026-10-11/complete-transcript.json` | Original Lab run, decision traces, write journal, ledger, later owned observation, immutable-record flag | Distinguishes original publication from later local evidence |
+| Same directory: `execution-report.json`, `inference-ledger.json` | Failed attempt; 0 buyer submissions; 2 reservations; unknown interpreter usage | Execution and accounting, not strategy quality |
+| Same directory: `traces/<run>/<session>/decision-000.json` | Original model requests, fallback assessment, proposed bindings, rationale, economics, validation; trace hash `b40093e4a46cf3dd76d2898c331efe418e1190dbc3c13557cb19f35291a08db5` | Actual unsent decision and clock evidence |
+| Same directory: `observation-000.json`, `baseline-economics-000.json` under that trace directory | Actual ordered conversation/quote; fixed candidate on the same observation | Controlled local cost comparison, not an independent hosted baseline |
+| Same directory: `arena-journal.jsonl` | Session-create intent/done/session; exact UTF-8 payload/hash; no message POST | No agent offer, accept, or walk-away was sent |
+| Same directory: `post-failure-authoritative-state.json`, `final-owned-observation.json` | Open after local failure; subsequently ended, three automatic timeouts, supplier withdrawal | Authoritative terminal outcome collected later |
+| Same directory: `lab-proof-04a6789d-593b-4722-a7f4-5f289da374f1.json` | Retrieval/listing proof; run and attempt `failed`; terminal field null | Remote publication limitation |
+| `/tmp/v2-d01-direct-preparation-2026-10-11/approved-authorization.json` and `.consumed` | Exact one-session/one-write allowance; approved source digest `9d47aec6e5538f5e601f96aa9edb6f76b3ca0ddab6166fd17774a30aa20b25cd` | Consumed authorization, not permission for another execution |
+
+Byte SHA-256 at review: authorization `460408b375b0aa752dc402ce3ab0fc6439dd094610d6491182f14e4e11374477`; consumed-marker file `efef8868c89607e0cbf3bde240411f3ef28458461c63d68d0ffe80474e2095ba`. The marker's *contents* are the authorization's semantic hash; these are different hash conventions. Leave both files untouched.
+
+Local checks during this review, with the existing `.venv` and no provider, Arena or Lab calls:
+
+```text
+.venv/bin/python -m pytest -q tests/v2/integration/test_hosted_sandbox.py tests/v2/acceptance/test_model_budget.py
+8 passed, 2 xfailed
+.venv/bin/python -m pytest -q tests/v2/integration/test_grounded_model.py -k 'transport_stop_is_visible or cancellation_resistant or deadline_cancel'
+8 passed, 38 deselected
+```
+
+The two expected failures specifically require the absent `negotiator.v2.adapters.recorded`; they do not execute the old model-budget acceptance assertions. A focused `-rx` inspection confirmed this. Implement equivalent lifecycle checks against the actual bridge now; completing the generic recorded adapter is a separate scope decision, not a reason to count those acceptance tests as passed. These tests corroborate focused local behavior; no full-repository health or hosted patch validation is claimed. The previous report records a legacy `tests/test_context.py` failure; future implementation must reclassify its baseline, not assume it is still identical. No remote metadata refresh was needed for this planning task. Public research pages were read; no hosted inference, Arena session, Lab write, authorization mutation, D02 or P10 execution occurred.
+
+## B. Root-cause analysis
+
+### B1. Actual execution and time consumption
+
+Concrete path:
+
+```text
+experiments/v2/run_hosted_sandbox.execute
+  → SingleSessionArena + OfflineAllowance
+  → lab.runner.run_experiment / RecordingTable
+  → factory.online_lab_agent / VerifiedOnlineV2LabAgent
+  → LocalV2LabAgent.decide
+  → recorded_p10 + normalize_live_inputs
+  → bounded_services / run_recorded_decision
+  → OfflineDecisionCoordinator + DecisionModelLedger
+  → GroundedInterpreter → BoundedProposalPolicy
+  → ProposedCandidateGenerator → OfficialEconomicEvaluator
+  → ProposalSelector → TemplateActionRenderer → FinalActionValidator
+  → adapter dispatch checks → JournaledArena POST (never reached for a buyer move)
+```
+
+The decision snapshot's authoritative read began `01:31:26.679688Z` and completed `01:31:26.790469Z`: approximately 0.111 seconds. Arena `seconds_left` was 58.3. `normalize_live_inputs` conservatively used **request time + seconds_left**, producing `01:32:24.979688Z`. It then clipped the decision to the recorded input's local 35-second deadline, `01:32:02.136337Z`. Neither a fresh read nor a new inference stage should reset that original computation allowance.
+
+The snapshot reserved five seconds each for fallback and submission and twelve seconds for all model work. `DecisionModelLedger.model_budget` also caps calls at eight seconds; `InterpreterConfig.checked` enforces that cap; factory sets eight seconds; `BoundedProposalPolicy` independently hardcodes four seconds. A change in one config value cannot repair all these limits. `adapters/p10.recorded_p10` owns the 35/12/5/5 defaults despite now serving D01 and D02.
+
+Interpreter elapsed time at the decision ledger was 8.0096 seconds; allowance lifecycle latency was 8.0608 seconds. The proposer took 3.9742 seconds at the ledger and 3.9285 seconds at the allowance. These measure different boundaries, not contradictory measurements. Known proposal usage was 3,163 input and 261 output tokens; interpreter output/usage never arrived. Total model waiting consumed almost the entire twelve-second model allowance. There is no stage-level evidence sufficient to allocate all remaining time among document parsing, context construction, validation and collection; add spans rather than invent those durations.
+
+Two requests reserved 196,608 tokens and USD 0.0835584 against the approved 18-call, 1,769,472-reserved-token, USD 1 ceiling. The known proposal cost estimate was USD 0.0016828; total actual spend is unknown. These are the historical experiment's recorded estimates and reservation convention, not a current provider-pricing recommendation.
+
+The Arena still reported open, round zero after agent failure. Thus an Arena deadline too short for *any* action is not the demonstrated cause. Eight seconds was too short for this interpreter request; one censored observation cannot establish the provider's latency distribution or an appropriate replacement cap.
+
+### B2. Findings by confidence
+
+| Finding | Classification | Evidence / consequence |
+|---|---|---|
+| Interpreter timed out; async cleanup allowed a proposer to start | Confirmed historical defect | Original trace/ledger and executed-source patch; two charged calls |
+| Dispatch rejected the decision because inference transport had stopped | Confirmed behavior with availability design gap | `adapters/lab.py:LocalV2LabAgent.decide` raises on `transport.stopped`, before pending-message creation |
+| Synchronous stop on timeout now precedes return | Implemented local repair, hosted unvalidated | `orchestration/budgets.py:DecisionModelLedger.invoke`; `OfflineAllowance.stop_model_calls`; focused regression passes |
+| Arithmetic/legal admission failed to catch payment-rationale error | Confirmed missing check | Original rationale; `ProposalResponse` has bindings/citations/prose only |
+| One publication omitted authoritative terminal evidence | Confirmed historical defect | Remote proof has null terminal; later local owned state ended |
+| Failed-run terminal capture precedes publication now | Implemented local repair, hosted unvalidated | `run_hosted_sandbox.capture_failed_terminal` and `execute`; mock test verifies ordering |
+| Slow cleanup can undermine total loop boundedness | Untested integration hypothesis | Ledger detaches cancellation-resistant child; outer coordinator uses `asyncio.wait_for`; `decide` uses `asyncio.run`, whose shutdown may await pending tasks |
+| Dispatch can expire during final reads, before-history read or pacing | Confirmed unguarded interval; no observed D01 write affected | `RecordingTable._validate_dispatch` occurs before `JournaledArena._call` reads history, persists intent and calls `_pace()`; no final deadline check immediately before HTTP |
+| A non-success result may over-disable future advice/actions | Confirmed policy coupling, benefit untested | `OfflineAllowance` sets one stopped bit for non-success, interruption or cost overrun; Lab adapter applies it to actions |
+| Total inference time includes insufficiently classified work | Observability gap | Aggregate ledger/allowance spans exist; no full per-stage network/parse/queue breakdown |
+| Full source-grounded supplier economics unavailable in online composition | Confirmed scope limitation | `recorded_p10` uses empty prepared records and `estimate_mode="disabled_explicit"`; `SourceCostEstimateBuilder` exists but is not supplied these inputs |
+| Larger context/schema increases latency; reusing HTTP client helps | Plausible improvements | Full history/quote and schema sent; allowance constructs a new AsyncClient for each request. Must measure cold/warm and byte counts |
+
+Ordinary model invalidity is not an uncertain Arena write. External task cancellation is not merely model timeout. A spend limit or forbidden endpoint should not be treated like a recoverable semantic error. The replacement policy must distinguish these outcomes explicitly.
+
+### B3. Commercial evidence and interpretation limits
+
+Opening: EUR 52.90, 30 days, 12 months, 1 December 2026. Unsent proposal: EUR 50.50, 45 days, 24 months, 1 January 2027. Supplier text establishes that the supplier **claimed** a 3.1% wage-index increase and a 28% wage share and expressed relationship value. It does not establish full costs, reservation price or the value of a 24-month commitment.
+
+At unchanged delivery/invoice assumptions, 30→45 days delays receipts by fifteen days; it does not improve the supplier's receipt timing. Lower price and delaying the announced increase favor the buyer relative to this opening. Longer commitment can benefit the supplier through predictability, but also changes obligations and exposure; net benefit and compensation sufficiency are unknown. Label that benefit as a hypothesis until supported by supplier response or scoped evidence. Even a weighted wage-pressure calculation would be a partial conditional estimate, never a full-price entitlement or supplier floor.
+
+Independent nominal proposal cost was EUR 414,299.04, including EUR 403,354.5205479452 price, EUR 1,344.5150684931507 payment, EUR 9,600 freight. Same-observation fixed candidate cost was EUR 398,400: EUR 15,899.04 lower. That candidate has no established supplier acceptance probability. Conversely the model package's higher buyer cost alone does not make it strategically irrational if it buys a credible concession; this trace does not establish that it did.
+
+Relationship cost is unestimated, not verified zero. The authoritative final result reported opening cost EUR 448,810.67, best cost EUR 408,623.99, no deal cost and score zero. Retain those values as terminal outcomes only; exclude best cost and spectator data from decisions, preference learning and candidate generation.
+
+| Category | D01 conclusion |
+|---|---|
+| A: infrastructure exercised successfully | Single-use admission, owned observation/attachment ingestion, structured real proposer output, inference reservations, official nominal arithmetic, legal validation, exact-create journal, local traces, immutable failed publication/retrieval |
+| B: infrastructure failed or remains unproven | Timely interpretation, inference-to-fallback lifecycle, buyer dispatch, complete remote terminal evidence, crash recovery of strategic state, hosted closing |
+| C: model behavior observed inside the run | One admitted unsent package with an erroneous cash-flow rationale; interpretation was fallback. Templates kept that rationale internal |
+| D: negotiation capabilities untested | Supplier response to our package, meaningful multi-round adaptation, reciprocity, relationship sensitivity, agreement quality and any strategy superiority |
+
+## C. Architecture assessment
+
+### C1. Implementation reality
+
+| Component / files | Actual supported behavior | Limit |
+|---|---|---|
+| `core/models.py`, `ports.py`, `serialization.py`, `certificates.py` | Strict immutable records, scoped identities, costs, candidate/validation checks | Rich DTO inventory does not implement service lifecycle |
+| `evidence/resolver.py`, `context.py`, `claims.py` | Layered precedence, context versioning, scoped claims/projections | Hosted bridge seeds empty prepared evidence; broad source preparation/document ingestion is not demonstrated |
+| `intelligence/interpreter.py`, `citations.py`, `supplier_grounding.py` | Citation-ID decoding and consumer grounding; explicit fallback | `project()` excludes raw evidence and previous assessment (`evidence=()`, `previous=None`); full conversation is reread. No successful D01 interpretation |
+| `strategy/proposal.py`, `selection.py` | Adaptive LLM term bindings; bounded selector for other arms | Adaptive selector uses one model candidate; no live utility-guided search or reciprocity check |
+| `economics/official.py`, `estimates.py`, `finite.py`, `adapters/official.py` | Official complete-cost adapter and tested estimate/scenario mechanisms | Online supplier estimates disabled; finite supplied candidates also serve fixtures/fallback |
+| `execution/render.py`, `validation.py`, `adapters/closing.py` | Template payloads, independent legality/economics, reuse of shared closing | Hosted D01 sent nothing; fresh closing/dispatch reliability needs integrated proof |
+| `orchestration/offline.py`, `factory.py` | Actual eight-stage decision pipeline and trace hashing | No production state store/executor/recovery loop; `NoAdditionalResearch` raises unsupported; coordinator rejects supplied research |
+| `adapters/lab.py`, `online.py`, `lab/runner.py`, `lab/transport.py` | Bounded opt-in serial bridge, supplier-specific in-memory assessments, all-thread observations, exact journal, read-only reconciliation | General V2 CAS event/outbox transaction and durable strategic feedback absent; fixture-named policies are still used in fallback/composition |
+| `experiments/v2/run_hosted_sandbox.py` | D01/D02 catalog checks, one-session guard, predecessor review, final upload/retrieval | D02 stub tests establish adapter mechanics only; no hosted multi-supplier intelligence or general allocation solver |
+
+Existing research seams are useful but partially unavailable: `StrategyProposalPolicy`, `ActionSelectionPolicy`, `EconomicEvaluator` and `CandidateResearch` are sensible contracts. Strategy replacement is possible by composition today, but registered research-batch handling and ordinary CLI/checkpoint launch parity are incomplete. The existing factory is the correct place to add vetted bundles; do not add a plugin framework.
+
+### C2. Answers to the architectural questions
+
+1. **Boundaries:** retain evidence, economics, strategy, validation, dispatch and publication ownership. Move budget/failure decisions out of scattered consumers into one owner.
+2. **Expensive abstractions:** avoid requiring the original entire event-store/DTO plan before a bounded D01. Per-call JSON roundtrips and repeated official evaluation are possible overhead, not demonstrated bottlenecks; profile first. Do not remove independent final recomputation.
+3. **Redundant inference:** the adaptive arm has two sequential calls over substantially overlapping conversation. It has no third selector call. Sequential dependency is real; blind parallel interpretation/proposal would make proposal independent of the new assessment.
+4. **Coupling:** `transport.stopped` leaks inference policy into dispatch; fixture construction owns hosted defaults; `prior_evaluations` is free-form strings; coordinator is named offline although used live. Correct these seams without renaming/reorganizing the entire tree.
+5. **State:** existing `SupplierAssessment` observations/reported constraints/hypotheses/uncertainties are enough for beliefs. `StrategicState` already has attempts/refusals/questions/feedback, but bridge persistence and updates are incomplete. Add compact effects and strategy memory only where consumed.
+6. **Replaceability:** use existing proposal/selection ports plus a small registered bundle choice. A substitute must consume identical evidence/candidates and produce the same nonbinding intents/selection IDs.
+7. **Fair comparison:** possible after fingerprints, source isolation, frozen inputs, equal budgets and all-failure denominators are enforced. Current same-observation baseline is a diagnostic, not a hosted treatment comparison.
+8. **Grounding:** source/citation existence and independent arithmetic are strong. They do not prove semantic support, complete supplier costs or rationale consistency. Add these distinctions to admission metrics.
+9. **D02:** one-part multi-supplier mechanics already exist in `online.py`: economic slices, all-history round reconciliation, supplier memory, rival observed packages and global closing. Durable supplier isolation, fair scheduling and allocation scope need work, not a rewrite. Unknown per-thread timeout attribution currently fails closed.
+10. **Advanced methods:** fit existing ports and bounded research service later. Simulation must stay hypothetical; models cannot rewrite evidence, server state, costs or operation ownership.
+
+The current actual flow evaluates inside proposal admission and again after generation, then selects, renders and finally validates. Preserve the legality/cost gate and final validation; introduce feedback earlier through typed reference evaluations. Do not make final validation the sole place where commercial meaning is checked, or select unaudited model terms before economics.
+
+## D. Proposed target architecture
+
+```mermaid
+flowchart TD
+    O[Owned Arena history and clock] --> E[Scoped evidence and immutable context]
+    E --> B[Decision budget and inference admission]
+    B --> I[Supplier interpretation]
+    I --> N[Existing assessment and supplier state]
+    E --> F[Code-derived reference terms and effects]
+    F --> S[LLM strategy: package trades and uncertainties]
+    N --> S
+    S --> C[Legal candidate construction]
+    C --> K[Official costs and explicit estimate scenarios]
+    K --> A[Selection from approved candidates]
+    K -. bounded private feedback .-> S
+    A --> R[Template rendering]
+    R --> V[Independent fresh-state validation]
+    V --> J[Persist exact operation and dispatch permit]
+    J --> X[Pre-POST deadline check and dispatch]
+    X --> O
+    O --> T[Terminal evidence assembly]
+    T --> L[Durable single-publication barrier and retrieval proof]
+    B --> Q[No-model fallback or recovery required]
+    Q --> C
+    Q --> V
+```
+
+A combined inference treatment implements I and S in one provider exchange, then splits output into independently admitted assessment and proposal artifacts. It does not bypass C, K, A, V or J. An invalid assessment does not silently make a dependent proposal grounded; reject that bundle or mark an explicitly independent proposal and use conservative admission.
+
+### D1. Ownership and small interface changes
+
+| Owner | Interface / responsibility | Authority limits |
+|---|---|---|
+| Budget manager, extending `DecisionModelLedger` | Derive effective deadline once; admit stages; own cancellation generation; record stage spans and reservations | Never modifies commercial terms or Arena outcome |
+| Model-call availability | Explicit available/disabled/unknown-usage states, stop reason; timeout disables subsequent calls for that decision | An unknown provider charge retains reservation; inference failure alone does not revoke Arena permission |
+| Execution permit | Run/session/supplier, snapshot, exact payload hash, expiry, operation ownership, cancellation generation | Revoked by external cancellation, stale state, unresolved write, expired deadline, authorization mismatch or integrity failure |
+| Interpreter | Existing four assessment collections and source citations | Claims remain claims; probabilities are not calibrated merely because supplied by a model |
+| Commercial-effects service | Small versioned `TermEffects`: baseline offer/hash, candidate/hash; changed field, before/after, cash/obligation direction, scope assumptions and provenance | Code determines receipt timing and objective buyer deltas; unknown supplier utility stays unknown |
+| LLM strategy | Existing intent/package port, with bounded `TradeExplanation`: give/request dimensions, cited preference, uncertainty and expected response alternatives | Chooses strategy and trade; cannot invent supplier utility, authoritative arithmetic or agreement |
+| Economics feedback | Typed evaluated reference packages and component deltas; comparison/estimate status, IDs and snapshot | Replace prose `prior_evaluations` incrementally; permit only reviewed private projections. No target/reservation/hidden best-cost exposure |
+| Selection | Candidate ID in certified batch; rationale and uncertainty | Strategy may prefer higher buyer cost for plausible exchange; does not bind a close |
+| Dispatch | Exact journaled payload/ID, freshness after pacing, bounded HTTP phases, acknowledgement/uncertain classification | Never constructs fallback after a POST becomes uncertain |
+| Evidence finalizer | Original error plus terminal owned observation, complete histories, ledger and publication state | Cannot turn execution failure into successful negotiation or fabricate unavailable fields |
+
+Use existing frozen Pydantic records. Add only effects, bounded trade explanation, stage timing and availability/permit fields actually consumed. Version new model-wire schemas and trace fields; preserve old trace hash projection and historical Lab records. Do not expand every dormant DTO or build a second state model. Avoid injecting private economics into supplier-facing language: it is a separate purpose-specific adviser projection; renderer remains template-based.
+
+## E. Decision analysis
+
+### E1. Inference topology
+
+| Alternative | Latency / reliability | Quality / cost | Debugging / interfaces | Decision |
+|---|---|---|---|---|
+| Current sequential interpreter→proposer | Two network waits; additive tail latency; isolates failures | Assessment can inform proposal, but duplicates context; two reservations | Existing schemas/traces; simplest repair baseline | Retain for M1–M3, remove conflicting hardcoded caps |
+| Combined structured assessment + package | One network roundtrip; larger output; one failure affects both | Could preserve context consistency, or reduce interpretation care; one request does not guarantee fewer tokens | New envelope/task/projection and separate consumer admission; correlated errors | Offline/real-model treatment after M1; promote only by frozen quality/latency comparison |
+| Parallel independent interpretation and proposal | Overlaps waiting; may waste calls after cancellation | Proposal cannot use fresh interpretation; inconsistent trade reasoning | Two partial results and merge semantics | Do not implement now |
+| Adaptive sequential / combined / no-model admission | Avoids calls that cannot finish before reserve | Uses intelligence only when feasible; policy can bias observations | Small deterministic topology choice, fully traced | Adopt admission now; combined option remains disabled until validated |
+| Separate reflection/selector/rollouts | More network waits and complex cancellation | Potential quality benefit, costly and unproven here | More traces and tools | Research backlog; no mandatory critic call |
+
+The combined treatment must hold model, evidence projection, legal options, output allowance, economic evaluator, validator and fallback constant where possible. Report actual tokens/cost as well as equal authorized ceilings. Require no critical semantic regression on held-out probes, all deterministic invariants, and a meaningful reduction in total turn latency or timeout rate; otherwise keep sequential. One provider call is not automatically better.
+
+“Reduced reasoning” initially means shorter structured explanation, fewer candidates, smaller output cap and selective history projection with provenance. The D01 request had `effort=None`; do not assume this model/protocol supports a reasoning-effort setting. Changing model, protocol or provider parameter is a separately reviewed treatment with fresh allowance.
+
+### E2. Deadline and cancellation policy
+
+At observation receipt, derive conservative server deadline from request timestamp plus observed seconds. Combine with computation-start deadline, any independently evidenced session/wave cap and authorization lifetime. Map that minimum to a monotonic deadline for the current process; retain UTC/server provenance for restart. Do not fabricate wave evidence if the API supplies only thread clocks.
+
+```text
+available_for_advice = min(server, wave-if-known, compute, authorization deadlines) - now
+                      - fallback_reserve - submission_reserve - uncertainty_margin
+stage allowance = min(configured stage cap, remaining total model time, available_for_advice)
+admit call only when stage allowance meets the measured conservative completion requirement
+```
+
+Use measured bounded-probe latency (cold and warm), plus refresh/history/limiter/HTTP observations, to set reserves. Small samples provide empirical ranges, not credible p99 estimates. Keep an explicit hard upper cap; do not increase 8/4/12 blindly or reset budgets per call. Trace skipped inference with the remaining window and admission reason. Early fallback preserves time for validation and dispatch; below the submission reserve, return recovery-required/no-send unless a separately admissible close is available.
+
+Synchronously revoke model admission on timeout before any await/return, increment decision generation and quarantine late output. Cancel child tasks; consume exceptions; no late completion may update assessment, selected payload or memory. External caller cancellation revokes execution as well. Ordinary schema failure can choose a documented no-model fallback; timeout with unknown usage retains the entire reservation and prevents another model call in that decision. Ceiling exhaustion disables advice, while authorization/integrity mismatch stops execution.
+
+Existing `OfflineAllowance` reservations remain authoritative for spend ceiling. Ledger timing is authoritative for decision admission. Record reserved and provider-reported actual usage separately, including partial/unknown charges; never refund an unknown request to fund another. Local cancellation is not proof that the provider stopped computing. A reset for a later decision must preserve run-level accounting and explicitly honor the reviewed run-level failure policy.
+
+Bound all outer waits, including cancellation-resistant tasks and loop shutdown. No generic async migration is needed for D01: first prove the current serial bridge bounded under adversarial cleanup, then replace its loop boundary only if necessary. Network phase timeouts do not replace an absolute deadline. Dispatch must check remaining time **after** final history/limiter work and immediately before HTTP, against the persisted exact operation. If no request was issued, record proven-not-dispatched; if it may have been issued, preserve uncertain ownership and reconcile read-only.
+
+### E3. Commercial reasoning and economics feedback
+
+Use the current supplier offer as the commercial comparison reference, not buyer reference payment days or a hidden optimum. Code annotates changed receipt timing and independently evaluates complete buyer costs. The LLM interprets interests, designs the exchange and explains uncertainty.
+
+Require each significant change to identify: what the buyer requests; what the buyer gives; which observed/claimed preference supports the trade; what remains unknown; and how the next supplier response could revise it. An aspirational opening can be buyer-favorable without compensation, but must be labeled a request, not mutual benefit. Contract extension need not be declared compensating merely to make the package pass.
+
+For the D01 package, checked effects must say delayed receipts, reduced unit price, later increase and longer commitment; supplier net value unknown. Reject structured claims that assert earlier receipts or established cash-flow improvement from longer payment alone. Check structured effects, not arbitrary prose with keyword regex. A concise human-reviewed rubric evaluates whether the explanation's meaning is consistent; deterministic validation cannot prove all free-text commercial logic. On contradiction, use the prevalidated simple fallback/clarification if admissible; do not add an unbudgeted repair call.
+
+First supply evaluated reference packages (opening and existing fallback) and typed relative component effects to strategy; then evaluate its candidate. This supplies economic context without an extra inference pass. Optional later `CandidateResearch.evaluate_intents` allows one bounded feedback/revision step on the same snapshot with registered batches, only when funded and time permits. Keep no more than the existing candidate/call ceiling; no open-ended tool loop.
+
+Supplier-cost uncertainty should affect confidence and questions, not produce a deterministic floor. Search explicitly scoped source records for missing economics; retain separate source assumptions and sensitivities. If unavailable, record relationship component unestimated and qualify nominal ranking. A nominally cheapest package is not certified sustainable. For relationship-sensitive comparisons, evaluate available scenarios and show whether ranking changes; do not invent probability weights or default missing full cost to zero.
+
+### E4. Terminal evidence and immutable publication
+
+Use the existing local run snapshots and atomic-file pattern; add a small durable publication journal, not a new remote service:
+
+```text
+execution ended/failed → collecting_terminal → evidence_complete
+                     ↘ evidence_missing (local, retryable read-only recovery)
+evidence_complete → publication_prepared (frozen payload hash + destination + run ID)
+                  → write_attempted → verified / rejected / outcome_unknown
+```
+
+Save original exception, exact source/config, session and operation identities immediately. Bound terminal collection by total deadline *and* per-read timeout. The current 300-second polling loop can exceed its nominal bound through a 180-second client read; catch/classify transient read failures and clip them to remaining collection time. Collect all owned threads and attachment provenance, verify ended state/result/session consistency, then build the final payload. Preserve run/attempt failed status after server timeout.
+
+No terminal evidence by the bound: mark fields unknown and local publication blocked; do not publish a success or fabricate terminality. Resume collection from the same run/session with read-only tools under the applicable access scope; consumed authorization never becomes permission for a new session. Resume publication only after checking remaining original write authorization or obtaining an explicit new publication-only allowance.
+
+Persist `write_attempted` before the network write. A crash between marker and HTTP creates uncertainty; use GET of that run ID to compare the frozen payload. Matching remote record means verify with no second write. Missing record after an ambiguous PUT does not automatically authorize retry; preserve uncertainty and seek explicit reviewed write permission if needed. Definitive rejection is separate from uncertain network outcome. Retrieval/listing proof is required after acknowledged upload. Never republish or enrich the original D01 record; any later separately authorized finding may cite both the original and local supplement as distinct artifacts.
+
+## F. Prioritized development roadmap
+
+Priorities: P0 **MUST FIX BEFORE D01**; P1 **SHOULD FIX BEFORE D02** (unless a D01 gate below explicitly requires it); P2 **RESEARCH BACKLOG**. These milestones replace the *next-work order*, not historical completion evidence in D/task-specs. Every new task is planned. No task is authorized by this document.
+
+### M0 — Freeze the root cause and implementation contracts
+
+**Objective / necessity:** make source reality, lifecycle semantics and evaluation gates reviewable before coding. **Dependencies:** this review. **Reuse:** original artifacts, existing schemas and tests. **Modify:** planning specifications only; **new interfaces:** proposed availability/permit/effects definitions, no runtime implementation.
+
+| Task | Priority / dependencies | Scope, files and interfaces | Deliverable / acceptance / definition of done |
+|---|---|---|---|
+| PD0.1 | P0; none | `docs/v2/post-d01-development-roadmap.md`, existing B/C/D references; budget, permit and failure contracts | Reviewed decisions and narrow work scope; artifacts distinguish historical/current source and implemented/mock/untested paths; every P0 task has owner and gate |
+
+**Validation / evidence:** source/artifact crosswalk, original trace/authorization hashes, local regression results, contract-review note. **Acceptance:** no false predecessor success or hosted strategy claim; explicit measurable alternatives. **Risk / mitigation:** stale status headers → use source-path/function evidence. **Exit gate:** human architecture review approves an implementation batch and any contract changes; approval does not fund experiments.
+
+### M1 — Deadline-aware execution and terminal lifecycle
+
+**Objective / necessity:** inference failure must yield a bounded, auditable fallback or recovery outcome without races, duplicate writes or premature publication. **Dependencies:** M0 approval. **Reuse:** ledger, gateway, independent validator, shared closing, JournaledArena, local snapshots. **Modify:** distributed timing/defaults and stopped-bit handling. **New:** small budget policy, availability/permit projection, stage spans and publication-state journal.
+
+| Task | Priority / dependencies | Scope, relevant files / interfaces | Deliverable / acceptance / definition of done |
+|---|---|---|---|
+| PD1.1 | P0; PD0.1 | `orchestration/budgets.py`, `adapters/model.py`, `intelligence/interpreter.py`, `strategy/proposal.py`, `factory.py`, `adapters/p10.py`, bounded DTO/config changes; `DecisionBudget`, `ModelBudget`, `Clock` | One resolved budget policy removes embedded 8/4/12 conflicts; stage spans, no-reset deadlines and admission reasons. Fake clock proves reserves and run ceilings cannot be overspent; cancellation synchronously revokes admission and quarantines late outputs. Done when targeted timing/cancellation gates pass without owned xfails |
+| PD1.2 | P0; PD1.1 | `adapters/lab.py`, `online.py`, `lab/runner.py`, `lab/transport.py`; validation/dispatch permit and exact operation journal | Separate inference-disabled from execution-unsafe; explicitly certified no-model fallback or fresh closing; pre-HTTP deadline check after pacing; total loop teardown bound. Fault tests prove one safe submission after advisory timeout, zero submissions after external cancellation/stale state/uncertain write; no later model call or changed bytes. Done with integrated local traces and V1 hook regression proof |
+| PD1.3 | P0; PD0.1, integrates with PD1.2 | `experiments/v2/run_hosted_sandbox.py`, existing `lab/publish.py`/snapshots; terminal hooks and publication journal | Bounded collection/read failures and durable one-write state; recovery reconciles remote read without automatic PUT. Tests cover terminal unavailable, partial evidence, upload ambiguity and interruption boundaries. Done when complete payload precedes sole PUT and incomplete payload produces zero PUTs |
+
+**Tests:** existing grounded-model cancellation tests, hosted-sandbox tests, model-budget checks, new slow-cleanup/end-to-end fallback/pre-POST-expiry and publication-interruption cases. **Artifacts:** clock timeline, allowance ledger, exact journal, dispatch eligibility reasons, terminal completeness report, frozen publication payload/hash and fake retrieval proof.
+
+**Acceptance:** 100% deterministic lifecycle cases pass; no owned expected failures; unknown provider usage retained; no POST after expiration/cancellation; uncertain writes block new ones; failure terminal evidence preserves original failure. **Risks / mitigations:** separating availability could authorize unsafe actions → fresh permit and independent validator still required; asynchronous teardown hidden wait → test complete caller return, not just ledger return. **Exit gate:** integrated recorded D01 can recover from slow inference with a certified fallback inside deadline, or deliberately return bounded recovery-required when no safe window exists. No hosted validation claimed.
+
+### M2 — Grounded commercial reasoning and minimal state
+
+**Objective / necessity:** distinguish commercial correctness from JSON legality and make reciprocity falsifiable. **Dependencies:** M0 contracts; integrates after M1. **Reuse:** assessments, citations, complete costs, existing candidates and templates. **Modify:** proposal projection/prompt/schema and supplier-memory updates. **New:** small effects and trade explanation; typed reference evaluations.
+
+| Task | Priority / dependencies | Scope, files / interfaces | Deliverable / acceptance / definition of done |
+|---|---|---|---|
+| PD2.1 | P0; PD0.1 | `core/models.py`, `core/ports.py` only as needed; new `economics/effects.py`, injected in `factory.py`; `TermEffects`, `ProposalResponse`, proposal admission | Code-derived deltas against scoped observed offer; LLM give/request/uncertainty explanation; contradiction admission. Tests distinguish 30→45 from buyer reference 60 and contract duration from guaranteed net supplier value; reject unrelated citation/support claims. Done with versioned compatible trace/wire fixtures and D01 rationale regression |
+| PD2.2 | P0; PD2.1, PD1.1 | `strategy/proposal.py`, versioned successor to `bounded-proposal-v1.txt`, `factory.py`, `adapters/lab.py`, `economics/official.py` through injected port; typed `ProposeInput` feedback | Opening/fallback evaluated descriptors and exact uncertainty status replace new free-form feedback; LLM still chooses packages. Changed supplier evidence updates strategy on paired fixtures; known refusal prevents repeated unsupported trade. Done when withholding evidence changes confidence/choice appropriately and private fields do not reach renderer |
+| PD2.3 | P1; PD2.1; before relationship-sensitive performance verdict | `evidence/resolver.py`, `adapters/offline.py`, `p10.py`, `economics/estimates.py`, `online.py`; prepared evidence, cost-source assumptions | Audit selected D01 cost refs and source availability without opening sessions; wire scoped inputs only if sufficient. Evidence remains claim/estimate/fact separated; missing inputs stay unestimated. Done with source-conflict/basis/relationship sensitivity tests and an explicit source-gap disposition |
+
+**Tests:** deterministic effects, paired new-information/refusal/negation/approval cases, supplier/buyer citation isolation, private-data checks, official economic parity. Real-model semantic quality belongs to M3. **Artifacts:** compact contract/examples, effect tables, annotated rubric, paired traces, source availability report.
+
+**Acceptance:** D01 payment error fails semantic admission; hypothetical contract value stays qualified; no fabricated supplier margin; package numbers remain code-admitted, not model-authoritative. **Risks / mitigations:** new schema bloats output → cap changed-field/trade list; deterministic effects become strategy → validate timing/facts only and allow aspirational requests; prose still misleading → label-review rubric. **Exit gate:** commercial effects and strategy-adaptation controls pass; source gaps explicitly reviewed. Full supplier-cost reconstruction is not required to establish D01 dispatch, but is required before claiming relationship-aware performance.
+
+### M3 — Reasoning probes and integrated validation
+
+**Objective / necessity:** show actual model reasoning and end-to-end timing beyond mocks at modest authorized cost. **Dependencies:** M1/M2 local completion for integrated acceptance; labels can start after M0. **Reuse:** `evaluate_interpretation.py`, interpretation/selection pilot fixtures, recorded coordinator and simulator seam. **Modify:** independent rubrics and stage metrics. **New:** frozen small probe manifest, optional combined-call treatment.
+
+| Task | Priority / dependencies | Scope, files / interfaces | Deliverable / acceptance / definition of done |
+|---|---|---|---|
+| PD3.1 | P0; PD0.1; execution after PD2.2 | `tests/fixtures/v2/` new commercial probe corpus; `experiments/v2/` focused evaluator; `tests/v2/integration/` | Twenty-four proposed independent cases: eight issue families × three contrasts, split before tuning into 16 development/8 holdout. Human labels distinguish facts/claims/effects/trade quality. Done locally with meaningful adversarial labels; hosted execution requires a separate exact inference-only allowance |
+| PD3.2 | P0; PD1.2, PD1.3, PD2.2 | Existing replay coordinator, Lab bridge and simulator tests; budget/gateway/validation/journal ports | Recorded D01 integrated replay with cold/slow/late/invalid/uncertain observations, new supplier evidence and interruption. No sockets/provider needed for fault grid. Done when selected→validated→submitted→acknowledged identities and deadlines reconcile; report any unimplemented generic runtime capability separately |
+| PD3.3 | P2; PD3.1/PD3.2 baseline | `adapters/chat_completions.py`, `factory.py`, `core/models.py`, new bounded combined adviser adapter/prompt; existing interpretation/proposal consumer ports | Optional combined envelope treatment; independently grounded output artifacts, shared accounting, dependency rejection. Frozen equal-budget comparison to sequential; done with a retain/reject decision, not automatic topology switch |
+
+**Evidence:** split/labels hashes, prompt/model/source/config fingerprints, raw permitted outputs, usage/reservation ledger, latency spans, confusion/rubric report, all-failure integrated report. **Acceptance:** all deterministic tests pass; zero critical payment reversal, fabricated supplier cost or false agreement in the frozen real-model batch; proposed ≥90% supported interpretation/trade-rubric pass rate overall, holdout reported separately; an error requires targeted revision and a newly reviewed bounded retest, not relabeling or unlimited retries. Thresholds are engineering screening criteria, not statistical guarantees. **Risk / mitigation:** tuning on tiny D01 → varied baselines, bilingual wording, conflicting signals and held-out contrasts. **Exit gate:** reviewer accepts semantic, deadline and evidence report and freezes D01 source/config/budget. PD3.3 is optional and never blocks the sequential repair path.
+
+### M4 — Controlled hosted D01 capability proof
+
+**Objective / necessity:** establish actual interpretation, submission and feedback on the hosted environment. **Dependencies:** M1/M2/M3 exit gates and fresh explicit authorization. **Reuse:** one-session guard, existing sandbox command, consumed-marker convention, journal and immutable publication. **Modify:** experiment config only after review; never edit old authorization. **New:** independently reviewed exact plan and new run artifacts.
+
+| Task | Priority / dependencies | Scope, files / interfaces | Deliverable / acceptance / definition of done |
+|---|---|---|---|
+| PD4.1 | P0; PD3.1/PD3.2 gates | `experiments/v2/run_hosted_sandbox.py` plan/preflight, `docs/v2/` new results; fresh output and fresh authorization | Exactly one bounded D01, zero automatic reruns/retries; actual acknowledged buyer package and supplier response; complete terminal publication/retrieval proof. Done with explicit pass/fail capability review and all failure evidence; agreement alone cannot pass |
+
+**Validation:** manual semantic review of original supplier interpretation, checked trade explanation, exact dispatched terms/economics, supplier response and subsequent adaptation where available. **Artifacts:** complete transcript, initial/final owned state, original traces, exact write journal, known/unknown usage, timing, source patch/config, terminal manifest and remote proof. **Acceptance:** section H. **Risk / mitigation:** renewed model latency tail → early no-model fallback and bounded stop; one negotiation cannot prove general performance → report a capability demonstration only. **Exit gate:** independently reviewed D01 capability pass. Failed run stops progression and requires an explicit new repair/retest decision.
+
+### M5 — D02 supplier isolation, comparison and recoverable state
+
+**Objective / necessity:** multi-supplier decisions need separate beliefs, complete alternative comparison and interruption safety. **Dependencies:** accepted D01 capability proof; design/tests may be prepared locally earlier without weakening the predecessor gate. **Reuse:** `online.py` economic slices, supplier memory, global closing, journal and `StrategicState`. **Modify:** serial scheduling and durable bridge state. **New:** narrow persistent state projection, coverage/comparison records; general event/outbox only when justified.
+
+| Task | Priority / dependencies | Scope, files / interfaces | Deliverable / acceptance / definition of done |
+|---|---|---|---|
+| PD5.1 | P1; PD4.1 | `adapters/lab.py`, `online.py`, new narrow persisted-state adapter using existing local snapshot/store patterns; state/feedback/operation interfaces | Persist supplier-specific assessment revisions, acknowledged attempts/refusals, outstanding questions and authoritative histories; crash reconstructs UTC deadlines, never monotonic timestamps. Done with two-supplier interruption tests proving no cross-supplier belief/citation leakage and no uncertain-operation overwrite |
+| PD5.2 | P1; PD5.1 | `online.py:select_lab_supplier`, `thread_rounds`, closing/economic slices; typed RFQ coverage/comparison in trace | Coverage-aware serial selection with measured all-thread read cost and explicit unresolved-timeout policy; comparable complete costs and executable alternative. Verify D02's actual permitted award/allocation semantics before proposing split allocations. Done with stale cheap bidder, no-bid, missing history and alternative-dominance cases; no invented quantity commitments |
+| PD5.3 | P1; PD5.2, section I review | `run_hosted_sandbox.prior_review`, tests and review manifest; new authorization/run | Keep completed/admitted predecessor semantics; add explicit capability evidence review criteria without accepting failed D01 as success. Execute one D02 only when separately authorized; done with complete multi-supplier transcript, legal allocation/award, economics and reliability review |
+
+**Tests / evidence:** supplier isolation/restart and all-thread closing matrix; coverage per bidder, belief revisions, alternative comparison, permitted allocation checks, exact journal, fresh clocks and model usage. **Acceptance:** no close ignores an eligible bidder; unknown timeouts do not fabricate rounds; quote defaults stay supplier-scoped; latest valid economics comparable; all section I criteria met. **Risks / mitigation:** RFQ reads consume budget → profile and cache only immutable inputs; unknown API allocation semantics → catalog-driven restriction; generic persistence scope creep → bridge snapshot first, transactional outbox only where operation/state consistency requires it. **Exit gate:** local D02 readiness review before authorization; hosted D02 evidence review before P10 or broader rollout. No async RFQ activation yet.
+
+### M6 — Research treatments after reliable negotiation
+
+**Objective / necessity:** measure strategic improvements using common execution/economics instead of proliferating policies. **Dependencies:** M4 for bilateral research; M5 for multi-supplier methods. **Reuse:** proposal/selection ports, frozen labels, complete traces. **Modify:** composition registry and bounded read-only research when needed. **New:** one treatment at a time.
+
+| Task | Priority / dependencies | Scope, files / interfaces | Deliverable / acceptance / definition of done |
+|---|---|---|---|
+| PD6.1 | P2; PD4.1, PD3.2 | `factory.py`, `config.py`, `strategy/`, `orchestration/offline.py:NoAdditionalResearch`; strategy bundle and registered evaluation-batch contract | Swap two vetted treatments without modifying evidence/economics/validator/gateway; add research service only for a selected hypothesis. Equal-compute ablation with held-out suppliers and stop criteria; done with retain/revise/reject finding, not a performance promise |
+
+**Tests / evidence:** no side effects from strategy; immutable same-snapshot candidate batches; full fingerprints and latency/cost; calibrated future-response diagnostics when observable. **Acceptance:** no safety or semantic regression; benefit justified by outcome evidence within declared scope. **Risks / mitigation:** simulated opponents reinforce model bias → equal-compute direct baseline and real-response calibration. **Exit gate:** explicit research review selects the next single method; no training, portfolio router or rollout infrastructure by default.
+
+### Critical path and parallel implementation opportunities
+
+```text
+PD0.1 → PD1.1 → PD1.2 ─┐
+       → PD1.3 ─────────┤
+       → PD2.1 → PD2.2 ─┼→ PD3.2 + real-model PD3.1 → review → PD4.1 → PD5.1 → PD5.2 → PD5.3
+       → labels PD3.1 ──┘
+```
+
+PD1.3 publication work and PD3.1 labels can proceed independently of budget code after contract review. PD2.1 can proceed alongside PD1.1, with one owner for shared `core/models.py` changes; merge contract changes before consumers. PD2.3 source audit can run independently. PD3.3 and PD6.1 are off the critical path. These are future assignment opportunities, not a request to launch coding agents during planning.
+
+**Do not implement yet:** parallel independent model calls; mandatory critic/repair calls; Bayesian utility distributions; generic allocation solver; multi-host lease broker; full universal V2 runtime rewrite; async RFQ workers; vector retrieval/frameworks; autonomous negotiation agents; persistent cross-session supplier profiles; training/fine-tuning/RL; automatic rerun/publication enrichment; P10 or default promotion. Simple fallback is appropriate; extensive deterministic concession/MESO machinery is not the next investment.
+
+## G. Validation strategy and metrics
+
+### Five-level ladder
+
+| Level | Scope / cost control | Meaningful checks and exit evidence |
+|---|---|---|
+| 1 deterministic | Existing local dependencies; no external services | Cancellation ordering and complete caller return; deadline/reserve arithmetic; unknown-use accounting; private/supplier provenance; official parity; payload legality; pre-HTTP expiry; immutable publication ordering/recovery |
+| 2 real-model probes | Separately authorized inference-only allowance; frozen 24-case plan, one call topology per treatment; no Arena or Lab writes | Payment direction, price concessions, duration benefit uncertainty, cash flow, unsupported supplier costs, relationship priorities, conflicting signals, reciprocal packages. Independent labels; JSON validity reported separately. Extra repetitions/treatments require explicit expanded allowance |
+| 3 integrated offline | Recorded hosted history plus synthetic fault timing and official simulator seam; no hosted quota | Freshness, actual selection/evaluation linkage, all fallback outcomes, acknowledgement-based feedback, crash/read/publication fault cases. In-process simulator proves contracts, not network latency or persuasion |
+| 4 controlled D01 | One fresh authorized session after lower gates | Admitted actual interpretation, acknowledged proposal, supplier feedback, safe closure/terminality, complete publication. No automatic second attempt |
+| 5 D02 | Local supplier-isolation gates then fresh one-session allowance | Multiple histories/preferences, RFQ coverage, executable alternatives, cross-supplier costs, legal award/allocation, adaptation and bounded execution |
+
+Probes should include 15→30, 30→45 and 60→30 payments; unchanged-payment cases; earlier/later price-increase dates; durations with unsupported or explicitly refused commitments; relation language paired with liquidity/approval constraints; false index/full-cost inference; supplier prompt injection. Label strategy acceptable as a range of grounded moves rather than a single expected price. A counteroffer can be strategically valid even if a synthetic supplier declines it.
+
+Real-model latency characterization uses the frozen requests and includes cold/warm connection status, input/schema bytes, output length, task wait and parse/consumer time. No cost or latency claim derives from mocks. Store counts/median/range and censored timeouts; p95/p99 claims need sufficiently many independently funded observations. Preserve failed requests in denominators.
+
+### Metric definitions
+
+| Dimension | Diagnostic measure | Actual outcome / interpretation |
+|---|---|---|
+| Reliability | Admitted calls, fallback/late-result rejection, pending writes, deadline violations, publication completeness | Sessions finishing without infrastructure failure; acknowledged buyer actions; server timeout count; critical violations must be zero |
+| Interpretation | Supported observation/constraint precision and recall; contradiction/negation accuracy; source-role confusion | Agreement with independent labels, not model confidence or citation existence alone |
+| Commercial reasoning | Term-direction correctness, unsupported economics, explicit give/request/unknowns, prose-effect consistency | Held-out human rubric; no fabricated compensation value or false cash-flow improvement |
+| Adaptation | Paired evidence perturbation changes belief/choice appropriately; refusal retained; acknowledgement linkage | Supplier-facing changes justified by actual new information; changing numbers alone is insufficient |
+| Validity | Generated/admitted/rejected candidates; fresh legal fields, options, must-haves, certification | Invalid submitted packages and unauthorized closes must be zero |
+| Economic quality | Official nominal components; relationship estimate coverage; sensitivity/ranking changes; same-observation counterfactual | Realized official deal cost/score and executable-alternative comparison; no-deal costs unknown unless officially defined |
+| Negotiation | Give/request packages, supplier refusals/conditions, number of substantive rounds | Agreement/no-deal, legal allocation, final score; agreement rate alone cannot establish quality |
+| Inference cost | Reserved calls/tokens/dollars; known provider tokens; estimated vs reported cost; unknown usage count | Spend bounded by approved reservations; no fabricated total actual spend when usage missing |
+| Latency | Context/model/parse/evaluate/refresh/limiter/POST/terminal spans; time remaining at dispatch | Deadline-compliant acknowledged actions; task-level latency does not substitute for complete turn latency |
+
+Freeze fixture/model/prompt/source/config identities and treatment order before comparison. Use common recorded observations for causal diagnostics; use independent hosted sessions for outcome comparisons. Report per-case failures and uncertainty, not only average scores. If provider/supplier caching or stochasticity limits independence, say so. One D01 run proves a capability instance, not reliability rate or superiority. Selection of a more expensive candidate requires a grounded trade hypothesis; its later response tests that hypothesis.
+
+## H. D01 completion criteria
+
+The next authorized D01 establishes first hosted negotiation capability only if all are demonstrated:
+
+1. Fresh reviewed source/config and exact authorization; one owned session; all ceilings and endpoint constraints respected.
+2. Genuine interpreter output admitted and independently reviewed for the actual opening. Fallback does not count as admitted interpretation.
+3. At least one actual LLM-assisted buyer package with correct commercial directions/qualified reciprocity, official costs and legal validation is acknowledged in authoritative thread history. A validated unsent trace is insufficient.
+4. A real supplier response to that buyer action is captured. If another decision is possible, it uses that response and demonstrates justified continuation/change or independently evaluated closing. If early terminality prevents multi-round adaptation, mark it untested and require offline proof plus explicit D02 review disposition; do not invent a second round.
+5. Safe terminal result obtained with no unresolved write or unintended automatic buyer timeout. All close paths preserve shared authority and economic comparison. A defensible no-deal can establish execution capability; a favorable agreement additionally requires realized-quality review.
+6. Complete original evidence precedes the sole immutable publication; individual retrieval and ordinary listing match the frozen payload. Unknown inference usage remains reserved and explicit.
+7. Reviewer distinguishes capability pass from economic-performance verdict and resolves material source/relationship gaps. A score cannot override semantic, safety or evidence failures.
+
+Do not define “successful D01” as accepting the opening offer or reaching any deal. Retain the original failed record and link the new capability proof separately.
+
+## I. D02 entry criteria and predecessor decision
+
+Recommend **A: repair and rerun D01**, retaining original predecessor semantics. Add capability-specific review evidence to clarify readiness, not to manufacture a completed predecessor. Option B (reviewed-failure path) is unnecessary while the required capabilities remain unproved. Option C is attractive longer term if “completed” becomes confused with “agreement”; revise transparently only after concrete capability evidence and review, preserving historical gate decisions.
+
+Current `prior_review` requires a completed predecessor run, exactly one adaptive retrieval proof, genuine model identity, a decision with both interpretation/proposal admitted, and ended sandbox terminal evidence. The failed D01 fails completion and interpretation, regardless of its locally supplemented terminal result. It cannot pass by changing review booleans. A completed, defensible no-deal may satisfy the code gate; section H supplies the additional engineering meaning.
+
+Before D02:
+
+- Section H is satisfied or every deliberately unobserved capability has an explicit, cited review disposition without weakening hard safety/provenance gates.
+- Supplier-specific memory survives restart; foreign refs and rival utility beliefs cannot leak into another supplier assessment.
+- All eligible histories, standing offers/defaults and actual rounds are available; incomplete timeout attribution yields bounded recovery or a reviewed conservative policy.
+- RFQ coverage and serial time allocation are measured; global close compares complete eligible costs and the executable alternative without double counting demand.
+- Actual D02 catalog/schema confirms permitted award/volume/allocation behavior. Selecting a single supplier is distinct from split allocation; implement only supported decisions.
+- Model projection, buyer secrecy, relationship-cost uncertainty and all-thread dispatch economics pass offline tests.
+- Terminal evidence/publication recovery and source/config parity are proven locally; fresh exact D02 authorization covers its own session, inference and write allowance. P10 remains separate.
+
+Future D02 evaluation should measure per-supplier interpretation/response coverage, belief revisions, offered and awarded demand, alternatives considered, actual cost/score, legal allocation, missed deadlines, usage and latency. Do not optimize coverage alone by interviewing every bidder when closing is already economically and legally justified; record skipped coverage and its grounds.
+
+## J. Research backlog: selected methods and falsifiable hypotheses
+
+Primary pages were checked during this review. Summaries below are limited to publication abstracts/metadata and the opponent-model survey; no method reproduction or procurement-transfer claim is made. Read full assumptions/code/data/license before implementation.
+
+| Direction / timing | Established source | Our hypothesis and test / rejection condition |
+|---|---|---|
+| Grounded preferences and uncertainty; immediate M2 | [Baarslag et al., opponent modeling survey (2016)](https://homepages.cwi.nl/~baarslag/pub/Learning_about_the_opponent_in_automated_bilateral_negotiation-a_comprehensive_survey_of_opponent_modeling_techniques.pdf) distinguishes opponent preference/strategy learning and evaluation | Existing qualitative cited hypotheses suffice initially. Test prediction against later explicit quotes/refusals; reject fabricated utilities and unsupported numeric confidence |
+| Multi-attribute reciprocal trades; after D01 reliability | Same survey's utility-modeling context; existing official package economics | Checked effects plus LLM give/request explanations reduce direction errors and improve viable package responses. Compare against same-model simple prompt at equal budget; reject if only explanations improve without usable actions |
+| Procurement interpretation labels; after reliability | [Chawla et al., CaSiNo (2021)](https://aclanthology.org/2021.naacl-main.254/) provides human multi-issue negotiations and persuasion-strategy annotations | Adapt only labels needed for requests/refusals/conditions. Measure held-out support/negation and downstream choices; reject additional labels with no benefit |
+| Tool-derived utility feedback; M2 first, bounded revision later | [Oh et al., MERIT (2026)](https://aclanthology.org/2026.acl-long.1155/) studies utility-centered feedback, metrics and prompting/learning | Typed official component deltas improve buyer-objective alignment while retaining supplier uncertainty. Ablate feedback; reject private-data leakage, fabricated supplier utility or higher compute without improved outcomes |
+| Concession planning and one-pass self-critique; after D01 | A bounded strategy hypothesis, not a demonstrated V2 result | In the same call, check give/request balance and prior refusals before returning. Evaluate gradual/package strategies with common costs/time; reject fixed schedules that ignore evidence or extra critic latency |
+| Bayesian preference inference; D02 or later | Baarslag survey covers families of opponent modeling | Only infer distributions when repeated scoped observations support identifiable parameters; combined term changes cannot identify one-field premiums. Test future quote prediction/calibration; reject if priors dominate or utility not identifiable |
+| Limited dialogue lookahead; longer term | [Lewis et al., Deal or No Deal? (2017)](https://aclanthology.org/D17-1259/) reports dialogue rollouts in hidden-reward multi-issue negotiation | At most a small frozen candidate/response budget offline; compare to equal-compute direct sampling. Reject simulated agreement treated as fact or poor real-response calibration |
+| Repeated-opponent adaptation; longer term | [Liu et al., opponent simulation (2026)](https://proceedings.mlr.press/v306/liu26ef.html) uses opponent imitation and best-of-N simulation inspired by smooth fictitious play in repeated games | Does sparse Arena history suffice? Require stable repeated observations; reset on supplier/role shift; reject absent gains over equal-compute best-of-N without imitation |
+| Robust benchmark design and trajectory learning; later | [Bianchi et al., NegotiationArena (2024)](https://proceedings.mlr.press/v235/bianchi24a.html) finds behavioral sensitivity in multiple LLM negotiation settings | Test portability across suppliers/categories rather than exploitation of one bot. Retrospective traces can identify failures; training/cross-session memory waits for enough independent data and explicit approval |
+
+Do not claim Nash/Pareto optimality with unknown supplier utility. Relationship scenarios are conditional arithmetic, not known willingness to accept. Start with the minimum qualitative state and economic feedback that resolve D01's observed reasoning failure. Research priority is established by measurable benefit, not sophistication.
+
+## K. Risk register
+
+| Risk | Severity / owner | Detection | Mitigation / residual uncertainty |
+|---|---|---|---|
+| Cancellation closes ledger but loop shutdown hangs | High / Runtime | Complete caller-return bound with cancellation-resistant model | Supervised task lifetime and quarantine; provider work may still be billed |
+| Inference-disabled accidentally permits unsafe dispatch | High / Runtime | Stale, external-cancel and uncertain-write fault grid | Independent permit/validator and one owner; no fallback after uncertain POST |
+| Read/limiter delay consumes submission reserve | High / Runtime | Spans and pre-HTTP expiry tests | Deadline check after pacing; conservative network margins from measurements |
+| Reservation mistaken for actual spend | High / Evaluation | Unknown usage in every ledger/export | No refunds for unknown; separate estimated/reported amounts |
+| Good citation masks wrong semantic reasoning | High / Decision | Independent effect/rubric labels and adversarial probes | Structured effect consistency; human semantic review; no claim of complete prose verification |
+| Commitment misrepresented as sufficient reciprocity | High / Decision | Trade explanation plus actual supplier responses | Explicit unknown value; distinguish request from mutual gain |
+| Relationship objective omitted from nominal ranking | High / Evidence/Decision | Estimate coverage and scenario sensitivity | Audit real sources and assumptions; abstain from sustainability claims when unavailable |
+| Evidence recovery fabricates successful run | High / Evaluation | Original failure compared with terminal/publication state | Preserve execution error and terminal outcome separately; failed remains failed |
+| Crash or ambiguous upload causes second immutable write | High / Evaluation | Publication fault barriers and GET reconciliation | Durable write-attempt marker; no automatic retry; new permission if unresolved |
+| D02 beliefs/defaults/rounds mix suppliers | High / Runtime/Decision | Isolation/restart/all-thread tests | Supplier IDs on all source/state records; unknown timeout attribution blocks unsafe work |
+| Split allocation invented beyond API authority | High / Decision | Actual case catalog and volume/award tests | Single-award supported scope until explicit allocation contract verified |
+| Mock success interpreted as intelligence | High / Evaluation | Evidence-type fields and stage-admission metrics | Real-model probes and hosted capability proof separately required |
+| One D01 overfit or cached result mistaken for performance | Medium / Evaluation | Frozen holdout and independent outcome manifests | No superiority claim from single run; later bounded repeats |
+| Shared Lab hooks regress frozen V1 | High / Runtime | Existing Lab/V1 relevant regressions and baseline classification | Optional hooks/defaults, no V1 strategy edits, no assertion weakening |
+| Large schema/state rewrite delays useful proof | Medium / Architecture | Task scope and changed-file review | Narrow interfaces, bridge persistence first, broader runtime only on demonstrated gap |
+| Dirty source hash fails to capture new modules | High / Evaluation | Provenance manifest/patch audit | Include untracked selected source in frozen manifest; HEAD alone insufficient |
+
+## L. Immediate implementation batch and copy-ready prompt
+
+First batch: **PD1.1 + the timeout/fallback portion of PD1.2**, one coherent lifecycle repair. Retain sequential inference. Reproduce the actual race and no-send-on-stopped behavior locally, then establish one owner for advice admission and safe fallback. Publication PD1.3 is an independently assignable following batch; it remains mandatory before hosted D01. Effects/quality work follows as M2/M3. A better timeout alone is not completion.
+
+Files: `src/negotiator/v2/orchestration/budgets.py`, `adapters/model.py`, `adapters/lab.py`, `adapters/online.py`, `adapters/p10.py`, `intelligence/interpreter.py`, `strategy/proposal.py`, `factory.py`, and narrow necessary changes to `core/models.py`/`config.py`. Touch `lab/runner.py` or `lab/transport.py` only for the final pre-POST deadline/permit seam. Tests: grounded-model, adaptive-proposal, model-budget, hosted-sandbox, relevant Lab runner/transport and V1 optional-hook regressions.
+
+Completion evidence: local regression first showing the old integration fails; updated fake-clock/delayed-cleanup trace; zero new calls after timeout; certified fallback submitted exactly once when admissible; no send after external cancellation/expiry/staleness/uncertain write; exact payload identity and unknown-usage reservations; complete caller return bounded; scoped Ruff, relevant tests, source diff and remaining expected failures. Freeze measured latency values only after separately authorized real-model probes; local work uses explicit test policy values.
+
+Deliberately untouched: original D01 artifacts and publication, all consumed authorization files, V1 strategy/economics/guidance, model/provider identity, commercial prompts/strategy research, D02 predecessor semantics, allocation, async scheduling, deployment/defaults and remote services. No dependency addition or code push is implied; repository guidance records a release freeze, so any future push/deployment requires applicable review of that restriction.
+
+```text
+Implement the first post-D01 lifecycle batch in tacto-negotiator, after explicit approval
+of this implementation scope. Read AGENTS.md, LAB_PLAYBOOK.md and
+docs/v2/post-d01-development-roadmap.md sections B, D1, E2 and L.
+Do not execute hosted inference, Arena sessions, Lab writes, D02 or P10; do not read
+credentials, alter authorization files, republish old evidence or change V1 strategy.
+
+Scope: PD1.1 and timeout/fallback/pre-POST parts of PD1.2. Preserve the existing
+sequential interpreter/proposer and all independent arithmetic, provenance, closing,
+payload and operation checks. Start with a local end-to-end regression reproducing
+interpreter timeout, delayed cancellation cleanup and the current stopped-transport
+action rejection. Use recorded/synthetic inputs and injected fake providers only.
+
+Make DecisionModelLedger the single advice-admission owner. Resolve timing policy
+once; remove hidden 8/4/12 limits from consumers without arbitrarily increasing caps.
+Charge original elapsed time and reserve fallback/submission work. Separate disabled
+model calls from execution permission. Timeout synchronously disables further model
+admission and quarantines late results; unknown usage keeps its reservation. External
+cancellation, stale state, authorization/integrity mismatch or unresolved POST blocks
+dispatch. An ordinary advisory timeout may choose the existing independently certified
+no-model fallback or fresh shared closing only while its exact execution permit is valid.
+Do not allow another LLM request merely because cancellation cleanup has not finished.
+
+Recheck permit/deadline after history/limiter work immediately before POST; preserve
+exact journaled move ID/bytes, no automatic retry and unknown-write ownership. Test
+the entire adapter caller return under cancellation-resistant cleanup, including
+asyncio.run shutdown. Record stage timings/admission/fallback reasons without secrets
+or private chain-of-thought. Keep historical trace hash compatibility and optional
+Lab hooks compatible with existing agents. Add no universal runtime framework.
+
+Prove: (1) one certified fallback acknowledged after advisory timeout with ample time;
+(2) zero further model calls, no late state mutation, full unknown-usage reservation;
+(3) zero POST after external cancellation, expired reserve, stale state or uncertain write;
+(4) byte-identical journal/validation/submission linkage; (5) bounded complete return;
+(6) original deadline cannot reset on refreshed observations or stage transitions.
+Run relevant grounded-model, adaptive-proposal, hosted-sandbox, model-budget and
+Lab/V1 hook tests plus scoped Ruff. Owned tests cannot be xfailed. Report pre-existing
+failures and deferred modules honestly; do not weaken assertions. No remote checks.
+
+Deliver a reviewable diff and short evidence report: reproduced defect, final semantics,
+passing checks, source/config fingerprint, remaining risks and deliberately deferred work.
+Do not claim hosted validation or proceed to commercial/schema research, publication
+changes, a new session, code push or default promotion within this batch.
+```
+
+The first implementation review should approve concrete lifecycle behavior and its evidence. Subsequent experiment approval must refer to the resulting exact source/config, measured admission policy and new allowance; this roadmap itself approves none of those actions.
+
+## Open tabs:
+- post-d01-development-roadmap.md: tacto-negotiator/docs/v2/post-d01-development-roadmap.md
+- Pasted text.txt: /home/ugur/.codex/attachments/c841c889-2c4a-4ebd-9ac0-a2c8f29d0da7/Pasted text.txt
+- hosted-d01-results-2026-10-11.md: tacto-negotiator/docs/v2/hosted-d01-results-2026-10-11.md
+- authorization-template.json: /tmp/v2-hosted-sandbox-preparation-2026-10-11/offline/authorization-template.json
+- hosted-sandbox-readiness-2026-10-11.md: tacto-negotiator/docs/v2/hosted-sandbox-readiness-2026-10-11.md
+
+## My request:
+lets implement [post-D01 development roadmap](/home/ugur/harve-y/tacto-negotiator/docs/v2/post-d01-development-roadmap.md),
+
+---
+
+# Context from my IDE setup:
+
+## Active file: tacto-negotiator/docs/v2/pd1-lifecycle-implementation-2026-10-11.md
+
+## Active selection of the file:
+# PD1 lifecycle batch implementation evidence
+
+Date: 11 October 2026 (Europe/Zurich). Scope: PD1.1 and timeout/fallback/pre-POST portions of PD1.2. This is local implementation evidence only; it does not authorize hosted inference, Arena execution, Lab publication, D02, P10, push or promotion.
+
+## Implemented
+
+- `DecisionModelLedger` owns interpreter/proposer/selector stage caps, total call/token/time admission and synchronous revocation on timeout, uncertain transport failure or cancellation. Existing 8/4-second stage ceilings are centralized in the ledger and clipped by the original decision deadline, computation allowance and fallback/submission reserves. Unknown timeout usage retains the full reservation.
+- The model gateway requests per-stage budgets from the ledger. Model unavailability no longer blocks an independently validated fallback action. A local end-to-end official-Sim regression times out interpretation, validates the deterministic fallback and records one submitted buyer move.
+- The synchronous Lab callback runs its async decision in a daemon worker so `asyncio.run()` cleanup cannot hold the caller past its original compute/deadline window. A run-wide model-call gate lets a whole-decision timeout stop later calls, including while a worker is cleaning up. The agent revokes execution and requires recovery; no late result is applied to agent state.
+- Offline decision stages now record elapsed time. Historical stage serialization omits the new field when it was absent, preserving old trace hash projections.
+- Journaled Arena POSTs pace first, refresh owned session/thread state, run the final exact-payload validator, persist the exact operation, and issue one request. A rejected pre-POST check creates neither an intent nor a POST. Uncertain writes remain journal-owned and are never retried automatically.
+
+## Evidence
+
+Local checks, no provider/Arena/Lab network calls:
+
+```text
+pytest tests/v2/integration/test_grounded_model.py tests/v2/integration/test_adaptive_proposal.py tests/v2/integration/test_hosted_sandbox.py tests/v2/acceptance/test_model_budget.py tests/v2/integration/test_lab_integration.py
+74 passed, 2 xfailed
+
+pytest tests/test_lab_runner.py  [localhost socket binding allowed]
+32 passed
+
+scoped Ruff check
+All checks passed
+
+git diff --check
+clean
+```
+
+The two acceptance xfails require the absent `negotiator.v2.adapters.recorded` module; they do not exercise these Lab bridge fixes. An initial sandboxed Lab-runner attempt failed because the environment denied localhost socket binding. The same local-only suite passed when run with socket permission.
+
+Focused regressions cover timeout reservation and later-call rejection; stage cap/deadline clipping; complete synchronous return ahead of cancellation-resistant cleanup; timeout fallback through independent validation and one simulator submission; fresh post-pacing validation; exact journal/header/body linkage; and zero POST/intent after stale dispatch rejection.
+
+## Fingerprint and limits
+
+Selected implementation and regression files as present at review have aggregate SHA-256 `19f6668bb1bba9cd2899f4c3288e9ad748999f86b71b58872559b42d642a8073`. It hashes the ordered per-file `sha256sum` output for the files touched by this batch, including the already dirty workspace contents. Workspace HEAD is `a88bf86820214be9fdf4e0d4e679675d946e0607`, but the repository had extensive pre-existing tracked and untracked V2 work; HEAD alone does not reproduce this fingerprint.
+
+PD1.3 durable terminal/publication recovery, real-model latency measurement, hosted validation, commercial-effects work and run-level strategy persistence remain deferred. The background worker is bounded from the caller's perspective; cancellation-resistant provider cleanup can continue in its daemon thread and may still incur provider charges. No hosted validity or negotiation-quality claim is made.
+
+## Open tabs:
+- pd1-lifecycle-implementation-2026-10-11.md: tacto-negotiator/docs/v2/pd1-lifecycle-implementation-2026-10-11.md
+- post-d01-development-roadmap.md: tacto-negotiator/docs/v2/post-d01-development-roadmap.md
+- Pasted text.txt: /home/ugur/.codex/attachments/c841c889-2c4a-4ebd-9ac0-a2c8f29d0da7/Pasted text.txt
+- hosted-d01-results-2026-10-11.md: tacto-negotiator/docs/v2/hosted-d01-results-2026-10-11.md
+- authorization-template.json: /tmp/v2-hosted-sandbox-preparation-2026-10-11/offline/authorization-template.json
+
+## My request:
+Proceed with the next implementation batch of the V2
+post-D01 development roadmap.
+
+Primary task: PD1.3 — Durable terminal evidence
+and immutable publication recovery.
+
+Before implementation, review:
+
+- docs/v2/post-d01-development-roadmap.md
+- docs/v2/pd1-lifecycle-implementation-2026-10-11.md
+- docs/v2/hosted-d01-results-2026-10-11.md
+
+First, perform a focused verification of the completed
+PD1.1/PD1.2 changes:
+
+1. Confirm that background workers cannot mutate
+   authoritative state after decision cancellation.
+2. Confirm that late workers cannot initiate new inference
+   calls or dispatch actions.
+3. Verify that final dispatch cannot cross its deadline
+   between operation journaling and HTTP submission.
+4. Confirm that fallback actions are explicitly identified
+   as fallback actions in experimental evidence.
+
+If defects are found, make minimal, targeted corrections
+with regression tests.
+
+Do not expand this into a new lifecycle redesign.
+
+Then implement PD1.3 according to the roadmap.
+
+Required behavior:
+
+1. Collect authoritative terminal Arena evidence before
+   preparing the final Experiment Lab publication.
+
+2. Preserve the distinction between:
+   - Agent execution failure
+   - Arena terminal outcome
+   - Missing terminal evidence
+   - Publication failure
+   - Uncertain publication outcome
+
+3. Implement bounded terminal collection using explicit
+   overall and per-request deadlines.
+
+4. Handle interrupted collection and transient read
+   failures without fabricating terminal results.
+
+5. Persist publication state durably, including:
+   - Evidence collection status
+   - Frozen publication payload and hash
+   - Destination and run identity
+   - Write-attempt status
+   - Retrieval verification status
+
+6. Preserve strict single-publication semantics.
+
+7. A timeout or connection failure during publication
+   must not automatically trigger another write.
+
+8. Use read-only reconciliation to determine whether
+   an uncertain publication was accepted.
+
+9. If complete terminal evidence cannot be obtained,
+   retain the evidence locally and block publication.
+
+10. Preserve the original D01 artifacts and immutable
+    published record without modification.
+
+Use the existing local persistence, journaling, and
+publication infrastructure wherever possible.
+
+Do not introduce a generic event-sourcing framework,
+new remote services, or unrelated abstractions.
+
+Validation requirements:
+
+- Successful terminal collection and publication
+- Failed execution followed by authoritative terminality
+- Terminal collection timeout
+- Transient terminal read failures
+- Process interruption during evidence collection
+- Interruption before publication
+- Uncertain publication write
+- Recovery through read-only reconciliation
+- Exactly one publication when permitted
+- Zero publication attempts with incomplete evidence
+- Historical trace and V1 compatibility
+
+All tests must be local using controlled fake transports.
+
+Do not execute hosted inference, create Arena sessions,
+publish to Experiment Lab, or modify authorization files.
+
+At completion provide:
+
+A. Implementation summary
+B. State-machine and ownership explanation
+C. Integrated regression results
+D. Evidence of single-publication safety
+E. Evidence of interruption recovery
+F. Remaining limitations
+G. Recommendation for PD2.1
+
+Stop after this implementation batch.
+Do not automatically proceed to PD2.1.
+
+---
+
+# Context from my IDE setup:
+
+## Active file: tacto-negotiator/docs/v2/pd1-lifecycle-implementation-2026-10-11.md
+
+## Active selection of the file:
+# PD1 lifecycle batch implementation evidence
+
+Date: 11 October 2026 (Europe/Zurich). Scope: PD1.1 and timeout/fallback/pre-POST portions of PD1.2. This is local implementation evidence only; it does not authorize hosted inference, Arena execution, Lab publication, D02, P10, push or promotion.
+
+## Implemented
+
+- `DecisionModelLedger` owns interpreter/proposer/selector stage caps, total call/token/time admission and synchronous revocation on timeout, uncertain transport failure or cancellation. Existing 8/4-second stage ceilings are centralized in the ledger and clipped by the original decision deadline, computation allowance and fallback/submission reserves. Unknown timeout usage retains the full reservation.
+- The model gateway requests per-stage budgets from the ledger. Model unavailability no longer blocks an independently validated fallback action. A local end-to-end official-Sim regression times out interpretation, validates the deterministic fallback and records one submitted buyer move.
+- The synchronous Lab callback runs its async decision in a daemon worker so `asyncio.run()` cleanup cannot hold the caller past its original compute/deadline window. A run-wide model-call gate lets a whole-decision timeout stop later calls, including while a worker is cleaning up. The agent revokes execution and requires recovery; no late result is applied to agent state.
+- Offline decision stages now record elapsed time. Historical stage serialization omits the new field when it was absent, preserving old trace hash projections.
+- Journaled Arena POSTs pace first, refresh owned session/thread state, run the final exact-payload validator, persist the exact operation, and issue one request. A rejected pre-POST check creates neither an intent nor a POST. Uncertain writes remain journal-owned and are never retried automatically.
+
+## Evidence
+
+Local checks, no provider/Arena/Lab network calls:
+
+```text
+pytest tests/v2/integration/test_grounded_model.py tests/v2/integration/test_adaptive_proposal.py tests/v2/integration/test_hosted_sandbox.py tests/v2/acceptance/test_model_budget.py tests/v2/integration/test_lab_integration.py
+74 passed, 2 xfailed
+
+pytest tests/test_lab_runner.py  [localhost socket binding allowed]
+32 passed
+
+scoped Ruff check
+All checks passed
+
+git diff --check
+clean
+```
+
+The two acceptance xfails require the absent `negotiator.v2.adapters.recorded` module; they do not exercise these Lab bridge fixes. An initial sandboxed Lab-runner attempt failed because the environment denied localhost socket binding. The same local-only suite passed when run with socket permission.
+
+Focused regressions cover timeout reservation and later-call rejection; stage cap/deadline clipping; complete synchronous return ahead of cancellation-resistant cleanup; timeout fallback through independent validation and one simulator submission; fresh post-pacing validation; exact journal/header/body linkage; and zero POST/intent after stale dispatch rejection.
+
+## Fingerprint and limits
+
+Selected implementation and regression files as present at review have aggregate SHA-256 `19f6668bb1bba9cd2899f4c3288e9ad748999f86b71b58872559b42d642a8073`. It hashes the ordered per-file `sha256sum` output for the files touched by this batch, including the already dirty workspace contents. Workspace HEAD is `a88bf86820214be9fdf4e0d4e679675d946e0607`, but the repository had extensive pre-existing tracked and untracked V2 work; HEAD alone does not reproduce this fingerprint.
+
+PD1.3 durable terminal/publication recovery, real-model latency measurement, hosted validation, commercial-effects work and run-level strategy persistence remain deferred. The background worker is bounded from the caller's perspective; cancellation-resistant provider cleanup can continue in its daemon thread and may still incur provider charges. No hosted validity or negotiation-quality claim is made.
+
+## Open tabs:
+- pd1-lifecycle-implementation-2026-10-11.md: tacto-negotiator/docs/v2/pd1-lifecycle-implementation-2026-10-11.md
+- post-d01-development-roadmap.md: tacto-negotiator/docs/v2/post-d01-development-roadmap.md
+- Pasted text.txt: /home/ugur/.codex/attachments/c841c889-2c4a-4ebd-9ac0-a2c8f29d0da7/Pasted text.txt
+- hosted-d01-results-2026-10-11.md: tacto-negotiator/docs/v2/hosted-d01-results-2026-10-11.md
+- authorization-template.json: /tmp/v2-hosted-sandbox-preparation-2026-10-11/offline/authorization-template.json
+
+# Files pasted by the user:
+
+## "# V2 Negotiator — Hackathon Sprint: Get D01 Ready We are switching to speed-foc…": /home/ugur/.codex/attachments/756c1250-d3ae-406f-a177-ff63d057364f/Pasted text.txt
+
+Pasted text contains the user's request.
+
+## My request:
+
+---
+
+# Context from my IDE setup:
+
+## Active file: tacto-negotiator/docs/v2/pd1-lifecycle-implementation-2026-10-11.md
+
+## Active selection of the file:
+# PD1 lifecycle batch implementation evidence
+
+Date: 11 October 2026 (Europe/Zurich). Scope: PD1.1 and timeout/fallback/pre-POST portions of PD1.2. This is local implementation evidence only; it does not authorize hosted inference, Arena execution, Lab publication, D02, P10, push or promotion.
+
+## Implemented
+
+- `DecisionModelLedger` owns interpreter/proposer/selector stage caps, total call/token/time admission and synchronous revocation on timeout, uncertain transport failure or cancellation. Existing 8/4-second stage ceilings are centralized in the ledger and clipped by the original decision deadline, computation allowance and fallback/submission reserves. Unknown timeout usage retains the full reservation.
+- The model gateway requests per-stage budgets from the ledger. Model unavailability no longer blocks an independently validated fallback action. A local end-to-end official-Sim regression times out interpretation, validates the deterministic fallback and records one submitted buyer move.
+- The synchronous Lab callback runs its async decision in a daemon worker so `asyncio.run()` cleanup cannot hold the caller past its original compute/deadline window. A run-wide model-call gate lets a whole-decision timeout stop later calls, including while a worker is cleaning up. The agent revokes execution and requires recovery; no late result is applied to agent state.
+- Offline decision stages now record elapsed time. Historical stage serialization omits the new field when it was absent, preserving old trace hash projections.
+- Journaled Arena POSTs pace first, refresh owned session/thread state, run the final exact-payload validator, persist the exact operation, and issue one request. A rejected pre-POST check creates neither an intent nor a POST. Uncertain writes remain journal-owned and are never retried automatically.
+
+## Evidence
+
+Local checks, no provider/Arena/Lab network calls:
+
+```text
+pytest tests/v2/integration/test_grounded_model.py tests/v2/integration/test_adaptive_proposal.py tests/v2/integration/test_hosted_sandbox.py tests/v2/acceptance/test_model_budget.py tests/v2/integration/test_lab_integration.py
+74 passed, 2 xfailed
+
+pytest tests/test_lab_runner.py  [localhost socket binding allowed]
+32 passed
+
+scoped Ruff check
+All checks passed
+
+git diff --check
+clean
+```
+
+The two acceptance xfails require the absent `negotiator.v2.adapters.recorded` module; they do not exercise these Lab bridge fixes. An initial sandboxed Lab-runner attempt failed because the environment denied localhost socket binding. The same local-only suite passed when run with socket permission.
+
+Focused regressions cover timeout reservation and later-call rejection; stage cap/deadline clipping; complete synchronous return ahead of cancellation-resistant cleanup; timeout fallback through independent validation and one simulator submission; fresh post-pacing validation; exact journal/header/body linkage; and zero POST/intent after stale dispatch rejection.
+
+## Fingerprint and limits
+
+Selected implementation and regression files as present at review have aggregate SHA-256 `19f6668bb1bba9cd2899f4c3288e9ad748999f86b71b58872559b42d642a8073`. It hashes the ordered per-file `sha256sum` output for the files touched by this batch, including the already dirty workspace contents. Workspace HEAD is `a88bf86820214be9fdf4e0d4e679675d946e0607`, but the repository had extensive pre-existing tracked and untracked V2 work; HEAD alone does not reproduce this fingerprint.
+
+PD1.3 durable terminal/publication recovery, real-model latency measurement, hosted validation, commercial-effects work and run-level strategy persistence remain deferred. The background worker is bounded from the caller's perspective; cancellation-resistant provider cleanup can continue in its daemon thread and may still incur provider charges. No hosted validity or negotiation-quality claim is made.
+
+## Open tabs:
+- pd1-lifecycle-implementation-2026-10-11.md: tacto-negotiator/docs/v2/pd1-lifecycle-implementation-2026-10-11.md
+- post-d01-development-roadmap.md: tacto-negotiator/docs/v2/post-d01-development-roadmap.md
+- Pasted text.txt: /home/ugur/.codex/attachments/c841c889-2c4a-4ebd-9ac0-a2c8f29d0da7/Pasted text.txt
+- hosted-d01-results-2026-10-11.md: tacto-negotiator/docs/v2/hosted-d01-results-2026-10-11.md
+- authorization-template.json: /tmp/v2-hosted-sandbox-preparation-2026-10-11/offline/authorization-template.json
+
+## My request:
+carry out its instruction
+
+---
+
+# Context from my IDE setup:
+
+## Active file: tacto-negotiator/docs/v2/pd1-lifecycle-implementation-2026-10-11.md
+
+## Active selection of the file:
+# PD1 lifecycle batch implementation evidence
+
+Date: 11 October 2026 (Europe/Zurich). Scope: PD1.1 and timeout/fallback/pre-POST portions of PD1.2. This is local implementation evidence only; it does not authorize hosted inference, Arena execution, Lab publication, D02, P10, push or promotion.
+
+## Implemented
+
+- `DecisionModelLedger` owns interpreter/proposer/selector stage caps, total call/token/time admission and synchronous revocation on timeout, uncertain transport failure or cancellation. Existing 8/4-second stage ceilings are centralized in the ledger and clipped by the original decision deadline, computation allowance and fallback/submission reserves. Unknown timeout usage retains the full reservation.
+- The model gateway requests per-stage budgets from the ledger. Model unavailability no longer blocks an independently validated fallback action. A local end-to-end official-Sim regression times out interpretation, validates the deterministic fallback and records one submitted buyer move.
+- The synchronous Lab callback runs its async decision in a daemon worker so `asyncio.run()` cleanup cannot hold the caller past its original compute/deadline window. A run-wide model-call gate lets a whole-decision timeout stop later calls, including while a worker is cleaning up. The agent revokes execution and requires recovery; no late result is applied to agent state.
+- Offline decision stages now record elapsed time. Historical stage serialization omits the new field when it was absent, preserving old trace hash projections.
+- Journaled Arena POSTs pace first, refresh owned session/thread state, run the final exact-payload validator, persist the exact operation, and issue one request. A rejected pre-POST check creates neither an intent nor a POST. Uncertain writes remain journal-owned and are never retried automatically.
+
+## Evidence
+
+Local checks, no provider/Arena/Lab network calls:
+
+```text
+pytest tests/v2/integration/test_grounded_model.py tests/v2/integration/test_adaptive_proposal.py tests/v2/integration/test_hosted_sandbox.py tests/v2/acceptance/test_model_budget.py tests/v2/integration/test_lab_integration.py
+74 passed, 2 xfailed
+
+pytest tests/test_lab_runner.py  [localhost socket binding allowed]
+32 passed
+
+scoped Ruff check
+All checks passed
+
+git diff --check
+clean
+```
+
+The two acceptance xfails require the absent `negotiator.v2.adapters.recorded` module; they do not exercise these Lab bridge fixes. An initial sandboxed Lab-runner attempt failed because the environment denied localhost socket binding. The same local-only suite passed when run with socket permission.
+
+Focused regressions cover timeout reservation and later-call rejection; stage cap/deadline clipping; complete synchronous return ahead of cancellation-resistant cleanup; timeout fallback through independent validation and one simulator submission; fresh post-pacing validation; exact journal/header/body linkage; and zero POST/intent after stale dispatch rejection.
+
+## Fingerprint and limits
+
+Selected implementation and regression files as present at review have aggregate SHA-256 `19f6668bb1bba9cd2899f4c3288e9ad748999f86b71b58872559b42d642a8073`. It hashes the ordered per-file `sha256sum` output for the files touched by this batch, including the already dirty workspace contents. Workspace HEAD is `a88bf86820214be9fdf4e0d4e679675d946e0607`, but the repository had extensive pre-existing tracked and untracked V2 work; HEAD alone does not reproduce this fingerprint.
+
+PD1.3 durable terminal/publication recovery, real-model latency measurement, hosted validation, commercial-effects work and run-level strategy persistence remain deferred. The background worker is bounded from the caller's perspective; cancellation-resistant provider cleanup can continue in its daemon thread and may still incur provider charges. No hosted validity or negotiation-quality claim is made.
+
+## Open tabs:
+- pd1-lifecycle-implementation-2026-10-11.md: tacto-negotiator/docs/v2/pd1-lifecycle-implementation-2026-10-11.md
+- post-d01-development-roadmap.md: tacto-negotiator/docs/v2/post-d01-development-roadmap.md
+- Pasted text.txt: /home/ugur/.codex/attachments/c841c889-2c4a-4ebd-9ac0-a2c8f29d0da7/Pasted text.txt
+- hosted-d01-results-2026-10-11.md: tacto-negotiator/docs/v2/hosted-d01-results-2026-10-11.md
+- authorization-template.json: /tmp/v2-hosted-sandbox-preparation-2026-10-11/offline/authorization-template.json
+
+## My request:
+We are ready to move from local testing to real-model evaluation.
+
+Prepare the minimal two-call GPT-4.1-mini inference-only
+experiment proposed in your previous report.
+
+Use:
+- The existing D01 supplier observation
+- The new proposal v2 prompt and schema
+- One interpretation call
+- One proposal call
+- No retries
+- Proposed timing caps: 9s interpretation, 5s proposal,
+  15s total model time
+
+Use the existing inference infrastructure.
+
+Do not create new benchmarking frameworks, architecture
+documents, or comprehensive test suites.
+
+Record:
+1. Actual interpretation and proposal outputs
+2. Individual and total inference latency
+3. Token usage and cost, including unknown usage
+4. Whether commercial reasoning is correct
+5. Whether the proposals pass existing validation
+6. Any remaining blockers to hosted D01
+
+Prepare an exact, bounded inference-only authorization
+for my approval.
+
+Do not execute inference until explicitly authorized.
+No Arena sessions or Lab writes.
+
+Once the inference-only probe is authorized and executed,
+report its results concisely.
+
+Do not begin another implementation milestone.
+
+---
+
+# Context from my IDE setup:
+
+## Active file: tacto-negotiator/docs/v2/pd1-lifecycle-implementation-2026-10-11.md
+
+## Active selection of the file:
+# PD1 lifecycle batch implementation evidence
+
+Date: 11 October 2026 (Europe/Zurich). Scope: PD1.1 and timeout/fallback/pre-POST portions of PD1.2. This is local implementation evidence only; it does not authorize hosted inference, Arena execution, Lab publication, D02, P10, push or promotion.
+
+## Implemented
+
+- `DecisionModelLedger` owns interpreter/proposer/selector stage caps, total call/token/time admission and synchronous revocation on timeout, uncertain transport failure or cancellation. Existing 8/4-second stage ceilings are centralized in the ledger and clipped by the original decision deadline, computation allowance and fallback/submission reserves. Unknown timeout usage retains the full reservation.
+- The model gateway requests per-stage budgets from the ledger. Model unavailability no longer blocks an independently validated fallback action. A local end-to-end official-Sim regression times out interpretation, validates the deterministic fallback and records one submitted buyer move.
+- The synchronous Lab callback runs its async decision in a daemon worker so `asyncio.run()` cleanup cannot hold the caller past its original compute/deadline window. A run-wide model-call gate lets a whole-decision timeout stop later calls, including while a worker is cleaning up. The agent revokes execution and requires recovery; no late result is applied to agent state.
+- Offline decision stages now record elapsed time. Historical stage serialization omits the new field when it was absent, preserving old trace hash projections.
+- Journaled Arena POSTs pace first, refresh owned session/thread state, run the final exact-payload validator, persist the exact operation, and issue one request. A rejected pre-POST check creates neither an intent nor a POST. Uncertain writes remain journal-owned and are never retried automatically.
+
+## Evidence
+
+Local checks, no provider/Arena/Lab network calls:
+
+```text
+pytest tests/v2/integration/test_grounded_model.py tests/v2/integration/test_adaptive_proposal.py tests/v2/integration/test_hosted_sandbox.py tests/v2/acceptance/test_model_budget.py tests/v2/integration/test_lab_integration.py
+74 passed, 2 xfailed
+
+pytest tests/test_lab_runner.py  [localhost socket binding allowed]
+32 passed
+
+scoped Ruff check
+All checks passed
+
+git diff --check
+clean
+```
+
+The two acceptance xfails require the absent `negotiator.v2.adapters.recorded` module; they do not exercise these Lab bridge fixes. An initial sandboxed Lab-runner attempt failed because the environment denied localhost socket binding. The same local-only suite passed when run with socket permission.
+
+Focused regressions cover timeout reservation and later-call rejection; stage cap/deadline clipping; complete synchronous return ahead of cancellation-resistant cleanup; timeout fallback through independent validation and one simulator submission; fresh post-pacing validation; exact journal/header/body linkage; and zero POST/intent after stale dispatch rejection.
+
+## Fingerprint and limits
+
+Selected implementation and regression files as present at review have aggregate SHA-256 `19f6668bb1bba9cd2899f4c3288e9ad748999f86b71b58872559b42d642a8073`. It hashes the ordered per-file `sha256sum` output for the files touched by this batch, including the already dirty workspace contents. Workspace HEAD is `a88bf86820214be9fdf4e0d4e679675d946e0607`, but the repository had extensive pre-existing tracked and untracked V2 work; HEAD alone does not reproduce this fingerprint.
+
+PD1.3 durable terminal/publication recovery, real-model latency measurement, hosted validation, commercial-effects work and run-level strategy persistence remain deferred. The background worker is bounded from the caller's perspective; cancellation-resistant provider cleanup can continue in its daemon thread and may still incur provider charges. No hosted validity or negotiation-quality claim is made.
+
+## Open tabs:
+- pd1-lifecycle-implementation-2026-10-11.md: tacto-negotiator/docs/v2/pd1-lifecycle-implementation-2026-10-11.md
+- post-d01-development-roadmap.md: tacto-negotiator/docs/v2/post-d01-development-roadmap.md
+- Pasted text.txt: /home/ugur/.codex/attachments/c841c889-2c4a-4ebd-9ac0-a2c8f29d0da7/Pasted text.txt
+- hosted-d01-results-2026-10-11.md: tacto-negotiator/docs/v2/hosted-d01-results-2026-10-11.md
+- authorization-template.json: /tmp/v2-hosted-sandbox-preparation-2026-10-11/offline/authorization-template.json
+
+## My request:
+**Approved: D01 inference-only probe.**
+
+I authorize the exact prepared plan in `/tmp/v2-d01-inference-probe-2026-10-11/authorization-template.json`, subject to the stated limits:
+
+- Recorded D01 observation, supplier `sup:DEMO-F1`, session `de6f67ea54658727`.
+- Exactly one interpretation call followed by one proposal call.
+- GPT-4.1-mini with `bounded-proposal-v2` and `ProposalResponseV2`.
+- Maximum 196,608 reserved tokens and **$0.0835584 total**, with the stated per-call accounting enforced.
+- Interpretation timeout: 9 seconds; proposal timeout: 5 seconds; total model-time budget: 15 seconds.
+- No retries or automatic reruns.
+- Documented fallback assessment permitted if interpretation is rejected.
+- Zero Arena requests, negotiation actions, or Lab publication writes.
+- Source fingerprint: `7afebbb95d5d569466e51ef4e52f84aae00ea7cdac64f6d60826b52a75270b64`.
+
+Execute the two-call sequence once, provided the authorization file matches these limits. Do not expand the scope.
+
+Afterward, report the actual model outputs, schema validation, grounding, fallback behavior, latency, token usage, estimated cost, and implications for the V2 negotiation strategy.
