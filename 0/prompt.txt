@@ -1,0 +1,72 @@
+You're the Breakthrough agent for our Tacto Negotiation Arena buyer agent (https://arena.tacto.ai/). Repo: /Users/sametdegirmenci/Downloads/ysamet/tacto-negotiator (main = v3, ~0.76). The best team scores 0.88, so far deeper supplier moves are possible. Our past work stayed local: templated emails, one lever at a time, small tweaks. Your job is to find what we're missing, using a different method: THE LLM EXPLORES, THE CODE SHIPS.
+
+Read first:
+- negotiation-arena-kit/brief/brief.md, especially §2 "How a supplier decides" and §10 Tips
+- api.md
+- experiments/LOG.md, a summary only
+- the case files and every past transcript for P08 (.59 vs best .92), P18 (.53 vs .73), P05 (.77 vs .96) and P02 (.71 vs .85)
+
+The brief says suppliers have their own economics and a person at the desk:
+- they never go below their cost floor;
+- bigger moves need the boss's approval;
+- they give nothing without a move from us;
+- they read the whole email (tone, questions, threats, appreciation) and react as people do;
+- the skill is finding the trade the supplier wants.
+
+Phase 1 (offline, 0 sessions, max ~40 min):
+For each weak case, use a strong model to generate 10 genuinely different strategies, critique them against the transcripts and the brief, and pick 2–3. Be ambitious. Include combinations we never tried:
+- payment as a closing chip on P08/P18 (both complained 90 days "carries significant financing costs");
+- explicit escalation to the decision-maker;
+- a credible walk-away using the case's real alternative;
+- relationship and tone;
+- a package that combines payment + commitment + one verified fact at the close.
+
+Already failed, so don't repeat unless the case is new:
+- countering a supplier's final offer (it walked away 3/3);
+- anchor depth alone;
+- tenor;
+- no-index-clause trades;
+- early payment trades (P05 regressed).
+
+Phase 2 (exploration, at most 12 practice sessions):
+- Build an exploratory buyer mode where the LLM writes the email body and picks among code-priced, legal term sheets each round.
+- Code validates every number, term, ID and must-have, and rejects any leak (budget, target, reservation, alternative weakness).
+- Run your top strategies on P08, P18, P05 and P02. Read every transcript plus GET /v1/sessions/{sid}/backoffice after each run; it shows the supplier's internal reasons and approvals.
+- Before each session, write down the hypothesis and what's different from past attempts.
+
+Phase 3 (codify):
+- Turn anything that moved a supplier beyond our floor into a deterministic, behaviour-keyed rule: triggered by supplier signals, never by case type.
+- Repeat it once. Report it as a merge candidate on its own branch. Don't merge to main.
+
+Rules:
+- Use your own worktree and branch (codex/breakthrough).
+- Don't touch the main checkout, codex/fresh-pacing, codex/fresh-llm or codex/final-robust.
+- Prices, terms and closing decisions stay code-checked.
+- Claims must come from public facts only.
+- Never read /v1/events, /screen, /leaderboard or /results. Never use hidden c_best at runtime.
+- Before any lab run, export ARENA_DATA.
+- Practice replies take 10–20 s, but the Final allows ~5–6 rounds within 8 min, so strategies must close in ≤6 rounds.
+
+Report:
+- per case: strategies tried, scores, transcript quotes showing what moved the supplier;
+- the codified rules and their commit;
+- sessions used;
+- an honest view of what transfers to the Live Final.
+
+Push back if you think the plan is wrong. Go now; the code freeze is Sun 12:00.
+
+---
+
+Continue
+
+---
+
+Good. Two things, then keep going without waiting for me:
+1. Before building the explorer, append your Phase 1 shortlist to /Users/sametdegirmenci/Downloads/ysamet-coord/ACKS.md: per case (P08/P18/P05/P02), the 2–3 picked strategies, one line each with the evidence (transcript or back-office quote). Also read /Users/sametdegirmenci/Downloads/ysamet-coord/COORDINATION.md items A1–A5 and B1–B3.
+2. Then build the explorer and run your sessions (cap 12) autonomously. I'm asleep, so don't stop to ask for approval. After EVERY hosted run, append one line to ACKS.md: case, score, run id, what moved the supplier (quote). Repeat any run that beats our best once.
+Known facts to use: P18 supplier named volume commitment as its only price lever (volume is fixed at 23,700/yr, so state that truthfully as binding); the P05 late 14-day payment chip works (.8136 ×2); a P02 opening at 361.09 scored .735 once (vs .7115).
+When you finish or hit the cap, do item [A6]: commit and push, write the handoff block to ACKS.md, and stop.
+
+---
+
+What is taking so long????
