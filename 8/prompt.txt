@@ -1,0 +1,18 @@
+# Context from my IDE setup:
+
+## Active file: tacto-negotiator/docs/v2/hosted-d01-results-2026-10-11.md
+
+## Open tabs:
+- hosted-d01-results-2026-10-11.md: tacto-negotiator/docs/v2/hosted-d01-results-2026-10-11.md
+- authorization-template.json: /tmp/v2-hosted-sandbox-preparation-2026-10-11/offline/authorization-template.json
+- hosted-sandbox-readiness-2026-10-11.md: tacto-negotiator/docs/v2/hosted-sandbox-readiness-2026-10-11.md
+- intelligent-negotiation-milestone-2026-10-11.md: tacto-negotiator/docs/v2/intelligent-negotiation-milestone-2026-10-11.md
+- authorization-template.json: /tmp/v2-adaptive-inference-preparation-2026-10-11/authorization-template.json
+
+# Files pasted by the user:
+
+## "# Hosted D01 execution — 11 October 2026 Exactly one authorized real Arena D01 …": /home/ugur/.codex/attachments/c841c889-2c4a-4ebd-9ac0-a2c8f29d0da7/Pasted text.txt
+
+Pasted text contains the user's request.
+
+## My request:
