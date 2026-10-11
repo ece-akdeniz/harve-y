@@ -51,6 +51,10 @@ class PolicyConfig:
     # Subset of bundle_volume_types whose later offers answer the supplier's volume question with the
     # case's fixed volume over the offered term and, if it has a pricing committee, the approval path.
     bundle_commitment_types: tuple[str, ...] = ()
+    # Case types whose offers answer the supplier's volume question themselves: the case's fixed
+    # volume as a binding commitment over the offered term, the latest shared forecast attached as
+    # CSV and cited by its fc: ID (first offer; a short reminder whenever it asks again).
+    fixed_volume_types: tuple[str, ...] = ()
     # Per case type number of buyer rounds over which the price schedule reaches the
     # supplier's price (faster convergence before a supplier's final offer); others use the agent's.
     rounds_by_type: dict[str, int] = field(default_factory=dict)
@@ -125,6 +129,7 @@ class PolicyConfig:
             "bundle_commitment_types",
             "value_swap_types",
             "fast_payment_types",
+            "fixed_volume_types",
         ):
             v = d.get(k, [])
             if not isinstance(v, list) or any(not isinstance(x, str) or x not in TYPES for x in v):

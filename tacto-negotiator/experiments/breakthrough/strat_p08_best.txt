@@ -1,0 +1,20 @@
+Supplier: Edelstahl-Service Donautal (stainless bar stockholder, group company, inside sales desk). Its letter of
+2026-07-06 says its nickel/alloy requirement is covered at fixed prices until March 2027. It always asks "Which volume
+can you commit to?" and for the volume forecast; it will insert an AS-14404 index clause itself for a 24-month term
+(let it - do not propose a clause yourself); it accepts 90-day payment when we hold it.
+OBSERVED MECHANIC (4 sessions): its first reply is a package answer (about the same whatever our price). After that
+it mirrors OUR price move: when we move up by 0.11-0.16 EUR it moves down by about 0.85 of that; when we move by 0.01-0.02
+it moves 0.03-0.05 and declares a final offer. It also goes final when we change nothing. So: anchor deep in round 1,
+then move UP by about 0.14 EUR every round on the SAME package (no clause, 90 days, 24 months) with one new
+verified claim each round, never touching payment or term, until the code closes. Our asks should stay below its
+price each round; if the gap gets below 0.12, move to about 0.02 under its price.
+Plan: ROUND 1 - state the binding fixed annual volume (case volume per year and the total over 24 months), attach
+the forecast (attachments: ["forecast"]) and cite fc-latest; ask for the dedicated volume tier price. ONE sheet:
+no index clause, 90 days, 24 months, level L12 (deepest, about 4.55). ROUND 2 - thank it for what it accepted, cite the
+purchase-order claim, move up ~0.14 (pick the level closest to last price + 0.14, same package: if it inserted an
+index clause, keep OUR package without clause - the supplier may keep offering the clause; that is fine).
+ROUND 3 - cite PPI-C2431 fall (first window), move up ~0.14. ROUND 4 - cite the second PPI-C2431 window, move up
+~0.11. ROUND 5 - no new claim (do not re-cite PPI-C2431: one claim per index series), move up ~0.14, ask for its best price. Code accepts when it agrees or goes final.
+Tone: warm, firm, concrete, short; one argument per sentence; mention its material cover until March 2027 once
+(round 2) as the reason a fixed base price over the term is reasonable. Do NOT use any AS-14404 index claim and
+do not use the scorecard claim.
