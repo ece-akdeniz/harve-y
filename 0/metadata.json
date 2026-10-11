@@ -1,0 +1,45 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4M49GVYD4KYERQT0BB5TFY1",
+  "session_id": "be17b514-9f71-455c-b5b2-4e6c34bedc4f",
+  "strategy": "manual-commit",
+  "created_at": "2026-10-11T00:02:38.147723Z",
+  "branch": "codex/fresh-p18-db5",
+  "checkpoints_count": 7,
+  "files_touched": [
+    "tacto-negotiator/configs/p18-alt-counter.json",
+    "tacto-negotiator/src/negotiator/agent.py",
+    "tacto-negotiator/src/negotiator/policy.py",
+    "tacto-negotiator/tests/test_alt_clause_counter.py"
+  ],
+  "agent": "Cursor",
+  "model": "unknown",
+  "turn_id": "39e73bc8e5af",
+  "checkpoint_transcript_start": 478,
+  "transcript_lines_at_start": 478,
+  "compact_transcript_start": 317,
+  "session_metrics": {
+    "turn_count": 34
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-10-11T00:02:38.098328Z",
+    "agent_lines": 670,
+    "agent_removed": 5,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 670,
+    "total_lines_changed": 675,
+    "agent_percentage": 100,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    }
+  ]
+}
