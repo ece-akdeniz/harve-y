@@ -1328,9 +1328,9 @@ th[aria-sort="ascending"], th[aria-sort="descending"] { color: #165b47; }
 .experiment-lab h2,.experiment-lab h3{font-weight:500}
 .experiment-lab .eyebrow,.experiment-lab .nav-label,.experiment-lab .stat-label{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:1px}
 .experiment-lab a{color:var(--green)}
-.experiment-lab .brand{color:var(--ink);gap:0}
-.experiment-lab .brand-mark,.experiment-lab .title-dot{color:var(--orange)}
-.experiment-lab .brand-tag{border-color:#ffc9ab;color:#9c3400}
+.experiment-lab .brand{color:var(--ink);gap:0;font-size:31px;font-weight:800;letter-spacing:-.06em}
+.experiment-lab .brand-mark{color:var(--orange);font-size:inherit;font-weight:inherit;letter-spacing:inherit;margin:0}
+.experiment-lab .title-dot{color:var(--orange)}
 .experiment-lab .sidebar{background:#fff;border-color:var(--line)}
 .experiment-lab .nav-label,.experiment-lab .sidebar-note p,.experiment-lab .sidebar-bottom span{color:#70706a}
 .experiment-lab .sidebar-note,.experiment-lab .sidebar-bottom{border-color:var(--line)}
@@ -1363,12 +1363,12 @@ th[aria-sort="ascending"], th[aria-sort="descending"] { color: #165b47; }
 .experiment-lab .cost-component meter::-webkit-meter-optimum-value{background:var(--orange)}
 .experiment-lab .cost-component meter::-moz-meter-bar{background:var(--orange)}
 .experiment-lab .login-story{background:var(--orange)}
-.experiment-lab .login-story .brand-mark{color:var(--ink)}
+.experiment-lab .login-story .brand-mark{color:#fff}
 .experiment-lab .login-story:after{border-color:#bd4200;box-shadow:0 0 0 45px var(--orange),0 0 0 46px #d54c00,0 0 0 90px var(--orange),0 0 0 91px #d54c00}
 .experiment-lab .login-copy>p:last-child,.experiment-lab .login-footer{color:#39291e}
 .experiment-lab .login-side{background:#fff}
 .experiment-lab :is(button,a,input,select,summary):focus-visible{outline:2px solid #c24500;outline-offset:3px}
-@media(max-width:700px){.experiment-lab h1{font-size:30px}}
+@media(max-width:700px){.experiment-lab h1{font-size:30px}.experiment-lab .sidebar .brand{font-size:24px}}
 .memory-citation { font-size: 12px; line-height: 1.6; }
 .memory-filters { display: flex; flex-wrap: wrap; align-items: end; gap: 14px; padding: 18px; }
 .memory-filters label { display: grid; gap: 6px; flex: 1; min-width: 160px; }
