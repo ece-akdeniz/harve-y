@@ -3,7 +3,7 @@
   "checkpoint_id": "01M4MGHHM8HKRWZDVZ2EX0EC0T",
   "strategy": "manual-commit",
   "branch": "codex-negotiator-v2-t1-1a-2026-10-10",
-  "checkpoints_count": 37,
+  "checkpoints_count": 39,
   "files_touched": [
     "tacto-negotiator/LAB_PLAYBOOK.md",
     "tacto-negotiator/docs/21-negotiation-v2-plan-2026-10-10.md",
@@ -23,6 +23,7 @@
     "tacto-negotiator/docs/v2/implementation-order-addendum-2026-10-10.md",
     "tacto-negotiator/docs/v2/inference-probe-finalization-repair-2026-10-11.md",
     "tacto-negotiator/docs/v2/intelligent-negotiation-milestone-2026-10-11.md",
+    "tacto-negotiator/docs/v2/negotiation-repair-fast-plan-2026-10-11.md",
     "tacto-negotiator/docs/v2/pd1-lifecycle-implementation-2026-10-11.md",
     "tacto-negotiator/docs/v2/pd1-terminal-publication-implementation-2026-10-11.md",
     "tacto-negotiator/docs/v2/post-d01-development-roadmap.md",
@@ -213,14 +214,21 @@
       "compact_transcript": "/11/transcript.jsonl",
       "content_hash": "/11/content_hash.txt",
       "prompt": "/11/prompt.txt"
+    },
+    {
+      "metadata": "/12/metadata.json",
+      "transcript": "/12/full.jsonl",
+      "compact_transcript": "/12/transcript.jsonl",
+      "content_hash": "/12/content_hash.txt",
+      "prompt": "/12/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 4081537,
+    "input_tokens": 4174942,
     "cache_creation_tokens": 0,
-    "cache_read_tokens": 147212953,
-    "output_tokens": 904395,
-    "api_call_count": 1376,
+    "cache_read_tokens": 148500761,
+    "output_tokens": 913566,
+    "api_call_count": 1396,
     "subagent_tokens_complete": true
   }
 }
