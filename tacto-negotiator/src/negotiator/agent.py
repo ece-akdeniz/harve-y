@@ -122,6 +122,7 @@ class PackageAgent:
         self._memory_seen = set()
         # Opt-in model layer: one bounded client; every feature falls back deterministically.
         self.llm, self.trait_reader, self._budget, self._traits_prefetched = None, None, None, set()
+        self._answer_template = {}  # supplier -> (template text, facts) deferred to _model_answer
         if policy and (policy.model_traits or policy.model_choice or policy.model_answers):
             from .llm import LlmClient, configured
 
@@ -851,6 +852,7 @@ class PackageAgent:
         move = self._propose(case, threads, supplier_id)
         move = self._bundle_volume(case, threads, supplier_id, move)
         move = self._fast_payment_note(case, threads, supplier_id, move)
+        move = self._model_answer(case, threads, supplier_id, move)
         if self.policy and self.policy.rfq_rival_offer and case["type"] == "rfq":
             before = move
             move = self._rival_offer_claim(case, threads, supplier_id, move)
@@ -946,11 +948,60 @@ class PackageAgent:
             ids = []
         else:
             text, ids = bundle_volume.first_paragraph(p)
+        if not ids and self._answers_on(case):
+            # Later rounds: the template becomes the fallback of the model-worded answer (see _model_answer).
+            from .llm_answers import bundle_facts
+
+            self._answer_template[sid] = (text, bundle_facts(p, case, sheet.get("terms") or sheet,
+                                                              bundle_volume.committee_threshold(dossier)))
+            self._log(case, "bundle_volume", sid, new=p["new"], total=p["total"], refs=ids, deferred=True)
+            return move
         body = msg["body"] + "\n\n" + text
         assert not leaks(body), "body would leak internal information"
         refs = list(dict.fromkeys([*(msg.get("refs") or []), *ids]))
         self._log(case, "bundle_volume", sid, new=p["new"], total=p["total"], refs=ids)
         return {**move, "message": {**msg, "body": body, **({"refs": refs} if refs else {})}}
+
+    def _answers_on(self, case):
+        return bool(self.llm and self.policy and case["type"] in self.policy.model_answers)
+
+    def _model_answer(self, case, threads, sid, move):
+        """Opt-in `model_answers`: when the supplier's latest reply asks a direct question, append one
+        to three validated sentences answering it from code-provided facts; otherwise (no question,
+        model failure, validator rejection, budget spent) append the deterministic template, if any."""
+        template, facts = self._answer_template.pop(sid, (None, {}))
+        msg = move.get("message")
+        if not msg or msg.get("action") or not msg.get("term_sheets"):
+            return move
+
+        def with_text(text):
+            if not text:
+                return move
+            body = msg["body"] + "\n\n" + text
+            assert not leaks(body), "body would leak internal information"
+            return {**move, "message": {**msg, "body": body}}
+
+        if not self._answers_on(case):
+            return with_text(template)
+        from . import llm_answers
+
+        events = threads.get(sid, [])
+        last = next((m for m in reversed(events) if m.get("from") != "buyer"), {})
+        questions = llm_answers.questions(last.get("body") or "")
+        if not questions:
+            return with_text(template)
+        budget = self._turn_budget()
+        if not budget.allow("answer", window_s=self._window_s(sid), need_s=1.5):
+            self._log(case, "model_answer", sid, status="skipped", skipped=budget.skipped[-1:], questions=questions)
+            return with_text(template)
+        offered = msg["term_sheets"][0].get("terms") or {}
+        allow = llm_answers.allowlist(case, events, offered, facts)
+        started = time.monotonic()
+        text, reason = budget.timed(llm_answers.draft, self.llm, questions, allow, timeout_s=budget.timeout_for(),
+                                    baseline=template, supplier_reply=last.get("body"))
+        self._log(case, "model_answer", sid, status="ok" if text else "fallback", reason=reason, text=text,
+                  questions=questions, template=bool(template), elapsed_s=round(time.monotonic() - started, 3))
+        return with_text(text or template)
 
     def _propose(self, case, threads, supplier_id):
         """The proposal for one thread given the whole snapshot: an offer move

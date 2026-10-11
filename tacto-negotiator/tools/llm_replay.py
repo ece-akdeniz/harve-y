@@ -159,7 +159,7 @@ def print_case(cid, diffs, agent_b, mode):
                       f"candidates={[c.get('id') for c in r.get('candidates', [])]} ({r.get('elapsed_s')}s)")
             elif kind == "model_answer":
                 print(f"      answer[{r.get('status')}]: {r.get('text')!r} ({r.get('elapsed_s')}s) "
-                      f"q={r.get('questions')}")
+                      f"q={r.get('questions')} reason={r.get('reason')!r}")
             elif kind == "model_fallback":
                 print(f"      fallback: {r}")
         if not d["same_body"] and mode == "all":

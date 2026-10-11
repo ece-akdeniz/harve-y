@@ -1885,3 +1885,27 @@ it is not a new score improvement or a fresh full-suite evaluation.
 - Tests: `tests/test_llm_layer.py` (10) incl. "an LLM-only trait never raises C above the plain schedule or the
   alternative" over the whole vocabulary. Full suite 732 passed; `test_model_assist::test_async_case_completes…`
   failed once under `-x` and passes alone and in the full rerun (known async-simulator timing flake).
+
+## 2026-10-11 — codex/fresh-llm: step 2 `model_answers` (0 sessions)
+
+- Decision diff v3 vs fresh-llm (replay of `6b162c54`, traits+answers on, quotes re-read): **0 changed decisions
+  on all ten cases** (52 buyer turns); only bodies differ, and only by the appended answer paragraph.
+  P11 `cash_short`: only consumer is `dossiers.supplier_estimate`, which rebuilds from regex traits and is off
+  (`estimates={}`) — no rate, no offer change. P04 `multi_year_preference`: no consumer; `TradePolicy.initial`
+  only reads `multi_year_only`, so the tenor stays 36 m. P10: "firm, long-term commitments" noted as the
+  commitment lever for the P10 session.
+- `llm_answers.py`: detects direct questions in the supplier's latest reply, builds an allowlist (attached
+  package, fixed terms, code-computed kit facts, our own earlier cited paragraphs; supplier quotes/thread
+  figures as public numbers), drafts 1–3 sentences (`reasoning_effort=low`, strict JSON), validates (unknown
+  number, unit figure outside our terms/cited facts, unknown ID, internal words, gap admissions like "not
+  available", length). On any rejection the deterministic template (bundle commitment / nothing) is kept
+  verbatim; term sheets are never touched (`agent._model_answer`).
+- When a template exists (P07 bundling) it is passed as `baseline_answer` the model must preserve: without
+  it the draft dropped the pricing-committee ask; with it the P07 answers keep volume, full-need and
+  committee asks and add the "which figures" part (fc:360012@2026-09 / fc:360030@2026-09, which the
+  supplier confirmed "holds").
+- Latency (replay, 11 answer calls): 1.6–3.5 s single question; two-question-with-baseline turns 5.4–7.4 s,
+  one 8.0 s timeout → template fallback. `LLM_EFFORT=minimal` is rejected by the endpoint (HTTP error).
+  Validator catches observed drafts: bare `360012` (reason unknown number), "No figures … available",
+  over-length — all fell back to the template.
+- Tests: `tests/test_llm_answers.py` (16). Full suite 748 passed, ruff clean.
