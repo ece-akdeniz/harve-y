@@ -153,7 +153,8 @@ class PackageAgent:
                 recent_window_types=policy.recent_index_window_types if policy else (),
                 rival_quote_types=policy.rival_quote_types if policy else (),
                 index_window_types=policy.index_window_types if policy else (),
-                claim_pacing=bool(policy and policy.claim_pacing))
+                claim_pacing=bool(policy and policy.claim_pacing),
+                cost_breakdown=bool(policy and policy.cost_breakdown_request))
         self.prev = {}  # supplier -> non-price terms of our last offer
         self.final_counters = {}  # supplier -> counters sent to its final offers (at most one)
         self.beat_asked = {}  # rival supplier -> final-offer sheet id we asked it to beat
@@ -471,6 +472,36 @@ class PackageAgent:
         body = msg["body"] + "\n\n" + text
         assert not leaks(body), "body would leak internal information"
         self._log(case, "fast_payment", sid, payment_days=days, refs=ids[:1])
+        return {**move, "message": {**msg, "body": body}}
+
+    def _cost_breakdown_request(self, case, threads, sid, move):
+        """Opt-in `cost_breakdown_request`: once, in one of our first two offers while the supplier is
+        open and before any breakdown arrived, ask for its cost breakdown (the arena renders an XLSX)."""
+        msg = move.get("message")
+        if not (self.policy and self.policy.cost_breakdown_request):
+            return move
+        if not msg or msg.get("action") or not msg.get("term_sheets"):
+            return move
+        events = threads.get(sid, [])
+        if latest(events).get("status") != "open" or len(self._ours(events)) >= 2:
+            return move
+        from . import cost_breakdown
+        from .context import DATA_ERRORS
+        from .dossiers import load_package
+
+        if cost_breakdown.received(events) or cost_breakdown.requested(events):
+            return move
+        part = None
+        parts = case.get("parts") or []
+        if parts:
+            try:
+                rows = load_package().query("SELECT description FROM parts WHERE id = ?", (parts[0],))
+                part = (rows[0].get("description") or "").strip() or None if rows else None
+            except DATA_ERRORS:
+                part = None
+        body = msg["body"] + "\n\n" + cost_breakdown.request_sentence(part)
+        assert not leaks(body), "body would leak internal information"
+        self._log(case, "cost_breakdown_request", sid, round=len(self._ours(events)) + 1)
         return {**move, "message": {**msg, "body": body}}
 
     def _supplier_payment(self, case, sid, events, n, std):
@@ -900,6 +931,7 @@ class PackageAgent:
         move = self._propose(case, threads, supplier_id)
         move = self._bundle_volume(case, threads, supplier_id, move)
         move = self._fast_payment_note(case, threads, supplier_id, move)
+        move = self._cost_breakdown_request(case, threads, supplier_id, move)
         if self.policy and self.policy.rfq_rival_offer and case["type"] == "rfq":
             before = move
             move = self._rival_offer_claim(case, threads, supplier_id, move)
