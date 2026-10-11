@@ -160,6 +160,8 @@ class PackageAgent:
         self.reanchored = set()  # rfq suppliers re-anchored after undercutting our own ask
         self.value_swapped = set()  # suppliers offered the value-equivalent chargeback swap (once)
         self.payment_traded = set()  # suppliers whose main sheet moved to their payment term (once)
+        # rfq supplier -> (non-price terms before the re-anchor fast-payment switch, its standing C then)
+        self.fast_payment_traded = {}
         self.final_seen = {}  # final-offer sheet id -> monotonic time first seen
         if estimates is None and os.environ.get("NEGOTIATOR_ESTIMATES") != "1":
             estimates = {}  # dossier estimates are opt-in until calibrated (docs: experiments/LOG.md)
@@ -1193,8 +1195,36 @@ class PackageAgent:
                   held_by_schedule=held_by_schedule)
         return price
 
+    def _rfq_fast_payment(self, case, events, n, std, sup, price, ref_c):
+        """Shortest legal payment term for an RFQ re-anchor (opt-in `rfq_fast_payment_reanchor`)
+        when the supplier asked for faster payment in its own e-mails, and only if the package at
+        `price` is cheaper for us (complete C, capital cost included) than its standing sheet.
+        Port of archive/codex/score-push-p05 fd195f3."""
+        if not (self.policy and case["type"] == "rfq" and self.policy.rfq_fast_payment_reanchor):
+            return None
+        asked = any(m.get("from") != "buyer" and "faster payment is welcome" in (m.get("body") or "").lower()
+                    for m in events)
+        if not asked or "payment_days" not in n:
+            return None
+        for days in sorted((case.get("term_options") or {}).get("payment_days") or []):
+            if days >= (n.get("payment_days") or 0):
+                break
+            terms = complete_offer(case, {**n, "payment_days": days, "unit_price": price})
+            if must_haves_ok(case, terms, std) and total_cost(case, terms, std, sup) < ref_c - 1e-6:
+                return days
+        return None
+
     def decide_thread(self, case, threads, sid, c_alt, cap_c=None, why=None):
         events = threads[sid]
+        if sid in self.fast_payment_traded:
+            before, c_before = self.fast_payment_traded[sid]
+            sup0 = self._sup(case, threads, sid)
+            now_c = [c for c, _, _ in eligible_sheets(case, events, sup0)[:1]]
+            if now_c and now_c[0] >= c_before - 1e-6:
+                # The faster payment term bought no cheaper sheet: return to the earlier terms.
+                self.prev[sid] = before
+                del self.fast_payment_traded[sid]
+                self._log(case, "rfq_fast_payment_revert", sid, c_now=now_c[0], c_before=c_before)
         std, sup = standard_terms(events), self._sup(case, threads, sid)
         cands = eligible_sheets(case, events, sup, alternatives=True)
         eligible = bool(cands)
@@ -1258,9 +1288,21 @@ class PackageAgent:
                 # assumed, so counter once more below its new price instead of matching it.
                 self.reanchored.add(sid)
                 price = math.floor(p * (1 - self.anchor / 2) * 100) / 100
+                fast = self._rfq_fast_payment(case, events, n, std, sup, price, ref_c)
+                if fast is not None:
+                    self.fast_payment_traded[sid] = (dict(n), ref_c)  # revert guard, as the archived lead trade
+                    n = {**n, "payment_days": fast}
+                    self.prev[sid] = n
                 self._log(case, "undercut_reanchor", sid, their=p, ours_last=last_p, counter=price)
                 terms = complete_offer(case, {**n, "unit_price": price})
-                return self._offer(case, sid, terms, std, sup, c_alt, "undercut our ask: re-anchor")
+                move = self._offer(case, sid, terms, std, sup, c_alt, "undercut our ask: re-anchor")
+                if fast is not None and move.get("message", {}).get("term_sheets"):
+                    move["message"]["body"] += (
+                        f" You wrote that faster payment is welcome: we offer payment within {fast} days;"
+                        " the attached unit price reflects that discount."
+                    )
+                    self._log(case, "rfq_fast_payment", sid, payment_days=fast, price=price)
+                return move
             match = {**n, "unit_price": p}
             if total_cost(case, match, std, sup) < ref_c - 1e-6 and ours[-1] != match:
                 return self._offer(case, sid, match, std, sup, c_alt, "gap closed: their price, our terms")
