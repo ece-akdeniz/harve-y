@@ -2,6 +2,40 @@
 
 Format and decision rule: `docs/04-experiments.md`. Newest on top. One entry per change.
 
+## 2026-10-11 — V5 combined adviser P10 capability trial (LIVE PRACTICE)
+
+- Authorized budget: one P10 session; one used. Lab run
+  `fddd79d8-9fe0-48c9-bdd9-1d5ebd600195`, session `5ec8db9d34cc06ae`.
+- Source: base `77b42a4`, saved dirty patch SHA-256
+  `953365dfebe83ebb8359404ef34cecef0a0bfdc4f848c16fcfc029806742f481`;
+  `score-push-v5-intelligence.json`, model `gpt-6-sol`.
+- Result: valid deal at EUR 33.80/unit, 23,400/year, 24 months, 42-day delivery; complete cost
+  EUR 1,597,720.80; score 0.5546564482; zero timeouts; 35.64 seconds; no unresolved write.
+- One admitted 4.11-second advice call changed the opening EUR 28.34 to EUR 28.48, leaving
+  non-price terms unchanged. The supplier replied final and V5's closing evaluator accepted.
+- Decision: **do not promote**. The historical P10 summary is 0.6551 (not a paired control).
+  The model treated quoted terms as objections and made a price-only concession without
+  addressing capacity constraints. Citation validity did not establish useful strategy.
+- The completed Lab record was uploaded after explicit user authorization; read-back equals
+  the local final record. No second session or code push. See
+  `docs/v5-intelligence-p10-trial-2026-10-11.md` for evidence and the next hypothesis.
+
+## 2026-10-11 — V5 combined capacity advice (LOCAL IMPLEMENTATION)
+
+- Hypothesis: a single supplier reader/package-selection call with a bounded concession menu
+  can improve response to objections while preserving V5's economic and execution authority.
+- Candidate: `codex/v5-intelligence`, base `77b42a4`, opt-in
+  `configs/score-push-v5-intelligence.json`; 1% per-turn complete-cost concession envelope,
+  eight attempts / 24 reserved inference seconds. Existing V5 defaults are unchanged.
+- Local evidence: 25 new tests, 137 focused regressions passed, scoped Ruff and diff checks
+  passed. Twenty replay decision points match the untouched baseline under legacy settings
+  and with combined advice disabled. See `docs/v5-intelligence-implementation-2026-10-11.md`.
+- Full-suite limitation: two existing campaign subprocess tests fail because `uv` is missing;
+  no assertions changed. No measured commercial improvement or score is claimed.
+- Implementation budget: zero hosted sessions. The user subsequently authorized one live
+  practice capability test and selected P10 to exercise the adviser. Source/config and the
+  eventual result are recorded separately; no automatic rerun or promotion is authorized.
+
 ## 2026-10-10 — Shared-lab ingestion compatibility hotfix (DEPLOYMENT CHECK)
 
 - Hypothesis: registering a matching supplied package should refresh feedback for versioned runs while skipping historical imports that have no provenance. The first deployed ingest stopped on such an import before refresh; the original runs and recommendation were unchanged.
@@ -1863,3 +1897,40 @@ it is not a new score improvement or a fresh full-suite evaluation.
   recorded in the project handoff and supplier workspace documentation.
 - Validation before publish: **722 tests passed**, full Ruff passed and **22 frontend
   checks passed**. Local desktop/mobile browser checks passed with zero JS errors.
+
+### 2026-10-11 — V5 supplier-aware trade repair (local only)
+
+- Hypothesis: supplier-scoped historical capacity evidence and complete delivery-for-price
+  exchanges improve opening selection; remove unsupported price-only concessions before
+  changing the independently risky final-counter policy.
+- Candidate: `codex/v5-intelligence`, base `77b42a4e5fa72bffe9d8c6705a8d76a249500aa6`,
+  local working-tree repair; `configs/score-push-v5-intelligence.json`. Integration mode
+  `combined-v1`, revised evidence response contract `capacity-advice-v2`.
+- Restored bounded, dated public dossier context; added cited document evidence and
+  addressed-field checks. Higher-price changes need an explicit current conditional
+  exchange matching a complete supplier sheet. Price-only alternatives are excluded.
+- Evidence: 146 focused tests passed, scoped Ruff and whitespace checks passed. Saved P10
+  opening admits the cost-compensated EUR27.62 / 56-day / 24-month / 23,400-unit trade
+  using an injected adviser response. The historical EUR28.48 price-only move is excluded.
+  Actual saved final history still closes identically. Legacy and disabled-advice parity:
+  20 unchanged decisions across saved P05/P18 and synthetic P10.
+- Quota/model calls: 0 hosted sessions, 0 hosted inference. Scores: no new measurement.
+  Full suite not rerun; previously recorded unavailable-uv campaign failures remain.
+  Citation/field checks do not prove model interpretation or supplier willingness.
+- Decision: retain as opt-in, no promotion or publication. Live selection and commercial
+  improvement require a separately budgeted matched comparison. Full record:
+  [supplier trade repair](../docs/v5-intelligence-supplier-trade-repair-2026-10-11.md).
+
+### 2026-10-11 — V5 intelligence publication and P10 rerun preflight
+
+- User explicitly requested commit/push and one new P10 trial. Publish the isolated
+  `codex/v5-intelligence` branch; do not change default V5 or the Lab recommendation.
+- Full local suite: 867 passed, four failed. Two campaign failures require missing `uv`.
+  Two async wave-cap failures reproduce on the untouched base and candidate. The
+  serial capacity change's 146 focused regressions passed. Full-repository Ruff passed.
+- Read-only Lab preflight retained recommendation `e1d931e4fcce49fb8fd341c40052953a`;
+  inspected the three existing findings. Practice quota before execution: 327.
+- Budget: exactly one P10 session, serial, same configured `gpt-6-sol` model and no
+  explicit reasoning-effort override. Preserve at least 20 remaining sessions. Freeze
+  execution to the committed source and persist an exclusive single-use start marker.
+- Results will be recorded after the authorized trial; no score claim at preflight.

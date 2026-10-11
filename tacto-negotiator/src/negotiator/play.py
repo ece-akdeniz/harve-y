@@ -31,6 +31,7 @@ from arena_kit.play import (
 )
 
 from . import AGENT_NAME, TEAM_NAME
+from .advice import AdviceExecutionBlocked
 from .evaluator import close_decision
 
 log = logging.getLogger("negotiator")
@@ -90,6 +91,8 @@ def guarded_decision(agent, case, threads, decide, case_id=""):
     """`decide()` with a safe fallback: a crash must never leave a session to time out."""
     try:
         return _valid_decision(decide(), threads)
+    except AdviceExecutionBlocked:
+        raise  # stale/expired advice must not enter the generic crash-and-send fallback
     except Exception as exc:
         log.exception("%s: decision step failed; using the fallback", case_id)
         error = repr(exc)[:500]
@@ -237,6 +240,8 @@ def play_case(table, case_id, agent, deadline=None):
         if (took := time.monotonic() - t0) > MOVE_LIMIT_S * 0.75:
             log.warning("decision took %.1fs - the limit is %ss per message", took, MOVE_LIMIT_S)
         sid, msg = decision["supplier_id"], decision["message"]
+        if validate := getattr(agent, "validate_decision", None):
+            validate(case, threads, decision)
         try:
             if msg.get("action"):
                 log.info("%s %s", sid, msg["action"])

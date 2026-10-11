@@ -128,6 +128,17 @@ class PackageAgent:
             from .package_advisor import PackageAdvisor
 
             self.package_advisor = PackageAdvisor()
+            if policy.package_advice_mode == "combined-v1":
+                from .advice import CapacityAdvisor
+
+                if policy.package_advice_types != ("capacity",):
+                    raise ValueError("combined-v1 supports capacity advice only")
+                self.package_advisor = CapacityAdvisor(
+                    concession=policy.package_advice_concession,
+                    max_calls=policy.package_advice_max_calls,
+                    total_s=policy.package_advice_total_s,
+                )
+        self._advice_pending = None
         self.memory = validate_memory(memory) if memory is not None else None
         self._memory_seen = set()
         self.conditional_exchange = False
@@ -240,7 +251,7 @@ class PackageAgent:
 
     def prepare_email(self, case, threads, sid):
         """Read each supplier message once; the async runner calls this outside its lock."""
-        if self.model_assist is None:
+        if self.model_assist is None or self._combined_advice(case, threads):
             return
         events = threads.get(sid, [])
         latest_supplier = next(((i, e) for i, e in reversed(list(enumerate(events)))
@@ -265,7 +276,9 @@ class PackageAgent:
     def experiment_metrics(self):
         return {"model": self.model_assist.metrics() if self.model_assist is not None else
                 {"calls": 0, "fallbacks": 0, "latency_s": [], "input_tokens": 0, "output_tokens": 0},
-                "memory_snapshot_id": self.memory["snapshot_id"] if self.memory else None}
+                "memory_snapshot_id": self.memory["snapshot_id"] if self.memory else None,
+                **({"package_advice": self.package_advisor.metrics()}
+                   if hasattr(self.package_advisor, "metrics") else {})}
 
     # -- estimates ----------------------------------------------------------------------------
     def estimates_for(self, case):
@@ -957,6 +970,7 @@ class PackageAgent:
     def decide(self, case, threads):
         """Serial wrapper: final-offer threads first, then the least-worked open thread; the first
         proposal that is not a hold is sent, and a close request is resolved by the evaluator."""
+        self._advice_pending = None
         if self.policy and case["type"] in self.policy.cost_target_types:
             move = self._cost_target_move(case, threads)
             if move is not None:
@@ -965,6 +979,8 @@ class PackageAgent:
         order = sorted(workable, key=lambda s: (status[s] != "final_offer", self._key(case, threads, s)))
         reason = "no moves left"
         for sid in order or live_threads(threads)[:1]:
+            if self._combined_advice(case, threads):
+                return self._decide_with_advice(case, threads, sid)
             advising = bool(self.package_advisor and case["type"] in self.policy.package_advice_types)
             move = self.propose(case, threads, sid, defer_evidence=advising)
             if move.get("close"):
@@ -992,6 +1008,110 @@ class PackageAgent:
                 return self._enrich_evidence(case, threads, sid, move) if advising else move
             reason = move.get("reason", reason)
         return self._close(case, threads, reason)
+
+    def _combined_advice(self, case, threads):
+        from .advice import CapacityAdvisor
+
+        return (isinstance(self.package_advisor, CapacityAdvisor)
+                and case["type"] == "capacity" and len(threads) == 1)
+
+    def _decide_with_advice(self, case, threads, sid):
+        import copy
+
+        from .advice import DRAFT_STATE, AdviceExecutionBlocked, digest, draft_agent
+
+        started = time.monotonic()
+        remaining = self.trades.deadlines.get(sid, 0) - time.time()
+        known_deadline = sid in self.trades.deadlines
+        if known_deadline and remaining <= 0:
+            raise AdviceExecutionBlocked("decision deadline already expired")
+        if self.time_left_fn is not None:
+            wave_remaining = self.time_left_fn()
+            if wave_remaining is not None:
+                remaining = min(remaining, wave_remaining)
+        observation = digest([case, threads])
+        draft = draft_agent(self)
+        baseline = draft.propose(case, threads, sid, defer_evidence=True)
+        if baseline.get("close") or baseline.get("hold"):
+            return self._close(case, threads, baseline.get("reason", ""))
+        supplier = self._sup(case, threads, sid)
+        if self._guarded():
+            selected, trace = baseline, {"status": "skipped", "reason": "wave_guard", "changed": False}
+        else:
+            from .context import DATA_ERRORS
+            from .dossiers import build_one, load_package
+
+            if sid not in self.package_notes:
+                try:
+                    dossier = build_one(load_package(), sid)
+                    self.package_notes[sid] = list(reversed(dossier.notes))[:12] if dossier else []
+                except DATA_ERRORS:
+                    self.package_notes[sid] = []
+            selected, trace = self.package_advisor.select(
+                case, threads, baseline, supplier=supplier,
+                public_notes=self.package_notes[sid],
+                remaining_s=remaining - (time.monotonic() - started),
+            )
+        if digest([case, threads]) != observation:
+            raise AdviceExecutionBlocked("state changed while preparing decision")
+        # A discarded baseline contributes no proposal bookkeeping. On fallback, retain
+        # exactly its normal state transition. A selected package records only its own terms.
+        owner = self if trace.get("changed") else draft
+        state = {name: copy.deepcopy(getattr(owner, name)) for name in DRAFT_STATE}
+        terms = (selected.get("message", {}).get("term_sheets") or [{}])[0].get("terms")
+        if terms:
+            state["prev"][sid] = nonprice(case, terms)
+        trace["elapsed_s"] = time.monotonic() - started
+        self._log(case, "package_advice", sid, **trace,
+                  original=baseline.get("message"), selected=selected.get("message"))
+        # Claim reservations also belong to the chosen, validated message only.
+        renderer = copy.copy(self)
+        renderer.evidence = copy.copy(self.evidence)
+        if hasattr(renderer.evidence, "reserved"):
+            renderer.evidence.reserved = copy.deepcopy(self.evidence.reserved)
+        expected = copy.deepcopy(selected)
+        result = renderer._enrich_evidence(case, threads, sid, selected)
+        if (result.get("supplier_id") != sid
+                or result["message"].get("term_sheets") != expected["message"].get("term_sheets")
+                or result["message"].get("action") != expected["message"].get("action")
+                or not result["message"].get("body", "").startswith(expected["message"].get("body", ""))):
+            raise AdviceExecutionBlocked("evidence decoration changed the approved move")
+        self._advice_pending = {
+            "observation": observation, "payload": digest(result),
+            "deadline": started + remaining if known_deadline else None,
+            "state": state, "reserved": getattr(renderer.evidence, "reserved", None),
+            "cost_ceiling": trace.get("cost_ceiling"),
+        }
+        return result
+
+    def validate_decision(self, case, threads, decision):
+        """Serial pre-dispatch check for opt-in advice, including enriched message identity."""
+        from .advice import AdviceExecutionBlocked, digest
+
+        permit = self._advice_pending
+        if permit is None:
+            return
+        if (digest([case, threads]) != permit["observation"] or digest(decision) != permit["payload"]
+                or (permit["deadline"] is not None and time.monotonic() >= permit["deadline"])):
+            raise AdviceExecutionBlocked("advised decision changed or expired before dispatch")
+        from .package_advisor import _legal
+
+        sid = decision["supplier_id"]
+        standard, supplier = standard_terms(threads[sid]), self._sup(case, threads, sid)
+        for sheet in decision["message"].get("term_sheets") or []:
+            terms = sheet["terms"]
+            cost = total_cost(case, terms, standard, supplier)
+            if not _legal(case, terms, standard) or not math.isfinite(cost):
+                raise AdviceExecutionBlocked("prepared package failed fresh validation")
+            if permit["cost_ceiling"] is not None and (
+                cost > permit["cost_ceiling"] + 1e-7 or cost >= alternative_cost(case)
+            ):
+                raise AdviceExecutionBlocked("advised package failed fresh economic validation")
+        for name, value in permit["state"].items():
+            setattr(self, name, value)
+        if permit["reserved"] is not None:
+            self.evidence.reserved = permit["reserved"]
+        self._advice_pending = None
 
     def propose(self, case, threads, supplier_id, *, defer_evidence=False):
         if supplier_id not in self.model_seen:

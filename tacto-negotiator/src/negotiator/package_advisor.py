@@ -66,10 +66,16 @@ def complete(context, timeout_s):
         },
         'required': ['selected_id', 'supporting_quote'],
     }
+    system = SYSTEM
+    if context.get('response_contract') == 'capacity-advice-v2':
+        from .advice import SYSTEM as combined_system
+        from .advice import response_schema
+
+        schema, system = response_schema(context), combined_system
     payload = {
-        'model': model, 'messages': [{'role': 'system', 'content': SYSTEM},
+        'model': model, 'messages': [{'role': 'system', 'content': system},
                                    {'role': 'user', 'content': json.dumps(context, ensure_ascii=False)}],
-        'max_completion_tokens': 500,
+        'max_completion_tokens': 900 if context.get('response_contract') else 500,
         'response_format': {'type': 'json_schema', 'json_schema': {
             'name': 'supplier_package_choice', 'strict': True, 'schema': schema}},
     }
@@ -79,10 +85,16 @@ def complete(context, timeout_s):
         response = client.post(base + '/chat/completions', json=payload,
                                headers={'Authorization': 'Bearer ' + key})
         response.raise_for_status()
-        message = response.json()['choices'][0]['message']
+        result = response.json()
+        message = result['choices'][0]['message']
         if message.get('refusal'):
             raise ValueError('model refused')
-        return json.loads(message['content'])
+        parsed = json.loads(message['content'])
+        if context.get('response_contract') == 'capacity-advice-v2':
+            from .advice import AdviceCompletion
+
+            return AdviceCompletion(parsed, result.get('usage') or {})
+        return parsed
 
 
 def _legal(case, terms, standard):

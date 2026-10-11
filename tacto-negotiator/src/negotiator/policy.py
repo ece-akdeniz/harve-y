@@ -20,6 +20,10 @@ class PolicyConfig:
     preferences: dict[str, str] = field(default_factory=dict)
     cost_neutral_lead_time: bool = False
     package_advice_types: tuple[str, ...] = ()
+    package_advice_mode: str = "legacy"
+    package_advice_concession: float = 0.0
+    package_advice_max_calls: int = 8
+    package_advice_total_s: float = 24.0
     cost_target_types: tuple[str, ...] = ()
     cost_target_index_clause: bool = False
     clause_variant_types: tuple[str, ...] = ()
@@ -152,6 +156,19 @@ class PolicyConfig:
         if isinstance(post, bool) or not isinstance(post, (int, float)) or not 0 <= post <= 1:
             raise ValueError("cost_target_posterior must be a number in [0, 1]")
         d["cost_target_posterior"] = float(post)
+        if d.get("package_advice_mode", "legacy") not in ("legacy", "combined-v1"):
+            raise ValueError("invalid package_advice_mode")
+        for key, default, upper in (("package_advice_concession", 0.0, 0.03),
+                                    ("package_advice_total_s", 24.0, 60.0)):
+            value = d.get(key, default)
+            if type(value) not in (int, float) or not 0 <= value <= upper:
+                raise ValueError(f"invalid {key}")
+            d[key] = float(value)
+        calls = d.get("package_advice_max_calls", 8)
+        if type(calls) is not int or not 0 <= calls <= 20:
+            raise ValueError("invalid package_advice_max_calls")
+        if d.get("package_advice_mode") == "combined-v1" and d["package_advice_types"] != ("capacity",):
+            raise ValueError("combined-v1 supports capacity advice only")
         if d.get("final_offer_risk", "legacy") not in ("legacy", "opening_proxy"):
             raise ValueError("invalid final_offer_risk")
         if d.get("preference", "default") not in ("default", "standard_payment", "longer_tenor", "lower_chargeback"):
