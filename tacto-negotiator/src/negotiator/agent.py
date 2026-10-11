@@ -33,6 +33,16 @@ from .optimizer import alternative_cost, best_terms
 
 log = logging.getLogger("negotiator")
 
+# Live-Final wall-clock guard. A wave has an 8-minute cap; a thread still open at the cap ends with
+# no deal (`wave_cap`, the alternative's score). A round is our message (<= 60 s) plus the supplier's
+# reply (up to ~60 s): ROUND_ESTIMATE_S is that worst case, replaced by the runner's measured slowest
+# round when it is slower. With fewer than TIME_GUARD_ROUNDS rounds of wall-clock left the agent stops
+# extending: it accepts an acceptable standing sheet (through the coordinator's close_decision) or
+# converges to the supplier's ask on our terms. Without a cap (practice: the runner passes no deadline)
+# `time_left_fn` returns None and nothing changes.
+TIME_GUARD_ROUNDS = 2
+ROUND_ESTIMATE_S = 120.0
+
 
 def standing(case, events, supplier=None):
     """(term_sheet_id, terms) of the cheapest eligible sheet in the supplier's latest message, else
@@ -170,6 +180,63 @@ class PackageAgent:
         self._estimates, self._est_case, self._est_cache = estimates, None, {}
         self._target_cache = {}
         self._traits_cache = {}
+        # Wave clock, set by the runner per case: seconds left in the wave (None without a cap) and
+        # the slowest round it has measured so far (seconds; 0 before the first reply).
+        self.time_left_fn = None
+        self.round_estimate_fn = None
+        self.time_guard_rounds = TIME_GUARD_ROUNDS
+
+    # -- wave time guard ----------------------------------------------------------------------
+    def time_guard(self):
+        """(time_left_s, guard_s) when a wave cap is known, else None. guard = TIME_GUARD_ROUNDS x
+        max(ROUND_ESTIMATE_S, slowest measured round)."""
+        if self.time_left_fn is None or not self.time_guard_rounds:
+            return None
+        try:
+            left = self.time_left_fn()
+        except Exception:
+            log.exception("time_left_fn failed; guard inactive")
+            return None
+        if left is None:
+            return None
+        slowest = 0.0
+        if self.round_estimate_fn is not None:
+            try:
+                slowest = float(self.round_estimate_fn() or 0.0)
+            except Exception:
+                slowest = 0.0
+        return float(left), self.time_guard_rounds * max(ROUND_ESTIMATE_S, slowest)
+
+    def _guarded(self):
+        tg = self.time_guard()
+        return tg is not None and tg[0] < tg[1]
+
+    def _time_guard_log(self, case, sid, action, **fields):
+        left, guard = self.time_guard()
+        self._log(case, "time_guard", sid, time_left=round(left, 1), guard=round(guard, 1), action=action, **fields)
+
+    def _time_guard_move(self, case, threads, sid, n, p, cands, eligible, standing_id, std, sup, c_alt):
+        """Under the guard: never extend. (a) An acceptable standing sheet anywhere -> close, so the
+        coordinator accepts it; (b) else the supplier's own price on our terms (or its cheaper valid
+        alternative sheet), which it accepts in practice; (c) nothing priced below the alternative or
+        the match already refused -> close (the evaluator walks or accepts)."""
+        best = best_close(case, threads, self.estimates_for(case))
+        if best is not None:
+            self._time_guard_log(case, sid, "accept", sheet=best[2], c=best[0], c_alt=c_alt)
+            return {"close": True, "reason": "time guard: accept standing offer"}
+        ours = self._ours(threads[sid])
+        options = [(complete_offer(case, {**n, "unit_price": p}), "time guard: their price, our terms")]
+        if eligible and cands[0][1] != standing_id:
+            options.append((complete_offer(case, cands[0][2]), "time guard: take valid alternative"))
+        priced = sorted(
+            ((total_cost(case, t, std, sup), t, why) for t, why in options), key=lambda x: (x[0], x[2])
+        )
+        for c, terms, why in priced:
+            if c < c_alt - 1e-6 and (not ours or ours[-1] != terms):
+                self._time_guard_log(case, sid, "match", terms=terms, c=c, c_alt=c_alt)
+                return self._offer(case, sid, terms, std, sup, c_alt, why)
+        self._time_guard_log(case, sid, "close", c_alt=c_alt)
+        return {"close": True, "reason": "time guard: no package beats the alternative"}
 
     def prepare_email(self, case, threads, sid):
         """Read each supplier message once; the async runner calls this outside its lock."""
@@ -776,6 +843,23 @@ class PackageAgent:
             self._log(case, "cost_target_close", sid, c=standing_c, target_c=tc, c_alt=c_alt, reason=reason)
             return accept if standing_c < c_alt else walk
 
+        if self._guarded():
+            # Wave guard: accept an acceptable standing sheet, else converge to its ask on the target
+            # package (no further posterior/target concession step), else close through the evaluator.
+            if standing_c < c_alt:
+                self._time_guard_log(case, sid, "accept", sheet=standing_id, c=standing_c, c_alt=c_alt)
+                return close("time guard: accept standing offer")
+            package = {**tterms, "unit_price": 0}
+            on_target = [t["unit_price"] for _, _, t in sheets if same_package(case, package, t, std)]
+            ask = min(on_target) if on_target else min(t["unit_price"] for _, _, t in sheets)
+            match = complete_offer(case, {**tterms, "unit_price": round(ask, 2)})
+            if ec(match) < c_alt and (not ours or ours[-1] != match) and status == "open":
+                self._time_guard_log(case, sid, "match", terms=match, c=ec(match), c_alt=c_alt)
+                why = "time guard: its ask, our terms"
+                return self._target_offer(case, sid, match, std, sup, c_alt, ec(match), why)
+            self._time_guard_log(case, sid, "close", c_alt=c_alt)
+            return close("time guard: no package beats the alternative")
+
         s_max = getattr(self.policy, "cost_target_posterior", 0.0)
         if s_max > 0:
             return self._posterior_move(case, sid, events, msg, status, std, sup, tterms, sheets, c_alt, ours, left,
@@ -1056,6 +1140,19 @@ class PackageAgent:
         best = best_close(case, threads, self.estimates_for(case)) if finals else None
         leading_final = best is not None and best[1] in finals
 
+        if finals and self._guarded():
+            # Under the wave guard a counter to a final (one more round, walk risk) is never worth it.
+            if best is None:
+                best = best_close(case, threads, self.estimates_for(case))
+            if best is not None:
+                self._time_guard_log(case, supplier_id, "accept", sheet=best[2], c=best[0], c_alt=c_alt)
+                return {"close": True, "reason": "time guard: accept standing offer"}
+            if supplier_id in finals:
+                if opens:
+                    return {"hold": True, "reason": "time guard: final offer stands; rival converging"}
+                self._time_guard_log(case, supplier_id, "close", c_alt=c_alt)
+                return {"close": True, "reason": "time guard: final offer does not beat the alternative"}
+
         if leading_final and self.policy and self.policy.rfq_final_guard and case["type"] == "rfq":
             # A rival HTTP call can outlast the held offer's 60s response window.
             return {"close": True, "reason": "preserve leading final offer before blocking rival call"}
@@ -1202,7 +1299,7 @@ class PackageAgent:
         run 9a4fbb93 repeated 5.36 and drew a "letztes Angebot" at 5.39). When no strictly higher price
         fits under the closing gap of its ask, the supplier is within about three cents on our terms:
         we return its price on our terms so the gap-closed logic closes the deal next round."""
-        if not (self.policy and self.policy.reciprocal_schedule):
+        if not (self.policy and self.policy.reciprocal_schedule) or self._guarded():
             return scheduled
         if latest(events).get("status") != "open" or moves_left(case, events) <= 2:
             return scheduled
@@ -1338,10 +1435,12 @@ class PackageAgent:
             self._log(case, "revealed", sid, deltas=deltas)
 
         ref_c = cands[0][0]
+        guarded = self._guarded()
         if (
             self.policy
             and case["type"] in self.policy.value_swap_types
             and cap_c is None
+            and not guarded
             and sid not in self.value_swapped
             and eligible
             and latest(events).get("status") == "open"
@@ -1363,6 +1462,9 @@ class PackageAgent:
             self._payment_trade_done(case, sid, events, std)  # rebuild the once-per-thread state first
         n = self._nonprice(case, sid, events, std, sup, cands, eligible)
         p = self._ask_on(case, n, cands, std, sup)
+        if guarded:
+            # Fewer than TIME_GUARD_ROUNDS rounds of wave left: no schedule, reciprocal or probe step.
+            return self._time_guard_move(case, threads, sid, n, p, cands, eligible, standing_id, std, sup, c_alt)
         first = next((i for i, m in enumerate(events) if m.get("from") != "buyer" and m.get("term_sheets")), None)
         p_open = p
         if first is not None:

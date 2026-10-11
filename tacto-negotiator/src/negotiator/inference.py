@@ -9,6 +9,7 @@ from urllib.parse import urlsplit
 import httpx
 
 from .agent import PackageAgent
+from .budget import HARD_TIMEOUT_S, bounded
 
 STYLES = {
     "concise": "Please let us know whether you can confirm this package.",
@@ -84,7 +85,7 @@ class InferenceProbeAgent(PackageAgent):
             started = time.monotonic()
             status, style = "ok", None
             try:
-                style = self._complete()
+                style = bounded(self._complete, HARD_TIMEOUT_S)  # per-phase timeout <= 5 s; 8 s wall clock
                 if not isinstance(style, str) or style not in STYLES:
                     raise ValueError("invalid style")
             except Exception:
