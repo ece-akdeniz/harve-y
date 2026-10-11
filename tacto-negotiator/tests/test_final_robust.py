@@ -21,7 +21,7 @@ from negotiator.runner import CaseRunner, SharedPace, fallback_propose, run_set,
 from negotiator.state import Journal
 
 V3 = Path(__file__).resolve().parents[1] / "configs" / "score-push-v3.json"
-V6 = Path(__file__).resolve().parents[1] / "configs" / "score-push-v6.json"  # FINAL_POLICY
+V6 = Path(__file__).resolve().parents[1] / "configs" / "score-push-v6-all-cases.json"  # FINAL_POLICY
 CHEAP = {"unit_price": 15.0, "payment_days": 60, "lead_time_days": 35, "incoterm": "DAP"}  # beats alt 19.9
 DEAR = {"unit_price": 25.0, "payment_days": 60, "lead_time_days": 35, "incoterm": "DAP"}
 OURS = {"unit_price": 17.0, "payment_days": 60, "lead_time_days": 35, "incoterm": "DAP"}

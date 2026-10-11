@@ -2144,3 +2144,17 @@ it is not a new score improvement or a fresh full-suite evaluation.
   policy rehearsal because the four-minute shortcut invokes that guard at
   wave start. The simulator's quick scripted replies do not test long
   provider or supplier latency, and no final policy promotion follows.
+
+### 2026-10-11 — Final launch preparation on main (0 new Arena sessions)
+
+- Decision: make the opt-in `score-push-v6-all-cases.json` the final CLI default and
+  explicit launcher policy. The evidence is the earlier ten-case hosted practice
+  screen and two-wave eight-minute local rehearsal above; this step makes no new
+  performance claim or hosted request.
+- Added `tools/final_launch.sh` with a no-network prerequisite check and an explicit
+  run action. It requires a clean main checkout, installed dependencies, Sunday
+  overlay, live URL and model settings; it uses the verified Linux sleep inhibitor
+  or macOS `caffeinate`, five waves, auto routing and the persistent final journal.
+- The launcher cannot supply missing credentials, verify the final machine's
+  network or complete the organizer's code and slides submission. Those remain
+  operator checks before launch.

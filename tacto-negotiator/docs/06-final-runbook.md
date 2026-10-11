@@ -42,20 +42,24 @@ uv run --locked arena data --out data
 - [ ] Scan tracked files/history with a redacting secret scanner; do not print possible keys with grep.
 - [ ] Submit repo access, commit hash, description and slides by 12:00; verify jury can open repo.
 - [ ] Power connected, lid open, idle sleep prevented, stable network, logs persist. Ensure only one runner uses the key.
-- [ ] Create log directory and launch the **implemented and rehearsed** final command before 12:00.
+- [ ] Run the local prerequisite check, then launch the **implemented and rehearsed** final command before 12:00.
 
 ```bash
-# run from tacto-negotiator/
-mkdir -p experiments/runs
-NEGOTIATOR_JOURNAL="$PWD/experiments/runs/final-journal.jsonl" \
-caffeinate -dimsu uv run --locked negotiator run --set final --runner auto \
-  --policy-config configs/score-push-v6.json --parallel 10 > experiments/runs/final.log 2>&1
+# run from tacto-negotiator/ on a clean main worktree
+bash tools/final_launch.sh --check  # local checks only; no Arena request
+bash tools/final_launch.sh --run    # start once; logs to experiments/runs/final.log
 ```
 
-This is the one final launch command (the same one LAB_PLAYBOOK gives). `--runner auto` routes
+This is the one final launch command (the same one LAB_PLAYBOOK gives). The launcher uses the
+all-case V6 policy tested in the ten-case practice screen and two-wave eight-minute local
+rehearsal, the existing virtual environment, five waves and a persistent journal. It requires
+the live Arena URL, Arena key and rehearsed OpenAI-compatible model settings from the environment
+or an untracked `.env`; it prints missing variable names only. `--check` never contacts Arena.
+On Linux it uses the verified `systemd-inhibit`; on macOS it uses `caffeinate`. Keep the lid open.
+`--runner auto` routes
 each case by supplier count: more than one supplier -> async runner (package advice disabled for
 that case), one supplier -> serial runner; both share one key-wide pace. `--set final` already
-defaults to `--runner auto` and `configs/score-push-v6.json`; the flags are spelled out so the
+defaults to `--runner auto` and `configs/score-push-v6-all-cases.json`; the flags are spelled out so the
 trace and the command agree. The case-list poll backs off and keeps polling on any HTTP (non-403)
 or network error, and a crashed decision step falls back (accept the best eligible sheet that
 beats the alternative, else repeat our last offer, else walk away; never counter a final offer).
@@ -77,8 +81,8 @@ tail -f experiments/runs/final.log
 Verify the process is alive, polling permitted case metadata and waiting for wave 1—not merely
 that the shell command started. Dispatch alone does not establish final readiness.
 
-A hosted run on Saturday expired during 403 seconds of clamshell sleep. `caffeinate` prevents
-idle sleep, not normal lid-close sleep: keep the lid open or use a verified always-on host.
+A hosted run on Saturday expired during 403 seconds of clamshell sleep. Sleep inhibition does
+not replace keeping the lid open or using a verified always-on host.
 
 ## Live Final
 

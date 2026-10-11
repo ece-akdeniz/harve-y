@@ -276,16 +276,15 @@ uv run --locked negotiator play CASE_ID --memory-file memory-snapshot.json
 uv run --locked negotiator run --set sandbox --runner auto --policy-config configs/score-push-v6.json --memory-file memory-snapshot.json
 ```
 
-The one Live Final command (identical to `docs/06-final-runbook.md`; add `--memory-file` only for a
-chosen recommended snapshot):
+The one Live Final command (identical to `docs/06-final-runbook.md`):
 
 ```bash
-NEGOTIATOR_JOURNAL="$PWD/experiments/runs/final-journal.jsonl" \
-caffeinate -dimsu uv run --locked negotiator run --set final --runner auto \
-  --policy-config configs/score-push-v6.json --parallel 10 > experiments/runs/final.log 2>&1
+bash tools/final_launch.sh --check
+bash tools/final_launch.sh --run
 ```
 
-The CLI validates one at-most-64-KiB saved snapshot at launch and pins the complete object in the
+The launcher selects the rehearsed all-case V6 policy and does not load a memory snapshot.
+For separate experimental commands, the CLI validates one at-most-64-KiB saved snapshot at launch and pins the complete object in the
 run trace and every agent factory. It never queries the lab or refreshes the file mid-run. Final
 and unseen suppliers use the same identity-free rules under current constraints. The standard
 PackageAgent initial-package path supports these hints; the separate experimental TradePolicy

@@ -19,10 +19,9 @@ from .play import play_all, play_case, play_waves, run_config
 from .runner import run_async, runtime_config
 from .trace import Tracer
 
-# Live Final default policy: the measured score-push v6 config (v5 + cost_target_posterior 0.10; v5 = v4 +
-# raw_material fixed-volume ladder). Live-confirmed P02 .7351, P08 .7036, P18 .5870; byte-identical to v4
-# on every other practice case.
-FINAL_POLICY = Path(__file__).resolve().parents[2] / "configs" / "score-push-v6.json"
+# Live Final default policy: the all-case V6 config used in the ten-case hosted practice
+# screen and the two-wave, eight-minute local final rehearsal.
+FINAL_POLICY = Path(__file__).resolve().parents[2] / "configs" / "score-push-v6-all-cases.json"
 
 
 def _run_dir() -> Path:
@@ -109,7 +108,7 @@ def main(argv=None) -> int:
     if args.runner is None:
         args.runner = "auto" if final else "serial"
     if final and not args.policy_config:
-        args.policy_config = str(FINAL_POLICY)  # the measured score-push v6 policy
+        args.policy_config = str(FINAL_POLICY)  # the rehearsed all-case V6 policy
     logging.basicConfig(
         level=logging.INFO if args.verbose else logging.WARNING, format="%(asctime)s %(message)s", datefmt="%H:%M:%S"
     )
