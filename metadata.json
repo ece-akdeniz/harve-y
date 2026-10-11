@@ -3,7 +3,7 @@
   "checkpoint_id": "01M4MGHHM8HKRWZDVZ2EX0EC0T",
   "strategy": "manual-commit",
   "branch": "codex-negotiator-v2-t1-1a-2026-10-10",
-  "checkpoints_count": 8,
+  "checkpoints_count": 10,
   "files_touched": [
     "tacto-negotiator/docs/21-negotiation-v2-plan-2026-10-10.md",
     "tacto-negotiator/docs/22-combined-latest-updates-review-2026-10-10.md",
@@ -17,13 +17,27 @@
     "tacto-negotiator/experiments/LOG.md",
     "tacto-negotiator/src/negotiator/v2/adapters/__init__.py",
     "tacto-negotiator/src/negotiator/v2/adapters/official.py",
+    "tacto-negotiator/src/negotiator/v2/adapters/offline.py",
+    "tacto-negotiator/src/negotiator/v2/core/certificates.py",
     "tacto-negotiator/src/negotiator/v2/core/models.py",
     "tacto-negotiator/src/negotiator/v2/economics/__init__.py",
     "tacto-negotiator/src/negotiator/v2/economics/estimates.py",
+    "tacto-negotiator/src/negotiator/v2/economics/finite.py",
     "tacto-negotiator/src/negotiator/v2/economics/official.py",
     "tacto-negotiator/src/negotiator/v2/evidence/__init__.py",
     "tacto-negotiator/src/negotiator/v2/evidence/claims.py",
+    "tacto-negotiator/src/negotiator/v2/evidence/context.py",
     "tacto-negotiator/src/negotiator/v2/evidence/resolver.py",
+    "tacto-negotiator/src/negotiator/v2/execution/__init__.py",
+    "tacto-negotiator/src/negotiator/v2/execution/render.py",
+    "tacto-negotiator/src/negotiator/v2/execution/validation.py",
+    "tacto-negotiator/src/negotiator/v2/factory.py",
+    "tacto-negotiator/src/negotiator/v2/intelligence/__init__.py",
+    "tacto-negotiator/src/negotiator/v2/intelligence/testing.py",
+    "tacto-negotiator/src/negotiator/v2/orchestration/__init__.py",
+    "tacto-negotiator/src/negotiator/v2/orchestration/offline.py",
+    "tacto-negotiator/src/negotiator/v2/strategy/__init__.py",
+    "tacto-negotiator/src/negotiator/v2/strategy/testing.py",
     "tacto-negotiator/tests/fixtures/v2/test-manifest.json",
     "tacto-negotiator/tests/v2/catalog.py",
     "tacto-negotiator/tests/v2/conftest.py",
@@ -33,8 +47,10 @@
     "tacto-negotiator/tests/v2/contracts/test_official_adapter.py",
     "tacto-negotiator/tests/v2/contracts/test_package_evaluation.py",
     "tacto-negotiator/tests/v2/contracts/test_remaining_dtos.py",
+    "tacto-negotiator/tests/v2/contracts/test_strategy_boundary.py",
     "tacto-negotiator/tests/v2/dto-contracts.json",
-    "tacto-negotiator/tests/v2/dto_spec.py"
+    "tacto-negotiator/tests/v2/dto_spec.py",
+    "tacto-negotiator/tests/v2/integration/test_offline_decision.py"
   ],
   "sessions": [
     {
@@ -50,14 +66,21 @@
       "compact_transcript": "/1/transcript.jsonl",
       "content_hash": "/1/content_hash.txt",
       "prompt": "/1/prompt.txt"
+    },
+    {
+      "metadata": "/2/metadata.json",
+      "transcript": "/2/full.jsonl",
+      "compact_transcript": "/2/transcript.jsonl",
+      "content_hash": "/2/content_hash.txt",
+      "prompt": "/2/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 728567,
+    "input_tokens": 920358,
     "cache_creation_tokens": 0,
-    "cache_read_tokens": 17060955,
-    "output_tokens": 157492,
-    "api_call_count": 163,
+    "cache_read_tokens": 25264362,
+    "output_tokens": 221453,
+    "api_call_count": 234,
     "subagent_tokens_complete": true
   }
 }
