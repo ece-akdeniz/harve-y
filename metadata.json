@@ -1,0 +1,24 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4MC4CY9W3T4P0PJ70DHRQ5E",
+  "strategy": "manual-commit",
+  "branch": "codex/safety-wave-prewarm",
+  "checkpoints_count": 1,
+  "files_touched": null,
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": ""
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 7296,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 762053,
+    "output_tokens": 2778,
+    "api_call_count": 4
+  }
+}
