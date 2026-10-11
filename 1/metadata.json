@@ -1,0 +1,47 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4N2TN3KY5QAH1B4W7K4GWAY",
+  "session_id": "01a129e9-67c2-7e42-8850-8eff650a2e00",
+  "strategy": "manual-commit",
+  "created_at": "2026-10-11T08:56:17.783413173Z",
+  "branch": "codex/v6-supplier-intelligence-plan",
+  "checkpoints_count": 5,
+  "files_touched": [
+    "tacto-negotiator/experiments/LOG.md"
+  ],
+  "agent": "Codex",
+  "model": "gpt-6-sol",
+  "turn_id": "3f3e364f4ce5",
+  "compact_transcript_start": 0,
+  "token_usage": {
+    "input_tokens": 462225,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 54993389,
+    "output_tokens": 145182,
+    "api_call_count": 445
+  },
+  "session_metrics": {
+    "turn_count": 5
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-10-11T08:56:17.670281067Z",
+    "agent_lines": 1188,
+    "agent_removed": 534,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 1188,
+    "total_lines_changed": 1722,
+    "agent_percentage": 100,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    }
+  ]
+}

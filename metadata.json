@@ -3,7 +3,7 @@
   "checkpoint_id": "01M4N2TN3KY5QAH1B4W7K4GWAY",
   "strategy": "manual-commit",
   "branch": "codex/v6-supplier-intelligence-plan",
-  "checkpoints_count": 5,
+  "checkpoints_count": 10,
   "files_touched": [
     "tacto-negotiator/experiments/LOG.md"
   ],
@@ -14,6 +14,20 @@
       "compact_transcript": "/0/transcript.jsonl",
       "content_hash": "/0/content_hash.txt",
       "prompt": ""
+    },
+    {
+      "metadata": "/1/metadata.json",
+      "transcript": "/1/full.jsonl",
+      "compact_transcript": "/1/transcript.jsonl",
+      "content_hash": "/1/content_hash.txt",
+      "prompt": "/1/prompt.txt"
     }
-  ]
+  ],
+  "token_usage": {
+    "input_tokens": 462225,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 54993389,
+    "output_tokens": 145182,
+    "api_call_count": 445
+  }
 }
