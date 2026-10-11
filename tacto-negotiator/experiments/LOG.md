@@ -1863,3 +1863,13 @@ it is not a new score improvement or a fresh full-suite evaluation.
   recorded in the project handoff and supplier workspace documentation.
 - Validation before publish: **722 tests passed**, full Ruff passed and **22 frontend
   checks passed**. Local desktop/mobile browser checks passed with zero JS errors.
+
+### 2026-10-11 — Shorter supplier workspace (interface only)
+
+- User requested much less text and a simpler reading path. Reduced default shared
+  knowledge to results, next action and two remembered points; full source-backed report
+  remains expandable. Simplified overview, supplier cards and chat previews/recaps.
+- Existing dataset boundaries, source navigation, recorded outcomes and runtime policies
+  remain unchanged. No hosted experiments, provider calls, quota or score claim.
+- Local/live browser verification and full required checks are recorded in the shared
+  handoff and `reviews/supplier-simple-20261011` evidence outside this checkout.
