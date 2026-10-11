@@ -1,0 +1,39 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4MGHHM8HKRWZDVZ2EX0EC0T",
+  "strategy": "manual-commit",
+  "branch": "codex-negotiator-v2-t1-1a-2026-10-10",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "tacto-negotiator/docs/21-negotiation-v2-plan-2026-10-10.md",
+    "tacto-negotiator/docs/22-combined-latest-updates-review-2026-10-10.md",
+    "tacto-negotiator/docs/v2/B-architecture.md",
+    "tacto-negotiator/docs/v2/C-interfaces.md",
+    "tacto-negotiator/docs/v2/D-roadmap.md",
+    "tacto-negotiator/docs/v2/task-specs.md",
+    "tacto-negotiator/docs/v2/test-catalog.md",
+    "tacto-negotiator/tests/fixtures/v2/test-manifest.json",
+    "tacto-negotiator/tests/v2/catalog.py",
+    "tacto-negotiator/tests/v2/conftest.py",
+    "tacto-negotiator/tests/v2/contracts/test_remaining_dtos.py",
+    "tacto-negotiator/tests/v2/dto-contracts.json",
+    "tacto-negotiator/tests/v2/dto_spec.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 279488,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 6462336,
+    "output_tokens": 65036,
+    "api_call_count": 66,
+    "subagent_tokens_complete": true
+  }
+}
