@@ -230,15 +230,31 @@ async def test_uncertain_outcome_reconciles_with_same_move_id(tmp_path):
 
 
 async def test_wave_cap_closes_through_evaluator(tmp_path):
+    """Watchdog safety net: with the agent's time guard off, the cap close goes through close_decision."""
+    clock = ScaledClock()
+    arena = SimArena(clock, {"sup:70340": 30, "sup:70360": 30})
+    close, calls = recording()
+    cap = clock.time() + 150
+    agent = PackageAgent()
+    agent.time_guard_rounds = 0
+    r = await CaseRunner(arena, "case:S02", agent, Journal(tmp_path / "j.jsonl"),
+                         clock=clock, close_fn=close, deadline=lambda: cap).run()
+    assert calls[0] == "wave cap"
+    assert clock.time() < cap
+    assert r["ended"]
+
+
+async def test_agent_time_guard_closes_before_the_watchdog(tmp_path):
+    """With < 2 rounds of wave left the agent itself asks to close; the watchdog never fires."""
     clock = ScaledClock()
     arena = SimArena(clock, {"sup:70340": 30, "sup:70360": 30})
     close, calls = recording()
     cap = clock.time() + 150
     r = await CaseRunner(arena, "case:S02", PackageAgent(), Journal(tmp_path / "j.jsonl"),
                          clock=clock, close_fn=close, deadline=lambda: cap).run()
-    assert calls[0] == "wave cap"
-    assert clock.time() < cap
-    assert r["ended"]
+    assert calls and calls[0].startswith("agent: accept") and "wave cap" not in calls
+    assert clock.time() < cap - 90
+    assert r["ended"] and r["deal"]
 
 
 async def test_resume_after_finish_returns_journalled_result(tmp_path):

@@ -137,6 +137,10 @@ class ThreadState:
     closed: str | None = None  # server says the thread ended
     rejects: int = 0  # consecutive 422s
     timeouts: int = 0  # timeouts observed by this runner (409 late / session state)
+    decide_s: float = 0.0  # seconds the last agent decision took (compute incl. any model call)
+    slowest_decide_s: float = 0.0
+    slowest_round_s: float = 0.0  # slowest decision + send + supplier reply on this thread
+    rounds_timed: int = 0  # replies observed by this runner (round_time events emitted)
 
 
 @dataclass
@@ -146,6 +150,7 @@ class CaseState:
     threads: dict[str, ThreadState] = field(default_factory=dict)
     deadline: float | None = None  # wall-clock wave cap
     slowest_round_s: float = 0.0
+    opened_at: float | None = None  # runner clock when this runner opened or resumed the session
     ended: bool = False
     result: dict | None = None
 
