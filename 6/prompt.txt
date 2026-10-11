@@ -1,0 +1,123 @@
+# Context from my IDE setup:
+
+## Active file: tacto-negotiator/docs/v2/hosted-semantic-validation-results-2026-10-11.md
+
+## Open tabs:
+- hosted-semantic-validation-results-2026-10-11.md: tacto-negotiator/docs/v2/hosted-semantic-validation-results-2026-10-11.md
+- hosted-semantic-validation-and-lab-failure-analysis-2026-10-11.md: tacto-negotiator/docs/v2/hosted-semantic-validation-and-lab-failure-analysis-2026-10-11.md
+- llm-stabilization-and-lab-integration-2026-10-11.md: tacto-negotiator/docs/v2/llm-stabilization-and-lab-integration-2026-10-11.md
+- .env: tacto-negotiator/.env
+- report.json: /tmp/v2-hosted-comparison-first-run/report.json
+
+## My request:
+# V2: Arena Integration, Observation Fixes, and End-to-End Runs
+
+Review the existing V2 documentation, latest hosted experiment,
+LAB_PLAYBOOK.md, and official Arena integration instructions.
+
+Our objective is to make V2 operational in both the official
+offline Arena simulator and the online Arena environment,
+using Experiment Lab as the experiment runner.
+
+## 1. Fix the Remaining Interfaces
+
+A. Supplier interpretation
+- Fix the citation-schema failures from the latest hosted run.
+- Prefer deterministic citation IDs and trusted span resolution
+  over LLM-generated character offsets.
+- Improve union validation diagnostics.
+- Preserve strict grounding and independent validation.
+
+B. Negotiation observations
+- Include current supplier offers and complete term sheets.
+- Preserve attachment content and provenance.
+- Represent open, final_offer, and terminal states correctly.
+- Include acknowledged buyer actions and offer history.
+- Ensure the strategy can observe changes across rounds.
+- Never interpret an unacknowledged action as executed.
+
+C. Arena integration
+- Verify whether the existing arena_kit.sim.Sim is the
+  official "Offline: arena-sim" environment.
+- Compare its interfaces with the official online Arena.
+- Reuse the existing Experiment Lab infrastructure.
+- Implement the minimum missing adapters for both modes.
+- Preserve correct case identity, state transitions,
+  action validation, and outcome retrieval.
+
+Do not introduce another negotiation orchestrator.
+
+## 2. End-to-End Experiment Lab Runs
+
+Conduct exactly two runs.
+
+### Run A — Official Arena Offline
+
+- Use the official Arena offline simulator.
+- Execute through Experiment Lab.
+- Use the actual V2 negotiation pipeline.
+- Include complete observations and negotiation history.
+- Run a complete negotiation until a terminal outcome.
+- Record every observation, action, validation result,
+  economic evaluation, and supplier response.
+
+### Run B — Official Arena Online
+
+- Use the official online Arena environment.
+- Execute through Experiment Lab.
+- Use the same V2 strategy configuration where compatible.
+- Verify credentials, case permissions, quotas,
+  execution authority, and applicable budgets first.
+- Do not reuse exhausted hosted-inference authorization.
+- Complete one negotiation and retrieve its actual outcome.
+- No automatic retries or additional sessions.
+
+If required authorization or production safety components
+are missing, stop before the online run and report the
+specific blockers. Do not substitute a mock online run.
+
+## 3. Validation and Comparison
+
+For both runs, report:
+
+- Exact Arena environment and version
+- Number of negotiation rounds
+- Supplier offers and buyer counteroffers
+- Whether V2 correctly received current negotiation state
+- Interpretation admission and fallback rates
+- Proposal changes and their strategic justification
+- Official economic evaluations
+- Action validity
+- Agreement or no-deal outcome
+- Buyer score, if provided by Arena
+- Model calls, latency, and inference expenditure
+
+Distinguish simulator outcomes from hosted Arena outcomes.
+
+Do not claim strategic superiority from two runs.
+
+## Constraints
+
+- Preserve official economics and independent validation.
+- Never bypass closing or action-execution authority.
+- No unrestricted actions or unapproved external spending.
+- No modifications to V1 behavior.
+- No new deterministic negotiation-strategy library.
+- Keep architectural changes minimal.
+- Use existing Experiment Lab persistence and reporting.
+- Do not implement unrelated research strategies.
+
+## Deliverables
+
+1. Implementation summary and verification results.
+2. Confirmation of official offline/online Arena compatibility.
+3. Complete transcript and metrics for each completed run.
+4. Comparison of offline and online behavior.
+5. Remaining limitations and recommended next steps.
+
+Primary objective:
+
+Demonstrate that our V2 negotiator can receive real
+negotiation observations, reason over changing supplier
+offers, and safely execute a complete negotiation through
+Experiment Lab in both official Arena environments.
