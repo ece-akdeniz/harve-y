@@ -1,0 +1,42 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4M5K17NDRM29VRJQ0DBK00M",
+  "session_id": "d9a1be87-133f-4919-94ec-c2b6de20b1d5",
+  "strategy": "manual-commit",
+  "created_at": "2026-10-11T00:25:18.036798Z",
+  "branch": "codex/fresh-llm",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "tacto-negotiator/experiments/LOG.md"
+  ],
+  "agent": "Cursor",
+  "model": "unknown",
+  "turn_id": "2d451616abfa",
+  "checkpoint_transcript_start": 82,
+  "transcript_lines_at_start": 82,
+  "compact_transcript_start": 6,
+  "session_metrics": {
+    "turn_count": 2
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-10-11T00:25:18.022757Z",
+    "agent_lines": 165,
+    "agent_removed": 0,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 165,
+    "total_lines_changed": 165,
+    "agent_percentage": 100,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    }
+  ]
+}
