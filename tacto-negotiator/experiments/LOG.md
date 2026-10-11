@@ -2084,3 +2084,48 @@ it is not a new score improvement or a fresh full-suite evaluation.
   retain this as an exploratory screen, do not promote or claim final-case
   readiness, and investigate the P03 repair rejection locally before any
   separately authorized hosted retest.
+
+### 2026-10-11 — Two-wave final rehearsal and hosted 403 wait (LOCAL SIM)
+
+- Hypothesis: the committed V6 final runner starts each case once after its
+  wave opens, follows `seconds_left`, closes before the cap, and remains alive
+  across the break. This is a mechanics rehearsal on scripted demo suppliers,
+  not evidence about hidden final negotiation outcomes.
+- Pulled arena kit `tacto-ai/negotiation-arena-kit` to `273a9bc` and synced
+  `starter-kit/` with its lockfile and simulator extra. Ran its new
+  `arena-sim serve --final-rehearsal` on localhost, using the supplied package
+  and six demo cases across two waves. V6 source was clean commit `ba15fff`;
+  policy was the opt-in `configs/score-push-v6-all-cases.json`, auto runner,
+  Sunday overlay. Simulator keys stayed local; no hosted practice or final
+  session was opened by these rehearsals.
+- First pass used the simulator's default 240-second cap (120-second initial
+  wait, 30-second break), with the kit `arena run --set final --waves 2`
+  and V6 runner on separate local teams. Both waited through initial 403s,
+  started three cases per wave, and returned after wave 2 closed. All six V6
+  cases ended as valid deals with no `wave_cap`; mean simulator score 14.26%.
+  Four V6 decisions immediately invoked the time guard and accepted opening
+  offers: `TIME_GUARD_ROUNDS=2` × `ROUND_ESTIMATE_S=120` equals the shortened
+  240-second wave. The kit's naive runner scored 57.0 points per wave in this
+  short-cap pass. These scores describe different policies on a scripted sim.
+- Second pass used the actual 480-second cap (60-second initial wait,
+  30-second break) with V6 only. It waited for both wave starts and exited
+  after the second cap. All six original cases ended as valid deals with
+  `must_haves_ok: true`, no `wave_cap`, and one session start per case.
+  Four cases took the serial path and two the async path. Scores: wave 1
+  R1-S01 **69.55%**, R1-S02 **86.09%**, R1-S03 **88.56%**; wave 2 R2-S01
+  **69.55%**, R2-S02 **68.20%**, R2-S03 **88.56%**. Mean **78.42%**.
+  Serial cases made four or five offers before accepting; their results
+  appeared in the trace when the two-wave run returned. The two async
+  cases reported zero supplier-thread timeouts.
+- A separate one-minute read-only hosted final preflight saw 403 before
+  launch and after intentional stop; the V6 runner remained alive for the
+  full minute and the hosted final session count stayed **0 → 0**. The
+  earlier authorized ten-case practice screen supplied the practice-path
+  check; this preflight consumed no additional practice quota.
+- Evidence: local traces under `/tmp/v6-final-rehearsal-runs/` and
+  `/tmp/v6-final-rehearsal-8min-runs/`, and hosted wait log
+  `/tmp/v6-hosted-final-wait.log`. Decision: preserve the 90-second kit
+  close constant and existing V6 time guard; use the eight-minute cap for
+  policy rehearsal because the four-minute shortcut invokes that guard at
+  wave start. The simulator's quick scripted replies do not test long
+  provider or supplier latency, and no final policy promotion follows.

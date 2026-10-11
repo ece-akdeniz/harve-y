@@ -1,7 +1,8 @@
 # Final runbook
 
 Sunday 11 October 2026, Europe/Berlin. These are target operations. The custom play/run CLI
-executes, including async recovery. Full final-machine and wave rehearsal remain unfinished.
+executes, including async recovery. A two-wave localhost rehearsal was completed on Sunday;
+full final-machine and five-wave rehearsal remain unfinished.
 
 ## Before Sunday
 
@@ -30,7 +31,9 @@ uv run --locked arena data --out data
 - [ ] One practice case through the same execution path, with a practice set selected.
 - [ ] End-to-end latency measured under intended concurrency, including model retries/limiter waits.
 - [ ] Quota, inference balance/rate limits and persistent log space checked.
-- [ ] Final-mode waiting behavior checked without forbidden endpoints or premature session opens.
+- [x] Final-mode waiting behavior checked for one minute on the hosted Arena: 403 before
+  wave 1, runner alive, zero final sessions before and after. The two-wave localhost
+  rehearsal and its timing limits are recorded in `experiments/LOG.md`.
 
 ## 10:30–11:30 — Freeze candidate
 
