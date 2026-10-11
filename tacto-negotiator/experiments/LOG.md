@@ -1909,3 +1909,19 @@ it is not a new score improvement or a fresh full-suite evaluation.
   Validator catches observed drafts: bare `360012` (reason unknown number), "No figures … available",
   over-length — all fell back to the template.
 - Tests: `tests/test_llm_answers.py` (16). Full suite 748 passed, ruff clean.
+
+## 2026-10-11 — codex/fresh-llm: rebase + sandbox + hosted P10/P07 (LLM cap 4 sessions)
+
+- Rebased onto origin/main `09e7fe4` (final-robust): no textual conflicts; model hooks live inside
+  `PackageAgent.propose`/`decide`, so main's `fallback_propose`/`guarded_decision` wrap them unchanged and
+  `cli.new_agent` sets `conditional_exchange=False` on top. Ruff clean, 765 passed. Decision-diff replay
+  of `6b162c54` after rebase (v3 vs fresh-llm): 52 buyer turns, **0 changed decisions**, 10 body-only diffs.
+- Sandbox (free, `negotiator run --set sandbox --runner auto --policy-config configs/fresh-llm.json`):
+  D01 .9192, D02 .5239 (unchanged). 0 LLM calls: demo suppliers have no public documents (traits 0.0 s, no
+  sources) and asked no direct question, so no answer turns; added latency 0 s per turn.
+- **P10 hypothesis (before the run)**: the P10 letter says "We will prioritise customers with firm, long-term
+  commitments." With `model_answers` on, if the supplier asks which volume/term we commit to, the reply states
+  the binding package truthfully (23,400 units/yr, the offered contract term) instead of leaving it
+  unanswered, which may move the 31.80 final down. Decisions are code-identical to v3 (replay), and the
+  supplier replied identically to identical messages in 6b162c54, so if it asks no direct question the
+  expected result is exactly .6551. Config `configs/fresh-llm-run.json`, 1 session, `--runner auto`.
