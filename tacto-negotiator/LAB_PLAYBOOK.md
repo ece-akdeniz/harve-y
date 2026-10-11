@@ -195,3 +195,73 @@ Never reset or overwrite someone's active checkout to restore a version.
 > all experiments. Use only my approved session budget; ask if none is supplied. Publish the
 > candidate to our authorized remote, inspect the full comparison, record a cited finding and
 > experiment-log entry, and report the verdict. Do not use practice quota or merge into main.
+
+## Local bounded V2 integration verification
+
+The explicit `negotiator lab run --local-case FILE` option runs a public case JSON in the
+existing official contract simulator **in process**, using the normal tracked Lab runner,
+agent factory, persistence and outcome retrieval. It requires `--environment simulator` and
+a matching single-case plan and disables uploads even when remote Lab credentials are set.
+Its printed quota belongs only to the isolated simulator. Ordinary configured Lab commands
+retain the automatic publication behavior described above.
+
+A reviewed P10 V2 demonstration is available from this directory:
+
+```bash
+.venv/bin/python experiments/v2/run_lab_local.py --out /tmp/v2-lab-stabilization-final
+.venv/bin/python -m experiments.v2.evaluate_stabilization --out /tmp/v2-semantic-stabilization-final
+```
+
+The demonstration invokes the actual Lab CLI for minimum-cost, direct-selection and
+interpretation-assisted arms. It uses explicitly scripted model responses, the original
+finite candidate universe, official economic evaluation and independent final action
+validation. The Lab computes/retrieves the simulator's actual outcome; a valid action is
+not an agreement. Traces remain private local artifacts; model/strategy quality and hosted
+readiness are unverified. This local adapter is registered as
+`negotiator.v2.factory:local_lab_agent` and cannot run against remote environments.
+It does not implement V2 closing authority or durable remote execution/recovery.
+
+See the [audit, integration matrix and evaluation report](docs/v2/llm-stabilization-and-lab-integration-2026-10-11.md)
+for exact single-arm commands, artifacts, outstanding reviews and the separately authorized
+hosted evaluation required before Assignment 4. This section grants no hosted budget.
+
+### V2 Arena observation integration status
+
+The [11 October Arena integration report](docs/v2/arena-integration-results-2026-10-11.md)
+records one tracked P10 negotiation against the official `arena-sim` engine with complete
+observations and scripted local model responses. Stable citation IDs resolve to trusted spans
+before the existing grounding validator. Current sheets, attachment text/provenance, final-offer
+status, acknowledged history and terminal observation are retained. No hosted inference was used.
+The V2 factory remains local-only: online execution requires missing closing authority and durable
+execution/reconciliation integration plus a fresh explicitly bounded inference allowance.
+This report grants no new run, session or spending authorization.
+
+### Bounded adaptive milestone update
+
+The [intelligent negotiation milestone](docs/v2/intelligent-negotiation-milestone-2026-10-11.md)
+supersedes the previous missing-closing/readiness status for the scoped P10 adapter. Bounded
+proposal generation, independently validated closing, journaled exact submissions, and conservative
+reconciliation are implemented. Hosted offline verification and separate online approval remain
+required. Two explicitly labeled simulator controls are published and retrievable through normal
+Lab APIs. Finished attempts are immutable: do not attempt to append new evidence after publication;
+the agent records admitted-stage evidence before completion for future runs. Additional evidence
+for these controls remains in the milestone's local transcript. No online run is claimed.
+
+### Hosted sandbox validation sequence
+
+The [hosted sandbox readiness report](docs/v2/hosted-sandbox-readiness-2026-10-11.md)
+extends the scoped V2 adapter to D01 and D02 and changes the next execution order to
+offline hosted-model validation → one D01 → review → one D02 → review → one P10.
+Each stage requires a fresh exact inference/session/final-publication allowance. No prior
+approval or this playbook grants it. Prepare with `python -m experiments.v2.run_hosted_sandbox`
+and read its help; without `--authorization` it only writes local review templates. No
+hosted template can execute until it binds the reviewed predecessor's actual evidence.
+The runner retains completed attempts as running until required evidence is captured;
+final publication and exact retrieval happen after completion. Current LAB_URL must come
+from configuration and match the explicitly approved destination; do not infer it from this
+playbook's historical tunnel address. This sequence does not promote the team recommendation.
+
+The latest user priority supersedes the offline-first prerequisite: the direct D01 allowance
+in the readiness report is now the first approval gate. Do not run the proposed 32-call offline
+evaluation. D01 uses genuine inference and hosted Arena after its exact session/inference/Lab
+approval; D02 and P10 follow only after reviewing the actual predecessor and fresh approval.

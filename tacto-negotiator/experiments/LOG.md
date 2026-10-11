@@ -2,6 +2,105 @@
 
 Format and decision rule: `docs/04-experiments.md`. Newest on top. One entry per change.
 
+## V2 evidence-to-economics causal comparison — local experiment, 10 October 2026
+
+- Hypothesis: a canonical cost revision can affect admitted supplier estimates and official
+  complete-cost comparison without modifying buyer economics or legal package terms.
+- Source/config: `a88bf86` plus preserved working changes; source-cost-v1 explicit assumptions,
+  unchanged pinned oracle and evaluator; existing relationship fixture buyer/terms.
+- Cases: release cost43 versus case override47; unchanged price45/49 packages; exact-component
+  parity, source-only revisions, irrelevant text, disabled estimates, missing assumptions,
+  claims/conflicts/scope/basis/temporal failures and illegal package control.
+- Assumptions: source cost mapped explicitly to full cost; declared point bounds, rates0.08/0.08,
+  ppm0, extra0. Unknown uncertainty; no margin/reservation/preference inference.
+- Quota: zero hosted/model calls. No negotiation score, strategy selection or promotion measured.
+- Results: 25 direct pass; consumed DTO gate380 pass/483 unimplemented xfail; full scoped V2
+  727 pass/603 unimplemented xfail. Ruff/frozen V1 replay pass. Complete costs: cost43 gives
+  369,600 vs401,600 EUR; cost47 gives429,044.44 vs401,600 EUR, reversing the cheaper package.
+  Disabled-estimate costs stay369,600/401,600; source-only changes preserve costs but change IDs.
+- Limits: explicit single-part mapping, declared metadata only, no calibrated uncertainty or
+  automatic scenario endpoints; multiple-scenario nominal ambiguity unchanged.
+- Decision: retain bounded integration. Next connect evaluated finite legal candidates with
+  independent used-action validation before grounded selection.
+  [Completion/trace](../docs/v2/implementation-order-addendum-2026-10-10.md#k-t23-source-cost-estimate--t41-economics-verified-local-implementation).
+
+## V2 direct economic package comparison — local component experiment, 10 October 2026
+
+- Hypothesis: complete legal packages can be compared through one injected official oracle,
+  preserving estimate/source attribution and separating legality from arithmetic.
+- Source/config: `a88bf86` plus preserved working changes; pinned kit unchanged; explicit
+  disabled/single-scenario modes. No V1/runtime/default changes.
+- Cases: two P10 packages; existing relationship fixture price-order reversal; provenance,
+  standard/fixed/sheet precedence, missing estimates/price, basis/options/must-haves and failures.
+- Quota: zero hosted/model calls; no negotiation outcome, score or promotion measured.
+- Results: evaluator 15 pass, evaluator+oracle 47 pass; D4 DTO gate 380 pass/483 unimplemented
+  xfail; full scoped V2 702 pass/603 unimplemented xfail. V2 Ruff/frozen V1 replay pass.
+  P10 costs 1,335,154.08 vs 1,368,754.08 EUR; relationship 45/unit costs 429,044.44,
+  49/unit costs 401,600.00 EUR through the existing kit penalty.
+- Limits: multiple robust scenarios lack a designated nominal estimate and fail explicitly.
+  Value/margin diagnostics are absent from the oracle port. No selection/message certificate.
+- Decision: retain bounded package evaluation; next connect source-cost estimate construction
+  to direct package comparison. [Completion](../docs/v2/implementation-order-addendum-2026-10-10.md#j-t41-direct-package-evaluation-verified-local-implementation).
+
+## V2 official arithmetic oracle — local parity experiment, 10 October 2026
+
+- Hypothesis: the pinned kit provides a shared economic boundary without copying formulas or
+  promoting evidence costs into authoritative buyer economics.
+- Source/config: `a88bf86` plus preserved working changes; kit revision
+  `1b5516bb95ef28e37f69aa446dc62168864bca53`; unchanged OfficialCostOracle interface.
+- Cases: P10 packages/unit conventions, seven relationship points, commercial terms,
+  delayed price, index/risk, fractional need, explicit estimate separation and failures.
+- Quota: zero hosted sessions/model calls. No negotiation outcome or promotion measured.
+- Results: direct adapter 32 pass; DTO gate 341 pass/522 unimplemented xfail; full scoped V2
+  648 pass/642 unimplemented xfail. V2 Ruff/frozen V1 replay pass. All eleven components
+  and rounded totals match the kit for admitted packages.
+- Limits: one part/supplier; no legality certificate. A binary-float half-cent result conflicting
+  with the Decimal component-sum contract is explicitly rejected. No substitute economics.
+- Decision: retain the oracle; next implement direct package evaluation/comparison with its
+  eight consumed contracts, without strategy or orchestration.
+  [Completion](../docs/v2/implementation-order-addendum-2026-10-10.md#i-t41-official-arithmetic-verified-local-implementation).
+
+## V2 resolved evidence cost projection — local contract experiment, 10 October 2026
+
+- Hypothesis: the selected canonical cost revision can feed a typed economic input without
+  promoting supplier assertions or replacing deterministic official financial calculations.
+- Source/config: `a88bf86` plus preserved working changes; existing layered resolver and strict
+  `negotiator-v2/1` EvidenceContext/ResolvedCostInput; no V1 flags or launch changes.
+- Cases: applicable release EUR 140 versus case EUR 150; revision-only change; irrelevant
+  supplier wording; source conflicts/missing/scope/kind/freshness/basis failures; units 1/100/1000.
+- Quota: zero hosted sessions/model calls. No Lab campaign or promotion.
+- Results: direct acceptance 29 pass; scoped full V2 550 pass/708 unimplemented xfail;
+  three-new-symbol DTO gate 275 pass/588 unimplemented xfail. V2 Ruff/frozen V1 replay pass.
+  Projection values and canonical hashes change with authoritative cost input/revision,
+  and remain stable for unrelated wording. No negotiation score or calculated cost effect claimed.
+- Limits: declared metadata/date checks do not verify source bytes or execute freshness rules;
+  context error gaps conservatively block projection. Full estimates, claims and financial
+  evaluation remain incomplete. Existing legacy failures remain separately classified.
+- Decision: retain this bounded consumer; proceed to the existing T4.1 OfficialCostOracle
+  adapter with direct kit-parity tests and only its required input/output contracts.
+  [Completion](../docs/v2/implementation-order-addendum-2026-10-10.md#h-t23-cost-consumer-verified-local-implementation).
+
+## V2 typed layered evidence resolution — local contract experiment, 10 October 2026
+
+- Hypothesis: resolving canonical identity before applicability, with whole-record replacement,
+  prevents stale base cost reuse and preserves the source revision needed for later economic
+  and strategy decisions.
+- Configuration/source: `a88bf86` plus preserved working changes; strict `negotiator-v2/1`
+  models and direct LayeredEvidenceResolver, no V1 feature flags or runtime changes.
+- Cases: synthetic cost `cost:310010` at base 132.64/release 140/case 150; source collisions,
+  scope mismatches, replay/identity conflicts, statements/hypotheses and price units 1/100/1000.
+  All inputs are local validated values; source metadata remains attributed, not new authority.
+- Quota: **zero hosted sessions and zero model calls**. No Lab campaign or promotion.
+- Results: 53 direct resolver/supplemental safety tests pass; owned remaining-DTO suite
+  263 pass/600 explicit unimplemented xfail; scoped full V2 509 pass/720 unimplemented xfail.
+  V2 Ruff and frozen V1 replay pass. No negotiation score, persuasion, or performance result.
+- Failures/limits: no unexpected V2 failures at completion; legacy four-failure classification
+  remains inherited. Freshness derivation, session/derived-layer priority, context/cost consumers,
+  orchestration and live execution are incomplete.
+- Decision: retain this offline increment. Next connect resolved revisions to the existing
+  cost-input projection and direct economic evaluation; A/B component work proceeds together.
+  [Completion and reproducible gate](../docs/v2/implementation-order-addendum-2026-10-10.md#g-first-t21-increment-verified-local-implementation).
+
 ## Packaged runtime negotiation guidance — local integration, 10 October 2026
 
 - Hypothesis: explicit conditional package wording communicates the exchange more clearly
@@ -813,3 +912,521 @@ Port validation: full suite **363 passed, one existing preflight failure** descr
 in the preceding entry; the same failure reproduces with the unchanged current
 `origin/main` production modules. All 22 focused delivery/adviser tests pass.
 `ruff check .` passes. No unrelated preflight fix is included.
+
+### 2026-10-10 — V2 finite supplied-action boundary (offline)
+
+Hypothesis: resolver-admitted source-cost changes can reverse official complete-cost ranking and
+reach a replaceable strategy selector while independent validation still blocks inadmissible output.
+Configuration: existing working checkout plus preserved earlier V2 increments; supplied EUR 45/49
+packages, source-cost-v1 explicit nominal estimates, minimum-cost-test-v1; no model or live execution.
+Cases: unchanged synthetic relationship fixture with source EUR 43/47 plus test-local adversarial
+boundary controls. Quota: zero hosted sessions/model calls. Measured: EUR 43 selects EUR 45
+(EUR 369,600); EUR 47 selects EUR 49 (EUR 401,600); both independently validated. Direct boundary
+19 passed; scoped V2 944 passed/405 explicit missing-component xfails; frozen V1 replay exact.
+Evidence: tests/v2/contracts/test_strategy_boundary.py and unchanged test_evidence_economics.py;
+docs/v2/implementation-order-addendum-2026-10-10.md §L records gates and exact consumed closure.
+Failures/limits: no unexpected scoped failures; full-parent acceptance, grounded interpretation,
+claims/close validation, durable artifacts, orchestration and live proof remain incomplete.
+Decision: keep as an offline test seam; no promotion or negotiation-performance claim.
+
+### 2026-10-11 — V2 typed recorded inputs and bounded offline coordinator
+
+Hypothesis: typed declared sources, quote standards, message history and server/state inputs can
+produce a reproducible independently validated offline decision through replaceable ports,
+without completing persistence or introducing negotiation heuristics. Configuration: preserved
+working checkout plus §M components, source-cost-v1 nominal/disabled controls, input-echo-test-v1,
+supplied-intents-test-v1 and minimum-cost-test-v1; fixed recorded clock. Quota: zero hosted
+sessions/model calls. Cases: unchanged synthetic relationship fixture EUR 43/47 costs and EUR
+45/49 legal packages; test-local stale/attribution/server/citation/forgery/expiry controls.
+Measured: source EUR 43 selects EUR 45; source EUR 47 selects EUR 49; both end in valid offers
+with exact message bytes and stable export/reload traces. Direct integration 28 passed;
+scoped V2 1,013 passed/364 explicit missing-component xfails; frozen V1 first move unchanged.
+Full repository check: 1,341 passed/19 skipped/364 xfailed/17 failures outside V2 in unchanged
+legacy tests. Evidence: tests/v2/integration/test_offline_decision.py and addendum §M.
+Limits: declarations/hashes do not independently authenticate source/server bytes; test
+interpretation does not infer preferences; full fixture codec, research, model budgeting,
+semantic grounding, durable records, claims/close validation and execution remain incomplete.
+Decision: retain as an offline composition seam; no promotion, persistence guarantee or
+negotiation-performance/live-readiness claim.
+
+### 2026-10-11 — V2 Assignment 1 local consumer correctness
+
+Hypothesis: joining public case facts and independently checking outgoing fields/price policy
+prevents the review's incorrect source and incomplete-sheet admissions. Working tree a88bf86
+plus preserved V2 work; unchanged official relationship fixture and fixed offline clocks/config.
+No hosted sessions, inference, quota, checkpoint publication, commit or push.
+
+Implemented only context join/source-version attribution, exact outgoing negotiated fields,
+and economic price-policy enforcement. Seventeen regression cases pass; scoped V2 1,030 pass,
+364 unfinished xfails; official parity 47 pass; V2 Ruff, frozen V1 replay and whitespace pass.
+Decision: retain narrow consumer fixes; no intelligence or performance claim. The review's
+0.05 policy bypassed the existing v1 cent-only model validator. Such policies now fail explicitly
+at evaluation too; supporting 0.05 requires contract approval and is not claimed complete.
+
+### 2026-10-11 — V2 Assignment 2 fake-transport interpretation
+
+Hypothesis: strict grounded drafts and a decision-scoped ledger can admit attributed supplier
+interpretation while preserving economic/validation authority and bounded fallback.
+Working tree a88bf86 plus prior preserved V2 changes; fixed clocks and existing official
+relationship fixture. Fake transports only; hosted quota/session/call/spend: zero.
+No publication, commit, push, default activation or Assignment 3 implementation.
+
+Exactly 15 gateway exports; injected async gateway, ledger, bounded GroundedInterpreter,
+fallback and minimal coordinator trace integration. Direct tests 45 pass; scoped V2 1,137
+pass / 302 unfinished xfails; consumed contracts 681 pass / 182 xfails. Existing interpreter/
+budget selectors retain 19 absent-full-codec xfails. Ruff/replay/whitespace pass.
+Eleven provisional semantic examples and a small evaluator were introduced; no independently
+reviewed actual-model corpus result exists. Decision: plumbing locally verified, model quality
+unmeasured. See docs/v2/assignment-2-completion-2026-10-11.md for bounds and remaining gaps.
+
+### V2 Assignment 3 — offline grounded selection routing, 11 October 2026
+
+Hypothesis: a grounded supplier condition can support a different officially affordable
+registered offer or fixed question, while irrelevant language preserves minimum cost.
+Configuration: grounded-selection-v1 / selector-response-v1 / injected fake test-model;
+existing official arithmetic, supplied synthetic packages, exact template renderer and
+independent validator; two calls, 2,048 total reserved tokens, one second total model time.
+Working tree preserved; no checkpoint publication, hosted inference, sessions or spend.
+
+24 scenarios / 12 pairs, eight frozen held-out examples; identical economic batches across
+minimum/direct/interpreter+selector arms. All 72 actions independently validate. Provisional
+set matches 14/24, 24/24, 24/24; scripted model arms each have ten grounded departures and
+four selector fallbacks. Calls 0/23/46; unknown usage conservatively charged 0/11,776/23,552
+reserved tokens. Latency/individual fallbacks and all traces: /tmp/v2-selection-pilot.
+These fake outputs demonstrate routing/rejection, not strategic competence or a performance
+advantage. Author labels await independent review; real-model understanding/outcomes unmeasured.
+
+Decision: retain offline opt-in services; no activation/promotion. Grounding is deliberately
+narrow, history bounded, confidentiality depends on explicit approved source content.
+See docs/v2/assignment-3-completion-2026-10-11.md for implementation, regression gates and
+minimal Assignment-4 contract handoff. Assignment 4 was not started.
+
+### First V2 real-LLM readiness experiment — local preflight only, 11 October 2026
+
+Hypothesis: a permitted supplier delivery preference can change an officially evaluated
+P10 selection with economics and supplied alternatives fixed. Dataset p10-offline-llm/1,
+SHA-256 ce7029a6689450dd3061b5203a44449630ee88b1f89e171ea4f921e9c72e2d7f.
+Existing interpret/select prompts, injected chat-completions-json-v1 transport, official
+oracle, independent validator; two calls/decision, proposed four calls and 65,536 total
+reserved tokens for two inputs. Hosted allowance is NOT granted. Effective LLM key/endpoint/
+model and provider/dataset authorization are missing; zero hosted inference calls.
+
+Actual local HTTP mock rehearsal: both decisions valid, no fallback, four explicitly fake
+calls. Minimum cost EUR 1,333,891.20; scripted 42-day preference selects EUR 1,335,154.08,
+with exact source quote, while every official cost and candidate alternative stays fixed.
+Artifacts: /tmp/v2-p10-local-rehearsal. No model competence or hosted compatibility claim.
+
+Actual loopback Lab/Arena-simulator smoke: existing V1 PackageAgent, unchanged P10 case,
+one local session, five rounds, zero timeouts, score 0.946157564710246; outcome published and
+retrieved from temporary local Lab. Run 9e93d5bd-99d3-43cb-b38b-2a388a64c66b; captured source/
+data/lock provenance and outcomes at /tmp/v2-local-lab-smoke. This verifies the Lab runner/
+publisher, not V2 live execution. Read-only remote Lab metadata and Arena case-list checks
+pass; P10 is practice, D01/D02 are sandbox. No remote sessions/actions/uploads.
+
+Decision: prepared guarded hosted command, but do not run without exact provider/model/data
+and absolute allowance approval. Do not begin Assignment 4 based on fake responses. See
+docs/v2/real-llm-readiness-2026-10-11.md for runnable setup, transport/accounting assumptions,
+remaining negotiation blockers and verification. Existing working tree preserved.
+
+Final verification: **1,203 passed, 298 expected xfailed** in the complete consumed V2
+scoped gate, including the two new adapters; **26 passed** in the focused readiness suite;
+**167 passed** across Lab runner/server/policy/campaign/CLI/checkpoint/store tests.
+Manifest: **1,501 expanded contracts**. Scoped Ruff, frozen V1 replay and whitespace checks
+pass. The broader non-V2 regression run returned **350 passed, 14 failed**; every failure
+matches the recorded `a88bf86-fixed-data` baseline in
+`/tmp/v2-review-regression-comparison.json`. Its two prior Lab campaign failures pass with
+the existing uv executable on PATH. No V1 or Lab production source was changed. The four
+repository-wide Ruff violations remain inherited. Full legacy-suite success is not claimed.
+
+## GPT-4.1 mini comparison preparation — 11 October 2026
+
+Hypothesis remains that approved supplier language can change a grounded selection under
+fixed official economics. Reviewed Assignment 2/3, hosted-readiness and starter-kit guidance.
+Prepared one connectivity call, two P10 decisions, and existing 24-example three-arm comparison;
+maximum 77 calls / 1,261,568 reserved tokens / $5. Direct OpenAI standard rates, $2.0185088
+worst-case reservation charging every token at output rate; unknown and failed calls retain it.
+All four LLM settings now present, configured model mismatch; no secret output or dotenv edits.
+Added strict documented mini alias/snapshot mapping and experiment-only pre-call dollar guard.
+No retries, Arena sending, prompt tuning, proposal generation, or validation bypass.
+
+Local fake preflights saved at /tmp/v2-hosted-comparison-preparation. Full composed HTTP mock
+check makes 74 calls; projection rejects the private-disclosure injection before three possible
+calls. Existing fake-response benchmark preserves original labels/schedule; real-run semantic
+summary separately excludes the two fake-fault-dependent forged labels. Eight held-out examples
+remain frozen with independent human review pending. No real scores, latency or spend measured.
+Explicit provider/model/projection/$5 approval still pending. See
+`docs/v2/hosted-comparison-plan-2026-10-11.md` and the unsigned authorization template.
+
+Follow-up final gate: **1,209 passed, 298 expected xfailed**; 32 focused checks, 1,507
+manifest contracts, scoped Ruff/frozen V1 replay/whitespace pass. The user corrected the
+model to gpt-4.1-mini; the effective configuration now validates. Hosted approval pending.
+
+Actual approved hosted run completed: direct OpenAI gpt-4.1-mini → documented 2025-04-14
+snapshot, 74 calls, 171,436 input / 10,856 output tokens, 117.80 s summed model latency,
+zero timeouts/usage gaps, $0.085944 uncached usage estimate, $1.9398656 reserved of $5.
+P10 minimum EUR1,333,891.20; preference EUR1,335,154.08 (+EUR1,262.88), both final valid
+but both interpreter outputs rejected. Benchmark all three arms 14/24 provisional matches,
+2/8 held-out, 12/22 semantic-subset matches; no benchmark language-driven action changes.
+Direct selection 10/24 fallback decisions; grounded 15/24 selector fallbacks and 23/24
+interpretation fallbacks, with all 24 relying on some model fallback. Interpreter admits
+1/25 actual outputs; selection admits26/rejects23 including connectivity/P10. Three potential
+calls blocked by private-disclosure projection. All76 decision traces verify; no prompt or
+validator changes, retries, Arena actions or Assignment4. Exact artifacts at
+/tmp/v2-hosted-comparison-first-run; results/failure attribution in
+`docs/v2/hosted-comparison-results-2026-10-11.md`. Improve interpretation and safe rejection
+diagnostics; independent human label review and exact rejected-field attribution remain
+missing. One-time approval consumed; no further hosted experiment authorized.
+
+## 2026-10-11 — V2 LLM stabilization and tracked local Lab integration
+
+**Hypothesis:** explicit DTO-aligned prompts and admission diagnostics make rejected outputs
+attributable without relaxing grounding, and the existing Lab can invoke the bounded V2
+pipeline through its stable negotiator interface. Hosted admission/semantic improvement is
+unmeasured and awaits a separately authorized experiment.
+
+**Configuration/source:** existing dirty workspace preserved; no checkpoint/publication/promotion.
+New versioned supplier/selection v2 prompts; optional DTO-derived strict response format;
+shared bounded factory, local-only P10 Lab adapter and explicit `lab run --local-case` mode.
+Each run preserves source patch/commit/lock/data hashes in its existing Lab snapshot. The
+minimum/direct/grounded arms share the original three P10 packages and official evaluator.
+Model: explicitly scripted local ambiguity/minimum fixture, not GPT-4.1 mini. Two-call,
+32,768-reserved-token decision ceiling and fallback/submission reserves remain in force.
+
+**Cases/ceiling:** three isolated official in-process Sim P10 sessions, one per arm, six
+rounds each. Fourteen additional authored supplier-interpretation controls. Zero hosted
+sessions, inference calls, remote action submissions or remote Lab writes. No previous
+one-time hosted allowance reused. Additional local regression runs are fixture checks.
+
+**Evidence/results:** final report `/tmp/v2-lab-stabilization-final/report.json`;
+minimum run `c089eba7-6109-4e2f-8460-f7369be76e7f`, direct
+`8fa9ad14-e2b6-4307-8d17-f0b5545603f7`, grounded
+`12bf923e-ddee-4fe3-868e-628df57bbff3`. Actual Lab CLI/RecordingTable/agent/context/interpreter/
+strategy/economics/selector/final-validator/Sim boundary crossed. Eighteen validated actions
+and independently reloaded/digest-verified traces; 18/18 scripted calls successful and
+admitted, zero model fallbacks. Six grounded interpretations and twelve selections admitted.
+All three genuine simulator terminal results were **no deal**, zero score, six rounds and
+zero timeouts. Minimum package in every arm: official offered cost EUR 1,333,891.20; realized
+agreement cost remains null. USD 0 local inference expense; mock token usage unknown and
+conservative reservations explicitly reported. No strategic improvement inferred.
+
+**Separate semantics:** `/tmp/v2-semantic-stabilization-final/report.json`, predictions and
+null-valued human review artifact. 14/14 authored drafts admitted and matched provisional
+semantic checks; deleting a preference hypothesis preserves admission but reduces matches to
+13/14. All independent critical/semantic human reviews remain outstanding. No hosted quality
+claim and no frozen held-out label/input changes. Historic exact failures stay unattributable;
+72 original benchmark trace digests verified without rewriting files.
+
+**Gates/failures:** focused new controls 28 passed; consumed V2 1,237 passed / 298 expected
+unimplemented xfailed; manifest 1,535 contracts. Lab 170 passed after restoring the existing
+uv PATH and local socket access; frozen V1 replay unchanged (3653046). Scoped Ruff/whitespace
+pass; four inherited whole-repository Ruff findings remain. Full regression 1,567 passed,
+19 skipped, 298 xfailed, 15 unchanged V1 failures. Initial local mock fixture defects (strict
+Decimal envelope type and zero-delta string formatting) were corrected before the final
+admission/outcome demonstration. No regressions repaired by altering V1 behavior.
+
+**Decision:** retain the diagnosable local integration. Do not advance to Assignment 4 or
+claim semantic reliability/superiority from these controls. Proposed next reviewed experiment:
+14 interpretation development examples, two paired P10 decisions and one strict connectivity
+probe, at most 19 provider calls, separate data/provider/spend authorization, no Arena/Lab
+remote writes. Not launched. Closing/dispatch/authentication/document hydration, generic
+scenario mapping and durable V2 restart remain prerequisites for real Arena runs.
+Full assessment, integration matrix, exact local commands and remaining dependencies:
+`docs/v2/llm-stabilization-and-lab-integration-2026-10-11.md`.
+
+## 2026-10-11 — V2 no-deal analysis and separate semantic experiment preparation
+
+- Hypothesis: the three no-deal controls are explained by the supplied package universe and
+  supplier script, while missing live observation fields independently limit future adaptation.
+- Scope/config: read-only original minimum/direct/grounded P10 runs
+  `c089eba7-6109-4e2f-8460-f7369be76e7f`, `8fa9ad14-e2b6-4307-8d17-f0b5545603f7`,
+  `12bf923e-ddee-4fe3-868e-628df57bbff3`. Existing working tree preserved; no checkpoint,
+  remote campaign, recommendation query/publication or promotion. Local evidence is not a
+  promoted shared baseline. Existing V1 failures remain out of scope.
+- Evidence: original run/thread records, pinned official Sim rules and all 18 verified V2 traces.
+  Transcripts identical: buyer repeats 27.60, supplier reaches final 29.59 then walks away on
+  round six. All supplied prices (27.60, 28.34) are below the script's floor. Zero timeouts,
+  zero deals and score zero; proposed cost must not be reported as realized agreement cost.
+- Integration findings: body-only V2 projection omits observed sheets/documents and buyer action
+  operations; terminal status and production closing authority remain unavailable. These gaps
+  are distinct from the sufficient price-universe explanation.
+- New preparation: `run_semantic_validation` reuses existing HTTP/consumers/spend guard; strict
+  v2 prompts/schemas, pinned gpt-4.1-mini-2025-04-14. Fourteen development interpretations,
+  two original P10 two-call decisions and one strict probe; at most 19 attempted hosted calls,
+  311296 conservative reserved tokens, proposed separate USD 1.00 limit, no retry. Preparation
+  fingerprints source/data/prompts/DTO/provider schemas and verifies unchanged frozen held-out.
+- Budget consumed: zero hosted calls, zero new sessions, zero remote writes. Mock-only rehearsal
+  covers the full 19-call schedule. Earlier incomplete preparation directories retain local
+  adapter/mock debugging evidence; no hosted transport was created.
+- Review: separate nonblind agent text-based expectations review; independent human labels and
+  output adjudication still pending. Automatic 14/14 scripted controls are not model reliability.
+- Decision/next experiment: obtain explicit approval for this exact 19-call semantic development
+  evaluation, then review critical meanings before a bounded Assignment 4 proposal pilot. Do
+  not add deterministic bargaining tactics, relax validation or infer efficacy from Sim agreement.
+- Report: `docs/v2/hosted-semantic-validation-and-lab-failure-analysis-2026-10-11.md`.
+  Analysis: `/tmp/v2-lab-failure-analysis-2026-10-11.json`; final prepared plan/preview/control
+  evidence: `/tmp/v2-semantic-validation-reviewed-2026-10-11/`. Hosted results: not run.
+- Request inspection found a 426-token output allowance on long interpretation inputs. Omitting
+  provider-schema title/description annotations saved 1908 bytes, retaining all validation
+  constraints and restoring 2048 output tokens without expanding existing budgets.
+
+## 2026-10-11 — Authorized hosted semantic validation, one-time allowance consumed
+
+- Hypothesis/config: the frozen reviewed v2 prompts/strict DTO-derived provider schemas would
+  improve interpretation availability while retaining official economics, grounding and final
+  validation. User explicitly authorized direct OpenAI gpt-4.1-mini-2025-04-14, maximum 19 calls,
+  USD 1.00, 311296 reserved UTF-8 byte/schema/framing tokens, no retries, Arena or remote Lab writes.
+  Prepared plan/source/prompt/schema/data equality verified before and after execution; no
+  validator, prompt, schema or frozen-label changes occurred. Assignment 4 not implemented.
+- Execution: one invocation of `experiments.v2.run_semantic_validation`; exact approval at
+  `/tmp/v2-semantic-validation-approved-2026-10-11.json`, hosted output
+  `/tmp/v2-semantic-validation-hosted-2026-10-11/`. Source fingerprint
+  `61465b339746c0509360af61d63f481903f7cae71af51f4d9f5a0362c3a1095e`.
+- Calls/budget: 19/19 provider successes; 16 interpretations, three selections including the
+  probe; 311296 tokens/USD 0.4980736 conservatively reserved. Reported usage 52925 input + 4866
+  output = 57791 tokens, uncached usage estimate USD 0.0289556, zero missing usage. Summed
+  call latency 53.705s. Zero timeouts, retries, negotiations and remote writes.
+- Admission: development 1/14 and P10 0/2 interpretations; fifteen schema-stage rejections/
+  interpreter fallbacks, all at `observations.0.citations.0.*.session_id`. Only the greeting's
+  empty assessment was admitted. Two substantive P10 selections admitted, zero selector fallback;
+  probe passed. Both model/baseline traces verify and both final actions remain valid.
+- Semantics: automatic provisional development score 1/14, fourteen missing critical-error
+  reviews. This is not human semantic accuracy or evaluated zero critical errors. Rejected
+  responses remain withheld; fifteen outputs never reached grounding and the only grounded
+  interpretation is empty. Independent human adjudication still pending.
+- P10: exact same package contents as the previous hosted run: volume question selects minimum
+  at EUR1333891.20; delivery preference selects 42-day package at EUR1335154.08 (+EUR1262.88).
+  Both interpretation calls still fall back, so no demonstrated interpreter contribution.
+- Diagnostic limitation: read-only local synthetic bad-span-length control reproduces the
+  same path via SourceRef union-branch extra-field errors, masking a later MessageSpan failure.
+  This is a local control, not a reconstructed rejected hosted response. Exact hosted citation
+  defects remain unresolved; do not assert wrong session IDs or wrong offsets from this path.
+- Decision: do not proceed to Assignment 4. Operational usability misses the predeclared 12/14
+  criterion, and human review remains pending. Next scope: copyable deterministic citation
+  metadata plus safe union-aware diagnostics/local controls; preserve validators. Any hosted
+  revalidation requires fresh explicit authorization; no automatic rerun planned/executed.
+- Report: `docs/v2/hosted-semantic-validation-results-2026-10-11.md`. Separate read-only analysis:
+  `/tmp/v2-semantic-validation-hosted-analysis-2026-10-11.json`. Originals unchanged, held-out
+  digest unchanged and zero held-out calls. No checkpoint/publication/promotion or V1 change.
+
+## V2 Arena observation/citation integration — 2026-10-11
+
+Hypothesis: deterministic whole-message citation IDs and faithful public Arena observations
+remove schema/observation interface bottlenecks without altering official economics or action
+validation. This is a plumbing experiment, not a strategy superiority test.
+
+Configuration/source: current dirty-workspace Lab provenance; existing P10 finite packages,
+`grounded-supplier-v3`, `assessment-citation-ids-v1`, full bounded observation projection,
+scripted local ambiguity/minimum responses, official arithmetic and independent validation.
+Recommended Lab checkpoint read: `e1d931e4fcce49fb8fd341c40052953a`; three findings reviewed.
+No checkpoint publication or promotion. Offline allowance: exactly one simulator negotiation.
+Online allowance: one conditional session, stopped before creation because production safety
+and a fresh inference budget are missing. No exhausted authorization reused.
+
+Run A: `939a46c9-8689-4aae-8493-a14761fd0d5f`, official arena_kit.sim.Sim/arena-sim engine
+0.1.0, pinned kit `1b5516bb95ef28e37f69aa446dc62168864bca53`, in process with clock enabled,
+case:P10. Six rounds, six valid actions, zero timeouts, genuine terminal no deal, official
+score 0.0, no realized deal cost. Supplier prices 32.88/32.22/31.56/30.90/30.24/29.59;
+buyer repeats 27.60 with full terms. V2 receives all prices, final_offer, quote text/provenance
+and buyer history; terminal history is preserved. Interpretation 6/6 admitted, selector 6/6,
+zero fallbacks; these are scripted controls, not hosted reliability. Twelve scripted calls,
+zero hosted calls, model seam latency 0.009638008 s, negotiation elapsed 0.687742498 s,
+USD 0 inference. Proposal official cost EUR 1,333,891.20 each round; zero proposal changes.
+Every supplier standing sheet fails the volume must-have. No acceptance bypass was attempted.
+
+Run B: online https://arena.tacto.ai credentials and case permissions verified with read-only,
+zero-retry transport; snapshot practice quota 303 used/297 left/600 limit. D01, D02 and P10
+accessible. Zero session creations or model calls. Blockers: missing fresh inference
+configuration/spending authority, V2 production closing authority/checks, durable remote
+execution/reconciliation integration and a remote-capable factory/case loader.
+No mock hosted outcome. Sandbox network reads first failed; permitted external metadata reads
+succeeded, including shared Lab recommendation/findings. Lab availability is not a blocker.
+
+Verification: six original trace digests/certified payloads verify. Focused gate 820 passed,
+178 expected xfailed; after final wire/diagnostic/provenance checks, changed DTO/new contracts
+691 passed, 178 expected xfailed, and model/selection/provider controls 118 passed. Scoped Ruff
+and git diff --check pass. Simulator-creating integration tests were not run, preserving the
+one-session allowance. Final authoritative acknowledgement hook was tightened after the
+negotiation and tested with nonnetworked stubs; no rerun was performed. Original run provenance
+is retained. Attachment text tampering and unknown citations reject without execution.
+
+Decision: offline observation and citation plumbing demonstrated; no live reasoning,
+adaptation, online negotiation or superiority demonstrated. Preserve the local-only remote
+block. Complete existing safety ports and obtain a fresh bounded inference allowance before
+online execution. Detailed interfaces, transcript and evidence:
+[results](../docs/v2/arena-integration-results-2026-10-11.md),
+`/tmp/v2-arena-integration-offline-2026-10-11/{integration-report,complete-transcript}.json`.
+
+## 2026-10-11 — Bounded adaptive negotiation milestone
+
+Implemented modular citation-grounded proposal generation, independent economics/policy gates,
+closing authority, authoritative Lab observations, and conservative journaled online submission
+and reconciliation. Genuine hosted inference remains separately gated. Official simulator fixed
+baseline scored 0 without a deal; scripted adaptive control agreed after two proposals and scored
+0.8094806135901004, with official cost EUR 1,502,401.68. This establishes integration only.
+Runs `faa135d5-c8e0-4374-a886-5f63246ddbfd` and
+`d482589d-cd1a-443e-9d5e-4bb9973869df` were uploaded after explicit retry authorization and verified
+through normal Lab listing, retrieval and comparison. Subsequent finished-attempt enrichment was
+rejected with HTTP 409; complete extra evidence is retained locally, not claimed published.
+Full V2: 1,257 passed, 298 expected xfailed; latest adaptive/Lab regression gate: 14 passed.
+No hosted calls or online sessions. Source-bound offline allowance prepared for explicit approval.
+See [milestone report](../docs/v2/intelligent-negotiation-milestone-2026-10-11.md) and
+`/tmp/v2-intelligent-negotiation-2026-10-11/{complete-transcript,milestone-report,remote-lab-proof}.json`.
+
+## 2026-10-11 — Hosted sandbox sequence preparation, no hosted execution
+
+Hypothesis: real citation-grounded interpretation and new adaptive packages can negotiate
+through official hosted D01/D02 before a separately approved P10 practice run. Extended existing
+Lab/V2 adapters for per-bidder RFQ history and economic slices, executable alternatives, grounded
+quote defaults, all-thread closing and exact one-session endpoint scope. Corrected Lab completion
+ordering: terminal, decision and usage evidence precede immutable completion. Failed offline
+development gates remain tracked even without simulator sessions. No deterministic bargaining
+library, oracle change, recommendation promotion or validator weakening.
+
+Read-only official metadata verified active credentials, D01/D02 permission, hosted P10 and
+286/600 remaining practice sessions. Model metadata and current configured Lab listing returned
+HTTP 200. Prior recommendation and findings were reviewed. No hosted inference calls, hosted
+Arena sessions, or remote Lab writes in this update. Official-Sim/mock-model tests are conformance
+checks only, not negotiation quality results. Full V2: 1,263 passed, 298 expected xfailed;
+latest focused checks: 17 passed; local Lab runner regression: 32 passed. Scoped Ruff passes.
+
+Prepared separate unauthorized offline/D01/D02/P10 templates. First approval request: offline
+GPT-4.1-mini snapshot, 32 calls, 3,145,728 reserved tokens, USD 2 ceiling, two in-process simulator
+sessions, zero hosted sessions and two final Lab publications to the exact configured destination.
+No automatic stage progression; original predecessor transcript/Lab proof must be reviewed and
+blockers resolved before each fresh hosted allowance. See
+[readiness report](../docs/v2/hosted-sandbox-readiness-2026-10-11.md).
+
+### Priority update — direct D01, awaiting approval
+
+User cancelled the proposed 32-call offline evaluation and requested direct hosted learning.
+Removed D01's offline-review prerequisite while preserving exact approval, independent validators,
+durable submission, no retries, single-session scope and complete final Lab capture. The exception
+is explicitly scoped to D01; D02/P10 retain actual predecessor review. Refreshed Arena/model/Lab
+access using read-only calls. Four targeted existing adapter/session/gate tests and one existing
+uncertain-submission recovery test passed; no broad test suite. Prepared
+`/tmp/v2-d01-direct-preparation-2026-10-11/authorization-template.json`: one real D01 sandbox
+session, GPT-4.1-mini snapshot, maximum 18 calls/1,769,472 reserved tokens/USD 1, one final Lab
+publication to `https://66-201-6-11.sslip.io/`, zero retries/reruns. No inference, hosted sessions
+or Lab writes made. Await fresh explicit approval; evaluate actual behavior irrespective of agreement.
+
+### Actual authorized D01 — failure before dispatch
+
+Hypothesis: the existing adaptive V2 strategy can interpret the actual hosted supplier and
+propose independently validated legal trades. User explicitly approved the reviewed direct
+D01 plan and conservative accounting. Original source hash:
+`9d47aec6e5538f5e601f96aa9edb6f76b3ca0ddab6166fd17774a30aa20b25cd`;
+dirty patch retained. Exactly one D01 sandbox session `de6f67ea54658727`, actual
+GPT-4.1-mini-2025-04-14; no offline experiment, D02, practice or retries.
+
+Lab run `04a6789d-593b-4722-a7f4-5f289da374f1` was published once and retrieval/listing
+verified. Interpreter timed out at eight seconds; cancellation race allowed one proposer
+call, whose legal proposal was validated but never dispatched. Zero buyer submissions.
+Arena later ended after three automatic timeouts: no deal, score 0. The immutable remote
+failed record predates terminal expiry; final terminal evidence remains local only.
+
+Two reservations: 196,608 tokens, USD 0.0835584, within 18 calls/1,769,472 tokens/USD 1.
+Known proposal usage 3,424 tokens/USD 0.0016828; interpreter usage and total spend unknown.
+Unsent proposal EUR 50.50, 45-day payment, 24 months, effective 2027-01-01; nominal cost
+EUR 414,299.04. No evidence of supplier acceptance or adaptive negotiation quality.
+
+Decision: stop without another session. Fixed synchronous timeout stop ordering and future
+failure terminal capture before publication; two focused regression tests and scoped Ruff
+passed. D02 recommendations address hosted latency, payment-direction reasoning, reciprocal
+trades and explicit review of this failed predecessor. Fresh D02 authorization remains required.
+Full analysis: `docs/v2/hosted-d01-results-2026-10-11.md`; original and exported evidence:
+`/tmp/v2-d01-hosted-execution-2026-10-11/`.
+
+## 2026-10-11 — Standalone D01 inference-probe finalization repair (local only)
+
+Hypothesis: executor teardown can hold the standalone probe after its decision finishes, preventing
+trace/report persistence; replaying historical server clocks against current UTC separately rejects
+its fallback. User authorized repair following the code investigation. Config: existing D01 probe,
+35-second compute allowance and two-second supervised cleanup; workspace contains pre-existing V2
+changes. No provider/Arena/Lab quota consumed, retries, push or promotion.
+
+Implemented one supervised spawned worker, evidence persistence before async teardown, bounded
+termination, explicit recorded-clock replay, durable stop forwarding, corrected usage report access,
+null unknown token cost, and sanitized transport exception/status diagnostics. Original consumed
+allowance and execution evidence remain unchanged. Initial related checks: 97 passed; updated probe
+and hosted-readiness checks: 36 passed; final probe checks including durable stop: 4 passed. Scoped
+Ruff and diff checks passed. Scripted preserved-D01 replay selects and validates its fallback.
+
+Decision: local repair verified. Original provider failure remains unidentified; no original stack
+was preserved and no new inference was attempted. Fresh exact authorization remains required for
+any hosted probe. Details: `docs/v2/inference-probe-finalization-repair-2026-10-11.md`.
+
+## 2026-10-11 — Authorized inference-only D01 probe, retry-01
+
+User approved the exact fresh two-call plan (196,608 tokens / USD 0.0835584 maximum) and granted
+standing authority for sandbox runs within agreed limits. Source fingerprint at dispatch:
+`43fb20c652fce396e01963edb9df9f558f54cc61a4d3be7db4bbe1eb4b6186d1`.
+Execution used provider/network and local-socket permission. Exactly one interpretation request
+was reserved; it exceeded the nine-second stage cap and was cancelled. No proposal transport call,
+retry, Arena request or Lab write occurred. Unknown usage retains 98,304 tokens / USD 0.0417792;
+actual spend is unknown. Runner returned after 9.544 seconds with cleanup complete.
+
+The verified decision trace contains completed fallback interpretation, fixed proposal fallback,
+selection and valid independent action validation. No action was submitted. Original report
+status is `runner_failed`, error type `KeyError`: report generation raced the cancelled transport's
+finally block and accessed latency before it was recorded. This is an original execution failure,
+not a successful end-to-end probe. Complete trace and original result remain unchanged under
+`/tmp/v2-d01-inference-probe-2026-10-11-retry-01/execution/`.
+
+Fixed reporting locally to use the decision ledger's measured elapsed time while transport cleanup
+is pending; regression suite: 5 passed, scoped Ruff passed. No further inference was performed.
+A separately labeled report recovered entirely from the saved verified trace and durable ledger is
+at `/tmp/v2-d01-inference-probe-2026-10-11-retry-01/offline-report-recovery/result.json`.
+It confirms valid offline fallback and partial model execution; it does not supersede the original
+failed runner result or demonstrate proposal commercial reasoning. No automatic rerun occurred.
+
+## 2026-10-11 — Real-provider sandbox inference repair verified
+
+User granted standing authority for as many sandbox runs as necessary. Hypothesis: after runner
+finalization repairs, request/consumer contract mismatches are causing latency and rejected outputs.
+Used four fresh two-call inference-only D01 probes (retry-02–05), same GPT-4.1-mini snapshot,
+recorded supplier input, independent economics and validator. Eight calls, known usage, aggregate
+estimated token-rate cost USD 0.0174648; no Arena sessions/actions, Lab writes, request retries,
+push or promotion. Earlier unknown-usage reservations remain unchanged.
+
+retry-02 completed provider calls but rejected interpretation grounding, then proposal diagnostics
+failed because `commercial_effects` was not an allowed diagnostic stage. Its requested longer
+measurement limits were also not inherited by spawn. Fixed diagnostic stage and worker plan loading;
+clarified exact-source interpreter and complete-binding/trade-direction proposal prompts. retry-03
+admitted both outputs and independently validated the model action (6.252-second caller return).
+retry-04 under original limits admitted interpretation but rejected missing payment uncertainty,
+then independently validated fixed fallback. Clarified uncertainty requirements; retry-05 under
+original 9/5-second caps admitted both outputs with valid selected model action, 5.725-second decision,
+6.176-second caller return, reported 8,552 tokens and estimated USD 0.0041288. Final terms: EUR 50.00,
+45-day payment, 24 months, effective 2026-12-01; not submitted.
+
+Final checks: 77 passed (probe, grounded model, adaptive proposal, commercial effects), scoped Ruff
+passed, diff clean. Decision: scoped inference/admission/finalization repair verified; stop probing
+once original-budget success is demonstrated. No negotiation-quality or hosted Arena acceptance
+claim. Each source fingerprint and exact allowance remain in each attempt's approved-plan.json;
+all failed/rejected evidence is preserved. Detailed results and limits:
+`docs/v2/inference-probe-finalization-repair-2026-10-11.md`.
+
+## 2026-10-11 — D01 hosted repair trial
+
+Hypothesis: the one-call evidence-preserving adaptive path can submit a validated package and
+close a real D01 session without the previous interpreter timeout. One fresh exact allowance was
+used for one D01 sandbox session, one final Lab publication, GPT-4.1-mini-2025-04-14, at most 18
+calls / 1,769,472 reserved tokens / USD 1, zero retries and no automatic reruns. Source fingerprint:
+`300c68189a2c4cfda92eb8b856ed7c8338b02bae2f98ea9a2bf2ad6e792d1d24`.
+
+Run `15500f1f-0048-437d-acad-cfbd79098c8d`, session `21fed09494f89548`, completed with a deal in
+two rounds, no timeouts and score 0. The model made one admitted v3 proposal call (3,501 input,
+185 output tokens, 2.845 seconds; estimated usage-rate cost USD 0.0016964). It returned exactly
+the supplier's opening terms: EUR 52.90, 30-day payment, 12 months, effective 1 December 2026.
+The supplier accepted; shared closing independently accepted the standing sheet. The run is an
+execution pass but shows no commercial concession or score gain. Fixed candidate minimum cost
+was EUR 398,400.00 versus accepted offer cost EUR 448,810.67; the former is not an attainable offer.
+
+Lab item and listing retrieval were verified; complete terminal evidence and no pending write are
+saved under `/tmp/v2-d01-repair-execution-2026-10-11-01/`. One call reserved 98,304 tokens /
+USD 0.0417792. The immutable remote summary incorrectly marked deterministic evidence copying as
+admitted interpretation and named proposal v2. Corrected local metrics now require an admitted
+interpreter call and identify v3/evidence-copy; focused regressions passed (28 passed), Ruff passed.
+The remote record was not rewritten. Decision: stop after this one trial, preserve the discrepancy,
+and review the complete transcript before any further hosted run. Detailed report:
+`docs/v2/negotiation-repair-d01-trial-2026-10-11.md`.

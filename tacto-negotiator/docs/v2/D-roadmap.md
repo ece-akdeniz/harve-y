@@ -4,7 +4,13 @@
 
 ## 1. Delivery order and cutline
 
-The first milestone is a **complete typed offline skeletal loop with recorded results**; the first product is the locally verified multi-turn capacity loop in M5. Freeze shared models first; develop evidence, economic validation, fixtures, and state/execution in independent tasks. Add a real provider only after fake-model contracts work and a separate inference allowance exists. Hosted comparison is a later funded gate.
+Latest bounded completion: [evidence-to-economics integration](implementation-order-addendum-2026-10-10.md#k-t23-source-cost-estimate--t41-economics-verified-local-implementation).
+Resolver-backed cost observations feed explicit source-cost estimates and unchanged legal package
+comparisons (25 integration tests; full V2 727 pass/603 unimplemented xfail). No DTO/port revision.
+Full evidence preparation, broader estimates, batch/close evaluation and selection/validation gates
+remain pending. Decision-facing work can proceed independently of persistence and the full loop.
+
+The first integrated milestone is a **complete typed offline skeletal loop with recorded results**; the first product is the locally verified multi-turn capacity loop in M5. Freeze each implemented boundary before its consumer; implement dependency-complete DTO groups beside useful components. The [approved capability order](implementation-order-addendum-2026-10-10.md) permits checkpoints A and B to progress together: interpretation, economics and evidence-conditioned strategy can be tested independently before the complete loop/storage. Diagram T1.1 arrows mean consumed contracts, not all D1–D16. Add a real provider only after fake-model contracts work and a separate inference allowance exists. Hosted comparison is a later funded gate.
 
 ```mermaid
 flowchart TD
@@ -60,7 +66,7 @@ Every task row starts `planned`; assign owner and evidence as work begins. Use o
 
 | Task | Small assignments / required result | Status |
 |---|---|---|
-| T1.1 | a immutable values/terms/serialization; b assessment/ports; c DecisionRecord/config; d remaining DTO batches | a–c verified locally; d evidence metadata verified locally (4); 8 payload DTOs blocked on field contracts |
+| T1.1 | a immutable values/terms/serialization; b assessment/ports; c DecisionRecord/config; d remaining DTO batches | a–c verified locally; d evidence metadata verified locally (4); remaining contracts finalized, D1–D16 implementation planned |
 | T1.2 | a typed fixture bindings/recorded codec; b full injected offline pipeline, not a one-step proposal stub | Planned |
 | T1.3 | Immutable effective config and explicit fake clock/model/server/store composition from the start | Planned |
 | T1.4 | Versioned fixtures, exact raw bytes, immutable artifacts and append-only SQLite DecisionRecords; restart reload/replay hashes | Planned |
@@ -109,7 +115,7 @@ Every task row starts `planned`; assign owner and evidence as work begins. Use o
 
 | Task | Concrete implementation | Verification / acceptance | Status |
 |---|---|---|---|
-| T2.1 | Normalize source families needed for capacity from base/release/case; preserve collisions, replace existing IDs by explicit priority, validate supplier/part/date/price basis | Synthetic `cost:310010` case override reaches estimator and verifier identically; same-priority conflict never chooses arbitrary row; release rows work without SQL mutation | Planned |
+| T2.1 | Normalize source families needed for capacity from base/release/case; preserve collisions, replace existing IDs by explicit priority, validate supplier/part/date/price basis | Synthetic `cost:310010` case override reaches estimator and verifier identically; same-priority conflict never chooses arbitrary row; release rows work without SQL mutation | in_progress; direct typed resolver verified_local, context/normalization/consumer integration pending; see completion evidence below |
 | T2.2 | Build versioned prep artifact with source/parser/schema hashes and scope indexes; load it through harness before session opening | Warm/cold contexts equivalent; changed sources rejected or rebuilt before clocks; no recursive hashing per turn; document parse gaps visible | Planned |
 | T2.3 | Adapt canonical claims and estimate calculations to shared resolved records; preserve supplier-wide scope/adverse facts; field-level current quote-standard reference | Same IDs/units/override values in claims and estimates; P10 supplier estimate nominal/low/high and explicit assumptions; unsupported bases disable dependent values | Planned |
 | T2.4 | Add dynamic case/live message/doc layering and multi-part relevance scope without basket economics claims | New case letter replaces prior ID; current messages invalidate context; P07/P15 parts retained; no first-part-only assertion represents basket | Planned |
@@ -135,7 +141,7 @@ Every task row starts `planned`; assign owner and evidence as work begins. Use o
 
 | Task | Concrete implementation | Verification / acceptance | Status |
 |---|---|---|---|
-| T4.1 | Wrap full official cost/components and complete terms; quote/estimate reference rules; independent package and close evaluation | Kit parity; no zero/nonfinite prices; wrong supplier/standing ID cannot qualify; no alternative has tagged semantics; estimate scenarios reported | Planned |
+| T4.1 | Wrap full official cost/components and complete terms; quote/estimate reference rules; independent package and close evaluation | Kit parity; no zero/nonfinite prices; wrong supplier/standing ID cannot qualify; no alternative has tagged semantics; estimate scenarios reported | in_progress: oracle/direct package path verified locally; batch/close evaluator pending |
 | T4.2 | Implement legal non-price enumeration and finite positive tick candidate sets; reject infeasible intent/basis/ceiling; bound candidate work | P10 only 23,400 volume, allowed 35/42/56 lead and 12/24/36 commitment; payment fixed; relationship nonmonotonic candidates certified after rounding | Planned |
 | T4.3 | Add deterministic baseline and grounded capacity intent policy/selector; use assessments, refusals and contradictions; register bundle | A delivery statement changes eligible/ranked exchange; commitment request changes intent; refusal suppresses unsupported repetition; no legal exchange yields question/close, not invented terms | Planned |
 | T4.4 | Add independently selectable LLM ranking treatment and bounded read-only evaluation façade | Model selects approved batch ID only; invalid output uses deterministic fallback; dummy lookahead bundle runs without modifying evaluator/evidence/runtime | Planned; optional for first slice |
@@ -299,3 +305,45 @@ Only the generated assertion manifest was refreshed. EconomicContext/scenario_po
 standards_by_supplier and NamedEstimate/EstimateRecord remain deferred with explicit decisions
 needed; no enum registry values or validated-string replacement were invented. No services,
 persistence, orchestration, intelligence, hosted/model calls or quota consumed.
+
+
+#### Remaining T1.1d specifications finalized — 10 October 2026
+
+**Base / scope:** `a88bf86`; documentation, valid examples and executable contract tests only.
+No production DTO/service/source/Protocol was changed. C §8.9 defines all 146 remaining
+concrete models and 14 tagged union exports, including every port result/envelope and event
+payload. Sixteen dependency-ordered handoffs contain at most fifteen exports each. The first
+eight evidence payloads are D1; metadata completion evidence above remains historical.
+
+**Decisions:** explicit source country/quarter/month/fractional quantity fields; registered
+NamedEstimate names/methods/units/bounds; concrete ScenarioPolicy/EstimateScenario and immutable
+SupplierStandards tuple; ResolvedTerms.origins spelling; authoritative terminal proof shape;
+provider raw-content success/failure tags; typed feedback and state/commit/event/result shapes.
+Case/category/thread vocabulary checked against V1 and pinned kit. Facts, supplier statements,
+private estimates and execution certificates retain distinct authority/ownership. Exact optional
+fields/defaults, references, canonical hash projections and service-owned verification are
+specified in C; no generic dictionary or provider/runtime framework was introduced.
+
+**Tests / examples:** tests/v2/dto-contracts.json supplies examples, field inventories,
+negative mutations and 50 additional authority/economics cases. dto_spec.py hydrates examples
+without model_construct, algorithms or production imports from tests. Every remaining export
+has positive round-trip/frozen, domain-negative, extras/version and exact inventory/default
+assertions. The new symbol gate is restricted to these declaration tests and has self-tests:
+missing required batch fails; present malformed symbols/imports/invariants never xfail.
+Existing absent-module gates/assertions are unchanged. Missing DTOs are specification backlog,
+not implemented functionality or an existing-core regression.
+
+**Verification:** full V2 suite with core/config required: **380 passed, 796 expected xfails**.
+Classification: **193 unchanged existing passes**, **187 new specification/example/gate passes**,
+**120 unchanged absent-component xfails**, **676 new absent-DTO xfails**; **zero unexpected
+regressions**. Existing foundation/hardening/metadata/guardrail/boundary selector remains
+**192 passed, 2 expected component xfails**. All hydrated positive examples satisfy the declared
+field types and existing nested foundation models; passing example-shape tests does not claim
+that absent production DTO validators are implemented. V2 Ruff and whitespace checks pass.
+Repository-wide Ruff retains the same four V1 findings. Checks used the existing .venv because
+uv is unavailable; no dependencies or goldens changed, generated assertion manifest refreshed.
+
+**Next step:** copy the D1 prompt from task-specs.md; require D1 with --v2-dto-require D1,
+then retain that gate while implementing D2 and subsequent handoffs. Do not implement services
+or relax new tests to hide missing validators. Source fixtures/goldens, V1, semantic Decimal
+rules, Package fingerprint guarantees and verified-config boundaries remain untouched.

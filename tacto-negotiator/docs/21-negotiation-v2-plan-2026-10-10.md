@@ -55,10 +55,10 @@ Update this file as milestones progress. Do not check off a milestone from sourc
 | Milestone | Outcome | Status | Evidence / owner |
 |---|---|---|---|
 | M0 | Assessment, architecture, contracts and executable handoff | Verified local preparation; architecture approved in principle | A–F, tests/fixtures/task handoff; production owner unassigned |
-| M1 | Complete typed offline skeletal loop, effective config, persistent DecisionRecord and replay | in_progress | T1.1a–c hardened; four T1.1d metadata DTOs verified_local; eight payload DTOs blocked on field contracts; [D evidence](v2/D-roadmap.md) |
-| M2 | Unified evidence resolution and prebuilt context | Planned | — |
+| M1 | Complete typed offline skeletal loop, effective config, persistent DecisionRecord and replay | in_progress | T1.1a–c hardened; four metadata DTOs and 40 consumed T1.1d exports verified_local; D1/D3/D4 complete, D2 partial; [D evidence](v2/D-roadmap.md) |
+| M2 | Unified evidence resolution and prebuilt context | in_progress | T2.1 direct typed resolver and T2.3 cost_input verified_local; validated context DTO implemented; full builder/claim/estimate consumers pending; [approved concurrent A/B delivery](v2/implementation-order-addendum-2026-10-10.md) |
 | M3 | Grounded capacity supplier interpreter | Planned | — |
-| M4 | Capacity intents, certified candidates and interchangeable selection | Planned | — |
+| M4 | Capacity intents, certified candidates and interchangeable selection | in_progress | Oracle and direct package evaluator verified_local; batch/close evaluator and strategy pending |
 | M5 | Durable validated serial negotiation loop and feedback | Planned | — |
 | M6 | Controlled local comparison, Lab/config integration and funded performance evaluation | Planned | — |
 | M7 | Additional categories, async scale and research variants | Deferred from first slice | — |
@@ -94,7 +94,7 @@ Maintain a dated change log below. Contract changes require a new contract versi
 ## Executable handoff
 
 - [Test catalog](v2/test-catalog.md): three suites, actual fixtures, expected assertions/failure conditions and owning tasks.
-- [Expanded machine-readable test manifest](../tests/fixtures/v2/test-manifest.json): all 313 collected parameter cases with executable assertions and owners.
+- [Expanded machine-readable test manifest](../tests/fixtures/v2/test-manifest.json): all 1176 collected parameter cases with executable assertions and owners.
 - [Task specifications](v2/task-specs.md): exact paths/ports/imports/instructions/reuse/dependencies/acceptance/exclusions; small M1 subassignments.
 - [Coding guide](v2/implementation-guide.md): required-prefix gates, replay/baseline commands and completion reporting.
 - [Architecture compliance checklist](v2/compliance-checklist.md): objective review criteria with evidence.
@@ -116,3 +116,12 @@ Files added/edited are planning documents and new tests/fixtures only. Existing 
 |---|---|---|
 | 2026-10-10 | Initial A–F planning package; current-branch inspection and bounded offline checks | A §6; no production source, test, dependency or runtime configuration changes |
 | 2026-10-10 | Refined approved architecture into frozen handoff; three executable suites, P10/relationship/record/baseline goldens, exact tasks, compliance guide and first prompts | 66 passed / 175 missing-component xfails; Ruff and frozen V1 replay passed; no production implementation |
+
+
+## Remaining T1.1d contract handoff — 10 October 2026
+
+From `a88bf86`, [C §8.9](v2/C-interfaces.md) and [task-specs D1–D16 prompts](v2/task-specs.md)
+now define all remaining DTO fields, defaults, invariants and owners. [Roadmap evidence](v2/D-roadmap.md)
+classifies 380 passes and 796 expected failures: new tests describe 160 missing concrete/union
+exports without implementing them. Existing V2 passes and 120 component expected failures
+are unchanged. Production T1.1d remains partial; this is a verified specification handoff.

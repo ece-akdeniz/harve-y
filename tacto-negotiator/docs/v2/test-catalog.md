@@ -4,6 +4,20 @@ This specifies [E](E-evaluation.md)'s engineering gate. Tests are executable now
 
 ## Suites and result interpretation
 
+T2.3 now has [direct cost-projection acceptance](../../tests/v2/contracts/test_cost_projection.py):
+29 tests compose resolver outputs into validated EvidenceContext inputs and exercise source
+changes, attribution/basis, explicit inadmissibility and projection fingerprints. Require
+evidence.claims and the three newly implemented DTO symbols; internal_cost_claim/full T2.3
+and official evaluation remain incomplete. The canonical hash here covers ResolvedCostInput,
+not a complete EconomicContext or calculated package cost.
+
+The first T2.1 increment adds [direct resolver acceptance](../../tests/v2/contracts/test_layered_resolver.py):
+source precedence/whole-record replacement, collisions/replays, scope after source selection,
+evidence-kind preservation and unchanged basis/provenance. These tests run without codec,
+factory, server, or orchestration. Required-symbol gates cover D1 and the five implemented D2
+exports; D2/T2.1/full-contract completion remains outstanding. The expanded manifest includes
+the 53 focused resolver and supplemental contract cases.
+
 | Suite | Purpose / when | Location |
 |---|---|---|
 | Contract | One port/schema/component, positive and negative invariants; after each owning task | [contracts](../../tests/v2/contracts) |
@@ -76,3 +90,96 @@ The current executable suite is substantial but does not claim to cover every la
 | NUM-01–05 / deferred T4.5 | If solver approved: ordinary known root, both relationship roots/chosen branch, unreachable below minimum, local minimum/tick rounding, positive certification after refinement; never test by expecting legacy helper's incorrect answer |
 
 Live provider semantic accuracy, independent hosted performance and later async load remain separate funded gates in E. Passing mocks and official arithmetic is necessary engineering evidence, not evidence of negotiation improvement.
+
+
+## Final remaining-DTO declaration tests — 10 October 2026
+
+contracts/test_remaining_dtos.py owns T1.1d D1–D16: each export has a concrete positive
+example, round-trip/frozen check, specific invalid mutation, extra/version rejection and exact
+field/default assertions. Fifty explicit scenario cases cover source authority, registered
+estimates, scenario coverage, malformed provider content and close/message boundaries.
+Definitions/examples are test-only tests/v2/dto-contracts.json, hydrate with dto_spec.example.
+Missing declared symbols may xfail only here; --v2-dto-require D1 (or a symbol/all) makes them
+fail. Once a symbol exists, import/dependency/invariant/type errors fail normally. Existing
+require() semantics and earlier assertions remain unchanged. Run this gate with every completed
+batch plus existing --v2-require core/config checks; do not count pending DTO xfails as passes.
+
+The global `--v2-require all` milestone gate also requires every declared remaining DTO.
+Batch gates do not weaken that final all-components/all-schemas requirement.
+
+### Assignment 1 consumer regression gate — 11 October 2026
+
+`tests/v2/integration/test_consumer_regressions.py` adds 17 direct/coordinator cases for
+CaseContract overlays, scope/conflict/identity/authority failures without lower-layer revival,
+whole-record optional-field deletion, deterministic duplicates, exact outgoing fields and
+price precision. Inputs refresh preparation/case/economic/render identities; package identities
+are reconstructed normally. Require the existing addendum L/M module/symbol closure.
+
+Result: scoped V2 1,030 passed / 364 explicitly unfinished xfails; official adapter/package
+parity 47 passed; V2 Ruff, frozen V1 replay (3653046), and whitespace checks pass.
+The manifest now has 1,394 cases. No existing assertions or frozen fixtures were changed.
+
+R3 qualification: CostPolicy's existing v1 validator requires tick 0.01 (C §8.9).
+The review's 0.05 probe used model_copy, bypassing that validator. The economic consumer
+now explicitly rejects unsupported ticks even with a refreshed fingerprint; valid v1 prices
+49.00/49.01/49.05 pass and 49.005 fails. A valid 0.05 policy and its 49.00/49.05 acceptance
+cannot be delivered without a separately approved contract revision. No revision was made.
+Assignment 2, source authentication/freshness, claims/closing and execution remain unfinished.
+
+### Assignment 2 grounded model gate — 11 October 2026
+
+See [the completion note](assignment-2-completion-2026-10-11.md) for scope, configuration,
+filtering, attribution and limitations. test_grounded_model.py adds 45 direct/coordinator
+contracts; the manifest contains 1,439 expanded cases. Scoped V2 with the complete existing
+L/M requirements plus adapters.model, intelligence.interpreter, intelligence.fallback and
+orchestration.budgets and all 15 consumed gateway names: **1,137 passed, 302 xfailed**.
+Consumed DTO contracts: **681 passed, 182 xfailed**. Direct plus original interpreter/budget
+selectors: **45 passed, 19 xfailed** (absent complete adapters.recorded binding). No old
+assertions/xfail conditions were changed. Ruff over V2 and experiments/v2, frozen first-move
+replay (3653046) and whitespace checks pass.
+
+The 11-example interpretation pilot has provisional labels pending independent review.
+Scripted drafts verify schema/span and bounded semantic admission, not LLM understanding.
+No provider was called and no hosted accuracy or negotiation outcome was measured.
+
+## Assignment 3 — approved-ID strategic selection, 11 October 2026
+
+Consumed SelectorResponse; bounded strategy.selection, shared grounding helpers and fixed
+approval/conditions catalog; focused test_grounded_selection.py and 24-scenario three-arm
+fake-response pilot. Independent semantic/admissible-set review and real-model performance
+remain unmeasured. See assignment-3-completion-2026-10-11.md for projections, limitations,
+reproduction, held-out identity and Assignment-4 handoff. No existing assertion/xfail policy
+changed; full adapters.recorded/claims/close/store/research capabilities remain unfinished.
+
+Verification: **1,177 passed, 298 expected xfailed** in the complete consumed L/M +
+Assignment-2 + strategy.selection/SelectorResponse scoped gate. Focused Assignment-3 tests:
+**36 passed**. Manifest: **1,475 expanded contracts**. V2/tests/experiment Ruff, frozen V1
+first-message replay, and whitespace checks pass. Repository-wide Ruff reports the four
+unchanged V1 violations documented in the completion report. No hosted quality measurement.
+
+## Controlled real-LLM readiness — 11 October 2026
+
+26 focused test_hosted_readiness.py cases verify the real P10 loader, provider wire/schema/
+usage/timeout/refusal/cancellation/budget negatives, exact authorization and labelled local
+rehearsal. Hosted compatibility and semantics remain unmeasured. Existing regression gate
+adds adapters.chat_completions and adapters.p10; no broad recorded codec, persistence or
+Assignment-4 closure. See real-llm-readiness-2026-10-11.md for setup and local Lab evidence.
+
+Final verification: **1,203 passed, 298 expected xfailed** in the complete consumed V2
+scoped gate, including the two new adapters; **26 passed** in the focused readiness suite;
+**167 passed** across Lab runner/server/policy/campaign/CLI/checkpoint/store tests.
+Manifest: **1,501 expanded contracts**. Scoped Ruff, frozen V1 replay and whitespace checks
+pass. The broader non-V2 regression run returned **350 passed, 14 failed**; every failure
+matches the recorded `a88bf86-fixed-data` baseline in
+`/tmp/v2-review-regression-comparison.json`. Its two prior Lab campaign failures pass with
+the existing uv executable on PATH. No V1 or Lab production source was changed. The four
+repository-wide Ruff violations remain inherited. Full legacy-suite success is not claimed.
+
+Six further hosted-readiness checks cover dotenv-to-wire consumption without credential traces,
+strict OpenAI alias/snapshot mapping, failed-call dollar reservations, exact combined approval,
+common-universe benchmark composition and full mock comparison/restart rejection. Focused suite:
+**32 passed**. Manifest: **1,507 expanded contracts**. No hosted inference in tests.
+
+Follow-up final gate: **1,209 passed, 298 expected xfailed**; 32 focused checks, 1,507
+manifest contracts, scoped Ruff/frozen V1 replay/whitespace pass. The user corrected the
+model to gpt-4.1-mini; the effective configuration now validates. Hosted approval pending.

@@ -8,6 +8,10 @@ from tests.v2.support import read_fixture
 
 def pytest_addoption(parser):
     parser.addoption(
+        "--v2-dto-require", action="append", default=[], metavar="BATCH_OR_SYMBOL",
+        help="Require a finalized DTO batch/symbol (or all); affects only remaining-DTO specification tests.",
+    )
+    parser.addoption(
         "--v2-require", action="append", default=[], metavar="MODULE_PREFIX",
         help="Fail instead of xfail for absent V2 modules under this prefix; use 'all' at milestone gates.",
     )

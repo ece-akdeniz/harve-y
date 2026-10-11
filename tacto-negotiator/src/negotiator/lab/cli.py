@@ -77,6 +77,8 @@ def parser():
     run.add_argument("--cases", nargs="+", required=True)
     run.add_argument("--repetitions", type=int, required=True)
     run.add_argument("--max-sessions", type=int, required=True)
+    run.add_argument("--local-case", type=Path,
+                     help="run this JSON case in the official in-process simulator; no uploads")
     run.add_argument("--environment", choices=["simulator", "sandbox", "practice"], required=True)
     run.add_argument(
         "--release",
@@ -168,6 +170,14 @@ def main(argv=None) -> int:
             return 0 if report["failed"] == 0 else 1
         arena_url = os.environ.get("ARENA_URL", "https://arena.tacto.ai")
         if args.command == "run":
+            local_case = None
+            if args.local_case is not None:
+                local_case = json.loads(args.local_case.read_text())
+                if args.environment != "simulator" or args.cases != [local_case.get("case_id")]:
+                    raise ValueError("local simulator case requires matching simulator plan")
+                # Each in-process Sim restarts its public IDs at sim1. Preserve those IDs,
+                # and identify the isolated simulator instance in the environment URL.
+                arena_url = "http://localhost/simulations/" + secrets.token_hex(16)
             config = json.loads(args.config)
             if not isinstance(config, dict):
                 raise ValueError("agent config must be a JSON object")
@@ -189,14 +199,20 @@ def main(argv=None) -> int:
                 baseline_id=args.baseline_id,
             )
             factory = agent_factory(args.agent, config)
-            publisher = _publisher()
+            publisher = None if local_case is not None else _publisher()
             from .transport import JournaledArena
 
-            client = JournaledArena(args.root / run.run_id / "serial.jsonl", base_url=arena_url, rate=2)
+            if local_case is not None:
+                from .simulator import InProcessSimulatorClient
+
+                client = InProcessSimulatorClient(local_case)
+            else:
+                client = JournaledArena(args.root / run.run_id / "serial.jsonl", base_url=arena_url, rate=2)
             try:
                 final = run_experiment(run, args.root, client, factory, publisher=publisher, patch=patch)
             finally:
-                client.http.close()
+                if local_case is None:
+                    client.http.close()
             print(f"{final.status}: {args.root / final.run_id / 'run.json'}")
             if final.quota:
                 print(f"practice sessions left: {final.quota.left}/{final.quota.limit}")

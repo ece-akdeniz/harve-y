@@ -10,6 +10,7 @@ import os
 import subprocess
 import time
 import uuid
+from datetime import UTC, datetime
 from pathlib import Path
 from urllib.parse import urljoin, urlsplit
 
@@ -317,24 +318,93 @@ class RecordingTable(RemoteTable):
         self.attempt, self.changed = attempt, changed
         self.rounds = 0
         self.seen_threads = {}
+        # JournaledArena calls this after limiter pacing and its final history read,
+        # immediately before persisting the intent and issuing the POST.
+        self.client.pre_post_check = self._validate_post_dispatch
+        # This second, local-only guard runs after the intent is fsynced and directly
+        # before HTTP. It prevents a permit expiring during journal persistence.
+        self.client.pre_http_check = self._validate_http_dispatch
 
     def open(self, case_id):
         case, threads = super().open(case_id)
         self.attempt.session_id = self.session_id
         self.changed()  # durably record identity before documents or the first decision
         self.seen_threads = threads
+        observer = getattr(getattr(self, "agent", None), "observe_lab_session", None)
+        if callable(observer):
+            observer(self.run_id, self.session_id)
+        observer = getattr(getattr(self, "agent", None), "observe_lab_acknowledgement", None)
+        if callable(observer):
+            for supplier in threads:
+                observer(supplier, self.client.thread(self.session_id, supplier))
+        self._observe_server()
         return case, threads
 
+    def _observe_server(self):
+        observer = getattr(getattr(self, "agent", None), "observe_lab_server_state", None)
+        if callable(observer):
+            agent = self.agent
+            if getattr(agent, "requires_complete_history", False):
+                for supplier in agent.dataset["case"]["suppliers"]:
+                    thread = self.client.thread(self.session_id, supplier)
+                    for message in thread["messages"]:
+                        for attachment in message.get("attachments", []):
+                            attachment_id = attachment["attachment_id"]
+                            if attachment_id not in agent.attachment_bytes:
+                                agent.observe_lab_attachment(attachment_id,
+                                    self.client.attachment(self.session_id, attachment_id))
+                    agent.observe_lab_acknowledgement(supplier, thread)
+            requested_at = datetime.now(UTC)
+            state = self.client.session(self.session_id)
+            observer(state, requested_at=requested_at, received_at=datetime.now(UTC))
+
+    def attachment(self, attachment_id):
+        content = super().attachment(attachment_id)
+        observer = getattr(getattr(self, "agent", None), "observe_lab_attachment", None)
+        if callable(observer):
+            observer(attachment_id, content)
+        return content
+
     def send(self, supplier_id, message):
+        self._validate_dispatch(supplier_id, message)
         self.rounds += 1
-        return super().send(supplier_id, message)
+        reply = super().send(supplier_id, message)
+        observer = getattr(getattr(self, "agent", None), "observe_lab_acknowledgement", None)
+        if callable(observer):
+            # Read authoritative history only after a successful POST. The kit's play
+            # loop also appends local buyer requests after some 409 replies; those do
+            # not prove that the requested action was acknowledged.
+            observer(supplier_id, self.client.thread(self.session_id, supplier_id))
+        self._observe_server()
+        return reply
 
     def close(self, supplier_id, message):
+        self._validate_dispatch(supplier_id, message)
         self.rounds += 1
         return super().close(supplier_id, message)
 
+    def _validate_dispatch(self, supplier_id, message):
+        validator = getattr(getattr(self, "agent", None), "validate_lab_dispatch", None)
+        if callable(validator):
+            self._observe_server()
+            validator(supplier_id, message, self.client.thread(self.session_id, supplier_id))
 
-def collect_session(client, attempt, arena_url, *, budget):
+    def _validate_post_dispatch(self, supplier_id, message, current_thread):
+        validator = getattr(getattr(self, "agent", None), "validate_lab_dispatch", None)
+        if callable(validator):
+            # Refresh the authoritative session clock after pacing, then take the
+            # last thread read used to validate this exact payload.
+            self._observe_server()
+            thread = self.client.thread(self.session_id, supplier_id)
+            validator(supplier_id, message, thread)
+
+    def _validate_http_dispatch(self, supplier_id, message, intent):
+        validator = getattr(getattr(self, "agent", None), "validate_lab_http_dispatch", None)
+        if callable(validator):
+            validator(supplier_id, message, intent)
+
+
+def collect_session(client, attempt, arena_url, *, budget, require_complete=False):
     """Only owned session/thread reads, after negotiation; never spectator routes."""
     if not attempt.session_id:
         return
@@ -349,9 +419,14 @@ def collect_session(client, attempt, arena_url, *, budget):
             threads[supplier] = thread
             timeout_values = thread.get("timeouts", [])
             timeouts += len(timeout_values) if isinstance(timeout_values, list) else max(0, int(timeout_values or 0))
-        attempt.threads = sanitize(threads, budget=budget)
+        captured = sanitize(threads, budget=budget)
+        if require_complete and captured != threads:
+            raise ValueError("complete thread evidence exceeds Lab bounds or requires redaction")
+        attempt.threads = captured
         attempt.timeouts = timeouts
     except Exception:
+        if require_complete:
+            raise
         # Failure to read ancillary evidence never invents a negotiation score or overwrites the outcome.
         if not attempt.error:
             attempt.error = "session detail unavailable; outcome retained"
@@ -377,10 +452,15 @@ def run_experiment(
     if publisher:
         publisher.submit(run)
     budget = min(300000, 800000 // len(run.attempts))
+    deferred_terminal_collection = False
     try:
         assert_simulator_is_local(run.environment, run.arena_url)
+        first_agent = create_agent()
+        if getattr(first_agent, "local_only", False) and run.environment != "simulator":
+            raise ValueError("local-only agent requires the simulator environment")
         set_ = "practice" if run.environment == "simulator" else run.environment
-        allowed = {c["case_id"] for c in hosted(client.cases(set_))}
+        available_cases = {c["case_id"]: c for c in hosted(client.cases(set_))}
+        allowed = set(available_cases)
         if not set(run.cases) <= allowed:
             raise ValueError("requested case is not hosted in this environment")
         run.quota = quota_snapshot(client)
@@ -394,7 +474,12 @@ def run_experiment(
             started = time.monotonic()
             agent = None
             try:
-                agent = create_agent()
+                agent = first_agent if first_agent is not None else create_agent()
+                first_agent = None
+                table.agent, table.run_id = agent, run.run_id
+                case_validator = getattr(agent, "validate_lab_case", None)
+                if callable(case_validator):
+                    case_validator(available_cases[attempt.case_id])
                 result = play(table, attempt.case_id, agent)
                 score = result.get("score")
                 if score is not None and (
@@ -405,8 +490,7 @@ def run_experiment(
                 ):
                     raise ValueError("invalid arena score")
                 attempt.result = sanitize(result, budget=budget)
-                attempt.score = float(score) if score is not None else None
-                attempt.status = "completed"
+                completed_score = float(score) if score is not None else None
             except KeyboardInterrupt as error:
                 attempt.status, attempt.error = "failed", safe_error(error)
                 run.status = "interrupted"
@@ -428,19 +512,48 @@ def run_experiment(
                 attempt.threads = sanitize(table.seen_threads, budget=budget)
                 # Persist the outcome immediately before ancillary read calls.
                 persist()
-            collect_session(client, attempt, run.arena_url, budget=budget)
+            complete = getattr(agent, "requires_complete_history", False)
+            defer_terminal = getattr(agent, "requires_bounded_terminal_collection", False)
+            deferred_terminal_collection = deferred_terminal_collection or defer_terminal
+            if not defer_terminal:
+                collect_session(client, attempt, run.arena_url, budget=budget, require_complete=complete)
+            observer = getattr(agent, "observe_lab_outcome", None)
+            if not defer_terminal and callable(observer) and attempt.status == "running":
+                terminal_observer = getattr(agent, "observe_lab_terminal", None)
+                if callable(terminal_observer):
+                    terminal_observer(client.session(attempt.session_id))
+                attachment_observer = getattr(agent, "observe_lab_attachment", None)
+                if callable(attachment_observer):
+                    for thread in attempt.threads.values():
+                        for message in thread.get("messages", []):
+                            for attachment in message.get("attachments", []):
+                                attachment_observer(attachment["attachment_id"],
+                                    client.attachment(attempt.session_id, attachment["attachment_id"]))
+                observer(attempt.result, attempt.threads)
+                attempt.result["agent_metrics"] = sanitize(agent.experiment_metrics(), budget=10000)
+            evidence = None if defer_terminal else getattr(agent, "experiment_evidence", None)
+            if callable(evidence):
+                original_evidence = evidence()
+                captured = sanitize(original_evidence, budget=800000 if complete else budget)
+                if getattr(agent, "requires_complete_history", False) and captured != original_evidence:
+                    raise ValueError("complete evidence exceeds Lab bounds or requires redaction; not finalized")
+                attempt.result["agent_evidence"] = captured
+            if attempt.status == "running" and not defer_terminal:
+                attempt.score, attempt.status = completed_score, "completed"
             persist()
         if run.status == "running":
-            run.status = "completed" if all(a.status == "completed" for a in run.attempts) else "failed"
+            if not (deferred_terminal_collection and all(a.status in {"running", "completed"} for a in run.attempts)):
+                run.status = "completed" if all(a.status == "completed" for a in run.attempts) else "failed"
     except KeyboardInterrupt:
         run.status = "interrupted"
     except Exception as error:
         run.status = "failed"
         for attempt in run.attempts:
-            if attempt.status == "pending":
+            if attempt.status in {"pending", "running"}:
                 attempt.status, attempt.error = "failed", safe_error(error)
     finally:
-        run.quota = quota_snapshot(client) or run.quota
+        if not deferred_terminal_collection:
+            run.quota = quota_snapshot(client) or run.quota
         persist()
         if publisher:
             publisher.close()

@@ -260,3 +260,25 @@ Supplier assessment has four collections: observations, reported constraints, pr
 DecisionRecord is a versioned immutable graph of all ten stages, including exact selected/evaluated identity, final validation/payload hash, owned operation, acknowledged/unknown execution and feedback. The SQLite record/artifact store starts in M1; operation/state/claim atomic commits extend it in M5. Generic structured assertions and typed term fields allow later strategy bundles/routers to consume these records without changing evidence, economics or execution. Future behavior models receive read-only historical assessment/feedback views; no learning machinery is part of this delivery.
 
 Runtime defaults are one case owner and one outstanding operation. Rejected closes while authoritative status is open remain recovery_required. Unknown requests retain exact identity/bytes/reservations. Retry exhaustion does not abandon ownership. All closing triggers use the fresh shared close evaluator and final validator. Absolute deadlines and event-derived round evidence are explicit inputs. Serial first; async, shared cloud broker and multi-agent frameworks remain outside this implementation cutline.
+
+
+## T1.1d field-contract finalization — 10 October 2026
+
+C §8.9 finalizes the remaining fields within this architecture. It contains 146 concrete DTOs
+and 14 closed union exports, grouped into 16 serial handoffs of at most 15 exports. The four
+metadata DTOs and T1.1a–c foundation stay implemented; the remaining production schemas are
+not implemented by this documentation/test task. This replaces the coarse four-category
+handoff with smaller dependency-ordered assignments, not a new component architecture.
+
+Typed SupplierStandards tuples and ScenarioPolicy/EstimateScenario remove mutable mapping
+and estimate-policy ambiguities. A closed registered NamedEstimate enum distinguishes
+hypothetical estimate values/units from source facts and executable economics. Typed feedback,
+provider purpose projections and hydrated events preserve the existing port boundaries.
+Models validate immutable shapes/local invariants; services still own source truth, full-cost
+certification, registry-verified configuration, bytes/proofs, dispatch and official termination.
+
+Every export has a concrete JSON example and positive/negative tests in the existing V2 suite.
+The test-only `dto-contracts.json` is handoff data, never a runtime schema registry or production
+model generator. Explicit --v2-dto-require batch gates prevent missing models being counted as
+implementation. Copy-ready prompts and dependencies are in task-specs.md; later services,
+storage, intelligence and runtime readiness still have their separate gates.

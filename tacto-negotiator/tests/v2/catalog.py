@@ -7,6 +7,21 @@ import sys
 from pathlib import Path
 
 OWNERS = {
+    "test_semantic_validation_plan.py": "Hosted semantic validation / approval, mocked schedule and stop boundaries",
+    "test_stabilization.py": "LLM stabilization / sanitized admission and structured-output contracts",
+    "test_lab_integration.py": "LLM stabilization / actual tracked Lab V2 and semantic evaluation",
+    "test_hosted_readiness.py": "Controlled hosted-readiness / provider transport and recorded P10 local gates",
+    "test_grounded_selection.py": "Assignment 3 / T4.4 bounded strategic selection and paired pilot",
+    "test_grounded_model.py": "Assignment 2 / T3.2 T3.3 consumed gateway and grounding",
+    "test_consumer_regressions.py": "Assignment 1 / T2.1 T4.1 T5.1 consumer correctness",
+    "test_offline_decision.py": "T1.2/T2.1 bounded typed assembly and offline decision coordination",
+    "test_strategy_boundary.py": "T4.2/T4.3/T5.1 finite supplied-action boundary",
+    "test_evidence_economics.py": "T2.3 source-cost estimate / direct T4.1 integration",
+    "test_package_evaluation.py": "T4.1 direct package evaluation / consumed D4 contracts",
+    "test_official_adapter.py": "T4.1 official oracle / consumed T1.1d contracts",
+    "test_cost_projection.py": "T2.3 cost consumer / consumed T1.1d contracts",
+    "test_layered_resolver.py": "T2.1 first increment / consumed T1.1d contracts",
+    "test_remaining_dtos.py": "T1.1d finalized specification handoff",
     "test_evidence_dtos.py": "T1.1d bounded evidence DTOs",
     "test_hardening.py": "T1.1a/T1.1b/T1.1c hardening",
     "test_foundation.py": "T1.1a/T1.1b", "test_boundaries.py": "T1.1b",

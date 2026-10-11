@@ -458,7 +458,7 @@ def test_open_history_session_is_skipped_until_completed(tmp_path):
     )
 
 
-def test_live_publisher_accepts_outcome_then_evidence_and_final_status(tmp_path):
+def test_live_publisher_keeps_outcome_running_until_evidence_and_final_status(tmp_path):
     import time
 
     root = tmp_path / "runs"
@@ -473,11 +473,12 @@ def test_live_publisher_accepts_outcome_then_evidence_and_final_status(tmp_path)
             deadline = time.monotonic() + 3
             while time.monotonic() < deadline:
                 row = store.get(run.run_id)
-                if row and row["attempts"][0]["status"] == "completed":
+                if (row and row["attempts"][0]["status"] == "running"
+                        and row["attempts"][0]["result"].get("score") is not None):
                     break
                 time.sleep(0.01)
             else:
-                raise AssertionError("completed outcome was not published before evidence collection")
+                raise AssertionError("running outcome was not published before evidence collection")
             return super().session(session_id)
 
     try:

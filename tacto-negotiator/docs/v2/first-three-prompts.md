@@ -1,6 +1,12 @@
 # First three implementation prompts
 
-Give these in order to a coding model. They are deliberately small shared-contract tasks; later owners can parallelize after T1.1d/T1.2a. The complete offline loop is still required in M1. Each prompt includes its own completion boundary, so it cannot drift into V1 bug fixing or future intelligence.
+These are historical T1.1a–c assignments, now implemented with completion evidence in D.
+The current queue follows the [approved capability addendum](implementation-order-addendum-2026-10-10.md).
+The T2.1 resolver, T2.3 resolved-cost projection and T4.1 official arithmetic oracle are
+verified locally, alongside direct T4.1 package evaluation. Explicit source-cost estimate
+construction now feeds direct comparison; selection and independent validation remain next. A/B components progress
+together as their exact consumed contracts become available. The complete offline loop remains
+required for M1 completion.
 
 ## Prompt 1 — T1.1a: strict domain values and canonical serialization
 

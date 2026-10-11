@@ -1,0 +1,149 @@
+{
+  "provenance": "Recorded fake response schedule; never supplied to production prompts.",
+  "responses": [
+    {
+      "id": "delivery:0",
+      "choice": "minimum",
+      "kind": "ambiguity",
+      "fault": null
+    },
+    {
+      "id": "delivery:1",
+      "choice": "delivery",
+      "kind": "ambiguity",
+      "fault": null
+    },
+    {
+      "id": "commitment:0",
+      "choice": "minimum",
+      "kind": "ambiguity",
+      "fault": null
+    },
+    {
+      "id": "commitment:1",
+      "choice": "commitment",
+      "kind": "ambiguity",
+      "fault": null
+    },
+    {
+      "id": "refusal-scope:0",
+      "choice": "minimum",
+      "kind": "refusal",
+      "fault": null
+    },
+    {
+      "id": "refusal-scope:1",
+      "choice": "clarify:conditions",
+      "kind": "refusal",
+      "fault": null
+    },
+    {
+      "id": "conditional:0",
+      "choice": "clarify:conditions",
+      "kind": "conditional_offer",
+      "fault": null
+    },
+    {
+      "id": "conditional:1",
+      "choice": "commitment",
+      "kind": "conditional_offer",
+      "fault": null
+    },
+    {
+      "id": "approval:0",
+      "choice": "clarify:approval",
+      "kind": "approval_requirement",
+      "fault": null
+    },
+    {
+      "id": "approval:1",
+      "choice": "minimum",
+      "kind": "request",
+      "fault": null
+    },
+    {
+      "id": "irrelevant:0",
+      "choice": "minimum",
+      "kind": "ambiguity",
+      "fault": null
+    },
+    {
+      "id": "irrelevant:1",
+      "choice": "minimum",
+      "kind": "ambiguity",
+      "fault": null
+    },
+    {
+      "id": "unsupported:0",
+      "choice": "minimum",
+      "kind": "stated_driver",
+      "fault": null
+    },
+    {
+      "id": "unsupported:1",
+      "choice": "minimum",
+      "kind": "stated_driver",
+      "fault": null
+    },
+    {
+      "id": "adversarial:0",
+      "choice": "delivery",
+      "kind": "ambiguity",
+      "fault": null
+    },
+    {
+      "id": "adversarial:1",
+      "choice": "delivery",
+      "kind": "ambiguity",
+      "fault": null
+    },
+    {
+      "id": "contradiction:0",
+      "choice": "clarify:terms",
+      "kind": "constraint",
+      "fault": null
+    },
+    {
+      "id": "contradiction:1",
+      "choice": "clarify:conditions",
+      "kind": "conditional_offer",
+      "fault": null
+    },
+    {
+      "id": "forged:0",
+      "choice": "delivery",
+      "kind": "ambiguity",
+      "fault": "forged"
+    },
+    {
+      "id": "forged:1",
+      "choice": "delivery",
+      "kind": "ambiguity",
+      "fault": "quote"
+    },
+    {
+      "id": "cost-only:0",
+      "choice": "minimum",
+      "kind": "ambiguity",
+      "fault": null
+    },
+    {
+      "id": "cost-only:1",
+      "choice": "minimum",
+      "kind": "ambiguity",
+      "fault": null
+    },
+    {
+      "id": "conditional-paraphrase:0",
+      "choice": "delivery",
+      "kind": "conditional_offer",
+      "fault": null
+    },
+    {
+      "id": "conditional-paraphrase:1",
+      "choice": "delivery",
+      "kind": "conditional_offer",
+      "fault": null
+    }
+  ]
+}

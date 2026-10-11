@@ -1,6 +1,12 @@
 # V2 implementation task specifications
 
-This expands [D](D-roadmap.md), not the scope. Contracts are [C §8](C-interfaces.md); test names/files are in the [catalog](test-catalog.md). All tasks are **planned**. Current tests/fixtures and documentation are preparation, not production implementation. All paths below are relative to tacto-negotiator. Use the existing locked Python/Pydantic environment. No dependency changes, V1 behavior edits, hosted calls, default promotion or branch merge are included.
+This expands [D](D-roadmap.md), not the scope. Contracts are [C §8](C-interfaces.md); test names/files are in the [catalog](test-catalog.md). Completion evidence is recorded in D/the tracker; unspecified task portions remain **planned**. Tests/fixtures alone are preparation, not production implementation. All paths below are relative to tacto-negotiator. Use the existing locked Python/Pydantic environment. No dependency changes, V1 behavior edits, hosted calls, default promotion or branch merge are included.
+
+**Approved implementation order:** [capability addendum](implementation-order-addendum-2026-10-10.md).
+Checkpoints A and B progress together wherever consumed contracts permit independent component
+work. Use dependency-complete symbol groups, complete unions, and serial shared-model ownership;
+whole T1.1d completion is not a prerequisite to every consumer. Intermediate gates name their
+required symbols/tests; original full-parent and eventual full-contract acceptance remain intact.
 
 ## Common task contract
 
@@ -30,7 +36,7 @@ For every task record its source revision, targeted passing tests, remaining exp
 
 ### T1.1d — Remaining pipeline/state DTOs
 
-**Files:** extend core/models.py; create core/events.py if event definitions become substantial. **Dependencies:** a–c. **Instructions:** implement remaining C tables in four serial, reviewable batches: (1) evidence/case/economic context, (2) intents/candidates/evaluations/selection, (3) rendering/validation/operations/budgets, (4) state/events/feedback and gateway/model results. Each batch is a separate handoff of at most 10–15 closely related models; list exports and examples before coding. No generic payload dictionary replaces the declared tagged union. Event tags/transitions follow C §8.7. Raw ModelResult retains malformed content for interpreter validation. Models alone must not set server terminal truth.
+**Files:** extend core/models.py; create core/events.py if event definitions become substantial. **Dependencies:** a–c. **Instructions:** implement dependency-complete consumed symbols from the D1–D16 inventories below, interleaved with their first consumers. These refine the original evidence/case/economics, candidate/selection, rendering/operations and state/event/result categories. Every original batch contains at most 15 exports; its model inventory, field dependencies, examples and owned tests remain fixed by C §8.9. Partial batches remain incomplete and require explicit symbol gates; shared-model edits remain serial. No generic payload dictionary replaces the declared tagged union. Event tags/transitions follow C §8.7. Raw ModelResult retains malformed content for interpreter validation. Models alone must not set server terminal truth.
 
 **Reuse:** official case/message fields, not existing mutable runtime classes. **Tests:** foundation/ports/record tests; add decoding examples in fixture bindings for each batch, preserving immutable tuple fields. **Accept:** the T1.2 codec can assemble typed P10, STABILISE, action, event and stage objects without model_construct. **Exclude:** every component algorithm. These batches are a shared-contract dependency, not parallel edits to models.py.
 
@@ -94,11 +100,11 @@ These preserve the existing parent IDs. Large parents split into the listed outp
 
 ## Independent work after contracts freeze
 
-T1.1 batches share models.py and merge serially. After T1.1d plus fixture codec, evidence resolver, official-economic adapter, interpreter with fake ModelGateway, final validator with fake economic/claim ports, and state/event store with dummy valid actions can proceed in separate branches. Each owns only its package; changes to shared models/tests require contract-owner review. Strategy begins with recorded assessment/evaluations; interpreter does not wait for a real provider. M1 integration remains its own owner and proves substitutability before modules are combined.
+T1.1 consumed-symbol handoffs share models.py and merge serially. As soon as a component's exact type closure exists, its evidence resolver, official-economic adapter, interpreter, validator or state service can be tested directly with validated inputs; neither the full codec nor all T1.1d batches are a universal prerequisite. Each owns only its package; changes to shared models/tests require contract-owner review. Strategy begins with recorded assessment/evaluations; interpreter does not wait for a real provider. M1 integration remains its own owner and proves substitutability before modules are combined.
 
 Suggested owners: Decision owns strategy/selection/assessment coordination; Evidence owns resolver/prep/claims; Runtime owns store/coordinator/gateway; Evaluation owns fixture labels/catalog/gates. Names beyond the existing Decision owner are unassigned. The plan prepares delegation; no coding agents were launched in this preparation.
 
-### T1.1d first bounded evidence handoff — approved 10 October 2026
+### T1.1d first bounded evidence handoff — historical scope at a88bf86
 
 Source: `6880d7a`. The requested inventory is exactly these twelve models:
 EvidenceScope, Provenance, TemporalValidity, DisclosureRule, IndexFact, ScorecardFact,
@@ -133,3 +139,342 @@ currently says "from method's registered enum". No registry values are declared.
 contract must explicitly choose a registered method-specific enum (and enumerate values) or
 revise to a validated string with defined validation/authority rules. This handoff preserves
 the registry requirement and does not silently choose the string alternative.
+
+
+### Final T1.1d implementation batches — contract revision 10 October 2026
+
+This supersedes the prior four coarse DTO categories and their blocked field inventories.
+The architecture is unchanged; the detailed order avoids handoffs larger than 15 exports.
+Four implemented metadata DTOs and all foundation classes are prerequisites, not reimplemented.
+C §8.9 is the exact field/validation/default/ownership contract. `tests/v2/dto-contracts.json`
+is test-only machine-readable examples, not a production DTO/schema generator.
+No field-level ambiguity remains in these declared exports; implementation defects must be
+reported and corrected without silently changing this contract or examples.
+
+**Owned tests for every batch:** contracts/test_remaining_dtos.py checks valid example,
+round-trip/frozen object, exact field inventory/defaults, a specific negative mutation,
+unknown fields and wrong version. Every missing member/union is a required-symbol failure
+when that batch is gated, while later batches may remain explicit UNIMPLEMENTED DTO xfails.
+The existing require() absent-module semantics are untouched. This new narrowly scoped
+symbol gate exists because core.models already exists; missing DTOs are not missing modules.
+Never xfail a present symbol, missing function, broken import or failed assertion.
+
+**Dependency graph:** D1 → D2; D2 → D3; D3 → D4; D4 → D5; D3 → D6;
+D4/D5/D6 → D7; D7 → D8; D8 → D9; D6/D9 → D10; D2/D4/D6/D9/D10 → D11;
+D2/D5/D6 → D12; D12 → D13; D6/D9/D10 → D14; D14/D10 → D15;
+D11/D13/D15 → D16. These are batch-level reference relationships, not a mandatory whole-batch
+barrier. Follow the exact field/union dependency closure for each consumer; serialize edits to
+shared models.py. Record partial-batch symbols explicitly and retain full-batch completion gates.
+D3's ResolvedTerms/FieldOrigin precede AvailableAlternative; D4's helpers precede EconomicContext;
+D10 feedback helpers precede StrategicState; resolve all remaining forward references explicitly.
+CandidateResearch remains a Protocol in core/ports.py, never a new DTO or mutable research object.
+Offline RecordedInputs remains T1.2 adapter scope and is not a live domain mega-model.
+
+**Copy-ready prompts (one separate implementation commit per batch):**
+
+#### D1 (8 exports)
+
+```text
+Implement T1.1d D1 only, after its preceding DTO dependencies pass.
+Exports: IndexFact, ScorecardFact, CostFact, QuoteFact, ContractFact, ForecastFact, OrderPriceFact, TextRecord.
+Read C-interfaces.md §8.9 D1, task-specs.md dependency graph,
+and tests/v2/dto-contracts.json entries for these exact names.
+Hydrate examples via tests.v2.dto_spec.example(name); use ordinary validated constructors.
+Implement production models/aliases in core/models.py. Event models may live in core/events.py
+only with explicit named re-exports from models.py; do not change Protocols or create services.
+Preserve the hardened foundation, four metadata DTOs, V1 and every golden fixture.
+No generic dictionaries, ambient registry discovery, model_construct or service algorithms.
+Run .venv/bin/python -m pytest -q tests/v2/contracts/test_remaining_dtos.py --v2-dto-require D1
+Require every previously completed batch too, then run foundation/hardening/boundary tests,
+complete tests/v2 with --v2-require core --v2-require config, and Ruff on V2 source/tests.
+Report new passes, later absent-symbol/module xfails and unexpected regressions separately.
+Update D-roadmap.md with exact evidence; commit this batch separately. Do not implement later batches.
+```
+
+#### D2 (12 exports)
+
+```text
+Implement T1.1d D2 only, after its preceding DTO dependencies pass.
+Exports: NamedEstimate, EstimateRecord, EvidenceRecord, FileDigest, SourceManifest, ScopeIndex, PreparedEvidence, Conflict, RelevanceRecord, EvidenceContext, ResolvedCostInput, EvidencePayload.
+Read C-interfaces.md §8.9 D2, task-specs.md dependency graph,
+and tests/v2/dto-contracts.json entries for these exact names.
+Hydrate examples via tests.v2.dto_spec.example(name); use ordinary validated constructors.
+Implement production models/aliases in core/models.py. Event models may live in core/events.py
+only with explicit named re-exports from models.py; do not change Protocols or create services.
+Preserve the hardened foundation, four metadata DTOs, V1 and every golden fixture.
+No generic dictionaries, ambient registry discovery, model_construct or service algorithms.
+Run .venv/bin/python -m pytest -q tests/v2/contracts/test_remaining_dtos.py --v2-dto-require D2
+Require every previously completed batch too, then run foundation/hardening/boundary tests,
+complete tests/v2 with --v2-require core --v2-require config, and Ruff on V2 source/tests.
+Report new passes, later absent-symbol/module xfails and unexpected regressions separately.
+Update D-roadmap.md with exact evidence; commit this batch separately. Do not implement later batches.
+```
+
+#### D3 (13 exports)
+
+```text
+Implement T1.1d D3 only, after its preceding DTO dependencies pass.
+Exports: PartIdentity, TermOption, MustHave, FreightRate, IndexPath, AvailableAlternative, UnavailableAlternative, FieldOrigin, ResolvedTerms, ResolvedStandards, BuyerEconomics, CaseContract, ExecutableAlternative.
+Read C-interfaces.md §8.9 D3, task-specs.md dependency graph,
+and tests/v2/dto-contracts.json entries for these exact names.
+Hydrate examples via tests.v2.dto_spec.example(name); use ordinary validated constructors.
+Implement production models/aliases in core/models.py. Event models may live in core/events.py
+only with explicit named re-exports from models.py; do not change Protocols or create services.
+Preserve the hardened foundation, four metadata DTOs, V1 and every golden fixture.
+No generic dictionaries, ambient registry discovery, model_construct or service algorithms.
+Run .venv/bin/python -m pytest -q tests/v2/contracts/test_remaining_dtos.py --v2-dto-require D3
+Require every previously completed batch too, then run foundation/hardening/boundary tests,
+complete tests/v2 with --v2-require core --v2-require config, and Ruff on V2 source/tests.
+Report new passes, later absent-symbol/module xfails and unexpected regressions separately.
+Update D-roadmap.md with exact evidence; commit this batch separately. Do not implement later batches.
+```
+
+#### D4 (11 exports)
+
+```text
+Implement T1.1d D4 only, after its preceding DTO dependencies pass.
+Exports: SupplierStandards, SupplierEstimate, EstimateScenario, ScenarioPolicy, PriceInterval, CostPolicy, EconomicContext, CostComponent, ScenarioCost, PackageEvaluation, OfficialCostResult.
+Read C-interfaces.md §8.9 D4, task-specs.md dependency graph,
+and tests/v2/dto-contracts.json entries for these exact names.
+Hydrate examples via tests.v2.dto_spec.example(name); use ordinary validated constructors.
+Implement production models/aliases in core/models.py. Event models may live in core/events.py
+only with explicit named re-exports from models.py; do not change Protocols or create services.
+Preserve the hardened foundation, four metadata DTOs, V1 and every golden fixture.
+No generic dictionaries, ambient registry discovery, model_construct or service algorithms.
+Run .venv/bin/python -m pytest -q tests/v2/contracts/test_remaining_dtos.py --v2-dto-require D4
+Require every previously completed batch too, then run foundation/hardening/boundary tests,
+complete tests/v2 with --v2-require core --v2-require config, and Ruff on V2 source/tests.
+Report new passes, later absent-symbol/module xfails and unexpected regressions separately.
+Update D-roadmap.md with exact evidence; commit this batch separately. Do not implement later batches.
+```
+
+#### D5 (11 exports)
+
+```text
+Implement T1.1d D5 only, after its preceding DTO dependencies pass.
+Exports: StrategyIntent, OfferAction, QuestionAction, CloseRequest, CandidateAction, GenerationResult, IntentBatch, EvaluatedCandidate, EvaluationBatch, NegotiationDecision, CandidateContents.
+Read C-interfaces.md §8.9 D5, task-specs.md dependency graph,
+and tests/v2/dto-contracts.json entries for these exact names.
+Hydrate examples via tests.v2.dto_spec.example(name); use ordinary validated constructors.
+Implement production models/aliases in core/models.py. Event models may live in core/events.py
+only with explicit named re-exports from models.py; do not change Protocols or create services.
+Preserve the hardened foundation, four metadata DTOs, V1 and every golden fixture.
+No generic dictionaries, ambient registry discovery, model_construct or service algorithms.
+Run .venv/bin/python -m pytest -q tests/v2/contracts/test_remaining_dtos.py --v2-dto-require D5
+Require every previously completed batch too, then run foundation/hardening/boundary tests,
+complete tests/v2 with --v2-require core --v2-require config, and Ruff on V2 source/tests.
+Report new passes, later absent-symbol/module xfails and unexpected regressions separately.
+Update D-roadmap.md with exact evidence; commit this batch separately. Do not implement later batches.
+```
+
+#### D6 (10 exports)
+
+```text
+Implement T1.1d D6 only, after its preceding DTO dependencies pass.
+Exports: ObservedSheet, DocumentRecord, ClaimCheckResult, ConversationMessage, ConversationView, ClockEvidence, RoundEvidence, TerminalEvidence, ServerThread, ServerState.
+Read C-interfaces.md §8.9 D6, task-specs.md dependency graph,
+and tests/v2/dto-contracts.json entries for these exact names.
+Hydrate examples via tests.v2.dto_spec.example(name); use ordinary validated constructors.
+Implement production models/aliases in core/models.py. Event models may live in core/events.py
+only with explicit named re-exports from models.py; do not change Protocols or create services.
+Preserve the hardened foundation, four metadata DTOs, V1 and every golden fixture.
+No generic dictionaries, ambient registry discovery, model_construct or service algorithms.
+Run .venv/bin/python -m pytest -q tests/v2/contracts/test_remaining_dtos.py --v2-dto-require D6
+Require every previously completed batch too, then run foundation/hardening/boundary tests,
+complete tests/v2 with --v2-require core --v2-require config, and Ruff on V2 source/tests.
+Report new passes, later absent-symbol/module xfails and unexpected regressions separately.
+Update D-roadmap.md with exact evidence; commit this batch separately. Do not implement later batches.
+```
+
+#### D7 (11 exports)
+
+```text
+Implement T1.1d D7 only, after its preceding DTO dependencies pass.
+Exports: ClaimWindow, ClaimCandidate, VerifiedClaim, VerifiedClaimResult, RejectedClaimResult, Accept, WalkAway, AlternativeComparison, CloseDecision, ClosingAction, ClaimVerificationResult.
+Read C-interfaces.md §8.9 D7, task-specs.md dependency graph,
+and tests/v2/dto-contracts.json entries for these exact names.
+Hydrate examples via tests.v2.dto_spec.example(name); use ordinary validated constructors.
+Implement production models/aliases in core/models.py. Event models may live in core/events.py
+only with explicit named re-exports from models.py; do not change Protocols or create services.
+Preserve the hardened foundation, four metadata DTOs, V1 and every golden fixture.
+No generic dictionaries, ambient registry discovery, model_construct or service algorithms.
+Run .venv/bin/python -m pytest -q tests/v2/contracts/test_remaining_dtos.py --v2-dto-require D7
+Require every previously completed batch too, then run foundation/hardening/boundary tests,
+complete tests/v2 with --v2-require core --v2-require config, and Ruff on V2 source/tests.
+Report new passes, later absent-symbol/module xfails and unexpected regressions separately.
+Update D-roadmap.md with exact evidence; commit this batch separately. Do not implement later batches.
+```
+
+#### D8 (8 exports)
+
+```text
+Implement T1.1d D8 only, after its preceding DTO dependencies pass.
+Exports: AcceptPayload, WalkPayload, OutboundAttachment, MessagePayload, RenderedAction, CheckOutcome, ValidationReport, WireAction.
+Read C-interfaces.md §8.9 D8, task-specs.md dependency graph,
+and tests/v2/dto-contracts.json entries for these exact names.
+Hydrate examples via tests.v2.dto_spec.example(name); use ordinary validated constructors.
+Implement production models/aliases in core/models.py. Event models may live in core/events.py
+only with explicit named re-exports from models.py; do not change Protocols or create services.
+Preserve the hardened foundation, four metadata DTOs, V1 and every golden fixture.
+No generic dictionaries, ambient registry discovery, model_construct or service algorithms.
+Run .venv/bin/python -m pytest -q tests/v2/contracts/test_remaining_dtos.py --v2-dto-require D8
+Require every previously completed batch too, then run foundation/hardening/boundary tests,
+complete tests/v2 with --v2-require core --v2-require config, and Ruff on V2 source/tests.
+Report new passes, later absent-symbol/module xfails and unexpected regressions separately.
+Update D-roadmap.md with exact evidence; commit this batch separately. Do not implement later batches.
+```
+
+#### D9 (8 exports)
+
+```text
+Implement T1.1d D9 only, after its preceding DTO dependencies pass.
+Exports: ValidatedAction, ValidActionResult, InvalidActionResult, DecisionBudget, TransportBudget, PendingOperation, DispatchPermit, ValidationResult.
+Read C-interfaces.md §8.9 D9, task-specs.md dependency graph,
+and tests/v2/dto-contracts.json entries for these exact names.
+Hydrate examples via tests.v2.dto_spec.example(name); use ordinary validated constructors.
+Implement production models/aliases in core/models.py. Event models may live in core/events.py
+only with explicit named re-exports from models.py; do not change Protocols or create services.
+Preserve the hardened foundation, four metadata DTOs, V1 and every golden fixture.
+No generic dictionaries, ambient registry discovery, model_construct or service algorithms.
+Run .venv/bin/python -m pytest -q tests/v2/contracts/test_remaining_dtos.py --v2-dto-require D9
+Require every previously completed batch too, then run foundation/hardening/boundary tests,
+complete tests/v2 with --v2-require core --v2-require config, and Ruff on V2 source/tests.
+Report new passes, later absent-symbol/module xfails and unexpected regressions separately.
+Update D-roadmap.md with exact evidence; commit this batch separately. Do not implement later batches.
+```
+
+#### D10 (12 exports)
+
+```text
+Implement T1.1d D10 only, after its preceding DTO dependencies pass.
+Exports: StrategyAttempt, RefusedExchange, ClaimUsage, OutstandingQuestion, StrategyMemory, PackageChange, ClaimAttribution, HypothesisSupport, QuestionUpdate, FeedbackObservation, StrategicState, NegotiationState.
+Read C-interfaces.md §8.9 D10, task-specs.md dependency graph,
+and tests/v2/dto-contracts.json entries for these exact names.
+Hydrate examples via tests.v2.dto_spec.example(name); use ordinary validated constructors.
+Implement production models/aliases in core/models.py. Event models may live in core/events.py
+only with explicit named re-exports from models.py; do not change Protocols or create services.
+Preserve the hardened foundation, four metadata DTOs, V1 and every golden fixture.
+No generic dictionaries, ambient registry discovery, model_construct or service algorithms.
+Run .venv/bin/python -m pytest -q tests/v2/contracts/test_remaining_dtos.py --v2-dto-require D10
+Require every previously completed batch too, then run foundation/hardening/boundary tests,
+complete tests/v2 with --v2-require core --v2-require config, and Ruff on V2 source/tests.
+Report new passes, later absent-symbol/module xfails and unexpected regressions separately.
+Update D-roadmap.md with exact evidence; commit this batch separately. Do not implement later batches.
+```
+
+#### D11 (7 exports)
+
+```text
+Implement T1.1d D11 only, after its preceding DTO dependencies pass.
+Exports: NegotiationContext, DecisionSnapshot, SelectedOutcome, RequestCloseOutcome, HoldOutcome, CannotDecideOutcome, DecisionOutcome.
+Read C-interfaces.md §8.9 D11, task-specs.md dependency graph,
+and tests/v2/dto-contracts.json entries for these exact names.
+Hydrate examples via tests.v2.dto_spec.example(name); use ordinary validated constructors.
+Implement production models/aliases in core/models.py. Event models may live in core/events.py
+only with explicit named re-exports from models.py; do not change Protocols or create services.
+Preserve the hardened foundation, four metadata DTOs, V1 and every golden fixture.
+No generic dictionaries, ambient registry discovery, model_construct or service algorithms.
+Run .venv/bin/python -m pytest -q tests/v2/contracts/test_remaining_dtos.py --v2-dto-require D11
+Require every previously completed batch too, then run foundation/hardening/boundary tests,
+complete tests/v2 with --v2-require core --v2-require config, and Ruff on V2 source/tests.
+Report new passes, later absent-symbol/module xfails and unexpected regressions separately.
+Update D-roadmap.md with exact evidence; commit this batch separately. Do not implement later batches.
+```
+
+#### D12 (11 exports)
+
+```text
+Implement T1.1d D12 only, after its preceding DTO dependencies pass.
+Exports: DocumentBytes, ServerObservation, GatewayResponse, GatewayRejection, GatewayUnknown, InterpretInput, SelectionOption, SelectInput, SimulateInput, GatewayResult, ModelInput.
+Read C-interfaces.md §8.9 D12, task-specs.md dependency graph,
+and tests/v2/dto-contracts.json entries for these exact names.
+Hydrate examples via tests.v2.dto_spec.example(name); use ordinary validated constructors.
+Implement production models/aliases in core/models.py. Event models may live in core/events.py
+only with explicit named re-exports from models.py; do not change Protocols or create services.
+Preserve the hardened foundation, four metadata DTOs, V1 and every golden fixture.
+No generic dictionaries, ambient registry discovery, model_construct or service algorithms.
+Run .venv/bin/python -m pytest -q tests/v2/contracts/test_remaining_dtos.py --v2-dto-require D12
+Require every previously completed batch too, then run foundation/hardening/boundary tests,
+complete tests/v2 with --v2-require core --v2-require config, and Ruff on V2 source/tests.
+Report new passes, later absent-symbol/module xfails and unexpected regressions separately.
+Update D-roadmap.md with exact evidence; commit this batch separately. Do not implement later batches.
+```
+
+#### D13 (11 exports)
+
+```text
+Implement T1.1d D13 only, after its preceding DTO dependencies pass.
+Exports: ModelRequest, ModelBudget, ModelUsage, ModelSuccess, ModelRefused, ModelInvalid, ModelTimeout, ModelCapacityUnavailable, ModelTransportFailure, SelectorResponse, ModelResult.
+Read C-interfaces.md §8.9 D13, task-specs.md dependency graph,
+and tests/v2/dto-contracts.json entries for these exact names.
+Hydrate examples via tests.v2.dto_spec.example(name); use ordinary validated constructors.
+Implement production models/aliases in core/models.py. Event models may live in core/events.py
+only with explicit named re-exports from models.py; do not change Protocols or create services.
+Preserve the hardened foundation, four metadata DTOs, V1 and every golden fixture.
+No generic dictionaries, ambient registry discovery, model_construct or service algorithms.
+Run .venv/bin/python -m pytest -q tests/v2/contracts/test_remaining_dtos.py --v2-dto-require D13
+Require every previously completed batch too, then run foundation/hardening/boundary tests,
+complete tests/v2 with --v2-require core --v2-require config, and Ruff on V2 source/tests.
+Report new passes, later absent-symbol/module xfails and unexpected regressions separately.
+Update D-roadmap.md with exact evidence; commit this batch separately. Do not implement later batches.
+```
+
+#### D14 (8 exports)
+
+```text
+Implement T1.1d D14 only, after its preceding DTO dependencies pass.
+Exports: SessionObserved, MessageObserved, DocumentObserved, AssessmentRecorded, DecisionRecorded, OperationPrepared, OperationSubmitted, OperationAcknowledged.
+Read C-interfaces.md §8.9 D14, task-specs.md dependency graph,
+and tests/v2/dto-contracts.json entries for these exact names.
+Hydrate examples via tests.v2.dto_spec.example(name); use ordinary validated constructors.
+Implement production models/aliases in core/models.py. Event models may live in core/events.py
+only with explicit named re-exports from models.py; do not change Protocols or create services.
+Preserve the hardened foundation, four metadata DTOs, V1 and every golden fixture.
+No generic dictionaries, ambient registry discovery, model_construct or service algorithms.
+Run .venv/bin/python -m pytest -q tests/v2/contracts/test_remaining_dtos.py --v2-dto-require D14
+Require every previously completed batch too, then run foundation/hardening/boundary tests,
+complete tests/v2 with --v2-require core --v2-require config, and Ruff on V2 source/tests.
+Report new passes, later absent-symbol/module xfails and unexpected regressions separately.
+Update D-roadmap.md with exact evidence; commit this batch separately. Do not implement later batches.
+```
+
+#### D15 (14 exports)
+
+```text
+Implement T1.1d D15 only, after its preceding DTO dependencies pass.
+Exports: OperationRejected, OperationUncertain, ClaimReserved, ClaimReleased, FeedbackObserved, TerminalConfirmed, RecoveryRequired, NegotiationEvent, EventProposal, DecisionCommit, CommittedResult, ConflictResult, EventPayload, CommitResult.
+Read C-interfaces.md §8.9 D15, task-specs.md dependency graph,
+and tests/v2/dto-contracts.json entries for these exact names.
+Hydrate examples via tests.v2.dto_spec.example(name); use ordinary validated constructors.
+Implement production models/aliases in core/models.py. Event models may live in core/events.py
+only with explicit named re-exports from models.py; do not change Protocols or create services.
+Preserve the hardened foundation, four metadata DTOs, V1 and every golden fixture.
+No generic dictionaries, ambient registry discovery, model_construct or service algorithms.
+Run .venv/bin/python -m pytest -q tests/v2/contracts/test_remaining_dtos.py --v2-dto-require D15
+Require every previously completed batch too, then run foundation/hardening/boundary tests,
+complete tests/v2 with --v2-require core --v2-require config, and Ruff on V2 source/tests.
+Report new passes, later absent-symbol/module xfails and unexpected regressions separately.
+Update D-roadmap.md with exact evidence; commit this batch separately. Do not implement later batches.
+```
+
+#### D16 (5 exports)
+
+```text
+Implement T1.1d D16 only, after its preceding DTO dependencies pass.
+Exports: AcknowledgedExecution, RejectedExecution, UncertainExecution, ReplayResult, ExecutionResult.
+Read C-interfaces.md §8.9 D16, task-specs.md dependency graph,
+and tests/v2/dto-contracts.json entries for these exact names.
+Hydrate examples via tests.v2.dto_spec.example(name); use ordinary validated constructors.
+Implement production models/aliases in core/models.py. Event models may live in core/events.py
+only with explicit named re-exports from models.py; do not change Protocols or create services.
+Preserve the hardened foundation, four metadata DTOs, V1 and every golden fixture.
+No generic dictionaries, ambient registry discovery, model_construct or service algorithms.
+Run .venv/bin/python -m pytest -q tests/v2/contracts/test_remaining_dtos.py --v2-dto-require D16
+Require every previously completed batch too, then run foundation/hardening/boundary tests,
+complete tests/v2 with --v2-require core --v2-require config, and Ruff on V2 source/tests.
+Report new passes, later absent-symbol/module xfails and unexpected regressions separately.
+Update D-roadmap.md with exact evidence; commit this batch separately. Do not implement later batches.
+```
+
+The global `--v2-require all` milestone gate also requires every declared remaining DTO.
+Batch gates do not weaken that final all-components/all-schemas requirement.
