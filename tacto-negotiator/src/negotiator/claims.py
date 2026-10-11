@@ -498,14 +498,21 @@ def public_rival_quotes(case: dict, package=None) -> list[tuple[Claim, dict]]:
 
 
 def _unit_price(fact: dict) -> float | None:
+    """Price of a `po:` / `quote:` line on the per-unit basis the case negotiates in, or None.
+
+    Fails closed on `price_unit` other than 1: ten parts of the package are priced per 100 / 1000
+    (e.g. part:370020 at EUR 84.34 per 100 kg) and the case asks are quoted on that same basis, so
+    dividing by `price_unit` would state "EUR 0.84 per unit" next to a 94.44 ask - a wrong number the
+    arena checks against `unit_price` 84.34. Such lines yield no PO / own-quote claim at all
+    (`fixed_volume.ladder`, `history_claims`), and `_check` rejects a claim built on them."""
     if not isinstance(fact, dict) or not _number(fact.get("unit_price")) or fact["unit_price"] < 0:
         return None
     unit = fact.get("price_unit", 1)
     if unit is None:
         unit = 1
-    if not _number(unit) or unit <= 0 or fact.get("currency", "EUR") != "EUR":
+    if not _number(unit) or unit != 1 or fact.get("currency", "EUR") != "EUR":
         return None
-    return fact["unit_price"] / unit
+    return float(fact["unit_price"])
 
 
 def history_claims(case: dict, package=None) -> list[Claim]:

@@ -44,6 +44,13 @@ TIME_GUARD_ROUNDS = 2
 ROUND_ESTIMATE_S = 120.0
 
 
+def _typed(case):
+    """The case with a `type` key: a listing without one (not in the schema, but seen in audit fixtures)
+    must be inert - every type gate is a membership / equality test, so None matches nothing - instead
+    of a KeyError on every round that drops the thread into the runner's fallback decision."""
+    return case if "type" in case else {**case, "type": None}
+
+
 def standing(case, events, supplier=None):
     """(term_sheet_id, terms) of the cheapest eligible sheet in the supplier's latest message, else
     of its cheapest priced sheet, else (None, {})."""
@@ -185,6 +192,7 @@ class PackageAgent:
         self.time_left_fn = None
         self.round_estimate_fn = None
         self.time_guard_rounds = TIME_GUARD_ROUNDS
+        self._fixed_volume_plans = {}
 
     # -- wave time guard ----------------------------------------------------------------------
     def time_guard(self):
@@ -990,6 +998,7 @@ class PackageAgent:
     def decide(self, case, threads):
         """Serial wrapper: final-offer threads first, then the least-worked open thread; the first
         proposal that is not a hold is sent, and a close request is resolved by the evaluator."""
+        case = _typed(case)
         if self.policy and case["type"] in self.policy.cost_target_types:
             move = self._cost_target_move(case, threads)
             if move is not None:
@@ -1027,6 +1036,7 @@ class PackageAgent:
         return self._close(case, threads, reason)
 
     def propose(self, case, threads, supplier_id, *, defer_evidence=False):
+        case = _typed(case)
         if supplier_id not in self.model_seen:
             self.prepare_email(case, threads, supplier_id)
         if self.policy:
@@ -1067,8 +1077,11 @@ class PackageAgent:
         return move if defer_evidence else self._enrich_evidence(case, threads, supplier_id, move)
 
     def _enrich_evidence(self, case, threads, supplier_id, move):
-        if self.policy and case["type"] in self.policy.fixed_volume_types:
+        if (self.policy and case["type"] in self.policy.fixed_volume_types
+                and self._fixed_volume_plan(case, supplier_id) is not None):
             return move  # the fixed-volume ladder owns this thread's claims (one per round, fixed order)
+        # A fixed_volume case without a plan (no fixed volume, no shared forecast for the part, or a volume
+        # that does not reconcile with the briefing) gets the generic evidence path (index falls etc.).
         if self.evidence and self.evidence.eligible(case, move):
             from .context import DATA_ERRORS
 
@@ -1153,6 +1166,21 @@ class PackageAgent:
         self._log(case, "bundle_volume", sid, new=p["new"], total=p["total"], refs=ids)
         return {**move, "message": {**msg, "body": body, **({"refs": refs} if refs else {})}}
 
+    def _fixed_volume_plan(self, case, sid):
+        """`fixed_volume.plan` for (case, supplier), cached per agent (the package and the case are
+        static for a session); None when the data package is missing or the plan does not reconcile."""
+        key = (case.get("case_id"), sid)
+        if key not in self._fixed_volume_plans:
+            from . import fixed_volume
+            from .context import DATA_ERRORS
+            from .dossiers import load_package
+
+            try:
+                self._fixed_volume_plans[key] = fixed_volume.plan(case, load_package(), sid)
+            except DATA_ERRORS:
+                self._fixed_volume_plans[key] = None
+        return self._fixed_volume_plans[key]
+
     def _fixed_volume(self, case, threads, sid, move):
         """Opt-in: answer the volume question with the fixed volume, the forecast file and its fc claim
         (first offer); afterwards one new checkable ladder claim per offer (orders at its lowest price,
@@ -1166,12 +1194,12 @@ class PackageAgent:
         from .context import DATA_ERRORS
         from .dossiers import load_package
 
+        p = self._fixed_volume_plan(case, sid)
+        if not p:
+            return move
         try:
             package = load_package()
-            p = fixed_volume.plan(case, package, sid)
         except DATA_ERRORS:
-            p = None
-        if not p:
             return move
         sheet = (msg.get("term_sheets") or [{}])[0]
         terms = sheet.get("terms") or sheet

@@ -16,10 +16,29 @@ from dataclasses import replace
 from . import claims as claims_mod
 
 _WHICH_VOLUME = re.compile(r"(which volume|volume forecast|volume figures|exact volume)", re.I)
+# Briefing line "Need: 94800 kg a year" / "Need: 5510 x 100 kg a year" (price units x pack size, unit).
+_NEED = re.compile(r"Need:\s*(\d[\d,]*)(?:\s*[x×]\s*(\d[\d,]*))?\s*([A-Za-z]+)\s+a\s+year", re.I)
+_UNIT_LABEL = {"pc": "units", "pcs": "units", "piece": "units", "pieces": "units"}
+
+
+def need(case) -> tuple[int, int, str] | None:
+    """(count, multiplier, unit) from the briefing's `Need:` line, or None when it is not there.
+    `count` is in the case's price units (= `fixed_terms.volume_per_year`); the real quantity is
+    count x multiplier in `unit` (part:370020: "5510 x 100 kg" = 551,000 kg, priced per 100 kg)."""
+    m = _NEED.search(case.get("briefing") or "")
+    if not m:
+        return None
+    count = int(m.group(1).replace(",", ""))
+    mult = int(m.group(2).replace(",", "")) if m.group(2) else 1
+    unit = m.group(3).lower()
+    return count, mult, _UNIT_LABEL.get(unit, unit)
 
 
 def plan(case, package, supplier) -> dict | None:
-    """Facts for the volume answer, or None when the case has no fixed volume / shared forecast."""
+    """Facts for the volume answer, or None when the case has no fixed volume / shared forecast, or when
+    the fixed volume cannot be reconciled with the briefing and the forecast (fail closed: no volume
+    paragraph, no CSV, rather than a wrong quantity - the forecast counts physical units, the fixed
+    volume counts price units, and the two differ by the pack size on per-100 / per-1000 parts)."""
     parts = case.get("parts") or []
     volume = (case.get("fixed_terms") or {}).get("volume_per_year")
     if len(parts) != 1 or not volume:
@@ -31,6 +50,14 @@ def plan(case, package, supplier) -> dict | None:
     if not rows:
         return None
     fref, f = max(rows, key=lambda x: x[0])
+    parsed = need(case)
+    if parsed is None or parsed[0] != int(volume):
+        return None  # briefing missing or its count disagrees with the fixed volume: say nothing
+    _, mult, unit = parsed
+    quantity = int(volume) * mult
+    total = f["volume_per_year"]
+    if not total or quantity > total * 1.001:
+        return None  # more than the whole shared forecast: units do not reconcile
     try:
         lines = package.query("SELECT target_month, qty FROM forecast_lines WHERE fc_id = ? ORDER BY target_month",
                               (fref,))
@@ -40,9 +67,8 @@ def plan(case, package, supplier) -> dict | None:
         lines, quota = [], []
     lines = [(r["target_month"], r["qty"]) for r in lines]
     q = quota[0]["quota_pct"] if quota else None
-    return {"part": part, "volume": int(volume), "fc": fref, "change_pct": f.get("change_pct"),
-            "total": f["volume_per_year"], "unit": "kg" if "kg" in (case.get("briefing") or "") else "units",
-            "lines": lines, "quota": q}
+    return {"part": part, "volume": quantity, "fc": fref, "change_pct": f.get("change_pct"),
+            "total": total, "unit": unit, "lines": lines, "quota": q}
 
 
 def attachment(p: dict) -> dict | None:
