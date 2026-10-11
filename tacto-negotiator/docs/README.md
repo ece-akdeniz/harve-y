@@ -35,6 +35,9 @@ Hosted timing is measured. Then scale to multiple cases.
 
 ## Document map
 
+- [V6 supplier intelligence plan](v6-supplier-intelligence-plan-2026-10-11.md): proposed
+  supplier assessment, supported action selection, latency gates and generalization evaluation;
+  implementation and hosted experiments have not started on the planning branch.
 - [Coding-agent lab playbook](../LAB_PLAYBOOK.md): laptop setup and the tracked experiment workflow.
 - [00 — Challenge contract](00-challenge.md): official rules, score, limits and schedule.
 - [01 — Research](01-research.md): reproduced findings, estimates and hypotheses.
