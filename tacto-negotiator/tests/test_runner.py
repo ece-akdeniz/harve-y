@@ -237,6 +237,7 @@ async def test_wave_cap_closes_through_evaluator(tmp_path):
     cap = clock.time() + 150
     agent = PackageAgent()
     agent.time_guard_rounds = 0
+    agent.compressed_schedule = False  # the compressed schedule alone would close by agreement first
     r = await CaseRunner(arena, "case:S02", agent, Journal(tmp_path / "j.jsonl"),
                          clock=clock, close_fn=close, deadline=lambda: cap).run()
     assert calls[0] == "wave cap"
@@ -252,7 +253,8 @@ async def test_agent_time_guard_closes_before_the_watchdog(tmp_path):
     cap = clock.time() + 150
     r = await CaseRunner(arena, "case:S02", PackageAgent(), Journal(tmp_path / "j.jsonl"),
                          clock=clock, close_fn=close, deadline=lambda: cap).run()
-    assert calls and calls[0].startswith("agent: accept") and "wave cap" not in calls
+    # the coordinator's per-thread `propose` path: the guard asks to close, the evaluator accepts
+    assert calls and calls[0] == "agent: time guard: accept standing offer" and "wave cap" not in calls
     assert clock.time() < cap - 90
     assert r["ended"] and r["deal"]
 

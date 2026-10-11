@@ -98,6 +98,14 @@ class PolicyConfig:
     # claims (the biggest moved element first) and, where its share beats the listed driver weight, one
     # ID-free arithmetic sentence follows the verified index claim. Off = byte-identical messages.
     cost_breakdown_request: bool = False
+    # Live-Final safety (`time_guard` default ON, `compressed_schedule` default OFF - the wave lane's own
+    # sim turned every case into a round-2 match with it on; record both explicitly in run configs). `time_guard`:
+    # with fewer than TIME_GUARD_ROUNDS x max(120 s, slowest round) of wave left the agent stops extending
+    # (agent.PackageAgent.time_guard). `compressed_schedule`: with a wave cap, the rounds that fit before the
+    # guard - floor((time left - guard) / max(60 s, slowest round)) - rescale the schedule so its end state is
+    # reached by round rounds_available - 1 (agent.PackageAgent.compression). Without a cap neither acts.
+    time_guard: bool = True
+    compressed_schedule: bool = False
 
     @classmethod
     def load(cls, path):
@@ -136,6 +144,9 @@ class PolicyConfig:
                   "claim_pacing", "reciprocal_schedule", "supplier_payment_trade", "rfq_fast_payment_reanchor",
                   "alt_clause_counter", "cost_breakdown_request"):
             if type(d.get(k, False)) is not bool:
+                raise ValueError(f"{k} must be boolean")
+        for k in ("time_guard", "compressed_schedule"):
+            if type(d.get(k, True)) is not bool:
                 raise ValueError(f"{k} must be boolean")
         post = d.get("cost_target_posterior", 0.0)
         if isinstance(post, bool) or not isinstance(post, (int, float)) or not 0 <= post <= 1:

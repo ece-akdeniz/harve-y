@@ -125,7 +125,8 @@ def facts():
         return {}
 
 
-async def play_wave(label, cfg, cases, known, *, delay_s, guard, clock, journal_dir):
+async def play_wave(label, cfg, cases, known, *, delay_s, guard, clock, journal_dir, compression=True,
+                    trace_out=None):
     trace = Trace()
     arena = SimArena(cases, known, clock, delay_s)
     t0 = clock.time()
@@ -140,7 +141,9 @@ async def play_wave(label, cfg, cases, known, *, delay_s, guard, clock, journal_
                                  meso=cfg.get("meso", False))
         if not guard:
             agent.time_guard_rounds = 0
-        runner = CaseRunner(arena, case_id, agent, Journal(Path(journal_dir) / f"{label}-{case_id[5:]}.jsonl"),
+        agent.compressed_schedule = compression
+        variant = f"{label}-guard{'on' if guard else 'off'}-comp{'on' if compression else 'off'}"
+        runner = CaseRunner(arena, case_id, agent, Journal(Path(journal_dir) / f"{variant}-{case_id[5:]}.jsonl"),
                             case=cases[case_id], deadline=lambda: cap, clock=clock, tracer=trace)
         try:
             return await runner.run()
@@ -158,8 +161,14 @@ async def play_wave(label, cfg, cases, known, *, delay_s, guard, clock, journal_
         closes = [r for r in trace.rows if r["event"] == "close" and r.get("case") == case_id]
         rounds = [r for r in trace.rows if r["event"] == "round_time" and r.get("case") == case_id]
         end = next((r for r in trace.rows if r["event"] == "case_end" and r.get("case") == case_id), {})
+        comps = [r for r in trace.rows if r["event"] == "decision" and r.get("kind") == "compression"
+                 and r.get("case") == case_id]
         rows.append({
-            "config": label, "guard": guard, "delay_s": delay_s, "case": case_id, "type": cases[case_id]["type"],
+            "config": label, "guard": guard, "compression": compression, "delay_s": delay_s, "case": case_id,
+            "type": cases[case_id]["type"],
+            "compression_ratio": max([c.get("ratio") or 0 for c in comps] or [0]),
+            "compression_rounds": len(comps),
+            "rounds_available": [c.get("rounds_available") for c in comps],
             "deal": result.get("deal"), "score": result.get("score"), "error": result.get("error"),
             "end_reason": sess["end_reason"] if sess else None, "how": end.get("how"),
             "close_reasons": [c.get("reason") for c in closes],
@@ -174,20 +183,37 @@ async def play_wave(label, cfg, cases, known, *, delay_s, guard, clock, journal_
             "case_s": round(max([t["total_s"] or 0 for t in threads] or [0]), 1),
             "timeouts": result.get("thread_timeouts"),
         })
+    if trace_out:
+        with open(trace_out, "a") as f:
+            for r in trace.rows:
+                f.write(json.dumps({"wave": f"{label} guard={'on' if guard else 'off'} "
+                                            f"compression={'on' if compression else 'off'}", **r}, default=str) + "\n")
     return rows
 
 
+def _runs(actions):
+    """Consecutive repeats collapsed: a holding thread re-asks every HOLD_RECHECK_S ('hold x12')."""
+    out = []
+    for a in actions:
+        if out and out[-1][0] == a:
+            out[-1][1] += 1
+        else:
+            out.append([a, 1])
+    return [a if n == 1 else f"{a} x{n}" for a, n in out]
+
+
 def table(rows):
-    head = ("config", "guard", "delay", "case", "type", "deal", "score", "end_reason", "case_s", "rounds",
-            "slowest_round_s", "guard_fired", "guard_actions")
+    head = ("config", "guard", "comp", "delay", "case", "type", "deal", "score", "end_reason", "case_s", "rounds",
+            "slowest_round_s", "guard_fired", "guard_actions", "comp_ratio")
     out = [" | ".join(head)]
     for r in rows:
         rounds = "/".join(str(t["rounds"]) for t in r["threads"].values())
         slow = max([t["slowest_round_s"] for t in r["threads"].values()] or [0])
         out.append(" | ".join(str(x) for x in (
-            r["config"], "on" if r["guard"] else "off", r["delay_s"], r["case"], r["type"], r["deal"],
-            None if r["score"] is None else round(r["score"], 3), r["end_reason"] or r["error"], r["case_s"],
-            rounds, slow, r["guard_fired"], ",".join(r["guard_actions"]))))
+            r["config"], "on" if r["guard"] else "off", "on" if r["compression"] else "off", r["delay_s"], r["case"],
+            r["type"], r["deal"], None if r["score"] is None else round(r["score"], 3), r["end_reason"] or r["error"],
+            r["case_s"], rounds, slow, r["guard_fired"], ",".join(_runs(r["guard_actions"])),
+            round(r["compression_ratio"], 2) if r["compression_ratio"] else "-")))
     return "\n".join(out)
 
 
@@ -200,10 +226,13 @@ async def main_async(args):
     for path in args.config:
         cfg, label = load_config(path), Path(path).stem
         for guard in {"on": [True], "off": [False], "both": [True, False]}[args.guard]:
-            # One wave at a time: a wave's cases run in parallel (as hosted), variants do not share CPU.
-            rows += await play_wave(label, cfg, cases, known, delay_s=args.delay, guard=guard,
-                                    clock=ScaledClock(args.scale), journal_dir=journal_dir)
-            print(f"wave done: {label} guard={'on' if guard else 'off'}", file=sys.stderr, flush=True)
+            for comp in {"on": [True], "off": [False], "both": [True, False]}[args.compression]:
+                # One wave at a time: a wave's cases run in parallel (as hosted), variants do not share CPU.
+                rows += await play_wave(label, cfg, cases, known, delay_s=args.delay, guard=guard,
+                                        clock=ScaledClock(args.scale), journal_dir=journal_dir, compression=comp,
+                                        trace_out=args.trace_out)
+                print(f"wave done: {label} guard={'on' if guard else 'off'} compression={'on' if comp else 'off'}",
+                      file=sys.stderr, flush=True)
     print(table(rows))
     slowest_decide = max(t["slowest_decide_s"] for r in rows for t in r["threads"].values())
     print(f"\nagent decision time: slowest {slowest_decide} s")
@@ -226,7 +255,10 @@ def main(argv=None):
     ap.add_argument("--delay", type=float, default=0.0, help="injected supplier reply delay, seconds")
     ap.add_argument("--scale", type=float, default=1.0, help="clock compression (1 = real wall clock)")
     ap.add_argument("--guard", choices=["on", "off", "both"], default="on", help="agent wave time guard")
+    ap.add_argument("--compression", choices=["on", "off", "both"], default="on",
+                    help="agent time-compressed schedule (policy `compressed_schedule`)")
     ap.add_argument("--case", action="append", help="restrict to these case ids")
+    ap.add_argument("--trace-out", help="append every agent/runner trace row of every wave here (JSONL)")
     ap.add_argument("--out", help="JSON output path")
     args = ap.parse_args(argv)
     return asyncio.run(main_async(args))

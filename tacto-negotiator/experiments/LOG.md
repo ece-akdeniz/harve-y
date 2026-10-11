@@ -1863,3 +1863,52 @@ it is not a new score improvement or a fresh full-suite evaluation.
   recorded in the project handoff and supplier workspace documentation.
 - Validation before publish: **722 tests passed**, full Ruff passed and **22 frontend
   checks passed**. Local desktop/mobile browser checks passed with zero JS errors.
+
+## 2026-10-11 — wave compression: time-compressed schedule, guard leader-match, RFQ slot yield (SIM ONLY, 0 hosted sessions)
+
+Branch codex/fresh-wave on top of 0a6940e (wave time guard). Kit simulator, `tools/wave_rehearsal.py`,
+10 hosted practice cases in parallel, 55 s supplier replies (measured rounds 73-90 s with the shared send
+slot), 480 s cap. Configs: score-push-v3-run (= v3) and score-push-v4 (= v3 + `time_guard`, `compressed_schedule`).
+
+**Mechanism (agent.py, additive).** `rounds_available = floor((time_left - guard) / max(60 s, slowest round))`,
+guard = 2 x max(120 s, slowest round); None without a cap (practice: byte-identical, see below).
+`compressed_schedule` (policy key): when the plain k/N schedule still needs `N - k + 1` moves to put its final
+price on the table and `rounds_available - 1` is smaller, the remaining path is traversed in
+`rounds_available - 1` moves (`k_eff = k + (N - k) / (rounds_available - 1)`); stage gates counted in holds
+(`value_swap_holds`) advance by the same ratio; the reciprocal pacing is bypassed while compressed; the
+RFQ 14-day chip (`rfq_fast_payment_reanchor`, cherry-picked e8b0396) may fire on the leader's first hold,
+by our round-3 message at the latest, when `rounds_available <= 5`. Always on with a cap (not keyed on the
+flag): the N-2 gate counts `min(moves_left, rounds_available)`; no `_final_counter` with < 2 rounds
+available; RFQ rivals yield the send slot to the leader with <= 2 rounds available (`rfq_yield`).
+`time_guard` (policy key): the guard now asks the LEADER once for its own price on our terms when that is
+C-cheaper than the standing sheet and the reply still lands before the runner watchdog
+(`left - max(60, slowest) >= max(90, slowest + 15)`); rivals hold while the leader awaits that reply.
+Also fixed: `PackageAgent.propose` had grown a keyword parameter, so the async runner silently fell back to
+`decide` + single-thread snapshots (every cross-thread rule blind); it is back to three parameters.
+
+| case | guard off (v3) | guard on, compression off (v4) | guard on, compression on | s / rounds (v4) | guard fired | ratio |
+|---|---|---|---|---|---|---|
+| P01 | 0.734 | 0.734 | 0.429 | 298 / 5 | match | 5.0 |
+| P02 | 0.695 | 0.695 | 0.174 | 243 / 4 | accept | 5.0 |
+| P03 | 0.869 | 0.869 | 0.478 | 295 / 5 | match | 5.0 |
+| P04 | 0.864 | 0.864 | 0.356 | 296 / 5 | match | 5.0 |
+| P05 | no deal (IncompleteSession at the cap) | **0.829** | 0.316 | 276 / 5-1-1 | hold, match | 5.0 |
+| P07 | 0.862 | 0.862 | 0.847 (walked) | 297 / 5 | match | 5.0 |
+| P08 | 0.805 | 0.805 | 0.222 | 294 / 5 | match | 5.0 |
+| P10 | 0.946 | 0.946 | 0.782 | 295 / 5 | match | 5.0 |
+| P11 | 0.000 (walked at its final) | 0.797 | 0.199 | 295 / 5 | match | 5.0 |
+| P18 | 0.819 | 0.819 | 0.230 | 294 / 5 | match | 5.0 |
+
+Reading: the guard with the leader match + RFQ yield meets the target (P05 0.829 >= 0.78, nothing below
+guard-off, 0 cap closes, worst case 298 s of 480). The literal schedule rescale is always active under a
+480 s cap (240 s guard + 60 s floor leave <= 4 rounds, the first decision alone takes ~22 s with ten cases
+loading) and in this simulator - whose script concedes 2 % per round whatever we offer - it converts every
+case into a round-2 match: -0.4 to -0.6 per case. The sim cannot show the upside the rule is designed for
+(a supplier that answers our pace); it can only price its cost. `configs/score-push-v4.json` therefore
+records `time_guard: true, compressed_schedule: false`; the dataclass default stays on as specified, so a
+run config that omits the key compresses.
+
+Byte-identity without a cap: `tools/replay_decisions.py` on every saved hosted attempt of
+P01/P03/P04/P05/P08/P11/P18 under score-push-v3 and fresh-h1h2 (396 replays), 0a6940e vs this HEAD:
+identical JSON (sha256 8a88e412...9144 both sides); tests/test_compressed_schedule_replay.py keeps the
+on/off comparison in the suite.

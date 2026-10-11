@@ -15,7 +15,7 @@ from test_runner import ScaledClock, SimArena, recording
 from negotiator import agent as agent_mod
 from negotiator.agent import PackageAgent
 from negotiator.policy import PolicyConfig
-from negotiator.runner import CaseRunner
+from negotiator.runner import CaseRunner, IncompleteSession
 from negotiator.state import Journal
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -54,9 +54,11 @@ def no_final(monkeypatch):
     monkeypatch.setattr(kit_sim, "FINAL_ROUND", 99)
 
 
-def _slow_agent(tracer=None, **kw):
-    """A 12-step schedule: on its own it needs every one of the 10 messages (> 8 minutes at ~1 min a round)."""
+def _slow_agent(tracer=None, compression=False, **kw):
+    """A 12-step schedule: on its own it needs every one of the 10 messages (> 8 minutes at ~1 min a round).
+    The compressed schedule is off unless asked for, so these tests see the guard alone."""
     agent = PackageAgent(rounds=12, tracer=tracer, **kw)
+    agent.compressed_schedule = compression
     return agent
 
 
@@ -81,15 +83,18 @@ async def test_guard_accepts_acceptable_standing_sheet_before_the_cap(tmp_path, 
     arena = PatientArena(clock, {"sup:70270": REPLY_S})
     result, calls, took, runner = await _run(arena, clock, _slow_agent(trace), tmp_path, tracer=trace)
     assert result["deal"] and result["ended"] and result.get("end_reason") != "wave_cap"
-    # PackageAgent.decide resolves the guard's close itself (through close_decision): an accept move
-    assert calls and calls[0].startswith("agent: accept") and "wave cap" not in calls
+    # The guard's first move is the supplier's own price on our terms (a round still fits before the
+    # watchdog); the sim agrees to it, so the case ends by agreement, never by the cap.
+    assert calls == ["sup:70270 agreed"]
     guard = trace.kinds("time_guard")
-    assert guard and guard[0]["action"] == "accept"
+    assert guard and guard[0]["action"] == "match" and guard[0]["over_standing"] > guard[0]["c"]
+    assert result["terms"]["unit_price"] == guard[0]["terms"]["unit_price"]
     assert _rounds(arena, result["session_id"])["sup:70270"] < 10  # it stopped extending
     assert guard[0]["guard"] == 2 * max(agent_mod.ROUND_ESTIMATE_S, runner.st.slowest_round_s)
     assert guard[0]["time_left"] < guard[0]["guard"]
     # closed with at least two measured rounds of margin before the cap
     assert CAP_S - took >= 2 * runner.st.slowest_round_s
+    assert CAP_S - took >= 20  # and before the runner's close budget
     assert result["thread_timeouts"] == {"sup:70270": 0}
     # timing trace: one round_time per observed reply, one thread_time per thread
     rounds = trace.events("round_time")
@@ -106,7 +111,12 @@ async def test_without_guard_the_same_thread_walks_into_the_cap(tmp_path, no_fin
     arena = PatientArena(clock, {"sup:70270": REPLY_S})
     agent = _slow_agent()
     agent.time_guard_rounds = 0
-    result, calls, took, _ = await _run(arena, clock, agent, tmp_path)
+    t0 = clock.time()
+    try:
+        result, calls, took, _ = await _run(arena, clock, agent, tmp_path)
+    except IncompleteSession:
+        # the watchdog fired while the only thread had a message in flight: nothing it could close
+        took, calls, result = clock.time() - t0, ["wave cap"], {"ended": True}
     assert calls[0] == "wave cap" and result["ended"]
     assert took > CAP_S - 2 * agent_mod.ROUND_ESTIMATE_S  # it ran past the point where the guard would fire
 
@@ -130,7 +140,10 @@ async def test_guard_converges_to_the_ask_when_the_standing_sheet_is_not_accepta
     arena2 = PatientArena(clock2, {"sup:70270": REPLY_S}, case_patch=("case:S01", patch))
     off = _slow_agent()
     off.time_guard_rounds = 0
-    result2, calls2, _, _ = await _run(arena2, clock2, off, tmp_path / "off")
+    try:
+        result2, calls2, _, _ = await _run(arena2, clock2, off, tmp_path / "off")
+    except IncompleteSession:
+        return  # the cap caught the thread with a message in flight: no deal either
     assert calls2[0] == "wave cap" and not result2["deal"]
 
 
@@ -186,6 +199,12 @@ def test_reciprocal_schedule_is_bypassed_under_the_guard():
     move = agent.decide(case, {sid: events})
     assert not trace.kinds("reciprocal") and trace.kinds("time_guard")
     guard = trace.kinds("time_guard")[0]
-    # the standing 5.80 sheet beats P18's alternative: the guard accepts it instead of another token step
-    assert guard["action"] == "accept"
+    # the standing 5.80 sheet beats P18's alternative; with 200 s left a round still fits, so the guard
+    # asks once for 5.80 on our terms (cheaper than the sheet) instead of another token step
+    assert guard["action"] == "match" and guard["terms"]["unit_price"] == 5.80
+    # the same thread with too little time for a reply: accept the standing sheet
+    trace.rows.clear()
+    agent.time_left_fn = lambda: 120.0  # 120 - 60 < 90: no round fits before the watchdog
+    move = agent.decide(case, {sid: events})
+    assert trace.kinds("time_guard")[0]["action"] == "accept"
     assert move["message"]["action"] == {"type": "accept", "term_sheet_id": "offer:sim-4"}

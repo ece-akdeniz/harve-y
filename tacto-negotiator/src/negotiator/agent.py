@@ -12,7 +12,7 @@ import time
 
 from arena_kit.cost import closing_terms, complete_offer, must_haves_ok, supplier_value, total_cost
 from arena_kit.docs import standard_terms
-from arena_kit.play import latest, live_threads, moves_left
+from arena_kit.play import CLOSE_BEFORE_CAP_S, ROUND_MARGIN_S, latest, live_threads, moves_left
 
 from . import value_swap
 from .economics import InfeasiblePackage
@@ -42,6 +42,8 @@ log = logging.getLogger("negotiator")
 # `time_left_fn` returns None and nothing changes.
 TIME_GUARD_ROUNDS = 2
 ROUND_ESTIMATE_S = 120.0
+ROUND_FLOOR_S = 60.0  # a round is never assumed faster than this when sizing the compressed schedule
+RFQ_YIELD_ROUNDS = 2  # with at most this many rounds left before the guard, RFQ rivals yield the slot to the leader
 
 
 def standing(case, events, supplier=None):
@@ -184,13 +186,13 @@ class PackageAgent:
         # the slowest round it has measured so far (seconds; 0 before the first reply).
         self.time_left_fn = None
         self.round_estimate_fn = None
-        self.time_guard_rounds = TIME_GUARD_ROUNDS
+        self.time_guard_rounds = TIME_GUARD_ROUNDS if policy is None or policy.time_guard else 0
+        self.compressed_schedule = bool(policy and policy.compressed_schedule)  # opt-in (policy default off)
 
     # -- wave time guard ----------------------------------------------------------------------
-    def time_guard(self):
-        """(time_left_s, guard_s) when a wave cap is known, else None. guard = TIME_GUARD_ROUNDS x
-        max(ROUND_ESTIMATE_S, slowest measured round)."""
-        if self.time_left_fn is None or not self.time_guard_rounds:
+    def _wave_clock(self):
+        """(time_left_s, slowest_round_s) when a wave cap is known, else None."""
+        if self.time_left_fn is None:
             return None
         try:
             left = self.time_left_fn()
@@ -199,44 +201,165 @@ class PackageAgent:
             return None
         if left is None:
             return None
-        slowest = 0.0
-        if self.round_estimate_fn is not None:
-            try:
-                slowest = float(self.round_estimate_fn() or 0.0)
-            except Exception:
-                slowest = 0.0
-        return float(left), self.time_guard_rounds * max(ROUND_ESTIMATE_S, slowest)
+        return float(left), self._slowest_round()
+
+    def _slowest_round(self):
+        if self.round_estimate_fn is None:
+            return 0.0
+        try:
+            return float(self.round_estimate_fn() or 0.0)
+        except Exception:
+            return 0.0
+
+    def time_guard(self):
+        """(time_left_s, guard_s) when a wave cap is known and the guard is on, else None.
+        guard = TIME_GUARD_ROUNDS x max(ROUND_ESTIMATE_S, slowest measured round)."""
+        if not self.time_guard_rounds:
+            return None
+        clock = self._wave_clock()
+        if clock is None:
+            return None
+        left, slowest = clock
+        return left, self.time_guard_rounds * max(ROUND_ESTIMATE_S, slowest)
 
     def _guarded(self):
         tg = self.time_guard()
         return tg is not None and tg[0] < tg[1]
 
+    def _guard_round_fits(self):
+        """Under the guard: would one more supplier reply (a round at the measured pace, never assumed
+        faster than ROUND_FLOOR_S) still arrive before the runner's own cap watchdog closes the case
+        (max(CLOSE_BEFORE_CAP_S, slowest round + ROUND_MARGIN_S) before the cap)? Then the guard may
+        spend a move on the supplier's own price on our terms (its reply is an agreement in practice):
+        if it draws no agreement, the next guard decision or the watchdog accepts the standing sheet.
+        Without a cap: False (the guard is not active)."""
+        tg = self.time_guard()
+        if tg is None:
+            return False
+        left = tg[0]
+        slowest = self._slowest_round()
+        return left - max(ROUND_FLOOR_S, slowest) >= max(CLOSE_BEFORE_CAP_S, slowest + ROUND_MARGIN_S)
+
+    # -- time-compressed schedule -------------------------------------------------------------
+    def rounds_available(self):
+        """Rounds that still fit before the guard window: floor((time left - guard) / max(ROUND_FLOOR_S,
+        slowest measured round)), guard = TIME_GUARD_ROUNDS x max(ROUND_ESTIMATE_S, slowest round) whether or
+        not the guard itself is on. None without a wave cap (practice). Known with a cap even when
+        `compressed_schedule` is off: the pure safety uses (a move that cannot be reaped is not made -
+        final-offer counters, the N-2 gate, RFQ rivals yielding the send slot) key on it; only the
+        schedule rescale and the stage-gate advances (`compression`) are the compressed schedule."""
+        clock = self._wave_clock()
+        if clock is None:
+            return None
+        left, slowest = clock
+        guard = TIME_GUARD_ROUNDS * max(ROUND_ESTIMATE_S, slowest)
+        return max(0, int(math.floor((left - guard) / max(ROUND_FLOOR_S, slowest))))
+
+    def compression(self, case, sid, k, n_rounds=None, avail=None):
+        """(rounds_available, k_eff, ratio) when the normal schedule cannot reach its end state by round
+        rounds_available - 1, else None. The normal schedule puts its final price on the table at our
+        offer index `n_rounds` (fraction k / n_rounds); with `k` offers already sent it needs
+        n_rounds - k + 1 more moves. Under compression the remaining path is traversed in
+        rounds_available - 1 moves: k_eff = k + (n_rounds - k) / (rounds_available - 1), so the same
+        end state (fraction 1) is reached on move rounds_available - 1 from now; ratio = moves the
+        normal path still needs / moves available. rounds_available <= 1 -> the end state now."""
+        if not self.compressed_schedule:
+            return None
+        if avail is None:
+            avail = self.rounds_available()
+        if avail is None:
+            return None
+        n_rounds = self._rounds(case) if n_rounds is None else n_rounds
+        remaining = max(1, n_rounds - k + 1)
+        fit = avail - 1
+        if fit >= remaining:
+            return None
+        if fit <= 0:
+            k_eff, ratio = float(max(n_rounds, k)), float(remaining)
+        else:
+            k_eff, ratio = k + (n_rounds - k) / fit, remaining / fit
+        self._log(case, "compression", sid, rounds_available=avail, k=k, rounds=n_rounds, moves_needed=remaining,
+                  k_eff=round(k_eff, 3), ratio=round(ratio, 3))
+        return avail, k_eff, ratio
+
+    def _gate(self, threshold, comp):
+        """A stage gate counted in rounds/holds, advanced proportionally under compression (>= 1)."""
+        if comp is None or threshold <= 1:
+            return threshold
+        return max(1, int(math.ceil(threshold / comp[2] - 1e-9)))
+
     def _time_guard_log(self, case, sid, action, **fields):
         left, guard = self.time_guard()
         self._log(case, "time_guard", sid, time_left=round(left, 1), guard=round(guard, 1), action=action, **fields)
+
+    def _matched_before(self, case, events, n, std, sup):
+        """Did our last offer already meet the supplier's then-current ask on our terms `n` (and it
+        answered with another sheet instead of agreeing)? The guard matches once per thread."""
+        ours = self._ours(events)
+        asks = self._supplier_asks(case, events, n, std, sup)
+        if not ours or len(asks) < 2:
+            return False
+        last_c = total_cost(case, ours[-1], std, sup)
+        last_p = price_for_cost(case, {**n, "unit_price": asks[-1]}, last_c, std, sup)
+        return last_p >= asks[-2] - 1e-6
 
     def _time_guard_move(self, case, threads, sid, n, p, cands, eligible, standing_id, std, sup, c_alt):
         """Under the guard: never extend. (a) An acceptable standing sheet anywhere -> close, so the
         coordinator accepts it; (b) else the supplier's own price on our terms (or its cheaper valid
         alternative sheet), which it accepts in practice; (c) nothing priced below the alternative or
-        the match already refused -> close (the evaluator walks or accepts)."""
+        the match already refused -> close (the evaluator walks or accepts).
+        With an acceptable standing sheet, the LEADING thread (the sheet's supplier) is asked once for
+        its own price on our terms before (a) when that is C-cheaper, it is open, and its reply still
+        lands before the runner's cap watchdog (`_guard_round_fits`); a rival's guard decision holds
+        while the leader awaits a reply or can still be asked, and never sends an offer the rival could
+        agree to at a worse C than the leader's sheet. If the match draws no agreement, the next guard
+        decision (or the watchdog) accepts the standing sheet."""
         best = best_close(case, threads, self.estimates_for(case))
-        if best is not None:
-            self._time_guard_log(case, sid, "accept", sheet=best[2], c=best[0], c_alt=c_alt)
-            return {"close": True, "reason": "time guard: accept standing offer"}
-        ours = self._ours(threads[sid])
+        events = threads[sid]
+        ours = self._ours(events)
         options = [(complete_offer(case, {**n, "unit_price": p}), "time guard: their price, our terms")]
         if eligible and cands[0][1] != standing_id:
             options.append((complete_offer(case, cands[0][2]), "time guard: take valid alternative"))
         priced = sorted(
             ((total_cost(case, t, std, sup), t, why) for t, why in options), key=lambda x: (x[0], x[2])
         )
+        priced = [x for x in priced if x[0] < c_alt - 1e-6 and (not ours or ours[-1] != x[1])]
+        if best is not None:
+            leader = best[1]
+            if leader == sid:
+                if (priced and priced[0][0] < best[0] - 1e-6 and latest(events).get("status") == "open"
+                        and not self._matched_before(case, events, n, std, sup) and self._guard_round_fits()):
+                    c, terms, why = priced[0]
+                    self._time_guard_log(case, sid, "match", terms=terms, c=c, c_alt=c_alt, over_standing=best[0])
+                    return self._offer(case, sid, terms, std, sup, c_alt, why)
+            elif leader in threads and latest(threads[leader]).get("status") == "open":
+                if threads[leader] and threads[leader][-1].get("from") == "buyer":
+                    self._time_guard_log(case, sid, "hold", leader=leader, c=best[0], c_alt=c_alt, pending=True)
+                    return {"hold": True, "reason": "time guard: leader awaits a reply"}
+                if self._guard_round_fits() and self._leader_match_cheaper(case, threads, leader, best[0]):
+                    self._time_guard_log(case, sid, "hold", leader=leader, c=best[0], c_alt=c_alt, pending=False)
+                    return {"hold": True, "reason": "time guard: leader may still match on our terms"}
+            self._time_guard_log(case, sid, "accept", sheet=best[2], c=best[0], c_alt=c_alt)
+            return {"close": True, "reason": "time guard: accept standing offer"}
         for c, terms, why in priced:
-            if c < c_alt - 1e-6 and (not ours or ours[-1] != terms):
-                self._time_guard_log(case, sid, "match", terms=terms, c=c, c_alt=c_alt)
-                return self._offer(case, sid, terms, std, sup, c_alt, why)
+            self._time_guard_log(case, sid, "match", terms=terms, c=c, c_alt=c_alt)
+            return self._offer(case, sid, terms, std, sup, c_alt, why)
         self._time_guard_log(case, sid, "close", c_alt=c_alt)
         return {"close": True, "reason": "time guard: no package beats the alternative"}
+
+    def _leader_match_cheaper(self, case, threads, leader, standing_c):
+        """Would the leader's own price on our non-price terms cost us less than its standing sheet
+        (and has it not already been asked for exactly that)?"""
+        events = threads[leader]
+        std, sup = standard_terms(events), self._sup(case, threads, leader)
+        cands = eligible_sheets(case, events, sup, alternatives=True) or _priced(case, events, sup)
+        if not cands:
+            return False
+        n = self._nonprice(case, leader, events, std, sup, cands, True)
+        match = complete_offer(case, {**n, "unit_price": self._ask_on(case, n, cands, std, sup)})
+        ours = self._ours(events)
+        return (total_cost(case, match, std, sup) < standing_c - 1e-6 and (not ours or ours[-1] != match)
+                and not self._matched_before(case, events, n, std, sup))
 
     def prepare_email(self, case, threads, sid):
         """Read each supplier message once; the async runner calls this outside its lock."""
@@ -846,14 +969,21 @@ class PackageAgent:
         if self._guarded():
             # Wave guard: accept an acceptable standing sheet, else converge to its ask on the target
             # package (no further posterior/target concession step), else close through the evaluator.
-            if standing_c < c_alt:
-                self._time_guard_log(case, sid, "accept", sheet=standing_id, c=standing_c, c_alt=c_alt)
-                return close("time guard: accept standing offer")
+            # As in `_time_guard_move`, the ask on the target package is preferred once over the standing
+            # sheet when it is cheaper by expected C and a round plus a guard round still fit.
             package = {**tterms, "unit_price": 0}
             on_target = [t["unit_price"] for _, _, t in sheets if same_package(case, package, t, std)]
             ask = min(on_target) if on_target else min(t["unit_price"] for _, _, t in sheets)
             match = complete_offer(case, {**tterms, "unit_price": round(ask, 2)})
-            if ec(match) < c_alt and (not ours or ours[-1] != match) and status == "open":
+            can_match = ec(match) < c_alt and (not ours or ours[-1] != match) and status == "open"
+            asks = [t["unit_price"] for m in events if m.get("from") != "buyer"
+                    for t in [((m.get("term_sheets") or [{}])[0]).get("terms") or {}] if t.get("unit_price")]
+            matched_before = bool(ours) and len(asks) >= 2 and ours[-1]["unit_price"] >= asks[-2] - 1e-6
+            prefer = can_match and ec(match) < standing_c - 1e-6 and not matched_before
+            if standing_c < c_alt and not (prefer and self._guard_round_fits()):
+                self._time_guard_log(case, sid, "accept", sheet=standing_id, c=standing_c, c_alt=c_alt)
+                return close("time guard: accept standing offer")
+            if can_match:
                 self._time_guard_log(case, sid, "match", terms=match, c=ec(match), c_alt=c_alt)
                 why = "time guard: its ask, our terms"
                 return self._target_offer(case, sid, match, std, sup, c_alt, ec(match), why)
@@ -880,7 +1010,9 @@ class PackageAgent:
         tp = tterms["unit_price"]
         if ask is None or ask <= tp:
             return self._target_offer(case, sid, tterms, std, sup, c_alt, tc, "expected-C target package")
-        price = tp + (ask - tp) * min(1.0, len(ours) / self.rounds)
+        comp = self.compression(case, sid, len(ours), n_rounds=self.rounds)
+        k_sched = comp[1] if comp is not None else len(ours)
+        price = tp + (ask - tp) * min(1.0, k_sched / self.rounds)
         if ours and same_package(case, ours[-1], tterms, std):
             price = max(price, ours[-1]["unit_price"])
         cap = ct.ceiling(case, tterms, min(standing_c, c_alt), std, sup)
@@ -966,7 +1098,7 @@ class PackageAgent:
         reason = "no moves left"
         for sid in order or live_threads(threads)[:1]:
             advising = bool(self.package_advisor and case["type"] in self.policy.package_advice_types)
-            move = self.propose(case, threads, sid, defer_evidence=advising)
+            move = self._propose_for(case, threads, sid, defer_evidence=advising)
             if move.get("close"):
                 return self._close(case, threads, move.get("reason", ""))
             if not move.get("hold"):
@@ -993,7 +1125,14 @@ class PackageAgent:
             reason = move.get("reason", reason)
         return self._close(case, threads, reason)
 
-    def propose(self, case, threads, supplier_id, *, defer_evidence=False):
+    def propose(self, case, threads, supplier_id):
+        """The coordinator's per-thread proposal (see `_propose`). Exactly three positional parameters:
+        the async runner only uses this entry point when `len(signature.parameters) == 3`; otherwise
+        it falls back to `decide` plus a single-thread snapshot, which blinds every cross-thread rule
+        (leader holds, rival claims, the wave guard's leader preference)."""
+        return self._propose_for(case, threads, supplier_id)
+
+    def _propose_for(self, case, threads, supplier_id, defer_evidence=False):
         if supplier_id not in self.model_seen:
             self.prepare_email(case, threads, supplier_id)
         if self.policy:
@@ -1181,6 +1320,11 @@ class PackageAgent:
         offer leads, or a package at the alternative's C when the offer does not beat it."""
         if self.final_counters.get(sid, 0) >= 1:
             return None
+        avail = self.rounds_available()
+        if avail is not None and avail < 2:
+            # The counter's round could not be reaped before the guard: the budget is spent on closing.
+            self._log(case, "final_counter_skipped", sid, rounds_available=avail)
+            return None
         events, std, sup = threads[sid], standard_terms(threads[sid]), self._sup(case, threads, sid)
         cands = eligible_sheets(case, events, sup)
         if not cands:
@@ -1286,7 +1430,7 @@ class PackageAgent:
                 asks.append(self._ask_on(case, n, cands, std, sup))
         return asks
 
-    def _reciprocal_price(self, case, sid, events, n, std, sup, p, last_p, scheduled):
+    def _reciprocal_price(self, case, sid, events, n, std, sup, p, last_p, scheduled, ml=None, comp=None):
         """Opt-in `reciprocal_schedule`: while the supplier is open, keeps more than two of our moves
         ahead and still asks more than our last price plus the closing gap, our concession is at most
         its last concession (a token step when it held), and we stay outside the closing gap of its
@@ -1298,10 +1442,13 @@ class PackageAgent:
         above our last one even when the k/rounds schedule has plateaued (`held_by_schedule`; hosted
         run 9a4fbb93 repeated 5.36 and drew a "letztes Angebot" at 5.39). When no strictly higher price
         fits under the closing gap of its ask, the supplier is within about three cents on our terms:
-        we return its price on our terms so the gap-closed logic closes the deal next round."""
-        if not (self.policy and self.policy.reciprocal_schedule) or self._guarded():
+        we return its price on our terms so the gap-closed logic closes the deal next round. With a wave
+        cap the N-2 gate counts the rounds that fit (`ml`), and the compressed schedule is never slowed down."""
+        if not (self.policy and self.policy.reciprocal_schedule) or self._guarded() or comp is not None:
             return scheduled
-        if latest(events).get("status") != "open" or moves_left(case, events) <= 2:
+        if ml is None:
+            ml = moves_left(case, events)
+        if latest(events).get("status") != "open" or ml <= 2:
             return scheduled
         gap = max(p * self.close_gap, 0.01)
         if p - last_p <= gap:
@@ -1413,6 +1560,35 @@ class PackageAgent:
         self._log(case, "alt_clause_declined", sid, counter=state["counter"], alt=alt)
         return self._offer(case, sid, alt, std, sup, c_alt, "alt clause counter declined: take alternative")
 
+    def _compressed_fast_payment(self, case, threads, sid, events, n, std, sup, price, ref_c, k, comp):
+        """Compressed RFQ rule for the 14-day chip: with rounds_available <= 5 the leader's faster-payment
+        switch may fire on its FIRST hold or re-anchor (instead of waiting for the undercut re-anchor
+        stage), but never before a hold/re-anchor and by our round-3 message at the latest. Same
+        preconditions as `_rfq_fast_payment`: the supplier wrote that faster payment is welcome and the
+        sheet on the shorter term is C-cheaper for us than its standing sheet."""
+        if comp is None or comp[0] > 5 or k < 1 or k + 1 > 3:
+            return None
+        if latest(events).get("status") != "open":
+            return None
+        best = best_close(case, threads, self.estimates_for(case))
+        leader = best[1] if best is not None else None
+        if leader is None:
+            live = live_threads(threads)
+            priced = ((c, s) for s in live
+                      for c, _, _ in eligible_sheets(case, threads[s], self._sup(case, threads, s))[:1])
+            leader = live[0] if len(live) == 1 else min(priced, default=(None, None))[1]
+        if leader != sid:
+            return None
+        asks = self._supplier_asks(case, events, n, std, sup)
+        held = len(asks) >= 2 and asks[-1] >= asks[-2] - 0.005
+        if not (held or sid in self.reanchored):
+            return None
+        fast = self._rfq_fast_payment(case, events, n, std, sup, price, ref_c)
+        if fast is not None:
+            self._log(case, "compressed_fast_payment", sid, rounds_available=comp[0], round=k + 1, held=held,
+                      payment_days=fast, price=price)
+        return fast
+
     def decide_thread(self, case, threads, sid, c_alt, cap_c=None, why=None):
         events = threads[sid]
         if sid in self.fast_payment_traded:
@@ -1436,6 +1612,19 @@ class PackageAgent:
 
         ref_c = cands[0][0]
         guarded = self._guarded()
+        avail = self.rounds_available()
+        k = len(self._ours(events))
+        comp = None if guarded else self.compression(case, sid, k, avail=avail)
+        # Moves that can still be reaped: the thread's own budget, capped by the rounds that fit in the wave.
+        ml = moves_left(case, events) if avail is None else min(moves_left(case, events), avail)
+        if not guarded and avail is not None and avail <= RFQ_YIELD_ROUNDS and cap_c is None and case["type"] == "rfq":
+            best = best_close(case, threads, self.estimates_for(case))
+            if (best is not None and best[1] != sid and latest(threads[best[1]]).get("status") == "open"
+                    and moves_left(case, threads[best[1]]) > 1):
+                # Rounds are scarce and rivals share the session's send slot: a non-leading thread's message
+                # would cost the leader a round. Its standing sheet stays on the table (claims, best_close).
+                self._log(case, "rfq_yield", sid, leader=best[1], rounds_available=avail, leading_cost=best[0])
+                return {"hold": True, "reason": "rfq: yield the send slot to the leader; rounds are scarce"}
         if (
             self.policy
             and case["type"] in self.policy.value_swap_types
@@ -1444,8 +1633,8 @@ class PackageAgent:
             and sid not in self.value_swapped
             and eligible
             and latest(events).get("status") == "open"
-            and moves_left(case, events) > 1
-            and value_swap.holds(case, events, sup) >= self.policy.value_swap_holds
+            and ml > 1
+            and value_swap.holds(case, events, sup) >= self._gate(self.policy.value_swap_holds, comp)
         ):
             self.value_swapped.add(sid)
             standing_terms = eligible_sheets(case, events, sup)[0][2]
@@ -1474,7 +1663,6 @@ class PackageAgent:
                 p_open = self._ask_on(case, n, open_cands, std, sup)
 
         ours = self._ours(events)
-        k = len(ours)
         last_c = total_cost(case, ours[-1], std, sup) if ours else None
         last_p = price_for_cost(case, {**n, "unit_price": p}, last_c, std, sup) if last_c is not None else None
 
@@ -1490,7 +1678,7 @@ class PackageAgent:
                 and case["type"] == "rfq"
                 and sid not in self.reanchored
                 and latest(events).get("status") == "open"
-                and moves_left(case, events) > 2
+                and ml > 2
                 and p < last_p * (1 - self.anchor / 2)
             ):
                 # The supplier jumped well below our own ask: its floor is lower than our schedule
@@ -1538,17 +1726,28 @@ class PackageAgent:
             if trade is not None:
                 return trade
         floor = p_open * (1 - self._anchor_for(case))
-        price = floor + (p - floor) * min(1.0, k / self._rounds(case))
+        k_sched = comp[1] if comp is not None else k
+        price = floor + (p - floor) * min(1.0, k_sched / self._rounds(case))
         if last_p is not None:
             price = max(price, _ceil2(last_p))  # no backtracking on our own concessions (by C)
         price = min(price, p)
         if cap_c is None and last_p is not None:
-            price = self._reciprocal_price(case, sid, events, n, std, sup, p, last_p, price)
+            price = self._reciprocal_price(case, sid, events, n, std, sup, p, last_p, price, ml, comp)
         if cap_c is not None:
             cap_p = math.floor(price_for_cost(case, {**n, "unit_price": p}, cap_c, std, sup) * 100) / 100 - 0.01
             if last_p is not None and cap_p < last_p - 1e-6:
                 return {"close": True, "reason": "rival cannot beat the final offer without backtracking"}
             price = min(price, cap_p)
+        fast_note = None
+        if comp is not None and cap_c is None and sid not in self.fast_payment_traded:
+            fast = self._compressed_fast_payment(case, threads, sid, events, n, std, sup, round(price, 2), ref_c, k,
+                                                 comp)
+            if fast is not None:
+                self.fast_payment_traded[sid] = (dict(n), ref_c)  # revert guard, as at the re-anchor
+                n = {**n, "payment_days": fast}
+                self.prev[sid] = n
+                fast_note = (f" You wrote that faster payment is welcome: we offer payment within {fast} days;"
+                             " the attached unit price reflects that discount.")
         terms = complete_offer(case, {**n, "unit_price": round(price, 2)})
         if self.trades and case["type"] in self.policy.package_types:
             terms, trade_reason = self.trades.switch(case, sid, events, terms, std, sup)
@@ -1563,7 +1762,13 @@ class PackageAgent:
             variants = self._clause_variants(case, events, terms, std, sup)
             if variants:
                 why = why or "deadband probe at equal cost"
-        return self._offer(case, sid, terms, std, sup, c_alt, why or f"round {k + 1} schedule", variants)
+        why = why or (f"round {k + 1} compressed schedule" if comp is not None else f"round {k + 1} schedule")
+        move = self._offer(case, sid, terms, std, sup, c_alt, why, variants)
+        if fast_note and move.get("message", {}).get("term_sheets"):
+            move["message"]["body"] += fast_note
+            self._log(case, "rfq_fast_payment", sid, payment_days=n["payment_days"], price=round(price, 2),
+                      compressed=True, rounds_available=comp[0])
+        return move
 
 
 def configured_agent(policy_config, trace_dir=None, **kwargs):
