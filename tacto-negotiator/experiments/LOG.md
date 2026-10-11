@@ -2046,3 +2046,41 @@ it is not a new score improvement or a fresh full-suite evaluation.
   time, budget or provider availability is missing. Candidate identity:
   `9c078e79ea316655daa8cb7877d11643abc0125d73847a34c37dd75d9df8644b`
   in `experiments/v6-validation-repair-source-manifest.json`.
+
+### 2026-10-11 — Full ten-case hosted practice screen of V6 validation repair
+
+- Hypothesis: the committed V6 candidate would complete all ten hosted practice
+  cases with valid outcomes while exposing remaining model fallback paths. This
+  was one exploratory session per case, not a paired comparison or promotion test.
+- Tracked Lab run `f69d2cba-c6ca-4544-941f-38cb72f63933` used clean commit
+  `ae4990f341a7b10e96804b2a5b9f8c31698fbb87`, opt-in policy
+  `configs/score-push-v6-all-cases.json` SHA-256
+  `3e526e4ad6c691c37ef49a1d9032dcb29096a1631cc66f95fb0f3752b51e6779`,
+  Sunday release overlay, auto runner and `gpt-6-sol`. The combined data
+  fingerprint was `eccf11a79ba1d0afcbc4c839eaddf3e1335c3790cc84da8d47ee4272d15988ad`.
+- Preflight confirmed the ten hosted IDs, zero open practice sessions and
+  201/750 remaining. Exactly ten sessions opened, one each for P01–P05,
+  P07–P08, P10–P11 and P18. Final authoritative quota was 191/750 remaining.
+- Original scores: P01 **99.08%**, P02 **73.51%**, P03 **89.98%**,
+  P04 **86.04%**, P05 **81.36%**, P07 **74.70%**, P08 **70.36%**,
+  P10 **64.73%**, P11 **87.71%**, P18 **58.70%**. Mean **78.62%**.
+  All ten attempts completed with `ended: true`, `must_haves_ok: true`,
+  valid deals and zero recorded Arena timeouts or attempt errors. P05 used
+  the async RFQ runner; the others used serial.
+- The shared model ledger recorded 18 calls: ten accepted model-written buyer
+  responses, five strategy calls, one final-advice call, one validation-repair
+  call and one buyer-writer call that timed out. P10's admitted final advice
+  selected an exploratory counter and closed at 64.73%; its earlier sampled
+  P10 result was 55.47%, but single runs do not identify a causal gain.
+- P03 still fell back on one strategy decision: the primary provider returned
+  empty output, then the validation model proposed an alternative rejected as
+  `quotation_without_constraint`. Its later buyer-writer timeout also used
+  deterministic prose. Thus the validator was invoked as intended but did
+  not always produce an admissible counter. P08 and P18 made no eligible model
+  calls under the configured gates.
+- The current run was individually uploaded to the shared Lab successfully.
+  Original evidence remains in the ignored `experiments/runs/` directory;
+  private provider request/response files were not committed. Decision:
+  retain this as an exploratory screen, do not promote or claim final-case
+  readiness, and investigate the P03 repair rejection locally before any
+  separately authorized hosted retest.
