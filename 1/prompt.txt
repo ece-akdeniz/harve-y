@@ -1,0 +1,2379 @@
+# Context from my IDE setup:
+
+## Active file: tacto-negotiator/docs/v2/task-specs.md
+
+## Open tabs:
+- task-specs.md: tacto-negotiator/docs/v2/task-specs.md
+- 21-negotiation-v2-plan-2026-10-10.md: tacto-negotiator/docs/21-negotiation-v2-plan-2026-10-10.md
+- first-three-prompts.md: tacto-negotiator/docs/v2/first-three-prompts.md
+- D-roadmap.md: tacto-negotiator/docs/v2/D-roadmap.md
+- Pasted text.txt: /home/ugur/.codex/attachments/703a5586-1c90-4c5f-ac22-cbdfdf02d856/Pasted text.txt
+
+# Files pasted by the user:
+
+## "We want to make a targeted adjustment to our V2 implementation strategy. Our ex…": /home/ugur/.codex/attachments/d147e3c2-9497-496f-a9b8-1c35c22c18be/Pasted text.txt
+
+Pasted text contains the user's request.
+
+## My request:
+
+---
+
+# Context from my IDE setup:
+
+## Active file: tacto-negotiator/docs/v2/implementation-order-addendum-2026-10-10.md
+
+## Active selection of the file:
+# V2 capability delivery: proposed implementation-order addendum
+
+10 October 2026. Assessment of checkout `a88bf86` **including the existing working-tree
+planning/test changes**. This is a proposal, not an approved contract revision or a completion
+claim. No production code, tests, fixtures, or existing planning documents were changed for
+this assessment. Task IDs, architecture, and C's implemented-type contracts remain authoritative.
+
+The smallest useful adjustment is to **implement contracts beside their first consumers,
+and bring real evidence resolution, economics, validation, and behavioral evaluation forward**.
+Do not wait for all D1–D16 to start component work. Do not promise that the complete existing
+pipeline can use only a handful of DTOs: its current public input and result types have a
+substantial transitive dependency closure.
+
+## A. Actual state and architectural assessment
+
+| Area | Inspected implementation state | Implication |
+|---|---|---|
+| T1.1a | Frozen values/terms, strict parsing, canonical serialization/hashes, errors implemented | Reuse unchanged |
+| T1.1b | Assessment models and exact Protocol declarations implemented | Reuse; declarations referencing absent DTOs do not make the ports executable end to end |
+| T1.1c | DecisionStage/DecisionRecord/EffectiveConfig and config resolver implemented | T1.3 composition and T1.4 record persistence remain unfinished |
+| T1.1d | EvidenceScope, Provenance, TemporalValidity, DisclosureRule implemented | All 160 remaining declared exports are absent: 146 concrete DTOs plus 14 unions |
+| T1.2a/b | No recorded adapter, factory, or orchestration loop | Normalizer, scripted fakes, and sentinel routing test are preparation |
+| T2–T6 | No concrete V2 evidence, interpreter, economics, strategy, execution, store, or evaluation components | Planned tests and V1 implementations are reuse material, not delivered V2 capabilities |
+| V1 | Existing negotiator, arithmetic integrations, adviser, evidence, runtime, Lab infrastructure | Preserve named historical baseline; wrap useful primitives rather than assume current callers are safe |
+
+Fresh local verification in this pass:
+
+- `tests/v2`: **380 passed, 796 xfailed**, no unexpected failures. Many passes validate
+  specification examples; the 796 explicit missing-component/DTO xfails are not completed work.
+- Ruff over `src/negotiator/v2 tests/v2`: passes.
+- Frozen V1 replay: exact historical first move matches `3653046`; no network/model calls.
+- Six focused legacy modules from A's verification recipe: **56 passed, 4 failed**.
+  Failures remain the inverse-price regression, two final-offer history/memory expectations,
+  and empty-thread mocked-agent compatibility (`test_evaluator.py` and `test_context.py`).
+  This is a bounded check, not a full repository readiness claim.
+
+Preserve evidence / interpretation / strategy / economics / validation / execution /
+orchestration boundaries, dependency injection, strict contracts, deterministic finances,
+independent validation, source applicability/provenance, reproducible records, and the pinned
+official kit. Keep the existing serial coordinator and SQLite direction. Preserve V1 goldens
+and audit obligations in A §4. The source inspected still contains the legacy inverse helper,
+separate cost access, and mutable runtime paths; none becomes safe through this proposal.
+
+The avoidable dependencies are **whole-task barriers**: T1.2a, T1.4, T2.1, and T4.1 name
+all of T1.1d; the instructions require the exact serial D1–D16 order; T6.1 waits for M5.
+T5.1 also waits for all of T2.3 even for an offer with no factual claims. These are broader
+than their first consumers need. Preserve real prerequisites: constructors need their field
+types and complete union members; economic joins need verified basis/standards; grounding needs
+actual source/message references; sending needs validation and durable ownership.
+
+## B. Minimal roadmap delta and critical path
+
+Keep M0–M7 and T identifiers. A–E below are **capability checkpoints across existing tasks**,
+not replacement milestone IDs. A partial parent remains in progress until all its original
+acceptance criteria pass. Keep shared-model edits serial; a new component may follow each
+dependency-complete contract handoff rather than waiting for all batches.
+
+| Checkpoint | Required work and order using existing IDs | Exit gate / status |
+|---|---|---|
+| A: functional backbone | T1.1d types on demand; T1.2a P10 binding; T1.3 offline composition; T1.4 artifact/record append/reload; T1.2b complete typed loop. Bring T4.1 official package evaluation and the used offer/question subset of T5.1 forward. Context, interpretation, strategy, generation and feedback may initially be recorded ports | Actual ten-stage loop, deterministic costs, independent used-action checks, fake execution and feedback, saved/reloaded trace. **Required next, not implemented; scripted intelligence explicitly labelled** |
+| B: evidence-driven intelligence | Start T2.1 now; replace A's mock context with resolver-backed context. T3.1 labels + T6.1 local behavioral controls start now. Add T3.2 bounded deterministic interpretation/fallback and grounded draft validation, T4.2 finite generation, T4.3 evidence-conditioned proposal and deterministic selector. Add needed T2.3 standards/estimate projections; add T2.2 preparation when reading real package data | Relevant evidence/reply changes alter defensible intent and, when affordable/legal, selected action; irrelevant wording does not. Actual interpretation/strategy algorithms, evaluator and validator run. **Required next after/alongside backbone** |
+| C: reliable execution | Complete used-scope T2.2/2.3 and T5.1; T5.2 projector + atomic state/operation/claim transaction; T5.3 endpoint gateway/executor/recovery; T5.4 serial multi-turn loop and basic feedback. Add minimum T3.3 budget plumbing if using a model. T6.2 only for the intended CLI/Lab launch path | Local simulator plus crash/uncertain-outcome/restart gates before any real execution. Live readiness remains separate from local proof and needs operational authorization. **Required later** |
+| D: experimental framework | Register baseline and evidence-conditioned bundles through existing T1.3/T4.3 seams; extend T6.1 to identical recorded situations. Add T4.4 bounded LLM selector and T3.3/3.4 interpretation/provider evaluations when chosen and funded; T6.3/6.4 retain performance/promotion gates | Same evidence/economic/validation services, distinct strategy/config identities, held-out reports. Basic substitutability checked already in A/B. **Required later; model selector optional** |
+| E: advanced capabilities | Retain T2.4 broader documents, T4.5 generic solver, T7.1–7.5 category/information-value/async/research/basket expansion and F's research queue. Sophisticated memory, preference estimation and attribution algorithms remain here | Enable on concrete requirement or measured gap. **Deferred; optional experiments remain optional** |
+
+Shortest credible paths, with no full-parent completion hidden in these arrows:
+
+1. **Offline loop:** dependency-complete T1.1d groups → P10-only T1.2a → T1.3
+   composition + T1.4 append/load → T1.2b with real T4.1 and a real T5.1 used-action
+   subset → checkpoint A. Storage is append-only decision/artifact storage at this stage;
+   do not require the full live StateStore implementation to replay a decision.
+2. **Evidence-sensitive decision:** T2.1 resolver/context + T3.1/T6.1 controls → T3.2
+   bounded real interpretation → T4.2/T4.3 + necessary T2.3 projections → run through A's
+   economic/validation pipeline → checkpoint B. The first bounded interpreter may safely
+   recognize structured offers and explicit supported signals, preserving exact citations and
+   unknowns. It must derive outputs from current inputs, not select prewritten assessments by
+   fixture ID. Broader language coverage uses the same port and later evaluated model adapter.
+3. **Reliable real execution:** B + strict data preflight/relationship estimates → full
+   used-scope T5.1 → T5.2 → T5.3 → T5.4, intended launch-path checks and runtime fault matrix
+   → checkpoint C. No model is required for a deterministic baseline. If enabled, its absolute
+   budget/cancellation/fallback gates are prerequisites to transmitting.
+
+Do not let A become another long framework project. Replace each scripted decision component
+as its types become available; use T2.1 and T4.1 direct component demonstrations before A is
+complete. Basic feedback is observed linkage, not learned causal attribution. Persist operation
+identity/provenance before real sending; an unknown outcome retains its original ID/bytes and
+blocks a conflicting action. All closing paths still need fresh standing-sheet checks and the
+same deterministic close evaluator. Supplier prose never establishes terminal truth.
+
+## C. DTO classification and limits of deferral
+
+The existing layout can stay. Public cross-module contracts include evidence/context,
+assessment, intent/candidate/evaluation/decision, validated action, operation, and result
+envelopes. Nested contract helpers such as term origins and cost components also remain
+explicit. Provider projection DTOs belong at the adapter boundary; hydrated events belong at
+the store/projector boundary. They are not all necessary to *algorithm development*, but
+their present contract placement is not a reason to migrate packages.
+
+Private ranking scores, search queues, parser working structures, caches, and strategy-specific
+reasoning can remain internal typed models. Do not add them to core speculatively. Existing
+StrategyMemory supports owned payload schemas by reference; defer its algorithm, not its
+referenced shape if NegotiationState already requires it. Empty tuples or disabled estimates
+do not remove the need to define the complete declared type/union.
+
+Static closure check: start with PreparedEvidence, DecisionSnapshot, IntentBatch,
+GenerationResult, EvaluationBatch, NegotiationDecision, RenderedAction, ValidationResult,
+PendingOperation, DispatchPermit, TransportBudget, ExecutionResult, EventProposal, ReplayResult,
+VerifiedClaim and OfficialCostResult. Recursively follow field type names and every union member
+in `tests/v2/dto-contracts.json`. This reaches **128 of 160 remaining exports** (DTOs and
+unions), before any model/gateway envelopes. Adding ModelRequest, ModelBudget, ModelResult,
+GatewayResult and ServerObservation for the existing integration seams reaches **148 of 160**.
+These are schema dependency counts, not proof that a codec/test cutline needs exactly that
+many; full port introspection and optional scenario bindings may require more. Record the
+chosen consumer roots and exact symbol set before assigning each integration handoff.
+
+| Batch | First-loop classification under the existing model/gateway seams | Safety / later / optional distinction |
+|---|---|---|
+| D1 | All 8 fact payloads via EvidencePayload | Preserve closed union even if first fixture only uses CostFact/TextRecord |
+| D2 | 11/12 including evidence records, preparation, conflicts, context | ResolvedCostInput joins needed with T2.3; integrity/applicability never deferred when consuming evidence |
+| D3 | All 13 case/buyer/terms/alternative exports | Essential correctness; unavailable alternative cannot become zero/infinity |
+| D4 | All 11 economics/policy/evaluation exports | Essential economics. Scenario shapes required; scenario estimation/robust algorithms can follow. Live relationship-sensitive use needs estimates or documented admitted degraded scope |
+| D5 | All 11 intent/candidate/batch/decision exports | Stable strategy/economic boundary, including complete CandidateContents union |
+| D6 | All 10 message/server/clock/round/terminal exports | Essential input shapes. Authoritative terminal, deadline and round proof is live safety, not permission to infer it offline |
+| D7 | 7/11: ClaimWindow, VerifiedClaim and closing result shapes | ClaimCandidate/results/verification union needed when enabling factual claims and full T5.1; closing shapes arrive through ReplayResult even before close algorithms |
+| D8–D9 | All rendering, validation, budgets, operation and permit exports | Essential used-action boundary; durable commit/permit issuance is checkpoint C behavior |
+| D10–D11 | All state/context/outcome exports | Required by existing signatures; advanced memory/attribution behavior deferred despite available schemas |
+| D12–D13 | 10/11 each for existing model/gateway seams | DocumentBytes later with document fetch; SelectorResponse optional T4.4. Without those gateway seams, both groups can follow the first mock-port loop, but existing model-variability acceptance remains outstanding |
+| D14 | All 8 via EventPayload | Shapes required by FeedbackProcessor's EventProposal; event-store transitions completed at C |
+| D15 | 9/14 via EventProposal/EventPayload | NegotiationEvent, DecisionCommit, CommittedResult, ConflictResult, CommitResult required for C's atomic store; no live dispatch before them |
+| D16 | All 5 result exports | Stable replay/execution boundary; acknowledgement is not a deal or terminal proof |
+
+This explains the DTO bottleneck honestly: EvidenceRecord pulls in all evidence payloads;
+NegotiationState pulls in strategic history helpers; EventProposal pulls in all hydrated event
+variants; ReplayResult pulls in closing types. **Do not narrow those unions or redefine public
+ports to chase a smaller count.** Most savings come from earlier component work and deferred
+algorithms, not from removing schema definitions. C's immutable field/invariant definitions
+remain binding whenever a type is implemented.
+
+## D. Early behavioral acceptance and honest gates
+
+T6.1 local behavior work starts with T3.1, rather than after M5. Keep the present preference
+flip, greeting, refusal, uncertainty, injection and economic-ceiling tests. Extend them with
+small controlled scenario pairs; production inputs never contain desired actions or evaluation
+labels. Replays of model drafts test grounding/plumbing, not independent language understanding.
+
+| Requested behavior | Controlled local test / defensible acceptance |
+|---|---|
+| Legitimate cost pressure versus flexibility | Same buyer terms; vary reported pressure and separately corroborating applicable cost evidence. Supported pressure changes rationale/feasible exchange or clarification; flexibility supports an affordable price/term request. No invented discount, automatic concession or sustainable-margin hard floor |
+| Payment constraint changes concession structure | New separately identified synthetic fixture with payment and another approved negotiable lever; compare reported payment refusal with flexibility. Prefer the admissible other lever when justified; recompute complete costs. P10 payment stays fixed at 30 days/DAP; no P10 golden mutation |
+| Volume-dependent discount | Separate synthetic case with at least two volumes satisfying must-haves; preserve conditional supplier offer as reported evidence, evaluate its actual legal packages including uncovered need/commitment. Test a beneficial and a harmful trade. P10 only permits 23,400 after must-haves and cannot demonstrate a volume-choice flip |
+| Irrelevant wording | Greeting/paraphrase preserves semantic strategy and package/economics. Raw input and record hashes may change; do not demand identical provenance IDs |
+| Unsupported assertion | Claimed cost rise remains reported constraint/hypothesis with citations; unsupported or contradictory evidence cannot become canonical fact or outward verified claim. Missing/ambiguous approval yields unknown/clarify |
+| Strategy cannot bypass checks | Favor an over-ceiling candidate, invent an ID/edit a package, or recommend illegal/private output. Real evaluator and independent validator reject; executor receives no rejected action. Trace the rejection and admitted fallback/cannot-decide |
+
+Checkpoint B includes actual selected-action comparisons, not only intent-direction assertions.
+An appropriately unchanged action with a changed explanation is allowed where economics/legal
+constraints dominate; include controlled affordable scenarios where the action must change.
+Compare source revision → assessment category/citations → intent → candidate/economic delta →
+selection → validation in the trace. Test outcomes under a fixed clock/config; repeat locally
+without hosted calls. Add manifest entries only for the focused tests introduced for each slice.
+
+Keep three independent claims: **structural correctness** (schemas/ports/hashes), **behavioral
+correctness** (controlled relevant and irrelevant differences), **negotiation performance**
+(held-out independent outcomes, costs/regret/failures). A fake acknowledgement demonstrates
+neither persuasion nor savings. Later T3.4/T6 evaluations measure held-out model precision,
+grounding, unsupported assertions, latency and strategy outcomes under separately allowed usage.
+
+No gate machinery rewrite is needed. The existing `--v2-dto-require` accepts symbols and batches;
+`--v2-require` accepts selected module prefixes. Define each milestone's test selectors AND
+required symbol list. Run all contract tests for implemented symbols, not just happy-path examples.
+Missing required symbols/components fail; present malformed symbols, failed assertions and broken
+imports never xfail. List later unimplemented tests explicitly. The final full-contract gate stays
+`tests/v2 --v2-require all` (including optional/deferred exports); never use it to announce an
+intermediate capability complete. Run appropriate full repository checks before a future push,
+reporting inherited failures separately.
+
+## E. Precise proposed document amendments
+
+Apply these localized changes when adopting this proposal; they were **not applied in this pass**:
+
+1. **D-roadmap.md §1:** replace “Freeze shared models first” with “Freeze each implemented
+   boundary contract before its consumer; deliver dependency-complete DTO groups alongside
+   vertical component increments.” Add A–E crosswalk above; retain original M rows and evidence.
+   Change the diagram's whole-T1.1 arrows to consumed-contract prerequisites, not a new design.
+2. **task-specs.md T1.1d and batch graph:** retain D inventories and graph; remove the mandatory
+   global serial D1–D16 implementation barrier. Require topological symbol-level dependencies,
+   complete unions, serial shared-file ownership and documented handoffs. Batch completion
+   still requires every batch export. Change T1.2a/T1.4/T2.1/T4.1 dependencies to the exact
+   consumed-type closure. Split T1.2a P10 bindings from advanced scenario bindings, T5.1 used
+   offer/question validation from full claims/closing coverage, and T6.1 local controls from
+   later complete performance evaluation. Retain full-parent acceptance; no completed labels.
+3. **C-interfaces.md §8.5 only:** clarify that scenario-only RecordedInputs fields can remain
+   unavailable until their consuming checkpoint, without inventing generic payloads, and that
+   partial codec availability does not satisfy the full fixture contract. No port signature,
+   DTO field, tagged union, or package migration change proposed.
+4. **implementation-guide.md / test-catalog.md / E-evaluation.md:** add checkpoint-specific
+   selector/symbol gate recipes and the six controlled scenarios above. Preserve all existing
+   assertions and full-contract gate. Existing test runner already supports these narrower gates.
+5. **Tracker and first-three-prompts.md:** link this addendum; show T1.1a–c and four metadata
+   DTOs as implemented, remaining T1.1d as incremental/planned, and the next assignment below.
+   Keep the original prompts as historical completed assignments, not the current queue.
+
+No architecture rewrite, DTO deletion, V1 repair, golden change or research-platform task is
+needed to adopt this execution order.
+
+## F. Immediate next implementation assignment
+
+**T2.1 first increment + consumed T1.1d symbols: typed layered evidence resolver.** This is a
+bounded, demonstrable algorithm before the rest of the DTO inventory. It addresses the known
+case-overlay correctness issue and feeds the evidence-conditioned decision path. It is not
+the complete ContextBuilder or checkpoint A/B; those remain unfinished.
+
+Copy-ready prompt (use after accepting the dependency-order amendment):
+
+```text
+Implement the first T2.1 evidence-resolution increment, with only its necessary
+T1.1d contract closure. Read AGENTS.md, docs/README.md, docs/10-implementation-checklist.md,
+docs/v2/C-interfaces.md §8.9 D1/D2, task-specs.md and this implementation-order addendum.
+Preserve all pre-existing working-tree changes. Do not modify V1, frozen fixtures,
+existing assertions, dependencies, CLI defaults, or use network/hosted/model calls.
+
+Owned production files: extend src/negotiator/v2/core/models.py;
+create src/negotiator/v2/evidence/__init__.py and evidence/resolver.py.
+Implement exactly these 13 missing exports, preserving C's fields and validation:
+IndexFact, ScorecardFact, CostFact, QuoteFact, ContractFact, ForecastFact,
+OrderPriceFact, TextRecord, NamedEstimate, EstimateRecord, EvidencePayload,
+EvidenceRecord, Conflict. Reuse the four existing metadata DTOs and foundation models.
+Define the entire EvidencePayload tagged union; no dict/Any/model_construct escape.
+
+Implement a pure typed LayeredEvidenceResolver internal service over
+tuple[EvidenceRecord, ...]. Its resolve method returns immutable resolved records,
+Conflict entries and Issue entries (a typed tuple return is sufficient; do not add
+a new shared DTO). This helper is internal to evidence and will be injected/used
+by the later LayeredContextBuilder; do not alter ContextBuilder's public Protocol.
+Scope this first method to explicit base/release/case records; reject unsupported
+layers with a typed issue rather than inventing their priority.
+
+Resolve by canonical identity before applicability: case > release > base;
+replace whole records, never fill removed fields from a lower layer. Distinct
+records with equal highest priority for one canonical identity produce an
+unresolved blocking Conflict and no usable winner. Collapse identical repeats
+by record identity/content; contradictory reuse of an identity is an error.
+Preserve statement/estimate/hypothesis kind; same identifier cannot promote an
+unverified record into a canonical fact. Do not merge unrelated unkeyed statements.
+Keep input records unchanged so the later prepared context can retain shadowed
+revisions; conflict IDs reference those original records.
+After selecting a version, check its explicit supplier/part/case scope against
+supplied target identifiers. An inapplicable winner reports scope_mismatch and
+must not revive the base record. Preserve supplied provenance, disclosure, basis
+and temporal metadata verbatim; calendar/freshness derivation is a later context task.
+No cost estimate, claim verification, interpretation or strategy in this resolver.
+
+Add focused direct resolver tests in tests/v2/contracts/test_layered_resolver.py.
+Construct validated EvidenceRecord inputs directly; no full codec prerequisite.
+Test base/release/case replacement, null/deleted optional fields, equal-priority
+collision, identical replay, conflicting record identity, scope-after-precedence,
+unkeyed supplier statements, no authority promotion, exact basis/provenance,
+and input immutability/deterministic output. Use real changed record values, not
+fixture IDs that select expected winners. If the specification does not settle a
+case, record a narrow issue rather than silently inventing a public invariant.
+
+Acceptance: all existing remaining-DTO tests for those 13 symbols pass under
+explicit --v2-dto-require requirements, including negative/exact-field/round-trip
+and additional applicable cases; direct resolver tests pass with the new evidence
+module required; foundation/boundary/hardening/evidence-metadata tests remain passing.
+Ruff on src/negotiator/v2 and tests/v2 passes; frozen V1 replay stays exact.
+Run the whole V2 suite and report remaining xfails without hiding failures.
+For batch gates, D1 is complete; D2 remains partial. T2.1 and T1.1d remain in progress.
+
+Deliver a small completion note: implemented symbols, selector/gate commands and
+results, a concrete cost-record override example with winner/conflict provenance,
+remaining gaps, and the next consumer (LayeredContextBuilder + typed recorded inputs).
+No checkpoint A/B, full-contract, live-readiness or negotiation-performance claim.
+```
+
+This first task deliberately couples a small exact contract closure to an immediately useful
+implementation. Follow it with consumer-sized case/economic DTOs and T4.1, then typed P10
+bindings/composition; do not resume the remaining fifteen batches as an uninterrupted queue.
+
+## Open tabs:
+- implementation-order-addendum-2026-10-10.md: tacto-negotiator/docs/v2/implementation-order-addendum-2026-10-10.md
+- task-specs.md: tacto-negotiator/docs/v2/task-specs.md
+- 21-negotiation-v2-plan-2026-10-10.md: tacto-negotiator/docs/21-negotiation-v2-plan-2026-10-10.md
+- first-three-prompts.md: tacto-negotiator/docs/v2/first-three-prompts.md
+- D-roadmap.md: tacto-negotiator/docs/v2/D-roadmap.md
+
+## My request:
+I approve the implementation-order addendum and the proposed first T2.1 evidence-resolution task.
+Proceed with the implementation according to the provided task prompt, preserving the existing contracts and correctness requirements.
+One additional clarification regarding our implementation philosophy:
+**Checkpoint A and checkpoint B should progress together wherever dependencies allow.** We should not wait for the entire ten-stage loop, persistence system, or all 148 transitively referenced DTOs before implementing and directly testing supplier interpretation, economic evaluation, or evidence-conditioned strategy.
+We can test these components independently using their established interfaces and validated inputs before integrating them into the complete orchestration system.
+After the evidence resolver is implemented, prioritize connecting it to its first meaningful consumer. In parallel with the necessary contract work, move toward a small behavioral demonstration in which changing applicable evidence or supplier intent produces a defensible change in the next negotiation decision.
+Do not introduce another architectural redesign, additional planning phase, or speculative abstractions.
+Continue delivering bounded implementations with meaningful acceptance tests. Preserve the eventual full-contract requirements, but don't let them unnecessarily block independent component development.
+At the end of the task, identify the next implementation increment that moves us closest to the first evidence-sensitive negotiation demonstration, rather than simply recommending the next DTO batch.
+
+---
+
+# Context from my IDE setup:
+
+## Active file: tacto-negotiator/docs/v2/implementation-order-addendum-2026-10-10.md
+
+## Active selection of the file:
+# V2 capability delivery: approved implementation-order addendum
+
+**Approved by the user:** checkpoints A and B progress together wherever dependencies allow.
+Sections A–F retain the original assessment/proposal snapshot below; section G records the
+subsequent implementation. No complete loop, persistence system, or whole DTO inventory is
+required before independently implementing/testing interpretation, economics, or strategy.
+
+10 October 2026. Assessment of checkout `a88bf86` **including the existing working-tree
+planning/test changes**. This is a proposal, not an approved contract revision or a completion
+claim. No production code, tests, fixtures, or existing planning documents were changed for
+this assessment. Task IDs, architecture, and C's implemented-type contracts remain authoritative.
+
+The smallest useful adjustment is to **implement contracts beside their first consumers,
+and bring real evidence resolution, economics, validation, and behavioral evaluation forward**.
+Do not wait for all D1–D16 to start component work. Do not promise that the complete existing
+pipeline can use only a handful of DTOs: its current public input and result types have a
+substantial transitive dependency closure.
+
+## A. Actual state and architectural assessment
+
+| Area | Inspected implementation state | Implication |
+|---|---|---|
+| T1.1a | Frozen values/terms, strict parsing, canonical serialization/hashes, errors implemented | Reuse unchanged |
+| T1.1b | Assessment models and exact Protocol declarations implemented | Reuse; declarations referencing absent DTOs do not make the ports executable end to end |
+| T1.1c | DecisionStage/DecisionRecord/EffectiveConfig and config resolver implemented | T1.3 composition and T1.4 record persistence remain unfinished |
+| T1.1d | EvidenceScope, Provenance, TemporalValidity, DisclosureRule implemented | All 160 remaining declared exports are absent: 146 concrete DTOs plus 14 unions |
+| T1.2a/b | No recorded adapter, factory, or orchestration loop | Normalizer, scripted fakes, and sentinel routing test are preparation |
+| T2–T6 | No concrete V2 evidence, interpreter, economics, strategy, execution, store, or evaluation components | Planned tests and V1 implementations are reuse material, not delivered V2 capabilities |
+| V1 | Existing negotiator, arithmetic integrations, adviser, evidence, runtime, Lab infrastructure | Preserve named historical baseline; wrap useful primitives rather than assume current callers are safe |
+
+Fresh local verification in this pass:
+
+- `tests/v2`: **380 passed, 796 xfailed**, no unexpected failures. Many passes validate
+  specification examples; the 796 explicit missing-component/DTO xfails are not completed work.
+- Ruff over `src/negotiator/v2 tests/v2`: passes.
+- Frozen V1 replay: exact historical first move matches `3653046`; no network/model calls.
+- Six focused legacy modules from A's verification recipe: **56 passed, 4 failed**.
+  Failures remain the inverse-price regression, two final-offer history/memory expectations,
+  and empty-thread mocked-agent compatibility (`test_evaluator.py` and `test_context.py`).
+  This is a bounded check, not a full repository readiness claim.
+
+Preserve evidence / interpretation / strategy / economics / validation / execution /
+orchestration boundaries, dependency injection, strict contracts, deterministic finances,
+independent validation, source applicability/provenance, reproducible records, and the pinned
+official kit. Keep the existing serial coordinator and SQLite direction. Preserve V1 goldens
+and audit obligations in A §4. The source inspected still contains the legacy inverse helper,
+separate cost access, and mutable runtime paths; none becomes safe through this proposal.
+
+The avoidable dependencies are **whole-task barriers**: T1.2a, T1.4, T2.1, and T4.1 name
+all of T1.1d; the instructions require the exact serial D1–D16 order; T6.1 waits for M5.
+T5.1 also waits for all of T2.3 even for an offer with no factual claims. These are broader
+than their first consumers need. Preserve real prerequisites: constructors need their field
+types and complete union members; economic joins need verified basis/standards; grounding needs
+actual source/message references; sending needs validation and durable ownership.
+
+## B. Minimal roadmap delta and critical path
+
+Keep M0–M7 and T identifiers. A–E below are **capability checkpoints across existing tasks**,
+not replacement milestone IDs. A partial parent remains in progress until all its original
+acceptance criteria pass. Keep shared-model edits serial; a new component may follow each
+dependency-complete contract handoff rather than waiting for all batches.
+
+| Checkpoint | Required work and order using existing IDs | Exit gate / status |
+|---|---|---|
+| A: functional backbone | T1.1d types on demand; T1.2a P10 binding; T1.3 offline composition; T1.4 artifact/record append/reload; T1.2b complete typed loop. Bring T4.1 official package evaluation and the used offer/question subset of T5.1 forward. Context, interpretation, strategy, generation and feedback may initially be recorded ports | Actual ten-stage loop, deterministic costs, independent used-action checks, fake execution and feedback, saved/reloaded trace. **Required next, not implemented; scripted intelligence explicitly labelled** |
+| B: evidence-driven intelligence | Start T2.1 now; replace A's mock context with resolver-backed context. T3.1 labels + T6.1 local behavioral controls start now. Add T3.2 bounded deterministic interpretation/fallback and grounded draft validation, T4.2 finite generation, T4.3 evidence-conditioned proposal and deterministic selector. Add needed T2.3 standards/estimate projections; add T2.2 preparation when reading real package data | Relevant evidence/reply changes alter defensible intent and, when affordable/legal, selected action; irrelevant wording does not. Actual interpretation/strategy algorithms, evaluator and validator run. **Required next after/alongside backbone** |
+| C: reliable execution | Complete used-scope T2.2/2.3 and T5.1; T5.2 projector + atomic state/operation/claim transaction; T5.3 endpoint gateway/executor/recovery; T5.4 serial multi-turn loop and basic feedback. Add minimum T3.3 budget plumbing if using a model. T6.2 only for the intended CLI/Lab launch path | Local simulator plus crash/uncertain-outcome/restart gates before any real execution. Live readiness remains separate from local proof and needs operational authorization. **Required later** |
+| D: experimental framework | Register baseline and evidence-conditioned bundles through existing T1.3/T4.3 seams; extend T6.1 to identical recorded situations. Add T4.4 bounded LLM selector and T3.3/3.4 interpretation/provider evaluations when chosen and funded; T6.3/6.4 retain performance/promotion gates | Same evidence/economic/validation services, distinct strategy/config identities, held-out reports. Basic substitutability checked already in A/B. **Required later; model selector optional** |
+| E: advanced capabilities | Retain T2.4 broader documents, T4.5 generic solver, T7.1–7.5 category/information-value/async/research/basket expansion and F's research queue. Sophisticated memory, preference estimation and attribution algorithms remain here | Enable on concrete requirement or measured gap. **Deferred; optional experiments remain optional** |
+
+Shortest credible paths, with no full-parent completion hidden in these arrows:
+
+1. **Offline loop:** dependency-complete T1.1d groups → P10-only T1.2a → T1.3
+   composition + T1.4 append/load → T1.2b with real T4.1 and a real T5.1 used-action
+   subset → checkpoint A. Storage is append-only decision/artifact storage at this stage;
+   do not require the full live StateStore implementation to replay a decision.
+2. **Evidence-sensitive decision:** T2.1 resolver/context + T3.1/T6.1 controls → T3.2
+   bounded real interpretation → T4.2/T4.3 + necessary T2.3 projections → run through A's
+   economic/validation pipeline → checkpoint B. The first bounded interpreter may safely
+   recognize structured offers and explicit supported signals, preserving exact citations and
+   unknowns. It must derive outputs from current inputs, not select prewritten assessments by
+   fixture ID. Broader language coverage uses the same port and later evaluated model adapter.
+3. **Reliable real execution:** B + strict data preflight/relationship estimates → full
+   used-scope T5.1 → T5.2 → T5.3 → T5.4, intended launch-path checks and runtime fault matrix
+   → checkpoint C. No model is required for a deterministic baseline. If enabled, its absolute
+   budget/cancellation/fallback gates are prerequisites to transmitting.
+
+Do not let A become another long framework project. Replace each scripted decision component
+as its types become available; use T2.1 and T4.1 direct component demonstrations before A is
+complete. Basic feedback is observed linkage, not learned causal attribution. Persist operation
+identity/provenance before real sending; an unknown outcome retains its original ID/bytes and
+blocks a conflicting action. All closing paths still need fresh standing-sheet checks and the
+same deterministic close evaluator. Supplier prose never establishes terminal truth.
+
+## C. DTO classification and limits of deferral
+
+The existing layout can stay. Public cross-module contracts include evidence/context,
+assessment, intent/candidate/evaluation/decision, validated action, operation, and result
+envelopes. Nested contract helpers such as term origins and cost components also remain
+explicit. Provider projection DTOs belong at the adapter boundary; hydrated events belong at
+the store/projector boundary. They are not all necessary to *algorithm development*, but
+their present contract placement is not a reason to migrate packages.
+
+Private ranking scores, search queues, parser working structures, caches, and strategy-specific
+reasoning can remain internal typed models. Do not add them to core speculatively. Existing
+StrategyMemory supports owned payload schemas by reference; defer its algorithm, not its
+referenced shape if NegotiationState already requires it. Empty tuples or disabled estimates
+do not remove the need to define the complete declared type/union.
+
+Static closure check: start with PreparedEvidence, DecisionSnapshot, IntentBatch,
+GenerationResult, EvaluationBatch, NegotiationDecision, RenderedAction, ValidationResult,
+PendingOperation, DispatchPermit, TransportBudget, ExecutionResult, EventProposal, ReplayResult,
+VerifiedClaim and OfficialCostResult. Recursively follow field type names and every union member
+in `tests/v2/dto-contracts.json`. This reaches **128 of 160 remaining exports** (DTOs and
+unions), before any model/gateway envelopes. Adding ModelRequest, ModelBudget, ModelResult,
+GatewayResult and ServerObservation for the existing integration seams reaches **148 of 160**.
+These are schema dependency counts, not proof that a codec/test cutline needs exactly that
+many; full port introspection and optional scenario bindings may require more. Record the
+chosen consumer roots and exact symbol set before assigning each integration handoff.
+
+| Batch | First-loop classification under the existing model/gateway seams | Safety / later / optional distinction |
+|---|---|---|
+| D1 | All 8 fact payloads via EvidencePayload | Preserve closed union even if first fixture only uses CostFact/TextRecord |
+| D2 | 11/12 including evidence records, preparation, conflicts, context | ResolvedCostInput joins needed with T2.3; integrity/applicability never deferred when consuming evidence |
+| D3 | All 13 case/buyer/terms/alternative exports | Essential correctness; unavailable alternative cannot become zero/infinity |
+| D4 | All 11 economics/policy/evaluation exports | Essential economics. Scenario shapes required; scenario estimation/robust algorithms can follow. Live relationship-sensitive use needs estimates or documented admitted degraded scope |
+| D5 | All 11 intent/candidate/batch/decision exports | Stable strategy/economic boundary, including complete CandidateContents union |
+| D6 | All 10 message/server/clock/round/terminal exports | Essential input shapes. Authoritative terminal, deadline and round proof is live safety, not permission to infer it offline |
+| D7 | 7/11: ClaimWindow, VerifiedClaim and closing result shapes | ClaimCandidate/results/verification union needed when enabling factual claims and full T5.1; closing shapes arrive through ReplayResult even before close algorithms |
+| D8–D9 | All rendering, validation, budgets, operation and permit exports | Essential used-action boundary; durable commit/permit issuance is checkpoint C behavior |
+| D10–D11 | All state/context/outcome exports | Required by existing signatures; advanced memory/attribution behavior deferred despite available schemas |
+| D12–D13 | 10/11 each for existing model/gateway seams | DocumentBytes later with document fetch; SelectorResponse optional T4.4. Without those gateway seams, both groups can follow the first mock-port loop, but existing model-variability acceptance remains outstanding |
+| D14 | All 8 via EventPayload | Shapes required by FeedbackProcessor's EventProposal; event-store transitions completed at C |
+| D15 | 9/14 via EventProposal/EventPayload | NegotiationEvent, DecisionCommit, CommittedResult, ConflictResult, CommitResult required for C's atomic store; no live dispatch before them |
+| D16 | All 5 result exports | Stable replay/execution boundary; acknowledgement is not a deal or terminal proof |
+
+This explains the DTO bottleneck honestly: EvidenceRecord pulls in all evidence payloads;
+NegotiationState pulls in strategic history helpers; EventProposal pulls in all hydrated event
+variants; ReplayResult pulls in closing types. **Do not narrow those unions or redefine public
+ports to chase a smaller count.** Most savings come from earlier component work and deferred
+algorithms, not from removing schema definitions. C's immutable field/invariant definitions
+remain binding whenever a type is implemented.
+
+## D. Early behavioral acceptance and honest gates
+
+T6.1 local behavior work starts with T3.1, rather than after M5. Keep the present preference
+flip, greeting, refusal, uncertainty, injection and economic-ceiling tests. Extend them with
+small controlled scenario pairs; production inputs never contain desired actions or evaluation
+labels. Replays of model drafts test grounding/plumbing, not independent language understanding.
+
+| Requested behavior | Controlled local test / defensible acceptance |
+|---|---|
+| Legitimate cost pressure versus flexibility | Same buyer terms; vary reported pressure and separately corroborating applicable cost evidence. Supported pressure changes rationale/feasible exchange or clarification; flexibility supports an affordable price/term request. No invented discount, automatic concession or sustainable-margin hard floor |
+| Payment constraint changes concession structure | New separately identified synthetic fixture with payment and another approved negotiable lever; compare reported payment refusal with flexibility. Prefer the admissible other lever when justified; recompute complete costs. P10 payment stays fixed at 30 days/DAP; no P10 golden mutation |
+| Volume-dependent discount | Separate synthetic case with at least two volumes satisfying must-haves; preserve conditional supplier offer as reported evidence, evaluate its actual legal packages including uncovered need/commitment. Test a beneficial and a harmful trade. P10 only permits 23,400 after must-haves and cannot demonstrate a volume-choice flip |
+| Irrelevant wording | Greeting/paraphrase preserves semantic strategy and package/economics. Raw input and record hashes may change; do not demand identical provenance IDs |
+| Unsupported assertion | Claimed cost rise remains reported constraint/hypothesis with citations; unsupported or contradictory evidence cannot become canonical fact or outward verified claim. Missing/ambiguous approval yields unknown/clarify |
+| Strategy cannot bypass checks | Favor an over-ceiling candidate, invent an ID/edit a package, or recommend illegal/private output. Real evaluator and independent validator reject; executor receives no rejected action. Trace the rejection and admitted fallback/cannot-decide |
+
+Checkpoint B includes actual selected-action comparisons, not only intent-direction assertions.
+An appropriately unchanged action with a changed explanation is allowed where economics/legal
+constraints dominate; include controlled affordable scenarios where the action must change.
+Compare source revision → assessment category/citations → intent → candidate/economic delta →
+selection → validation in the trace. Test outcomes under a fixed clock/config; repeat locally
+without hosted calls. Add manifest entries only for the focused tests introduced for each slice.
+
+Keep three independent claims: **structural correctness** (schemas/ports/hashes), **behavioral
+correctness** (controlled relevant and irrelevant differences), **negotiation performance**
+(held-out independent outcomes, costs/regret/failures). A fake acknowledgement demonstrates
+neither persuasion nor savings. Later T3.4/T6 evaluations measure held-out model precision,
+grounding, unsupported assertions, latency and strategy outcomes under separately allowed usage.
+
+No gate machinery rewrite is needed. The existing `--v2-dto-require` accepts symbols and batches;
+`--v2-require` accepts selected module prefixes. Define each milestone's test selectors AND
+required symbol list. Run all contract tests for implemented symbols, not just happy-path examples.
+Missing required symbols/components fail; present malformed symbols, failed assertions and broken
+imports never xfail. List later unimplemented tests explicitly. The final full-contract gate stays
+`tests/v2 --v2-require all` (including optional/deferred exports); never use it to announce an
+intermediate capability complete. Run appropriate full repository checks before a future push,
+reporting inherited failures separately.
+
+## E. Precise proposed document amendments
+
+Apply these localized changes when adopting this proposal; they were **not applied in this pass**:
+
+1. **D-roadmap.md §1:** replace “Freeze shared models first” with “Freeze each implemented
+   boundary contract before its consumer; deliver dependency-complete DTO groups alongside
+   vertical component increments.” Add A–E crosswalk above; retain original M rows and evidence.
+   Change the diagram's whole-T1.1 arrows to consumed-contract prerequisites, not a new design.
+2. **task-specs.md T1.1d and batch graph:** retain D inventories and graph; remove the mandatory
+   global serial D1–D16 implementation barrier. Require topological symbol-level dependencies,
+   complete unions, serial shared-file ownership and documented handoffs. Batch completion
+   still requires every batch export. Change T1.2a/T1.4/T2.1/T4.1 dependencies to the exact
+   consumed-type closure. Split T1.2a P10 bindings from advanced scenario bindings, T5.1 used
+   offer/question validation from full claims/closing coverage, and T6.1 local controls from
+   later complete performance evaluation. Retain full-parent acceptance; no completed labels.
+3. **C-interfaces.md §8.5 only:** clarify that scenario-only RecordedInputs fields can remain
+   unavailable until their consuming checkpoint, without inventing generic payloads, and that
+   partial codec availability does not satisfy the full fixture contract. No port signature,
+   DTO field, tagged union, or package migration change proposed.
+4. **implementation-guide.md / test-catalog.md / E-evaluation.md:** add checkpoint-specific
+   selector/symbol gate recipes and the six controlled scenarios above. Preserve all existing
+   assertions and full-contract gate. Existing test runner already supports these narrower gates.
+5. **Tracker and first-three-prompts.md:** link this addendum; show T1.1a–c and four metadata
+   DTOs as implemented, remaining T1.1d as incremental/planned, and the next assignment below.
+   Keep the original prompts as historical completed assignments, not the current queue.
+
+No architecture rewrite, DTO deletion, V1 repair, golden change or research-platform task is
+needed to adopt this execution order.
+
+## F. Immediate next implementation assignment
+
+**T2.1 first increment + consumed T1.1d symbols: typed layered evidence resolver.** This is a
+bounded, demonstrable algorithm before the rest of the DTO inventory. It addresses the known
+case-overlay correctness issue and feeds the evidence-conditioned decision path. It is not
+the complete ContextBuilder or checkpoint A/B; those remain unfinished.
+
+Copy-ready prompt (use after accepting the dependency-order amendment):
+
+```text
+Implement the first T2.1 evidence-resolution increment, with only its necessary
+T1.1d contract closure. Read AGENTS.md, docs/README.md, docs/10-implementation-checklist.md,
+docs/v2/C-interfaces.md §8.9 D1/D2, task-specs.md and this implementation-order addendum.
+Preserve all pre-existing working-tree changes. Do not modify V1, frozen fixtures,
+existing assertions, dependencies, CLI defaults, or use network/hosted/model calls.
+
+Owned production files: extend src/negotiator/v2/core/models.py;
+create src/negotiator/v2/evidence/__init__.py and evidence/resolver.py.
+Implement exactly these 13 missing exports, preserving C's fields and validation:
+IndexFact, ScorecardFact, CostFact, QuoteFact, ContractFact, ForecastFact,
+OrderPriceFact, TextRecord, NamedEstimate, EstimateRecord, EvidencePayload,
+EvidenceRecord, Conflict. Reuse the four existing metadata DTOs and foundation models.
+Define the entire EvidencePayload tagged union; no dict/Any/model_construct escape.
+
+Implement a pure typed LayeredEvidenceResolver internal service over
+tuple[EvidenceRecord, ...]. Its resolve method returns immutable resolved records,
+Conflict entries and Issue entries (a typed tuple return is sufficient; do not add
+a new shared DTO). This helper is internal to evidence and will be injected/used
+by the later LayeredContextBuilder; do not alter ContextBuilder's public Protocol.
+Scope this first method to explicit base/release/case records; reject unsupported
+layers with a typed issue rather than inventing their priority.
+
+Resolve by canonical identity before applicability: case > release > base;
+replace whole records, never fill removed fields from a lower layer. Distinct
+records with equal highest priority for one canonical identity produce an
+unresolved blocking Conflict and no usable winner. Collapse identical repeats
+by record identity/content; contradictory reuse of an identity is an error.
+Preserve statement/estimate/hypothesis kind; same identifier cannot promote an
+unverified record into a canonical fact. Do not merge unrelated unkeyed statements.
+Keep input records unchanged so the later prepared context can retain shadowed
+revisions; conflict IDs reference those original records.
+After selecting a version, check its explicit supplier/part/case scope against
+supplied target identifiers. An inapplicable winner reports scope_mismatch and
+must not revive the base record. Preserve supplied provenance, disclosure, basis
+and temporal metadata verbatim; calendar/freshness derivation is a later context task.
+No cost estimate, claim verification, interpretation or strategy in this resolver.
+
+Add focused direct resolver tests in tests/v2/contracts/test_layered_resolver.py.
+Construct validated EvidenceRecord inputs directly; no full codec prerequisite.
+Test base/release/case replacement, null/deleted optional fields, equal-priority
+collision, identical replay, conflicting record identity, scope-after-precedence,
+unkeyed supplier statements, no authority promotion, exact basis/provenance,
+and input immutability/deterministic output. Use real changed record values, not
+fixture IDs that select expected winners. If the specification does not settle a
+case, record a narrow issue rather than silently inventing a public invariant.
+
+Acceptance: all existing remaining-DTO tests for those 13 symbols pass under
+explicit --v2-dto-require requirements, including negative/exact-field/round-trip
+and additional applicable cases; direct resolver tests pass with the new evidence
+module required; foundation/boundary/hardening/evidence-metadata tests remain passing.
+Ruff on src/negotiator/v2 and tests/v2 passes; frozen V1 replay stays exact.
+Run the whole V2 suite and report remaining xfails without hiding failures.
+For batch gates, D1 is complete; D2 remains partial. T2.1 and T1.1d remain in progress.
+
+Deliver a small completion note: implemented symbols, selector/gate commands and
+results, a concrete cost-record override example with winner/conflict provenance,
+remaining gaps, and the next consumer (LayeredContextBuilder + typed recorded inputs).
+No checkpoint A/B, full-contract, live-readiness or negotiation-performance claim.
+```
+
+This first task deliberately couples a small exact contract closure to an immediately useful
+implementation. Follow it with consumer-sized case/economic DTOs and T4.1, then typed P10
+bindings/composition; do not resume the remaining fifteen batches as an uninterrupted queue.
+
+## G. First T2.1 increment: verified local implementation
+
+**Source:** `a88bf86` plus preserved pre-existing working changes; no branch/commit/push,
+V1 source edit, dependency change, or external call. Implemented the 13 exports in F exactly
+against C and the existing DTO examples: D1 is complete; five D2 exports are complete;
+D2, T1.1d and T2.1 remain in progress. The resolver is an internal evidence service returning
+typed immutable records/conflicts/issues; no public Protocol or DTO-field revision was needed.
+
+**Concrete result:** synthetic `cost:310010` resolves from base EUR 132.64 to release EUR 140.00
+to case EUR 150.00, retaining the selected original record, source layer/hash/locator and a
+nonblocking conflict referencing all shadowed revision IDs. Removing the case selects release;
+an out-of-scope case selects neither release nor base and reports `scope_mismatch`. Equal-priority
+distinct revisions have no winner. Contradictory record identities or unsupported session/derived
+layers block the affected identity. Statements/hypotheses remain their supplied kind.
+
+**Verification:** direct resolver/supplemental safety contracts **53 passed**; remaining-DTO
+suite with D1 plus explicit NamedEstimate/EstimateRecord/EvidencePayload/EvidenceRecord/Conflict
+requirements **263 passed, 600 explicit unimplemented xfails**; whole V2 suite with core,
+config, evidence.resolver and those symbols required **509 passed, 720 explicit unimplemented
+xfails**, zero unexpected failures. V2 source/tests Ruff, frozen V1 replay, and diff whitespace
+checks pass. Expanded test manifest regenerated to 1,229 cases, retaining old assertions/goldens.
+The legacy four-failure classification from section A remains; this increment does not repair V1.
+
+Reproduce the full scoped gate:
+
+```bash
+.venv/bin/python -m pytest -q tests/v2 \
+  --v2-require core --v2-require config --v2-require evidence.resolver \
+  --v2-dto-require D1 --v2-dto-require NamedEstimate --v2-dto-require EstimateRecord \
+  --v2-dto-require EvidencePayload --v2-dto-require EvidenceRecord --v2-dto-require Conflict
+```
+
+**Next increment: connect resolved evidence to its cost consumer.** Implement the existing
+T2.3 `EvidenceProjections.cost_input(EvidenceContext, canonical_id) -> ResolvedCostInput`
+contract with only EvidenceContext, RelevanceRecord and ResolvedCostInput added. Direct tests
+compose this resolver's output into a validated EvidenceContext and call that consumer; full
+ContextBuilder/preparation/codec are not prerequisites. Propagate blocking conflict, scope,
+missing-source, kind, temporal uncertainty and basis issues instead of issuing a trusted cost
+from a supplier assertion. If no admissible cost exists, fail explicitly through the existing
+contract-error boundary; do not fabricate the required ResolvedCostInput.unit_cost or weaken
+the return type. Preserve the exact winner SourceRefs and price basis and retain disclosure
+on its source context;
+EUR 150/140 source changes must reach cost input and invalidate its economic input fingerprint.
+Keep internal_cost_claim and full T2.3 incomplete until their own contracts/services exist.
+
+Then exercise T4.1 directly using its existing OfficialCostOracle/EconomicEvaluator boundaries
+and validated case/economic inputs, while adding a small T4.3 policy comparison driven by those
+actual results and cited supplier assessments. The OfficialCostOracle input/output closure
+currently needs 16 missing exports, rather than the complete 147 remaining exports. This is
+consumer contract work alongside real arithmetic, not a new batch-only queue. The first
+behavioral demonstration should compare identical legal candidates under changed applicable
+cost evidence/grounded supplier preference and show the affordable selected action plus the
+source/assessment/economic explanation; include irrelevant wording and inadmissible advice
+controls. Selection and used-action validation must remain independent. Full ContextBuilder
+integration follows when its server/case contracts exist; persistence and the ten-stage loop
+remain integration work. No intelligent negotiation or live-readiness claim is made yet.
+
+## Open tabs:
+- implementation-order-addendum-2026-10-10.md: tacto-negotiator/docs/v2/implementation-order-addendum-2026-10-10.md
+- task-specs.md: tacto-negotiator/docs/v2/task-specs.md
+- 21-negotiation-v2-plan-2026-10-10.md: tacto-negotiator/docs/21-negotiation-v2-plan-2026-10-10.md
+- first-three-prompts.md: tacto-negotiator/docs/v2/first-three-prompts.md
+- D-roadmap.md: tacto-negotiator/docs/v2/D-roadmap.md
+
+## My request:
+Continue with the next capability-driven implementation increment.
+
+**Implement `EvidenceProjections.cost_input`, connecting the working layered evidence resolver to typed, validated economic inputs.**
+
+Follow the existing T2.3 contracts and the implementation-order addendum. Implement only the necessary missing DTOs.
+
+Focus on delivering working functionality rather than extending the framework.
+
+Acceptance criteria:
+
+1. Resolved evidence reaches `cost_input` through a validated `EvidenceContext`.
+2. Evidence precedence and applicability remain authoritative.
+3. Cost inputs preserve their source references, units, and price basis.
+4. Unsupported supplier claims cannot become verified cost inputs.
+5. Conflicting, missing, inapplicable, or otherwise inadmissible cost evidence produces an explicit failure.
+6. Changing the authoritative cost source from €140 to €150 produces the corresponding change in the cost projection and its economic input fingerprint.
+7. Existing contracts, tests, V1 behavior, and golden fixtures remain unchanged.
+
+Do not implement the full ContextBuilder, orchestration, persistence, or negotiation strategy in this increment.
+
+**Important architectural constraint:** Evidence-derived costs must not silently replace authoritative official economic calculations. Preserve the separation between evidence, economics, and strategy.
+
+Once implemented and tested, proceed toward direct T4.1 economic evaluation using the existing interfaces.
+
+Our next major target is a controlled demonstration connecting real evidence, deterministic economic evaluation, and evidence-conditioned strategy selection.
+
+Do not introduce additional planning exercises, speculative abstractions, or DTO batches unrelated to the next working consumer.
+
+Report the actual functionality demonstrated, remaining limitations, and the smallest next task toward our first evidence-sensitive negotiation decision.
+
+---
+
+# Context from my IDE setup:
+
+## Active file: tacto-negotiator/docs/v2/implementation-order-addendum-2026-10-10.md
+
+## Active selection of the file:
+# V2 capability delivery: approved implementation-order addendum
+
+**Approved by the user:** checkpoints A and B progress together wherever dependencies allow.
+Sections A–F retain the original assessment/proposal snapshot below; section G records the
+subsequent implementation (with the latest cost consumer in section H). No complete loop, persistence system, or whole DTO inventory is
+required before independently implementing/testing interpretation, economics, or strategy.
+
+10 October 2026. Assessment of checkout `a88bf86` **including the existing working-tree
+planning/test changes**. This is a proposal, not an approved contract revision or a completion
+claim. No production code, tests, fixtures, or existing planning documents were changed for
+this assessment. Task IDs, architecture, and C's implemented-type contracts remain authoritative.
+
+The smallest useful adjustment is to **implement contracts beside their first consumers,
+and bring real evidence resolution, economics, validation, and behavioral evaluation forward**.
+Do not wait for all D1–D16 to start component work. Do not promise that the complete existing
+pipeline can use only a handful of DTOs: its current public input and result types have a
+substantial transitive dependency closure.
+
+## A. Actual state and architectural assessment
+
+| Area | Inspected implementation state | Implication |
+|---|---|---|
+| T1.1a | Frozen values/terms, strict parsing, canonical serialization/hashes, errors implemented | Reuse unchanged |
+| T1.1b | Assessment models and exact Protocol declarations implemented | Reuse; declarations referencing absent DTOs do not make the ports executable end to end |
+| T1.1c | DecisionStage/DecisionRecord/EffectiveConfig and config resolver implemented | T1.3 composition and T1.4 record persistence remain unfinished |
+| T1.1d | EvidenceScope, Provenance, TemporalValidity, DisclosureRule implemented | All 160 remaining declared exports are absent: 146 concrete DTOs plus 14 unions |
+| T1.2a/b | No recorded adapter, factory, or orchestration loop | Normalizer, scripted fakes, and sentinel routing test are preparation |
+| T2–T6 | No concrete V2 evidence, interpreter, economics, strategy, execution, store, or evaluation components | Planned tests and V1 implementations are reuse material, not delivered V2 capabilities |
+| V1 | Existing negotiator, arithmetic integrations, adviser, evidence, runtime, Lab infrastructure | Preserve named historical baseline; wrap useful primitives rather than assume current callers are safe |
+
+Fresh local verification in this pass:
+
+- `tests/v2`: **380 passed, 796 xfailed**, no unexpected failures. Many passes validate
+  specification examples; the 796 explicit missing-component/DTO xfails are not completed work.
+- Ruff over `src/negotiator/v2 tests/v2`: passes.
+- Frozen V1 replay: exact historical first move matches `3653046`; no network/model calls.
+- Six focused legacy modules from A's verification recipe: **56 passed, 4 failed**.
+  Failures remain the inverse-price regression, two final-offer history/memory expectations,
+  and empty-thread mocked-agent compatibility (`test_evaluator.py` and `test_context.py`).
+  This is a bounded check, not a full repository readiness claim.
+
+Preserve evidence / interpretation / strategy / economics / validation / execution /
+orchestration boundaries, dependency injection, strict contracts, deterministic finances,
+independent validation, source applicability/provenance, reproducible records, and the pinned
+official kit. Keep the existing serial coordinator and SQLite direction. Preserve V1 goldens
+and audit obligations in A §4. The source inspected still contains the legacy inverse helper,
+separate cost access, and mutable runtime paths; none becomes safe through this proposal.
+
+The avoidable dependencies are **whole-task barriers**: T1.2a, T1.4, T2.1, and T4.1 name
+all of T1.1d; the instructions require the exact serial D1–D16 order; T6.1 waits for M5.
+T5.1 also waits for all of T2.3 even for an offer with no factual claims. These are broader
+than their first consumers need. Preserve real prerequisites: constructors need their field
+types and complete union members; economic joins need verified basis/standards; grounding needs
+actual source/message references; sending needs validation and durable ownership.
+
+## B. Minimal roadmap delta and critical path
+
+Keep M0–M7 and T identifiers. A–E below are **capability checkpoints across existing tasks**,
+not replacement milestone IDs. A partial parent remains in progress until all its original
+acceptance criteria pass. Keep shared-model edits serial; a new component may follow each
+dependency-complete contract handoff rather than waiting for all batches.
+
+| Checkpoint | Required work and order using existing IDs | Exit gate / status |
+|---|---|---|
+| A: functional backbone | T1.1d types on demand; T1.2a P10 binding; T1.3 offline composition; T1.4 artifact/record append/reload; T1.2b complete typed loop. Bring T4.1 official package evaluation and the used offer/question subset of T5.1 forward. Context, interpretation, strategy, generation and feedback may initially be recorded ports | Actual ten-stage loop, deterministic costs, independent used-action checks, fake execution and feedback, saved/reloaded trace. **Required next, not implemented; scripted intelligence explicitly labelled** |
+| B: evidence-driven intelligence | Start T2.1 now; replace A's mock context with resolver-backed context. T3.1 labels + T6.1 local behavioral controls start now. Add T3.2 bounded deterministic interpretation/fallback and grounded draft validation, T4.2 finite generation, T4.3 evidence-conditioned proposal and deterministic selector. Add needed T2.3 standards/estimate projections; add T2.2 preparation when reading real package data | Relevant evidence/reply changes alter defensible intent and, when affordable/legal, selected action; irrelevant wording does not. Actual interpretation/strategy algorithms, evaluator and validator run. **Required next after/alongside backbone** |
+| C: reliable execution | Complete used-scope T2.2/2.3 and T5.1; T5.2 projector + atomic state/operation/claim transaction; T5.3 endpoint gateway/executor/recovery; T5.4 serial multi-turn loop and basic feedback. Add minimum T3.3 budget plumbing if using a model. T6.2 only for the intended CLI/Lab launch path | Local simulator plus crash/uncertain-outcome/restart gates before any real execution. Live readiness remains separate from local proof and needs operational authorization. **Required later** |
+| D: experimental framework | Register baseline and evidence-conditioned bundles through existing T1.3/T4.3 seams; extend T6.1 to identical recorded situations. Add T4.4 bounded LLM selector and T3.3/3.4 interpretation/provider evaluations when chosen and funded; T6.3/6.4 retain performance/promotion gates | Same evidence/economic/validation services, distinct strategy/config identities, held-out reports. Basic substitutability checked already in A/B. **Required later; model selector optional** |
+| E: advanced capabilities | Retain T2.4 broader documents, T4.5 generic solver, T7.1–7.5 category/information-value/async/research/basket expansion and F's research queue. Sophisticated memory, preference estimation and attribution algorithms remain here | Enable on concrete requirement or measured gap. **Deferred; optional experiments remain optional** |
+
+Shortest credible paths, with no full-parent completion hidden in these arrows:
+
+1. **Offline loop:** dependency-complete T1.1d groups → P10-only T1.2a → T1.3
+   composition + T1.4 append/load → T1.2b with real T4.1 and a real T5.1 used-action
+   subset → checkpoint A. Storage is append-only decision/artifact storage at this stage;
+   do not require the full live StateStore implementation to replay a decision.
+2. **Evidence-sensitive decision:** T2.1 resolver/context + T3.1/T6.1 controls → T3.2
+   bounded real interpretation → T4.2/T4.3 + necessary T2.3 projections → run through A's
+   economic/validation pipeline → checkpoint B. The first bounded interpreter may safely
+   recognize structured offers and explicit supported signals, preserving exact citations and
+   unknowns. It must derive outputs from current inputs, not select prewritten assessments by
+   fixture ID. Broader language coverage uses the same port and later evaluated model adapter.
+3. **Reliable real execution:** B + strict data preflight/relationship estimates → full
+   used-scope T5.1 → T5.2 → T5.3 → T5.4, intended launch-path checks and runtime fault matrix
+   → checkpoint C. No model is required for a deterministic baseline. If enabled, its absolute
+   budget/cancellation/fallback gates are prerequisites to transmitting.
+
+Do not let A become another long framework project. Replace each scripted decision component
+as its types become available; use T2.1 and T4.1 direct component demonstrations before A is
+complete. Basic feedback is observed linkage, not learned causal attribution. Persist operation
+identity/provenance before real sending; an unknown outcome retains its original ID/bytes and
+blocks a conflicting action. All closing paths still need fresh standing-sheet checks and the
+same deterministic close evaluator. Supplier prose never establishes terminal truth.
+
+## C. DTO classification and limits of deferral
+
+The existing layout can stay. Public cross-module contracts include evidence/context,
+assessment, intent/candidate/evaluation/decision, validated action, operation, and result
+envelopes. Nested contract helpers such as term origins and cost components also remain
+explicit. Provider projection DTOs belong at the adapter boundary; hydrated events belong at
+the store/projector boundary. They are not all necessary to *algorithm development*, but
+their present contract placement is not a reason to migrate packages.
+
+Private ranking scores, search queues, parser working structures, caches, and strategy-specific
+reasoning can remain internal typed models. Do not add them to core speculatively. Existing
+StrategyMemory supports owned payload schemas by reference; defer its algorithm, not its
+referenced shape if NegotiationState already requires it. Empty tuples or disabled estimates
+do not remove the need to define the complete declared type/union.
+
+Static closure check: start with PreparedEvidence, DecisionSnapshot, IntentBatch,
+GenerationResult, EvaluationBatch, NegotiationDecision, RenderedAction, ValidationResult,
+PendingOperation, DispatchPermit, TransportBudget, ExecutionResult, EventProposal, ReplayResult,
+VerifiedClaim and OfficialCostResult. Recursively follow field type names and every union member
+in `tests/v2/dto-contracts.json`. This reaches **128 of 160 remaining exports** (DTOs and
+unions), before any model/gateway envelopes. Adding ModelRequest, ModelBudget, ModelResult,
+GatewayResult and ServerObservation for the existing integration seams reaches **148 of 160**.
+These are schema dependency counts, not proof that a codec/test cutline needs exactly that
+many; full port introspection and optional scenario bindings may require more. Record the
+chosen consumer roots and exact symbol set before assigning each integration handoff.
+
+| Batch | First-loop classification under the existing model/gateway seams | Safety / later / optional distinction |
+|---|---|---|
+| D1 | All 8 fact payloads via EvidencePayload | Preserve closed union even if first fixture only uses CostFact/TextRecord |
+| D2 | 11/12 including evidence records, preparation, conflicts, context | ResolvedCostInput joins needed with T2.3; integrity/applicability never deferred when consuming evidence |
+| D3 | All 13 case/buyer/terms/alternative exports | Essential correctness; unavailable alternative cannot become zero/infinity |
+| D4 | All 11 economics/policy/evaluation exports | Essential economics. Scenario shapes required; scenario estimation/robust algorithms can follow. Live relationship-sensitive use needs estimates or documented admitted degraded scope |
+| D5 | All 11 intent/candidate/batch/decision exports | Stable strategy/economic boundary, including complete CandidateContents union |
+| D6 | All 10 message/server/clock/round/terminal exports | Essential input shapes. Authoritative terminal, deadline and round proof is live safety, not permission to infer it offline |
+| D7 | 7/11: ClaimWindow, VerifiedClaim and closing result shapes | ClaimCandidate/results/verification union needed when enabling factual claims and full T5.1; closing shapes arrive through ReplayResult even before close algorithms |
+| D8–D9 | All rendering, validation, budgets, operation and permit exports | Essential used-action boundary; durable commit/permit issuance is checkpoint C behavior |
+| D10–D11 | All state/context/outcome exports | Required by existing signatures; advanced memory/attribution behavior deferred despite available schemas |
+| D12–D13 | 10/11 each for existing model/gateway seams | DocumentBytes later with document fetch; SelectorResponse optional T4.4. Without those gateway seams, both groups can follow the first mock-port loop, but existing model-variability acceptance remains outstanding |
+| D14 | All 8 via EventPayload | Shapes required by FeedbackProcessor's EventProposal; event-store transitions completed at C |
+| D15 | 9/14 via EventProposal/EventPayload | NegotiationEvent, DecisionCommit, CommittedResult, ConflictResult, CommitResult required for C's atomic store; no live dispatch before them |
+| D16 | All 5 result exports | Stable replay/execution boundary; acknowledgement is not a deal or terminal proof |
+
+This explains the DTO bottleneck honestly: EvidenceRecord pulls in all evidence payloads;
+NegotiationState pulls in strategic history helpers; EventProposal pulls in all hydrated event
+variants; ReplayResult pulls in closing types. **Do not narrow those unions or redefine public
+ports to chase a smaller count.** Most savings come from earlier component work and deferred
+algorithms, not from removing schema definitions. C's immutable field/invariant definitions
+remain binding whenever a type is implemented.
+
+## D. Early behavioral acceptance and honest gates
+
+T6.1 local behavior work starts with T3.1, rather than after M5. Keep the present preference
+flip, greeting, refusal, uncertainty, injection and economic-ceiling tests. Extend them with
+small controlled scenario pairs; production inputs never contain desired actions or evaluation
+labels. Replays of model drafts test grounding/plumbing, not independent language understanding.
+
+| Requested behavior | Controlled local test / defensible acceptance |
+|---|---|
+| Legitimate cost pressure versus flexibility | Same buyer terms; vary reported pressure and separately corroborating applicable cost evidence. Supported pressure changes rationale/feasible exchange or clarification; flexibility supports an affordable price/term request. No invented discount, automatic concession or sustainable-margin hard floor |
+| Payment constraint changes concession structure | New separately identified synthetic fixture with payment and another approved negotiable lever; compare reported payment refusal with flexibility. Prefer the admissible other lever when justified; recompute complete costs. P10 payment stays fixed at 30 days/DAP; no P10 golden mutation |
+| Volume-dependent discount | Separate synthetic case with at least two volumes satisfying must-haves; preserve conditional supplier offer as reported evidence, evaluate its actual legal packages including uncovered need/commitment. Test a beneficial and a harmful trade. P10 only permits 23,400 after must-haves and cannot demonstrate a volume-choice flip |
+| Irrelevant wording | Greeting/paraphrase preserves semantic strategy and package/economics. Raw input and record hashes may change; do not demand identical provenance IDs |
+| Unsupported assertion | Claimed cost rise remains reported constraint/hypothesis with citations; unsupported or contradictory evidence cannot become canonical fact or outward verified claim. Missing/ambiguous approval yields unknown/clarify |
+| Strategy cannot bypass checks | Favor an over-ceiling candidate, invent an ID/edit a package, or recommend illegal/private output. Real evaluator and independent validator reject; executor receives no rejected action. Trace the rejection and admitted fallback/cannot-decide |
+
+Checkpoint B includes actual selected-action comparisons, not only intent-direction assertions.
+An appropriately unchanged action with a changed explanation is allowed where economics/legal
+constraints dominate; include controlled affordable scenarios where the action must change.
+Compare source revision → assessment category/citations → intent → candidate/economic delta →
+selection → validation in the trace. Test outcomes under a fixed clock/config; repeat locally
+without hosted calls. Add manifest entries only for the focused tests introduced for each slice.
+
+Keep three independent claims: **structural correctness** (schemas/ports/hashes), **behavioral
+correctness** (controlled relevant and irrelevant differences), **negotiation performance**
+(held-out independent outcomes, costs/regret/failures). A fake acknowledgement demonstrates
+neither persuasion nor savings. Later T3.4/T6 evaluations measure held-out model precision,
+grounding, unsupported assertions, latency and strategy outcomes under separately allowed usage.
+
+No gate machinery rewrite is needed. The existing `--v2-dto-require` accepts symbols and batches;
+`--v2-require` accepts selected module prefixes. Define each milestone's test selectors AND
+required symbol list. Run all contract tests for implemented symbols, not just happy-path examples.
+Missing required symbols/components fail; present malformed symbols, failed assertions and broken
+imports never xfail. List later unimplemented tests explicitly. The final full-contract gate stays
+`tests/v2 --v2-require all` (including optional/deferred exports); never use it to announce an
+intermediate capability complete. Run appropriate full repository checks before a future push,
+reporting inherited failures separately.
+
+## E. Precise proposed document amendments
+
+Apply these localized changes when adopting this proposal; they were **not applied in this pass**:
+
+1. **D-roadmap.md §1:** replace “Freeze shared models first” with “Freeze each implemented
+   boundary contract before its consumer; deliver dependency-complete DTO groups alongside
+   vertical component increments.” Add A–E crosswalk above; retain original M rows and evidence.
+   Change the diagram's whole-T1.1 arrows to consumed-contract prerequisites, not a new design.
+2. **task-specs.md T1.1d and batch graph:** retain D inventories and graph; remove the mandatory
+   global serial D1–D16 implementation barrier. Require topological symbol-level dependencies,
+   complete unions, serial shared-file ownership and documented handoffs. Batch completion
+   still requires every batch export. Change T1.2a/T1.4/T2.1/T4.1 dependencies to the exact
+   consumed-type closure. Split T1.2a P10 bindings from advanced scenario bindings, T5.1 used
+   offer/question validation from full claims/closing coverage, and T6.1 local controls from
+   later complete performance evaluation. Retain full-parent acceptance; no completed labels.
+3. **C-interfaces.md §8.5 only:** clarify that scenario-only RecordedInputs fields can remain
+   unavailable until their consuming checkpoint, without inventing generic payloads, and that
+   partial codec availability does not satisfy the full fixture contract. No port signature,
+   DTO field, tagged union, or package migration change proposed.
+4. **implementation-guide.md / test-catalog.md / E-evaluation.md:** add checkpoint-specific
+   selector/symbol gate recipes and the six controlled scenarios above. Preserve all existing
+   assertions and full-contract gate. Existing test runner already supports these narrower gates.
+5. **Tracker and first-three-prompts.md:** link this addendum; show T1.1a–c and four metadata
+   DTOs as implemented, remaining T1.1d as incremental/planned, and the next assignment below.
+   Keep the original prompts as historical completed assignments, not the current queue.
+
+No architecture rewrite, DTO deletion, V1 repair, golden change or research-platform task is
+needed to adopt this execution order.
+
+## F. Immediate next implementation assignment
+
+**T2.1 first increment + consumed T1.1d symbols: typed layered evidence resolver.** This is a
+bounded, demonstrable algorithm before the rest of the DTO inventory. It addresses the known
+case-overlay correctness issue and feeds the evidence-conditioned decision path. It is not
+the complete ContextBuilder or checkpoint A/B; those remain unfinished.
+
+Copy-ready prompt (use after accepting the dependency-order amendment):
+
+```text
+Implement the first T2.1 evidence-resolution increment, with only its necessary
+T1.1d contract closure. Read AGENTS.md, docs/README.md, docs/10-implementation-checklist.md,
+docs/v2/C-interfaces.md §8.9 D1/D2, task-specs.md and this implementation-order addendum.
+Preserve all pre-existing working-tree changes. Do not modify V1, frozen fixtures,
+existing assertions, dependencies, CLI defaults, or use network/hosted/model calls.
+
+Owned production files: extend src/negotiator/v2/core/models.py;
+create src/negotiator/v2/evidence/__init__.py and evidence/resolver.py.
+Implement exactly these 13 missing exports, preserving C's fields and validation:
+IndexFact, ScorecardFact, CostFact, QuoteFact, ContractFact, ForecastFact,
+OrderPriceFact, TextRecord, NamedEstimate, EstimateRecord, EvidencePayload,
+EvidenceRecord, Conflict. Reuse the four existing metadata DTOs and foundation models.
+Define the entire EvidencePayload tagged union; no dict/Any/model_construct escape.
+
+Implement a pure typed LayeredEvidenceResolver internal service over
+tuple[EvidenceRecord, ...]. Its resolve method returns immutable resolved records,
+Conflict entries and Issue entries (a typed tuple return is sufficient; do not add
+a new shared DTO). This helper is internal to evidence and will be injected/used
+by the later LayeredContextBuilder; do not alter ContextBuilder's public Protocol.
+Scope this first method to explicit base/release/case records; reject unsupported
+layers with a typed issue rather than inventing their priority.
+
+Resolve by canonical identity before applicability: case > release > base;
+replace whole records, never fill removed fields from a lower layer. Distinct
+records with equal highest priority for one canonical identity produce an
+unresolved blocking Conflict and no usable winner. Collapse identical repeats
+by record identity/content; contradictory reuse of an identity is an error.
+Preserve statement/estimate/hypothesis kind; same identifier cannot promote an
+unverified record into a canonical fact. Do not merge unrelated unkeyed statements.
+Keep input records unchanged so the later prepared context can retain shadowed
+revisions; conflict IDs reference those original records.
+After selecting a version, check its explicit supplier/part/case scope against
+supplied target identifiers. An inapplicable winner reports scope_mismatch and
+must not revive the base record. Preserve supplied provenance, disclosure, basis
+and temporal metadata verbatim; calendar/freshness derivation is a later context task.
+No cost estimate, claim verification, interpretation or strategy in this resolver.
+
+Add focused direct resolver tests in tests/v2/contracts/test_layered_resolver.py.
+Construct validated EvidenceRecord inputs directly; no full codec prerequisite.
+Test base/release/case replacement, null/deleted optional fields, equal-priority
+collision, identical replay, conflicting record identity, scope-after-precedence,
+unkeyed supplier statements, no authority promotion, exact basis/provenance,
+and input immutability/deterministic output. Use real changed record values, not
+fixture IDs that select expected winners. If the specification does not settle a
+case, record a narrow issue rather than silently inventing a public invariant.
+
+Acceptance: all existing remaining-DTO tests for those 13 symbols pass under
+explicit --v2-dto-require requirements, including negative/exact-field/round-trip
+and additional applicable cases; direct resolver tests pass with the new evidence
+module required; foundation/boundary/hardening/evidence-metadata tests remain passing.
+Ruff on src/negotiator/v2 and tests/v2 passes; frozen V1 replay stays exact.
+Run the whole V2 suite and report remaining xfails without hiding failures.
+For batch gates, D1 is complete; D2 remains partial. T2.1 and T1.1d remain in progress.
+
+Deliver a small completion note: implemented symbols, selector/gate commands and
+results, a concrete cost-record override example with winner/conflict provenance,
+remaining gaps, and the next consumer (LayeredContextBuilder + typed recorded inputs).
+No checkpoint A/B, full-contract, live-readiness or negotiation-performance claim.
+```
+
+This first task deliberately couples a small exact contract closure to an immediately useful
+implementation. Follow it with consumer-sized case/economic DTOs and T4.1, then typed P10
+bindings/composition; do not resume the remaining fifteen batches as an uninterrupted queue.
+
+## G. First T2.1 increment: verified local implementation
+
+**Source:** `a88bf86` plus preserved pre-existing working changes; no branch/commit/push,
+V1 source edit, dependency change, or external call. Implemented the 13 exports in F exactly
+against C and the existing DTO examples: D1 is complete; five D2 exports are complete;
+D2, T1.1d and T2.1 remain in progress. The resolver is an internal evidence service returning
+typed immutable records/conflicts/issues; no public Protocol or DTO-field revision was needed.
+
+**Concrete result:** synthetic `cost:310010` resolves from base EUR 132.64 to release EUR 140.00
+to case EUR 150.00, retaining the selected original record, source layer/hash/locator and a
+nonblocking conflict referencing all shadowed revision IDs. Removing the case selects release;
+an out-of-scope case selects neither release nor base and reports `scope_mismatch`. Equal-priority
+distinct revisions have no winner. Contradictory record identities or unsupported session/derived
+layers block the affected identity. Statements/hypotheses remain their supplied kind.
+
+**Verification:** direct resolver/supplemental safety contracts **53 passed**; remaining-DTO
+suite with D1 plus explicit NamedEstimate/EstimateRecord/EvidencePayload/EvidenceRecord/Conflict
+requirements **263 passed, 600 explicit unimplemented xfails**; whole V2 suite with core,
+config, evidence.resolver and those symbols required **509 passed, 720 explicit unimplemented
+xfails**, zero unexpected failures. V2 source/tests Ruff, frozen V1 replay, and diff whitespace
+checks pass. Expanded test manifest regenerated to 1,229 cases, retaining old assertions/goldens.
+The legacy four-failure classification from section A remains; this increment does not repair V1.
+
+Reproduce the full scoped gate:
+
+```bash
+.venv/bin/python -m pytest -q tests/v2 \
+  --v2-require core --v2-require config --v2-require evidence.resolver \
+  --v2-dto-require D1 --v2-dto-require NamedEstimate --v2-dto-require EstimateRecord \
+  --v2-dto-require EvidencePayload --v2-dto-require EvidenceRecord --v2-dto-require Conflict
+```
+
+**Next increment: connect resolved evidence to its cost consumer.** Implement the existing
+T2.3 `EvidenceProjections.cost_input(EvidenceContext, canonical_id) -> ResolvedCostInput`
+contract with only EvidenceContext, RelevanceRecord and ResolvedCostInput added. Direct tests
+compose this resolver's output into a validated EvidenceContext and call that consumer; full
+ContextBuilder/preparation/codec are not prerequisites. Propagate blocking conflict, scope,
+missing-source, kind, temporal uncertainty and basis issues instead of issuing a trusted cost
+from a supplier assertion. If no admissible cost exists, fail explicitly through the existing
+contract-error boundary; do not fabricate the required ResolvedCostInput.unit_cost or weaken
+the return type. Preserve the exact winner SourceRefs and price basis and retain disclosure
+on its source context;
+EUR 150/140 source changes must reach cost input and invalidate its economic input fingerprint.
+Keep internal_cost_claim and full T2.3 incomplete until their own contracts/services exist.
+
+Then exercise T4.1 directly using its existing OfficialCostOracle/EconomicEvaluator boundaries
+and validated case/economic inputs, while adding a small T4.3 policy comparison driven by those
+actual results and cited supplier assessments. The OfficialCostOracle input/output closure
+currently needs 16 missing exports, rather than the complete 147 remaining exports. This is
+consumer contract work alongside real arithmetic, not a new batch-only queue. The first
+behavioral demonstration should compare identical legal candidates under changed applicable
+cost evidence/grounded supplier preference and show the affordable selected action plus the
+source/assessment/economic explanation; include irrelevant wording and inadmissible advice
+controls. Selection and used-action validation must remain independent. Full ContextBuilder
+integration follows when its server/case contracts exist; persistence and the ten-stage loop
+remain integration work. No intelligent negotiation or live-readiness claim is made yet.
+
+## H. T2.3 cost consumer: verified local implementation
+
+Implemented `EvidenceProjections.cost_input(context, canonical_id)` in evidence/claims.py;
+added only RelevanceRecord, EvidenceContext and ResolvedCostInput from C §8.9 D2. The DTO
+fields/defaults remain unchanged. Direct tests feed this consumer the working resolver's
+selected records/conflicts/gaps through a validated EvidenceContext. No ContextBuilder,
+prepared-data loader, persistence, orchestration, strategy, or official arithmetic was added.
+
+**Demonstrated:** release EUR 140 becomes case EUR 150 under authoritative source precedence;
+the projected Price and exact economic SourceRef revision change, as does
+`semantic_hash(ResolvedCostInput)`. This is the fingerprint of this narrow typed economic input,
+not the still-unimplemented complete EconomicContext fingerprint. Revision-only changes also
+invalidate the input hash; unrelated supplier wording changes neither projection nor hash.
+Declared EUR/price units (1/100/1000), part basis, scope and temporal attribution are preserved
+without numerical conversion. Basis IDs remain distinct from evidence SourceRefs. Internal
+disclosure remains on the original context/source, not a fabricated new DTO field.
+
+**Failures are explicit ContractViolation exceptions:** missing/ambiguous cost, conflict with
+the selected winner, supplier statements/estimates/hypotheses or text payloads, inadmissible
+scope/layer, unknown/stale/future temporal status, contradictory explicit validity dates, and
+ambiguous/wrong-part price basis. The consumer also fails closed on context error gaps because
+the selected-only view may not identify the canonical source affected by a discarded revision;
+warnings are retained. This is conservative and can block a cost when an unrelated error is
+present. It does not silently fall back or claim that unrelated missing data has been resolved.
+Source bytes, prep hashes and freshness-rule execution remain upstream preparation work; this
+increment checks declared metadata and dates, and does not establish source authenticity itself.
+
+**Checks:** direct projection acceptance **29 passed**; existing remaining-DTO suite with the
+three new symbols required **275 passed, 588 explicit unimplemented xfails**; full V2 with
+implemented core/config/evidence components and consumed symbols required **550 passed,
+708 explicit unimplemented xfails**, zero unexpected failures. V2 Ruff, frozen V1 replay and
+diff whitespace checks pass. Expanded test manifest regenerated to 1,258 cases; existing
+assertions and golden fixtures preserved. T2.3 remains partial: internal_cost_claim, estimate
+construction, full claim verification and the complete financial evaluation are unfinished.
+
+**Smallest next task toward direct T4.1 evaluation:** implement
+`adapters/official.py:OfficialArithmetic.evaluate(CaseContract, ResolvedTerms,
+SupplierEstimate | None) -> OfficialCostResult` through the existing OfficialCostOracle port,
+with its 16 missing input/output exports only. Pair those types with the actual pinned-kit
+calculation in the same bounded increment; no DTO-only batch or complete factory prerequisite.
+Use direct validated inputs and independent official component/cents parity tests, preserving
+fixed terms, quote standards and price basis. A source-derived cost remains an attributed input
+to explicit estimate construction; it must never overwrite BuyerEconomics or the official
+cost function. With estimates disabled, changing evidence alone must not alter official costs.
+With an explicit admitted supplier estimate, the official relationship calculation owns any
+cost effect; retain the cost source revision in estimate assumptions. Do not use the legacy
+inverse-pricing helper. OfficialArithmetic is an oracle adapter, not yet the complete
+EconomicEvaluator or an action-selection/validation certificate. Follow with evaluated legal
+candidate comparison and a small grounded T4.3 policy treatment for the first decision demo.
+
+## Open tabs:
+- implementation-order-addendum-2026-10-10.md: tacto-negotiator/docs/v2/implementation-order-addendum-2026-10-10.md
+- task-specs.md: tacto-negotiator/docs/v2/task-specs.md
+- 21-negotiation-v2-plan-2026-10-10.md: tacto-negotiator/docs/21-negotiation-v2-plan-2026-10-10.md
+- first-three-prompts.md: tacto-negotiator/docs/v2/first-three-prompts.md
+- D-roadmap.md: tacto-negotiator/docs/v2/D-roadmap.md
+
+## My request:
+Proceed with the next capability-driven implementation increment: **T4.1 `OfficialArithmetic` adapter**.
+
+Follow the existing contracts, implementation-order addendum, and official kit integration specifications.
+
+**Objective:** Establish a tested, deterministic economic calculation boundary that can be reused by every negotiation strategy.
+
+Requirements:
+
+1. Implement only the missing DTOs and functionality required by the existing `OfficialArithmetic` interface.
+2. Reuse the pinned official kit as the authoritative calculation source. Do not independently reimplement its formulas or rely on the known problematic legacy inverse-price helper.
+3. Establish direct parity tests for representative valid packages, including unit conventions, price basis, complete cost components, and relevant commercial terms.
+4. Use exact decimal arithmetic where appropriate and preserve the official kit's rounding and validation behavior.
+5. Explicitly distinguish official economic results from evidence-derived cost estimates.
+6. Fail explicitly when an official calculation cannot be performed. Do not invent substitute values.
+7. Preserve V1 behavior, frozen fixtures, existing contracts, and all correctness requirements.
+
+**Scope restrictions:**
+
+- Do not implement the full `EconomicEvaluator` yet.
+- Do not implement negotiation strategy.
+- Do not introduce new economic abstractions beyond those required by the existing interface.
+- Do not implement speculative optimization or inverse-price solvers.
+- Do not introduce orchestration or persistence.
+
+**Acceptance:**
+
+Demonstrate that multiple valid negotiation packages produce results matching the pinned official kit, including appropriate edge cases.
+
+Report exact parity results, unsupported operations, remaining limitations, and test outcomes.
+
+Once complete, identify the smallest next increment that enables direct comparison of candidate negotiation packages using these authoritative calculations.
+
+Continue following our capability-first implementation philosophy. Avoid further architectural planning unless an actual blocking issue is discovered.
+
+---
+
+# Context from my IDE setup:
+
+## Active file: tacto-negotiator/docs/v2/implementation-order-addendum-2026-10-10.md
+
+## Active selection of the file:
+# V2 capability delivery: approved implementation-order addendum
+
+**Approved by the user:** checkpoints A and B progress together wherever dependencies allow.
+Sections A–F retain the original assessment/proposal snapshot below; section G records the
+subsequent implementation (with the latest official arithmetic adapter in section I). No complete loop, persistence system, or whole DTO inventory is
+required before independently implementing/testing interpretation, economics, or strategy.
+
+10 October 2026. Assessment of checkout `a88bf86` **including the existing working-tree
+planning/test changes**. This is a proposal, not an approved contract revision or a completion
+claim. No production code, tests, fixtures, or existing planning documents were changed for
+this assessment. Task IDs, architecture, and C's implemented-type contracts remain authoritative.
+
+The smallest useful adjustment is to **implement contracts beside their first consumers,
+and bring real evidence resolution, economics, validation, and behavioral evaluation forward**.
+Do not wait for all D1–D16 to start component work. Do not promise that the complete existing
+pipeline can use only a handful of DTOs: its current public input and result types have a
+substantial transitive dependency closure.
+
+## A. Actual state and architectural assessment
+
+| Area | Inspected implementation state | Implication |
+|---|---|---|
+| T1.1a | Frozen values/terms, strict parsing, canonical serialization/hashes, errors implemented | Reuse unchanged |
+| T1.1b | Assessment models and exact Protocol declarations implemented | Reuse; declarations referencing absent DTOs do not make the ports executable end to end |
+| T1.1c | DecisionStage/DecisionRecord/EffectiveConfig and config resolver implemented | T1.3 composition and T1.4 record persistence remain unfinished |
+| T1.1d | EvidenceScope, Provenance, TemporalValidity, DisclosureRule implemented | All 160 remaining declared exports are absent: 146 concrete DTOs plus 14 unions |
+| T1.2a/b | No recorded adapter, factory, or orchestration loop | Normalizer, scripted fakes, and sentinel routing test are preparation |
+| T2–T6 | No concrete V2 evidence, interpreter, economics, strategy, execution, store, or evaluation components | Planned tests and V1 implementations are reuse material, not delivered V2 capabilities |
+| V1 | Existing negotiator, arithmetic integrations, adviser, evidence, runtime, Lab infrastructure | Preserve named historical baseline; wrap useful primitives rather than assume current callers are safe |
+
+Fresh local verification in this pass:
+
+- `tests/v2`: **380 passed, 796 xfailed**, no unexpected failures. Many passes validate
+  specification examples; the 796 explicit missing-component/DTO xfails are not completed work.
+- Ruff over `src/negotiator/v2 tests/v2`: passes.
+- Frozen V1 replay: exact historical first move matches `3653046`; no network/model calls.
+- Six focused legacy modules from A's verification recipe: **56 passed, 4 failed**.
+  Failures remain the inverse-price regression, two final-offer history/memory expectations,
+  and empty-thread mocked-agent compatibility (`test_evaluator.py` and `test_context.py`).
+  This is a bounded check, not a full repository readiness claim.
+
+Preserve evidence / interpretation / strategy / economics / validation / execution /
+orchestration boundaries, dependency injection, strict contracts, deterministic finances,
+independent validation, source applicability/provenance, reproducible records, and the pinned
+official kit. Keep the existing serial coordinator and SQLite direction. Preserve V1 goldens
+and audit obligations in A §4. The source inspected still contains the legacy inverse helper,
+separate cost access, and mutable runtime paths; none becomes safe through this proposal.
+
+The avoidable dependencies are **whole-task barriers**: T1.2a, T1.4, T2.1, and T4.1 name
+all of T1.1d; the instructions require the exact serial D1–D16 order; T6.1 waits for M5.
+T5.1 also waits for all of T2.3 even for an offer with no factual claims. These are broader
+than their first consumers need. Preserve real prerequisites: constructors need their field
+types and complete union members; economic joins need verified basis/standards; grounding needs
+actual source/message references; sending needs validation and durable ownership.
+
+## B. Minimal roadmap delta and critical path
+
+Keep M0–M7 and T identifiers. A–E below are **capability checkpoints across existing tasks**,
+not replacement milestone IDs. A partial parent remains in progress until all its original
+acceptance criteria pass. Keep shared-model edits serial; a new component may follow each
+dependency-complete contract handoff rather than waiting for all batches.
+
+| Checkpoint | Required work and order using existing IDs | Exit gate / status |
+|---|---|---|
+| A: functional backbone | T1.1d types on demand; T1.2a P10 binding; T1.3 offline composition; T1.4 artifact/record append/reload; T1.2b complete typed loop. Bring T4.1 official package evaluation and the used offer/question subset of T5.1 forward. Context, interpretation, strategy, generation and feedback may initially be recorded ports | Actual ten-stage loop, deterministic costs, independent used-action checks, fake execution and feedback, saved/reloaded trace. **Required next, not implemented; scripted intelligence explicitly labelled** |
+| B: evidence-driven intelligence | Start T2.1 now; replace A's mock context with resolver-backed context. T3.1 labels + T6.1 local behavioral controls start now. Add T3.2 bounded deterministic interpretation/fallback and grounded draft validation, T4.2 finite generation, T4.3 evidence-conditioned proposal and deterministic selector. Add needed T2.3 standards/estimate projections; add T2.2 preparation when reading real package data | Relevant evidence/reply changes alter defensible intent and, when affordable/legal, selected action; irrelevant wording does not. Actual interpretation/strategy algorithms, evaluator and validator run. **Required next after/alongside backbone** |
+| C: reliable execution | Complete used-scope T2.2/2.3 and T5.1; T5.2 projector + atomic state/operation/claim transaction; T5.3 endpoint gateway/executor/recovery; T5.4 serial multi-turn loop and basic feedback. Add minimum T3.3 budget plumbing if using a model. T6.2 only for the intended CLI/Lab launch path | Local simulator plus crash/uncertain-outcome/restart gates before any real execution. Live readiness remains separate from local proof and needs operational authorization. **Required later** |
+| D: experimental framework | Register baseline and evidence-conditioned bundles through existing T1.3/T4.3 seams; extend T6.1 to identical recorded situations. Add T4.4 bounded LLM selector and T3.3/3.4 interpretation/provider evaluations when chosen and funded; T6.3/6.4 retain performance/promotion gates | Same evidence/economic/validation services, distinct strategy/config identities, held-out reports. Basic substitutability checked already in A/B. **Required later; model selector optional** |
+| E: advanced capabilities | Retain T2.4 broader documents, T4.5 generic solver, T7.1–7.5 category/information-value/async/research/basket expansion and F's research queue. Sophisticated memory, preference estimation and attribution algorithms remain here | Enable on concrete requirement or measured gap. **Deferred; optional experiments remain optional** |
+
+Shortest credible paths, with no full-parent completion hidden in these arrows:
+
+1. **Offline loop:** dependency-complete T1.1d groups → P10-only T1.2a → T1.3
+   composition + T1.4 append/load → T1.2b with real T4.1 and a real T5.1 used-action
+   subset → checkpoint A. Storage is append-only decision/artifact storage at this stage;
+   do not require the full live StateStore implementation to replay a decision.
+2. **Evidence-sensitive decision:** T2.1 resolver/context + T3.1/T6.1 controls → T3.2
+   bounded real interpretation → T4.2/T4.3 + necessary T2.3 projections → run through A's
+   economic/validation pipeline → checkpoint B. The first bounded interpreter may safely
+   recognize structured offers and explicit supported signals, preserving exact citations and
+   unknowns. It must derive outputs from current inputs, not select prewritten assessments by
+   fixture ID. Broader language coverage uses the same port and later evaluated model adapter.
+3. **Reliable real execution:** B + strict data preflight/relationship estimates → full
+   used-scope T5.1 → T5.2 → T5.3 → T5.4, intended launch-path checks and runtime fault matrix
+   → checkpoint C. No model is required for a deterministic baseline. If enabled, its absolute
+   budget/cancellation/fallback gates are prerequisites to transmitting.
+
+Do not let A become another long framework project. Replace each scripted decision component
+as its types become available; use T2.1 and T4.1 direct component demonstrations before A is
+complete. Basic feedback is observed linkage, not learned causal attribution. Persist operation
+identity/provenance before real sending; an unknown outcome retains its original ID/bytes and
+blocks a conflicting action. All closing paths still need fresh standing-sheet checks and the
+same deterministic close evaluator. Supplier prose never establishes terminal truth.
+
+## C. DTO classification and limits of deferral
+
+The existing layout can stay. Public cross-module contracts include evidence/context,
+assessment, intent/candidate/evaluation/decision, validated action, operation, and result
+envelopes. Nested contract helpers such as term origins and cost components also remain
+explicit. Provider projection DTOs belong at the adapter boundary; hydrated events belong at
+the store/projector boundary. They are not all necessary to *algorithm development*, but
+their present contract placement is not a reason to migrate packages.
+
+Private ranking scores, search queues, parser working structures, caches, and strategy-specific
+reasoning can remain internal typed models. Do not add them to core speculatively. Existing
+StrategyMemory supports owned payload schemas by reference; defer its algorithm, not its
+referenced shape if NegotiationState already requires it. Empty tuples or disabled estimates
+do not remove the need to define the complete declared type/union.
+
+Static closure check: start with PreparedEvidence, DecisionSnapshot, IntentBatch,
+GenerationResult, EvaluationBatch, NegotiationDecision, RenderedAction, ValidationResult,
+PendingOperation, DispatchPermit, TransportBudget, ExecutionResult, EventProposal, ReplayResult,
+VerifiedClaim and OfficialCostResult. Recursively follow field type names and every union member
+in `tests/v2/dto-contracts.json`. This reaches **128 of 160 remaining exports** (DTOs and
+unions), before any model/gateway envelopes. Adding ModelRequest, ModelBudget, ModelResult,
+GatewayResult and ServerObservation for the existing integration seams reaches **148 of 160**.
+These are schema dependency counts, not proof that a codec/test cutline needs exactly that
+many; full port introspection and optional scenario bindings may require more. Record the
+chosen consumer roots and exact symbol set before assigning each integration handoff.
+
+| Batch | First-loop classification under the existing model/gateway seams | Safety / later / optional distinction |
+|---|---|---|
+| D1 | All 8 fact payloads via EvidencePayload | Preserve closed union even if first fixture only uses CostFact/TextRecord |
+| D2 | 11/12 including evidence records, preparation, conflicts, context | ResolvedCostInput joins needed with T2.3; integrity/applicability never deferred when consuming evidence |
+| D3 | All 13 case/buyer/terms/alternative exports | Essential correctness; unavailable alternative cannot become zero/infinity |
+| D4 | All 11 economics/policy/evaluation exports | Essential economics. Scenario shapes required; scenario estimation/robust algorithms can follow. Live relationship-sensitive use needs estimates or documented admitted degraded scope |
+| D5 | All 11 intent/candidate/batch/decision exports | Stable strategy/economic boundary, including complete CandidateContents union |
+| D6 | All 10 message/server/clock/round/terminal exports | Essential input shapes. Authoritative terminal, deadline and round proof is live safety, not permission to infer it offline |
+| D7 | 7/11: ClaimWindow, VerifiedClaim and closing result shapes | ClaimCandidate/results/verification union needed when enabling factual claims and full T5.1; closing shapes arrive through ReplayResult even before close algorithms |
+| D8–D9 | All rendering, validation, budgets, operation and permit exports | Essential used-action boundary; durable commit/permit issuance is checkpoint C behavior |
+| D10–D11 | All state/context/outcome exports | Required by existing signatures; advanced memory/attribution behavior deferred despite available schemas |
+| D12–D13 | 10/11 each for existing model/gateway seams | DocumentBytes later with document fetch; SelectorResponse optional T4.4. Without those gateway seams, both groups can follow the first mock-port loop, but existing model-variability acceptance remains outstanding |
+| D14 | All 8 via EventPayload | Shapes required by FeedbackProcessor's EventProposal; event-store transitions completed at C |
+| D15 | 9/14 via EventProposal/EventPayload | NegotiationEvent, DecisionCommit, CommittedResult, ConflictResult, CommitResult required for C's atomic store; no live dispatch before them |
+| D16 | All 5 result exports | Stable replay/execution boundary; acknowledgement is not a deal or terminal proof |
+
+This explains the DTO bottleneck honestly: EvidenceRecord pulls in all evidence payloads;
+NegotiationState pulls in strategic history helpers; EventProposal pulls in all hydrated event
+variants; ReplayResult pulls in closing types. **Do not narrow those unions or redefine public
+ports to chase a smaller count.** Most savings come from earlier component work and deferred
+algorithms, not from removing schema definitions. C's immutable field/invariant definitions
+remain binding whenever a type is implemented.
+
+## D. Early behavioral acceptance and honest gates
+
+T6.1 local behavior work starts with T3.1, rather than after M5. Keep the present preference
+flip, greeting, refusal, uncertainty, injection and economic-ceiling tests. Extend them with
+small controlled scenario pairs; production inputs never contain desired actions or evaluation
+labels. Replays of model drafts test grounding/plumbing, not independent language understanding.
+
+| Requested behavior | Controlled local test / defensible acceptance |
+|---|---|
+| Legitimate cost pressure versus flexibility | Same buyer terms; vary reported pressure and separately corroborating applicable cost evidence. Supported pressure changes rationale/feasible exchange or clarification; flexibility supports an affordable price/term request. No invented discount, automatic concession or sustainable-margin hard floor |
+| Payment constraint changes concession structure | New separately identified synthetic fixture with payment and another approved negotiable lever; compare reported payment refusal with flexibility. Prefer the admissible other lever when justified; recompute complete costs. P10 payment stays fixed at 30 days/DAP; no P10 golden mutation |
+| Volume-dependent discount | Separate synthetic case with at least two volumes satisfying must-haves; preserve conditional supplier offer as reported evidence, evaluate its actual legal packages including uncovered need/commitment. Test a beneficial and a harmful trade. P10 only permits 23,400 after must-haves and cannot demonstrate a volume-choice flip |
+| Irrelevant wording | Greeting/paraphrase preserves semantic strategy and package/economics. Raw input and record hashes may change; do not demand identical provenance IDs |
+| Unsupported assertion | Claimed cost rise remains reported constraint/hypothesis with citations; unsupported or contradictory evidence cannot become canonical fact or outward verified claim. Missing/ambiguous approval yields unknown/clarify |
+| Strategy cannot bypass checks | Favor an over-ceiling candidate, invent an ID/edit a package, or recommend illegal/private output. Real evaluator and independent validator reject; executor receives no rejected action. Trace the rejection and admitted fallback/cannot-decide |
+
+Checkpoint B includes actual selected-action comparisons, not only intent-direction assertions.
+An appropriately unchanged action with a changed explanation is allowed where economics/legal
+constraints dominate; include controlled affordable scenarios where the action must change.
+Compare source revision → assessment category/citations → intent → candidate/economic delta →
+selection → validation in the trace. Test outcomes under a fixed clock/config; repeat locally
+without hosted calls. Add manifest entries only for the focused tests introduced for each slice.
+
+Keep three independent claims: **structural correctness** (schemas/ports/hashes), **behavioral
+correctness** (controlled relevant and irrelevant differences), **negotiation performance**
+(held-out independent outcomes, costs/regret/failures). A fake acknowledgement demonstrates
+neither persuasion nor savings. Later T3.4/T6 evaluations measure held-out model precision,
+grounding, unsupported assertions, latency and strategy outcomes under separately allowed usage.
+
+No gate machinery rewrite is needed. The existing `--v2-dto-require` accepts symbols and batches;
+`--v2-require` accepts selected module prefixes. Define each milestone's test selectors AND
+required symbol list. Run all contract tests for implemented symbols, not just happy-path examples.
+Missing required symbols/components fail; present malformed symbols, failed assertions and broken
+imports never xfail. List later unimplemented tests explicitly. The final full-contract gate stays
+`tests/v2 --v2-require all` (including optional/deferred exports); never use it to announce an
+intermediate capability complete. Run appropriate full repository checks before a future push,
+reporting inherited failures separately.
+
+## E. Precise proposed document amendments
+
+Apply these localized changes when adopting this proposal; they were **not applied in this pass**:
+
+1. **D-roadmap.md §1:** replace “Freeze shared models first” with “Freeze each implemented
+   boundary contract before its consumer; deliver dependency-complete DTO groups alongside
+   vertical component increments.” Add A–E crosswalk above; retain original M rows and evidence.
+   Change the diagram's whole-T1.1 arrows to consumed-contract prerequisites, not a new design.
+2. **task-specs.md T1.1d and batch graph:** retain D inventories and graph; remove the mandatory
+   global serial D1–D16 implementation barrier. Require topological symbol-level dependencies,
+   complete unions, serial shared-file ownership and documented handoffs. Batch completion
+   still requires every batch export. Change T1.2a/T1.4/T2.1/T4.1 dependencies to the exact
+   consumed-type closure. Split T1.2a P10 bindings from advanced scenario bindings, T5.1 used
+   offer/question validation from full claims/closing coverage, and T6.1 local controls from
+   later complete performance evaluation. Retain full-parent acceptance; no completed labels.
+3. **C-interfaces.md §8.5 only:** clarify that scenario-only RecordedInputs fields can remain
+   unavailable until their consuming checkpoint, without inventing generic payloads, and that
+   partial codec availability does not satisfy the full fixture contract. No port signature,
+   DTO field, tagged union, or package migration change proposed.
+4. **implementation-guide.md / test-catalog.md / E-evaluation.md:** add checkpoint-specific
+   selector/symbol gate recipes and the six controlled scenarios above. Preserve all existing
+   assertions and full-contract gate. Existing test runner already supports these narrower gates.
+5. **Tracker and first-three-prompts.md:** link this addendum; show T1.1a–c and four metadata
+   DTOs as implemented, remaining T1.1d as incremental/planned, and the next assignment below.
+   Keep the original prompts as historical completed assignments, not the current queue.
+
+No architecture rewrite, DTO deletion, V1 repair, golden change or research-platform task is
+needed to adopt this execution order.
+
+## F. Immediate next implementation assignment
+
+**T2.1 first increment + consumed T1.1d symbols: typed layered evidence resolver.** This is a
+bounded, demonstrable algorithm before the rest of the DTO inventory. It addresses the known
+case-overlay correctness issue and feeds the evidence-conditioned decision path. It is not
+the complete ContextBuilder or checkpoint A/B; those remain unfinished.
+
+Copy-ready prompt (use after accepting the dependency-order amendment):
+
+```text
+Implement the first T2.1 evidence-resolution increment, with only its necessary
+T1.1d contract closure. Read AGENTS.md, docs/README.md, docs/10-implementation-checklist.md,
+docs/v2/C-interfaces.md §8.9 D1/D2, task-specs.md and this implementation-order addendum.
+Preserve all pre-existing working-tree changes. Do not modify V1, frozen fixtures,
+existing assertions, dependencies, CLI defaults, or use network/hosted/model calls.
+
+Owned production files: extend src/negotiator/v2/core/models.py;
+create src/negotiator/v2/evidence/__init__.py and evidence/resolver.py.
+Implement exactly these 13 missing exports, preserving C's fields and validation:
+IndexFact, ScorecardFact, CostFact, QuoteFact, ContractFact, ForecastFact,
+OrderPriceFact, TextRecord, NamedEstimate, EstimateRecord, EvidencePayload,
+EvidenceRecord, Conflict. Reuse the four existing metadata DTOs and foundation models.
+Define the entire EvidencePayload tagged union; no dict/Any/model_construct escape.
+
+Implement a pure typed LayeredEvidenceResolver internal service over
+tuple[EvidenceRecord, ...]. Its resolve method returns immutable resolved records,
+Conflict entries and Issue entries (a typed tuple return is sufficient; do not add
+a new shared DTO). This helper is internal to evidence and will be injected/used
+by the later LayeredContextBuilder; do not alter ContextBuilder's public Protocol.
+Scope this first method to explicit base/release/case records; reject unsupported
+layers with a typed issue rather than inventing their priority.
+
+Resolve by canonical identity before applicability: case > release > base;
+replace whole records, never fill removed fields from a lower layer. Distinct
+records with equal highest priority for one canonical identity produce an
+unresolved blocking Conflict and no usable winner. Collapse identical repeats
+by record identity/content; contradictory reuse of an identity is an error.
+Preserve statement/estimate/hypothesis kind; same identifier cannot promote an
+unverified record into a canonical fact. Do not merge unrelated unkeyed statements.
+Keep input records unchanged so the later prepared context can retain shadowed
+revisions; conflict IDs reference those original records.
+After selecting a version, check its explicit supplier/part/case scope against
+supplied target identifiers. An inapplicable winner reports scope_mismatch and
+must not revive the base record. Preserve supplied provenance, disclosure, basis
+and temporal metadata verbatim; calendar/freshness derivation is a later context task.
+No cost estimate, claim verification, interpretation or strategy in this resolver.
+
+Add focused direct resolver tests in tests/v2/contracts/test_layered_resolver.py.
+Construct validated EvidenceRecord inputs directly; no full codec prerequisite.
+Test base/release/case replacement, null/deleted optional fields, equal-priority
+collision, identical replay, conflicting record identity, scope-after-precedence,
+unkeyed supplier statements, no authority promotion, exact basis/provenance,
+and input immutability/deterministic output. Use real changed record values, not
+fixture IDs that select expected winners. If the specification does not settle a
+case, record a narrow issue rather than silently inventing a public invariant.
+
+Acceptance: all existing remaining-DTO tests for those 13 symbols pass under
+explicit --v2-dto-require requirements, including negative/exact-field/round-trip
+and additional applicable cases; direct resolver tests pass with the new evidence
+module required; foundation/boundary/hardening/evidence-metadata tests remain passing.
+Ruff on src/negotiator/v2 and tests/v2 passes; frozen V1 replay stays exact.
+Run the whole V2 suite and report remaining xfails without hiding failures.
+For batch gates, D1 is complete; D2 remains partial. T2.1 and T1.1d remain in progress.
+
+Deliver a small completion note: implemented symbols, selector/gate commands and
+results, a concrete cost-record override example with winner/conflict provenance,
+remaining gaps, and the next consumer (LayeredContextBuilder + typed recorded inputs).
+No checkpoint A/B, full-contract, live-readiness or negotiation-performance claim.
+```
+
+This first task deliberately couples a small exact contract closure to an immediately useful
+implementation. Follow it with consumer-sized case/economic DTOs and T4.1, then typed P10
+bindings/composition; do not resume the remaining fifteen batches as an uninterrupted queue.
+
+## G. First T2.1 increment: verified local implementation
+
+**Source:** `a88bf86` plus preserved pre-existing working changes; no branch/commit/push,
+V1 source edit, dependency change, or external call. Implemented the 13 exports in F exactly
+against C and the existing DTO examples: D1 is complete; five D2 exports are complete;
+D2, T1.1d and T2.1 remain in progress. The resolver is an internal evidence service returning
+typed immutable records/conflicts/issues; no public Protocol or DTO-field revision was needed.
+
+**Concrete result:** synthetic `cost:310010` resolves from base EUR 132.64 to release EUR 140.00
+to case EUR 150.00, retaining the selected original record, source layer/hash/locator and a
+nonblocking conflict referencing all shadowed revision IDs. Removing the case selects release;
+an out-of-scope case selects neither release nor base and reports `scope_mismatch`. Equal-priority
+distinct revisions have no winner. Contradictory record identities or unsupported session/derived
+layers block the affected identity. Statements/hypotheses remain their supplied kind.
+
+**Verification:** direct resolver/supplemental safety contracts **53 passed**; remaining-DTO
+suite with D1 plus explicit NamedEstimate/EstimateRecord/EvidencePayload/EvidenceRecord/Conflict
+requirements **263 passed, 600 explicit unimplemented xfails**; whole V2 suite with core,
+config, evidence.resolver and those symbols required **509 passed, 720 explicit unimplemented
+xfails**, zero unexpected failures. V2 source/tests Ruff, frozen V1 replay, and diff whitespace
+checks pass. Expanded test manifest regenerated to 1,229 cases, retaining old assertions/goldens.
+The legacy four-failure classification from section A remains; this increment does not repair V1.
+
+Reproduce the full scoped gate:
+
+```bash
+.venv/bin/python -m pytest -q tests/v2 \
+  --v2-require core --v2-require config --v2-require evidence.resolver \
+  --v2-dto-require D1 --v2-dto-require NamedEstimate --v2-dto-require EstimateRecord \
+  --v2-dto-require EvidencePayload --v2-dto-require EvidenceRecord --v2-dto-require Conflict
+```
+
+**Next increment: connect resolved evidence to its cost consumer.** Implement the existing
+T2.3 `EvidenceProjections.cost_input(EvidenceContext, canonical_id) -> ResolvedCostInput`
+contract with only EvidenceContext, RelevanceRecord and ResolvedCostInput added. Direct tests
+compose this resolver's output into a validated EvidenceContext and call that consumer; full
+ContextBuilder/preparation/codec are not prerequisites. Propagate blocking conflict, scope,
+missing-source, kind, temporal uncertainty and basis issues instead of issuing a trusted cost
+from a supplier assertion. If no admissible cost exists, fail explicitly through the existing
+contract-error boundary; do not fabricate the required ResolvedCostInput.unit_cost or weaken
+the return type. Preserve the exact winner SourceRefs and price basis and retain disclosure
+on its source context;
+EUR 150/140 source changes must reach cost input and invalidate its economic input fingerprint.
+Keep internal_cost_claim and full T2.3 incomplete until their own contracts/services exist.
+
+Then exercise T4.1 directly using its existing OfficialCostOracle/EconomicEvaluator boundaries
+and validated case/economic inputs, while adding a small T4.3 policy comparison driven by those
+actual results and cited supplier assessments. The OfficialCostOracle input/output closure
+currently needs 16 missing exports, rather than the complete 147 remaining exports. This is
+consumer contract work alongside real arithmetic, not a new batch-only queue. The first
+behavioral demonstration should compare identical legal candidates under changed applicable
+cost evidence/grounded supplier preference and show the affordable selected action plus the
+source/assessment/economic explanation; include irrelevant wording and inadmissible advice
+controls. Selection and used-action validation must remain independent. Full ContextBuilder
+integration follows when its server/case contracts exist; persistence and the ten-stage loop
+remain integration work. No intelligent negotiation or live-readiness claim is made yet.
+
+## H. T2.3 cost consumer: verified local implementation
+
+Implemented `EvidenceProjections.cost_input(context, canonical_id)` in evidence/claims.py;
+added only RelevanceRecord, EvidenceContext and ResolvedCostInput from C §8.9 D2. The DTO
+fields/defaults remain unchanged. Direct tests feed this consumer the working resolver's
+selected records/conflicts/gaps through a validated EvidenceContext. No ContextBuilder,
+prepared-data loader, persistence, orchestration, strategy, or official arithmetic was added.
+
+**Demonstrated:** release EUR 140 becomes case EUR 150 under authoritative source precedence;
+the projected Price and exact economic SourceRef revision change, as does
+`semantic_hash(ResolvedCostInput)`. This is the fingerprint of this narrow typed economic input,
+not the still-unimplemented complete EconomicContext fingerprint. Revision-only changes also
+invalidate the input hash; unrelated supplier wording changes neither projection nor hash.
+Declared EUR/price units (1/100/1000), part basis, scope and temporal attribution are preserved
+without numerical conversion. Basis IDs remain distinct from evidence SourceRefs. Internal
+disclosure remains on the original context/source, not a fabricated new DTO field.
+
+**Failures are explicit ContractViolation exceptions:** missing/ambiguous cost, conflict with
+the selected winner, supplier statements/estimates/hypotheses or text payloads, inadmissible
+scope/layer, unknown/stale/future temporal status, contradictory explicit validity dates, and
+ambiguous/wrong-part price basis. The consumer also fails closed on context error gaps because
+the selected-only view may not identify the canonical source affected by a discarded revision;
+warnings are retained. This is conservative and can block a cost when an unrelated error is
+present. It does not silently fall back or claim that unrelated missing data has been resolved.
+Source bytes, prep hashes and freshness-rule execution remain upstream preparation work; this
+increment checks declared metadata and dates, and does not establish source authenticity itself.
+
+**Checks:** direct projection acceptance **29 passed**; existing remaining-DTO suite with the
+three new symbols required **275 passed, 588 explicit unimplemented xfails**; full V2 with
+implemented core/config/evidence components and consumed symbols required **550 passed,
+708 explicit unimplemented xfails**, zero unexpected failures. V2 Ruff, frozen V1 replay and
+diff whitespace checks pass. Expanded test manifest regenerated to 1,258 cases; existing
+assertions and golden fixtures preserved. T2.3 remains partial: internal_cost_claim, estimate
+construction, full claim verification and the complete financial evaluation are unfinished.
+
+**Smallest next task toward direct T4.1 evaluation:** implement
+`adapters/official.py:OfficialArithmetic.evaluate(CaseContract, ResolvedTerms,
+SupplierEstimate | None) -> OfficialCostResult` through the existing OfficialCostOracle port,
+with its 16 missing input/output exports only. Pair those types with the actual pinned-kit
+calculation in the same bounded increment; no DTO-only batch or complete factory prerequisite.
+Use direct validated inputs and independent official component/cents parity tests, preserving
+fixed terms, quote standards and price basis. A source-derived cost remains an attributed input
+to explicit estimate construction; it must never overwrite BuyerEconomics or the official
+cost function. With estimates disabled, changing evidence alone must not alter official costs.
+With an explicit admitted supplier estimate, the official relationship calculation owns any
+cost effect; retain the cost source revision in estimate assumptions. Do not use the legacy
+inverse-pricing helper. OfficialArithmetic is an oracle adapter, not yet the complete
+EconomicEvaluator or an action-selection/validation certificate. Follow with evaluated legal
+candidate comparison and a small grounded T4.3 policy treatment for the first decision demo.
+
+
+## I. T4.1 official arithmetic: verified local implementation
+
+Implemented `adapters/official.py:OfficialArithmetic.evaluate` through the unchanged
+OfficialCostOracle interface. Added only its 16 missing exports: all 13 D3 exports and
+SupplierEstimate, CostComponent and OfficialCostResult. D3 is complete; D4 and T4.1 remain
+partial. No EconomicEvaluator, strategy, inverse solver, orchestration or persistence was added.
+
+The adapter calls the pinned arena kit's cost_breakdown and total_cost (lock revision
+`1b5516bb95ef28e37f69aa446dc62168864bca53`). Decimal inputs convert explicitly at its float
+boundary; components preserve kit values and totals preserve kit rounding. Tests verify installed
+cost-source bytes against the pinned local source. No formulas or inverse helper are copied.
+Evidence costs cannot overwrite buyer inputs; relationship effects require a separately
+supplied validated SupplierEstimate.
+
+**Exact parity:** all eleven components and totals match for three frozen P10 packages under
+price units 1/100/1000 (EUR 1,335,154.08; 1,368,754.08; 1,333,891.20), seven frozen relationship
+points, and payment/freight/quality/tooling, delayed-price, signed-index/risk and fractional-need
+cases. Price units remain declared conventions, without implicit division. With estimates
+absent, changing supplier evidence does not alter official costs.
+
+**Explicit limits:** one part and one supplier with matching price bases, complete resolved
+terms and declared index paths. Unsupported joins, missing terms, fixed-term disagreement,
+invalid case hash/basis, unsupported numeric domains and kit arithmetic failures raise
+ContractViolation. The oracle does not certify package legality or action selection.
+A tested half-cent corner is unsupported: the kit rounds binary-float 1.335 to 1.33 while the
+immutable result contract rounds its Decimal component sum to 1.34. The adapter raises
+`component_rounding_mismatch`, preserving both the kit and contract without adjusting either.
+
+**Checks:** direct adapter **32 passed**; existing remaining-DTO gate requiring D3 plus the
+three D4 symbols **341 passed, 522 explicit unimplemented xfails**; full scoped V2
+**648 passed, 642 explicit unimplemented xfails**, zero unexpected failures. V2 Ruff, frozen
+V1 replay (3653046), and diff whitespace checks pass. Manifest: 1,290 expanded cases.
+Existing assertions/goldens/V1 sources and dependencies remain unchanged.
+
+Scoped gate:
+
+```bash
+.venv/bin/python -m pytest -q tests/v2 \
+  --v2-require core --v2-require config \
+  --v2-require evidence.claims --v2-require evidence.resolver --v2-require adapters.official \
+  --v2-dto-require D3 --v2-dto-require SupplierEstimate \
+  --v2-dto-require CostComponent --v2-dto-require OfficialCostResult
+```
+
+**Smallest next consumer:** implement the existing T4.1
+`OfficialEconomicEvaluator.evaluate_package(Package, supplier_id, EconomicContext)` path,
+injecting this oracle, and directly compare two legal packages. Its consumed closure needs
+SupplierStandards, EstimateScenario, ScenarioPolicy, PriceInterval, CostPolicy, EconomicContext,
+ScenarioCost and PackageEvaluation. Pair those eight contracts with actual complete-term
+resolution, package checks and official nominal/scenario evaluation in the same increment.
+Candidate-batch evaluation, closing evaluation and strategy remain unfinished. Package comparison
+is the next working input to the evidence-conditioned decision demonstration.
+
+## Open tabs:
+- implementation-order-addendum-2026-10-10.md: tacto-negotiator/docs/v2/implementation-order-addendum-2026-10-10.md
+- task-specs.md: tacto-negotiator/docs/v2/task-specs.md
+- 21-negotiation-v2-plan-2026-10-10.md: tacto-negotiator/docs/21-negotiation-v2-plan-2026-10-10.md
+- first-three-prompts.md: tacto-negotiator/docs/v2/first-three-prompts.md
+- D-roadmap.md: tacto-negotiator/docs/v2/D-roadmap.md
+
+## My request:
+Implement the next bounded T4.1 increment:
+OfficialEconomicEvaluator.evaluate_package.
+
+Read:
+- AGENTS.md
+- docs/v2/C-interfaces.md
+- docs/v2/task-specs.md
+- docs/v2/implementation-order-addendum-2026-10-10.md
+- The existing OfficialArithmetic implementation and tests.
+
+Goal:
+Demonstrate complete, correct economic evaluation of two
+legal supplier packages using the pinned official arithmetic.
+
+1. Contracts
+
+Implement only the required missing exports:
+
+- SupplierStandards
+- EstimateScenario
+- ScenarioPolicy
+- PriceInterval
+- CostPolicy
+- EconomicContext
+- ScenarioCost
+- PackageEvaluation
+
+Preserve existing public interfaces, DTO invariants,
+tagged unions, and serialization conventions.
+
+Do not implement unrelated DTO batches.
+
+2. Economic evaluation
+
+Implement the existing EconomicEvaluator interface.
+
+Inject OfficialCostOracle rather than duplicating its
+calculation logic.
+
+Resolve package terms using the applicable case contract,
+supplier standards, and declared package values.
+
+Preserve:
+- Units and price basis
+- Buyer fixed terms
+- Package completeness
+- Supplier and part identities
+- Explicit estimate assumptions
+- Scenario policy
+- Source provenance
+
+Evaluate nominal and supported scenario costs according
+to the existing contracts.
+
+Do not silently substitute missing terms, estimates,
+standards, or scenario assumptions.
+
+3. Package legality
+
+Separate economic calculation from package admissibility.
+
+Reject or explicitly classify packages that cannot be
+validly evaluated under the existing contracts.
+
+Do not silently repair illegal packages.
+
+Make sure that a numerically attractive but inadmissible
+package cannot be represented as an admissible result.
+
+4. Tests
+
+Construct two distinct legal packages for the same case.
+
+Demonstrate:
+- Exact nominal cost parity with the official kit.
+- Correct cost-component attribution.
+- Correct commercial-term handling.
+- Correct scenario evaluation.
+- Stable and deterministic economic outputs.
+- Explicit treatment of unavailable estimates.
+- Appropriate handling of incompatible units/bases.
+- Rejection of incomplete or invalid inputs.
+- Preservation of source and estimate attribution.
+
+Add a comparison test showing that the two packages have
+different economic consequences.
+
+Add a case where nominal price ordering differs from
+complete-cost ordering, if supported by the existing
+case terms and contracts.
+
+Do not introduce new business rules to manufacture
+a ranking reversal.
+
+5. Architectural boundaries
+
+EconomicEvaluator evaluates packages.
+
+It does not:
+- Choose negotiation strategy.
+- Interpret supplier language.
+- Generate new offers.
+- Certify outbound messages.
+- Invoke an LLM.
+- Perform inverse pricing.
+- Persist decisions.
+- Modify buyer economics from supplier evidence.
+
+Preserve the official oracle's explicit rounding failure
+behavior rather than altering the pinned kit or DTO contract.
+
+6. Verification
+
+Run direct component and negative tests.
+
+Run the appropriate scoped V2 tests with the implemented
+components and DTOs explicitly required.
+
+Run Ruff and the frozen V1 replay.
+
+Do not change existing assertions, V1 source, golden
+fixtures, dependencies, or CLI defaults.
+
+Report:
+- Implemented contracts.
+- Exact tests and results.
+- Concrete package comparison.
+- Economic differences and their causes.
+- Remaining limitations.
+- Any unresolved specification ambiguity.
+
+Do not claim full T4.1, checkpoint A/B, or negotiation
+readiness unless their independent gates are satisfied.
+
+---
+
+# Context from my IDE setup:
+
+## Active file: tacto-negotiator/docs/v2/implementation-order-addendum-2026-10-10.md
+
+## Active selection of the file:
+# V2 capability delivery: approved implementation-order addendum
+
+**Approved by the user:** checkpoints A and B progress together wherever dependencies allow.
+Sections A–F retain the original assessment/proposal snapshot below; section G records the
+subsequent implementation (with the latest package evaluator in section J). No complete loop, persistence system, or whole DTO inventory is
+required before independently implementing/testing interpretation, economics, or strategy.
+
+10 October 2026. Assessment of checkout `a88bf86` **including the existing working-tree
+planning/test changes**. This is a proposal, not an approved contract revision or a completion
+claim. No production code, tests, fixtures, or existing planning documents were changed for
+this assessment. Task IDs, architecture, and C's implemented-type contracts remain authoritative.
+
+The smallest useful adjustment is to **implement contracts beside their first consumers,
+and bring real evidence resolution, economics, validation, and behavioral evaluation forward**.
+Do not wait for all D1–D16 to start component work. Do not promise that the complete existing
+pipeline can use only a handful of DTOs: its current public input and result types have a
+substantial transitive dependency closure.
+
+## A. Actual state and architectural assessment
+
+| Area | Inspected implementation state | Implication |
+|---|---|---|
+| T1.1a | Frozen values/terms, strict parsing, canonical serialization/hashes, errors implemented | Reuse unchanged |
+| T1.1b | Assessment models and exact Protocol declarations implemented | Reuse; declarations referencing absent DTOs do not make the ports executable end to end |
+| T1.1c | DecisionStage/DecisionRecord/EffectiveConfig and config resolver implemented | T1.3 composition and T1.4 record persistence remain unfinished |
+| T1.1d | EvidenceScope, Provenance, TemporalValidity, DisclosureRule implemented | All 160 remaining declared exports are absent: 146 concrete DTOs plus 14 unions |
+| T1.2a/b | No recorded adapter, factory, or orchestration loop | Normalizer, scripted fakes, and sentinel routing test are preparation |
+| T2–T6 | No concrete V2 evidence, interpreter, economics, strategy, execution, store, or evaluation components | Planned tests and V1 implementations are reuse material, not delivered V2 capabilities |
+| V1 | Existing negotiator, arithmetic integrations, adviser, evidence, runtime, Lab infrastructure | Preserve named historical baseline; wrap useful primitives rather than assume current callers are safe |
+
+Fresh local verification in this pass:
+
+- `tests/v2`: **380 passed, 796 xfailed**, no unexpected failures. Many passes validate
+  specification examples; the 796 explicit missing-component/DTO xfails are not completed work.
+- Ruff over `src/negotiator/v2 tests/v2`: passes.
+- Frozen V1 replay: exact historical first move matches `3653046`; no network/model calls.
+- Six focused legacy modules from A's verification recipe: **56 passed, 4 failed**.
+  Failures remain the inverse-price regression, two final-offer history/memory expectations,
+  and empty-thread mocked-agent compatibility (`test_evaluator.py` and `test_context.py`).
+  This is a bounded check, not a full repository readiness claim.
+
+Preserve evidence / interpretation / strategy / economics / validation / execution /
+orchestration boundaries, dependency injection, strict contracts, deterministic finances,
+independent validation, source applicability/provenance, reproducible records, and the pinned
+official kit. Keep the existing serial coordinator and SQLite direction. Preserve V1 goldens
+and audit obligations in A §4. The source inspected still contains the legacy inverse helper,
+separate cost access, and mutable runtime paths; none becomes safe through this proposal.
+
+The avoidable dependencies are **whole-task barriers**: T1.2a, T1.4, T2.1, and T4.1 name
+all of T1.1d; the instructions require the exact serial D1–D16 order; T6.1 waits for M5.
+T5.1 also waits for all of T2.3 even for an offer with no factual claims. These are broader
+than their first consumers need. Preserve real prerequisites: constructors need their field
+types and complete union members; economic joins need verified basis/standards; grounding needs
+actual source/message references; sending needs validation and durable ownership.
+
+## B. Minimal roadmap delta and critical path
+
+Keep M0–M7 and T identifiers. A–E below are **capability checkpoints across existing tasks**,
+not replacement milestone IDs. A partial parent remains in progress until all its original
+acceptance criteria pass. Keep shared-model edits serial; a new component may follow each
+dependency-complete contract handoff rather than waiting for all batches.
+
+| Checkpoint | Required work and order using existing IDs | Exit gate / status |
+|---|---|---|
+| A: functional backbone | T1.1d types on demand; T1.2a P10 binding; T1.3 offline composition; T1.4 artifact/record append/reload; T1.2b complete typed loop. Bring T4.1 official package evaluation and the used offer/question subset of T5.1 forward. Context, interpretation, strategy, generation and feedback may initially be recorded ports | Actual ten-stage loop, deterministic costs, independent used-action checks, fake execution and feedback, saved/reloaded trace. **Required next, not implemented; scripted intelligence explicitly labelled** |
+| B: evidence-driven intelligence | Start T2.1 now; replace A's mock context with resolver-backed context. T3.1 labels + T6.1 local behavioral controls start now. Add T3.2 bounded deterministic interpretation/fallback and grounded draft validation, T4.2 finite generation, T4.3 evidence-conditioned proposal and deterministic selector. Add needed T2.3 standards/estimate projections; add T2.2 preparation when reading real package data | Relevant evidence/reply changes alter defensible intent and, when affordable/legal, selected action; irrelevant wording does not. Actual interpretation/strategy algorithms, evaluator and validator run. **Required next after/alongside backbone** |
+| C: reliable execution | Complete used-scope T2.2/2.3 and T5.1; T5.2 projector + atomic state/operation/claim transaction; T5.3 endpoint gateway/executor/recovery; T5.4 serial multi-turn loop and basic feedback. Add minimum T3.3 budget plumbing if using a model. T6.2 only for the intended CLI/Lab launch path | Local simulator plus crash/uncertain-outcome/restart gates before any real execution. Live readiness remains separate from local proof and needs operational authorization. **Required later** |
+| D: experimental framework | Register baseline and evidence-conditioned bundles through existing T1.3/T4.3 seams; extend T6.1 to identical recorded situations. Add T4.4 bounded LLM selector and T3.3/3.4 interpretation/provider evaluations when chosen and funded; T6.3/6.4 retain performance/promotion gates | Same evidence/economic/validation services, distinct strategy/config identities, held-out reports. Basic substitutability checked already in A/B. **Required later; model selector optional** |
+| E: advanced capabilities | Retain T2.4 broader documents, T4.5 generic solver, T7.1–7.5 category/information-value/async/research/basket expansion and F's research queue. Sophisticated memory, preference estimation and attribution algorithms remain here | Enable on concrete requirement or measured gap. **Deferred; optional experiments remain optional** |
+
+Shortest credible paths, with no full-parent completion hidden in these arrows:
+
+1. **Offline loop:** dependency-complete T1.1d groups → P10-only T1.2a → T1.3
+   composition + T1.4 append/load → T1.2b with real T4.1 and a real T5.1 used-action
+   subset → checkpoint A. Storage is append-only decision/artifact storage at this stage;
+   do not require the full live StateStore implementation to replay a decision.
+2. **Evidence-sensitive decision:** T2.1 resolver/context + T3.1/T6.1 controls → T3.2
+   bounded real interpretation → T4.2/T4.3 + necessary T2.3 projections → run through A's
+   economic/validation pipeline → checkpoint B. The first bounded interpreter may safely
+   recognize structured offers and explicit supported signals, preserving exact citations and
+   unknowns. It must derive outputs from current inputs, not select prewritten assessments by
+   fixture ID. Broader language coverage uses the same port and later evaluated model adapter.
+3. **Reliable real execution:** B + strict data preflight/relationship estimates → full
+   used-scope T5.1 → T5.2 → T5.3 → T5.4, intended launch-path checks and runtime fault matrix
+   → checkpoint C. No model is required for a deterministic baseline. If enabled, its absolute
+   budget/cancellation/fallback gates are prerequisites to transmitting.
+
+Do not let A become another long framework project. Replace each scripted decision component
+as its types become available; use T2.1 and T4.1 direct component demonstrations before A is
+complete. Basic feedback is observed linkage, not learned causal attribution. Persist operation
+identity/provenance before real sending; an unknown outcome retains its original ID/bytes and
+blocks a conflicting action. All closing paths still need fresh standing-sheet checks and the
+same deterministic close evaluator. Supplier prose never establishes terminal truth.
+
+## C. DTO classification and limits of deferral
+
+The existing layout can stay. Public cross-module contracts include evidence/context,
+assessment, intent/candidate/evaluation/decision, validated action, operation, and result
+envelopes. Nested contract helpers such as term origins and cost components also remain
+explicit. Provider projection DTOs belong at the adapter boundary; hydrated events belong at
+the store/projector boundary. They are not all necessary to *algorithm development*, but
+their present contract placement is not a reason to migrate packages.
+
+Private ranking scores, search queues, parser working structures, caches, and strategy-specific
+reasoning can remain internal typed models. Do not add them to core speculatively. Existing
+StrategyMemory supports owned payload schemas by reference; defer its algorithm, not its
+referenced shape if NegotiationState already requires it. Empty tuples or disabled estimates
+do not remove the need to define the complete declared type/union.
+
+Static closure check: start with PreparedEvidence, DecisionSnapshot, IntentBatch,
+GenerationResult, EvaluationBatch, NegotiationDecision, RenderedAction, ValidationResult,
+PendingOperation, DispatchPermit, TransportBudget, ExecutionResult, EventProposal, ReplayResult,
+VerifiedClaim and OfficialCostResult. Recursively follow field type names and every union member
+in `tests/v2/dto-contracts.json`. This reaches **128 of 160 remaining exports** (DTOs and
+unions), before any model/gateway envelopes. Adding ModelRequest, ModelBudget, ModelResult,
+GatewayResult and ServerObservation for the existing integration seams reaches **148 of 160**.
+These are schema dependency counts, not proof that a codec/test cutline needs exactly that
+many; full port introspection and optional scenario bindings may require more. Record the
+chosen consumer roots and exact symbol set before assigning each integration handoff.
+
+| Batch | First-loop classification under the existing model/gateway seams | Safety / later / optional distinction |
+|---|---|---|
+| D1 | All 8 fact payloads via EvidencePayload | Preserve closed union even if first fixture only uses CostFact/TextRecord |
+| D2 | 11/12 including evidence records, preparation, conflicts, context | ResolvedCostInput joins needed with T2.3; integrity/applicability never deferred when consuming evidence |
+| D3 | All 13 case/buyer/terms/alternative exports | Essential correctness; unavailable alternative cannot become zero/infinity |
+| D4 | All 11 economics/policy/evaluation exports | Essential economics. Scenario shapes required; scenario estimation/robust algorithms can follow. Live relationship-sensitive use needs estimates or documented admitted degraded scope |
+| D5 | All 11 intent/candidate/batch/decision exports | Stable strategy/economic boundary, including complete CandidateContents union |
+| D6 | All 10 message/server/clock/round/terminal exports | Essential input shapes. Authoritative terminal, deadline and round proof is live safety, not permission to infer it offline |
+| D7 | 7/11: ClaimWindow, VerifiedClaim and closing result shapes | ClaimCandidate/results/verification union needed when enabling factual claims and full T5.1; closing shapes arrive through ReplayResult even before close algorithms |
+| D8–D9 | All rendering, validation, budgets, operation and permit exports | Essential used-action boundary; durable commit/permit issuance is checkpoint C behavior |
+| D10–D11 | All state/context/outcome exports | Required by existing signatures; advanced memory/attribution behavior deferred despite available schemas |
+| D12–D13 | 10/11 each for existing model/gateway seams | DocumentBytes later with document fetch; SelectorResponse optional T4.4. Without those gateway seams, both groups can follow the first mock-port loop, but existing model-variability acceptance remains outstanding |
+| D14 | All 8 via EventPayload | Shapes required by FeedbackProcessor's EventProposal; event-store transitions completed at C |
+| D15 | 9/14 via EventProposal/EventPayload | NegotiationEvent, DecisionCommit, CommittedResult, ConflictResult, CommitResult required for C's atomic store; no live dispatch before them |
+| D16 | All 5 result exports | Stable replay/execution boundary; acknowledgement is not a deal or terminal proof |
+
+This explains the DTO bottleneck honestly: EvidenceRecord pulls in all evidence payloads;
+NegotiationState pulls in strategic history helpers; EventProposal pulls in all hydrated event
+variants; ReplayResult pulls in closing types. **Do not narrow those unions or redefine public
+ports to chase a smaller count.** Most savings come from earlier component work and deferred
+algorithms, not from removing schema definitions. C's immutable field/invariant definitions
+remain binding whenever a type is implemented.
+
+## D. Early behavioral acceptance and honest gates
+
+T6.1 local behavior work starts with T3.1, rather than after M5. Keep the present preference
+flip, greeting, refusal, uncertainty, injection and economic-ceiling tests. Extend them with
+small controlled scenario pairs; production inputs never contain desired actions or evaluation
+labels. Replays of model drafts test grounding/plumbing, not independent language understanding.
+
+| Requested behavior | Controlled local test / defensible acceptance |
+|---|---|
+| Legitimate cost pressure versus flexibility | Same buyer terms; vary reported pressure and separately corroborating applicable cost evidence. Supported pressure changes rationale/feasible exchange or clarification; flexibility supports an affordable price/term request. No invented discount, automatic concession or sustainable-margin hard floor |
+| Payment constraint changes concession structure | New separately identified synthetic fixture with payment and another approved negotiable lever; compare reported payment refusal with flexibility. Prefer the admissible other lever when justified; recompute complete costs. P10 payment stays fixed at 30 days/DAP; no P10 golden mutation |
+| Volume-dependent discount | Separate synthetic case with at least two volumes satisfying must-haves; preserve conditional supplier offer as reported evidence, evaluate its actual legal packages including uncovered need/commitment. Test a beneficial and a harmful trade. P10 only permits 23,400 after must-haves and cannot demonstrate a volume-choice flip |
+| Irrelevant wording | Greeting/paraphrase preserves semantic strategy and package/economics. Raw input and record hashes may change; do not demand identical provenance IDs |
+| Unsupported assertion | Claimed cost rise remains reported constraint/hypothesis with citations; unsupported or contradictory evidence cannot become canonical fact or outward verified claim. Missing/ambiguous approval yields unknown/clarify |
+| Strategy cannot bypass checks | Favor an over-ceiling candidate, invent an ID/edit a package, or recommend illegal/private output. Real evaluator and independent validator reject; executor receives no rejected action. Trace the rejection and admitted fallback/cannot-decide |
+
+Checkpoint B includes actual selected-action comparisons, not only intent-direction assertions.
+An appropriately unchanged action with a changed explanation is allowed where economics/legal
+constraints dominate; include controlled affordable scenarios where the action must change.
+Compare source revision → assessment category/citations → intent → candidate/economic delta →
+selection → validation in the trace. Test outcomes under a fixed clock/config; repeat locally
+without hosted calls. Add manifest entries only for the focused tests introduced for each slice.
+
+Keep three independent claims: **structural correctness** (schemas/ports/hashes), **behavioral
+correctness** (controlled relevant and irrelevant differences), **negotiation performance**
+(held-out independent outcomes, costs/regret/failures). A fake acknowledgement demonstrates
+neither persuasion nor savings. Later T3.4/T6 evaluations measure held-out model precision,
+grounding, unsupported assertions, latency and strategy outcomes under separately allowed usage.
+
+No gate machinery rewrite is needed. The existing `--v2-dto-require` accepts symbols and batches;
+`--v2-require` accepts selected module prefixes. Define each milestone's test selectors AND
+required symbol list. Run all contract tests for implemented symbols, not just happy-path examples.
+Missing required symbols/components fail; present malformed symbols, failed assertions and broken
+imports never xfail. List later unimplemented tests explicitly. The final full-contract gate stays
+`tests/v2 --v2-require all` (including optional/deferred exports); never use it to announce an
+intermediate capability complete. Run appropriate full repository checks before a future push,
+reporting inherited failures separately.
+
+## E. Precise proposed document amendments
+
+Apply these localized changes when adopting this proposal; they were **not applied in this pass**:
+
+1. **D-roadmap.md §1:** replace “Freeze shared models first” with “Freeze each implemented
+   boundary contract before its consumer; deliver dependency-complete DTO groups alongside
+   vertical component increments.” Add A–E crosswalk above; retain original M rows and evidence.
+   Change the diagram's whole-T1.1 arrows to consumed-contract prerequisites, not a new design.
+2. **task-specs.md T1.1d and batch graph:** retain D inventories and graph; remove the mandatory
+   global serial D1–D16 implementation barrier. Require topological symbol-level dependencies,
+   complete unions, serial shared-file ownership and documented handoffs. Batch completion
+   still requires every batch export. Change T1.2a/T1.4/T2.1/T4.1 dependencies to the exact
+   consumed-type closure. Split T1.2a P10 bindings from advanced scenario bindings, T5.1 used
+   offer/question validation from full claims/closing coverage, and T6.1 local controls from
+   later complete performance evaluation. Retain full-parent acceptance; no completed labels.
+3. **C-interfaces.md §8.5 only:** clarify that scenario-only RecordedInputs fields can remain
+   unavailable until their consuming checkpoint, without inventing generic payloads, and that
+   partial codec availability does not satisfy the full fixture contract. No port signature,
+   DTO field, tagged union, or package migration change proposed.
+4. **implementation-guide.md / test-catalog.md / E-evaluation.md:** add checkpoint-specific
+   selector/symbol gate recipes and the six controlled scenarios above. Preserve all existing
+   assertions and full-contract gate. Existing test runner already supports these narrower gates.
+5. **Tracker and first-three-prompts.md:** link this addendum; show T1.1a–c and four metadata
+   DTOs as implemented, remaining T1.1d as incremental/planned, and the next assignment below.
+   Keep the original prompts as historical completed assignments, not the current queue.
+
+No architecture rewrite, DTO deletion, V1 repair, golden change or research-platform task is
+needed to adopt this execution order.
+
+## F. Immediate next implementation assignment
+
+**T2.1 first increment + consumed T1.1d symbols: typed layered evidence resolver.** This is a
+bounded, demonstrable algorithm before the rest of the DTO inventory. It addresses the known
+case-overlay correctness issue and feeds the evidence-conditioned decision path. It is not
+the complete ContextBuilder or checkpoint A/B; those remain unfinished.
+
+Copy-ready prompt (use after accepting the dependency-order amendment):
+
+```text
+Implement the first T2.1 evidence-resolution increment, with only its necessary
+T1.1d contract closure. Read AGENTS.md, docs/README.md, docs/10-implementation-checklist.md,
+docs/v2/C-interfaces.md §8.9 D1/D2, task-specs.md and this implementation-order addendum.
+Preserve all pre-existing working-tree changes. Do not modify V1, frozen fixtures,
+existing assertions, dependencies, CLI defaults, or use network/hosted/model calls.
+
+Owned production files: extend src/negotiator/v2/core/models.py;
+create src/negotiator/v2/evidence/__init__.py and evidence/resolver.py.
+Implement exactly these 13 missing exports, preserving C's fields and validation:
+IndexFact, ScorecardFact, CostFact, QuoteFact, ContractFact, ForecastFact,
+OrderPriceFact, TextRecord, NamedEstimate, EstimateRecord, EvidencePayload,
+EvidenceRecord, Conflict. Reuse the four existing metadata DTOs and foundation models.
+Define the entire EvidencePayload tagged union; no dict/Any/model_construct escape.
+
+Implement a pure typed LayeredEvidenceResolver internal service over
+tuple[EvidenceRecord, ...]. Its resolve method returns immutable resolved records,
+Conflict entries and Issue entries (a typed tuple return is sufficient; do not add
+a new shared DTO). This helper is internal to evidence and will be injected/used
+by the later LayeredContextBuilder; do not alter ContextBuilder's public Protocol.
+Scope this first method to explicit base/release/case records; reject unsupported
+layers with a typed issue rather than inventing their priority.
+
+Resolve by canonical identity before applicability: case > release > base;
+replace whole records, never fill removed fields from a lower layer. Distinct
+records with equal highest priority for one canonical identity produce an
+unresolved blocking Conflict and no usable winner. Collapse identical repeats
+by record identity/content; contradictory reuse of an identity is an error.
+Preserve statement/estimate/hypothesis kind; same identifier cannot promote an
+unverified record into a canonical fact. Do not merge unrelated unkeyed statements.
+Keep input records unchanged so the later prepared context can retain shadowed
+revisions; conflict IDs reference those original records.
+After selecting a version, check its explicit supplier/part/case scope against
+supplied target identifiers. An inapplicable winner reports scope_mismatch and
+must not revive the base record. Preserve supplied provenance, disclosure, basis
+and temporal metadata verbatim; calendar/freshness derivation is a later context task.
+No cost estimate, claim verification, interpretation or strategy in this resolver.
+
+Add focused direct resolver tests in tests/v2/contracts/test_layered_resolver.py.
+Construct validated EvidenceRecord inputs directly; no full codec prerequisite.
+Test base/release/case replacement, null/deleted optional fields, equal-priority
+collision, identical replay, conflicting record identity, scope-after-precedence,
+unkeyed supplier statements, no authority promotion, exact basis/provenance,
+and input immutability/deterministic output. Use real changed record values, not
+fixture IDs that select expected winners. If the specification does not settle a
+case, record a narrow issue rather than silently inventing a public invariant.
+
+Acceptance: all existing remaining-DTO tests for those 13 symbols pass under
+explicit --v2-dto-require requirements, including negative/exact-field/round-trip
+and additional applicable cases; direct resolver tests pass with the new evidence
+module required; foundation/boundary/hardening/evidence-metadata tests remain passing.
+Ruff on src/negotiator/v2 and tests/v2 passes; frozen V1 replay stays exact.
+Run the whole V2 suite and report remaining xfails without hiding failures.
+For batch gates, D1 is complete; D2 remains partial. T2.1 and T1.1d remain in progress.
+
+Deliver a small completion note: implemented symbols, selector/gate commands and
+results, a concrete cost-record override example with winner/conflict provenance,
+remaining gaps, and the next consumer (LayeredContextBuilder + typed recorded inputs).
+No checkpoint A/B, full-contract, live-readiness or negotiation-performance claim.
+```
+
+This first task deliberately couples a small exact contract closure to an immediately useful
+implementation. Follow it with consumer-sized case/economic DTOs and T4.1, then typed P10
+bindings/composition; do not resume the remaining fifteen batches as an uninterrupted queue.
+
+## G. First T2.1 increment: verified local implementation
+
+**Source:** `a88bf86` plus preserved pre-existing working changes; no branch/commit/push,
+V1 source edit, dependency change, or external call. Implemented the 13 exports in F exactly
+against C and the existing DTO examples: D1 is complete; five D2 exports are complete;
+D2, T1.1d and T2.1 remain in progress. The resolver is an internal evidence service returning
+typed immutable records/conflicts/issues; no public Protocol or DTO-field revision was needed.
+
+**Concrete result:** synthetic `cost:310010` resolves from base EUR 132.64 to release EUR 140.00
+to case EUR 150.00, retaining the selected original record, source layer/hash/locator and a
+nonblocking conflict referencing all shadowed revision IDs. Removing the case selects release;
+an out-of-scope case selects neither release nor base and reports `scope_mismatch`. Equal-priority
+distinct revisions have no winner. Contradictory record identities or unsupported session/derived
+layers block the affected identity. Statements/hypotheses remain their supplied kind.
+
+**Verification:** direct resolver/supplemental safety contracts **53 passed**; remaining-DTO
+suite with D1 plus explicit NamedEstimate/EstimateRecord/EvidencePayload/EvidenceRecord/Conflict
+requirements **263 passed, 600 explicit unimplemented xfails**; whole V2 suite with core,
+config, evidence.resolver and those symbols required **509 passed, 720 explicit unimplemented
+xfails**, zero unexpected failures. V2 source/tests Ruff, frozen V1 replay, and diff whitespace
+checks pass. Expanded test manifest regenerated to 1,229 cases, retaining old assertions/goldens.
+The legacy four-failure classification from section A remains; this increment does not repair V1.
+
+Reproduce the full scoped gate:
+
+```bash
+.venv/bin/python -m pytest -q tests/v2 \
+  --v2-require core --v2-require config --v2-require evidence.resolver \
+  --v2-dto-require D1 --v2-dto-require NamedEstimate --v2-dto-require EstimateRecord \
+  --v2-dto-require EvidencePayload --v2-dto-require EvidenceRecord --v2-dto-require Conflict
+```
+
+**Next increment: connect resolved evidence to its cost consumer.** Implement the existing
+T2.3 `EvidenceProjections.cost_input(EvidenceContext, canonical_id) -> ResolvedCostInput`
+contract with only EvidenceContext, RelevanceRecord and ResolvedCostInput added. Direct tests
+compose this resolver's output into a validated EvidenceContext and call that consumer; full
+ContextBuilder/preparation/codec are not prerequisites. Propagate blocking conflict, scope,
+missing-source, kind, temporal uncertainty and basis issues instead of issuing a trusted cost
+from a supplier assertion. If no admissible cost exists, fail explicitly through the existing
+contract-error boundary; do not fabricate the required ResolvedCostInput.unit_cost or weaken
+the return type. Preserve the exact winner SourceRefs and price basis and retain disclosure
+on its source context;
+EUR 150/140 source changes must reach cost input and invalidate its economic input fingerprint.
+Keep internal_cost_claim and full T2.3 incomplete until their own contracts/services exist.
+
+Then exercise T4.1 directly using its existing OfficialCostOracle/EconomicEvaluator boundaries
+and validated case/economic inputs, while adding a small T4.3 policy comparison driven by those
+actual results and cited supplier assessments. The OfficialCostOracle input/output closure
+currently needs 16 missing exports, rather than the complete 147 remaining exports. This is
+consumer contract work alongside real arithmetic, not a new batch-only queue. The first
+behavioral demonstration should compare identical legal candidates under changed applicable
+cost evidence/grounded supplier preference and show the affordable selected action plus the
+source/assessment/economic explanation; include irrelevant wording and inadmissible advice
+controls. Selection and used-action validation must remain independent. Full ContextBuilder
+integration follows when its server/case contracts exist; persistence and the ten-stage loop
+remain integration work. No intelligent negotiation or live-readiness claim is made yet.
+
+## H. T2.3 cost consumer: verified local implementation
+
+Implemented `EvidenceProjections.cost_input(context, canonical_id)` in evidence/claims.py;
+added only RelevanceRecord, EvidenceContext and ResolvedCostInput from C §8.9 D2. The DTO
+fields/defaults remain unchanged. Direct tests feed this consumer the working resolver's
+selected records/conflicts/gaps through a validated EvidenceContext. No ContextBuilder,
+prepared-data loader, persistence, orchestration, strategy, or official arithmetic was added.
+
+**Demonstrated:** release EUR 140 becomes case EUR 150 under authoritative source precedence;
+the projected Price and exact economic SourceRef revision change, as does
+`semantic_hash(ResolvedCostInput)`. This is the fingerprint of this narrow typed economic input,
+not the still-unimplemented complete EconomicContext fingerprint. Revision-only changes also
+invalidate the input hash; unrelated supplier wording changes neither projection nor hash.
+Declared EUR/price units (1/100/1000), part basis, scope and temporal attribution are preserved
+without numerical conversion. Basis IDs remain distinct from evidence SourceRefs. Internal
+disclosure remains on the original context/source, not a fabricated new DTO field.
+
+**Failures are explicit ContractViolation exceptions:** missing/ambiguous cost, conflict with
+the selected winner, supplier statements/estimates/hypotheses or text payloads, inadmissible
+scope/layer, unknown/stale/future temporal status, contradictory explicit validity dates, and
+ambiguous/wrong-part price basis. The consumer also fails closed on context error gaps because
+the selected-only view may not identify the canonical source affected by a discarded revision;
+warnings are retained. This is conservative and can block a cost when an unrelated error is
+present. It does not silently fall back or claim that unrelated missing data has been resolved.
+Source bytes, prep hashes and freshness-rule execution remain upstream preparation work; this
+increment checks declared metadata and dates, and does not establish source authenticity itself.
+
+**Checks:** direct projection acceptance **29 passed**; existing remaining-DTO suite with the
+three new symbols required **275 passed, 588 explicit unimplemented xfails**; full V2 with
+implemented core/config/evidence components and consumed symbols required **550 passed,
+708 explicit unimplemented xfails**, zero unexpected failures. V2 Ruff, frozen V1 replay and
+diff whitespace checks pass. Expanded test manifest regenerated to 1,258 cases; existing
+assertions and golden fixtures preserved. T2.3 remains partial: internal_cost_claim, estimate
+construction, full claim verification and the complete financial evaluation are unfinished.
+
+**Smallest next task toward direct T4.1 evaluation:** implement
+`adapters/official.py:OfficialArithmetic.evaluate(CaseContract, ResolvedTerms,
+SupplierEstimate | None) -> OfficialCostResult` through the existing OfficialCostOracle port,
+with its 16 missing input/output exports only. Pair those types with the actual pinned-kit
+calculation in the same bounded increment; no DTO-only batch or complete factory prerequisite.
+Use direct validated inputs and independent official component/cents parity tests, preserving
+fixed terms, quote standards and price basis. A source-derived cost remains an attributed input
+to explicit estimate construction; it must never overwrite BuyerEconomics or the official
+cost function. With estimates disabled, changing evidence alone must not alter official costs.
+With an explicit admitted supplier estimate, the official relationship calculation owns any
+cost effect; retain the cost source revision in estimate assumptions. Do not use the legacy
+inverse-pricing helper. OfficialArithmetic is an oracle adapter, not yet the complete
+EconomicEvaluator or an action-selection/validation certificate. Follow with evaluated legal
+candidate comparison and a small grounded T4.3 policy treatment for the first decision demo.
+
+
+## I. T4.1 official arithmetic: verified local implementation
+
+Implemented `adapters/official.py:OfficialArithmetic.evaluate` through the unchanged
+OfficialCostOracle interface. Added only its 16 missing exports: all 13 D3 exports and
+SupplierEstimate, CostComponent and OfficialCostResult. D3 is complete; D4 and T4.1 remain
+partial. No EconomicEvaluator, strategy, inverse solver, orchestration or persistence was added.
+
+The adapter calls the pinned arena kit's cost_breakdown and total_cost (lock revision
+`1b5516bb95ef28e37f69aa446dc62168864bca53`). Decimal inputs convert explicitly at its float
+boundary; components preserve kit values and totals preserve kit rounding. Tests verify installed
+cost-source bytes against the pinned local source. No formulas or inverse helper are copied.
+Evidence costs cannot overwrite buyer inputs; relationship effects require a separately
+supplied validated SupplierEstimate.
+
+**Exact parity:** all eleven components and totals match for three frozen P10 packages under
+price units 1/100/1000 (EUR 1,335,154.08; 1,368,754.08; 1,333,891.20), seven frozen relationship
+points, and payment/freight/quality/tooling, delayed-price, signed-index/risk and fractional-need
+cases. Price units remain declared conventions, without implicit division. With estimates
+absent, changing supplier evidence does not alter official costs.
+
+**Explicit limits:** one part and one supplier with matching price bases, complete resolved
+terms and declared index paths. Unsupported joins, missing terms, fixed-term disagreement,
+invalid case hash/basis, unsupported numeric domains and kit arithmetic failures raise
+ContractViolation. The oracle does not certify package legality or action selection.
+A tested half-cent corner is unsupported: the kit rounds binary-float 1.335 to 1.33 while the
+immutable result contract rounds its Decimal component sum to 1.34. The adapter raises
+`component_rounding_mismatch`, preserving both the kit and contract without adjusting either.
+
+**Checks:** direct adapter **32 passed**; existing remaining-DTO gate requiring D3 plus the
+three D4 symbols **341 passed, 522 explicit unimplemented xfails**; full scoped V2
+**648 passed, 642 explicit unimplemented xfails**, zero unexpected failures. V2 Ruff, frozen
+V1 replay (3653046), and diff whitespace checks pass. Manifest: 1,290 expanded cases.
+Existing assertions/goldens/V1 sources and dependencies remain unchanged.
+
+Scoped gate:
+
+```bash
+.venv/bin/python -m pytest -q tests/v2 \
+  --v2-require core --v2-require config \
+  --v2-require evidence.claims --v2-require evidence.resolver --v2-require adapters.official \
+  --v2-dto-require D3 --v2-dto-require SupplierEstimate \
+  --v2-dto-require CostComponent --v2-dto-require OfficialCostResult
+```
+
+**Smallest next consumer:** implement the existing T4.1
+`OfficialEconomicEvaluator.evaluate_package(Package, supplier_id, EconomicContext)` path,
+injecting this oracle, and directly compare two legal packages. Its consumed closure needs
+SupplierStandards, EstimateScenario, ScenarioPolicy, PriceInterval, CostPolicy, EconomicContext,
+ScenarioCost and PackageEvaluation. Pair those eight contracts with actual complete-term
+resolution, package checks and official nominal/scenario evaluation in the same increment.
+Candidate-batch evaluation, closing evaluation and strategy remain unfinished. Package comparison
+is the next working input to the evidence-conditioned decision demonstration.
+
+
+## J. T4.1 direct package evaluation: verified local implementation
+
+Implemented `economics/official.py:OfficialEconomicEvaluator(*, oracle).evaluate_package`;
+added only SupplierStandards, EstimateScenario, ScenarioPolicy, PriceInterval, CostPolicy,
+EconomicContext, ScenarioCost and PackageEvaluation. D4 is complete as a schema inventory;
+T4.1 remains partial. No candidate-batch/closing evaluation, strategy, generator, message
+certificate, persistence, LLM or inverse pricing was added. Production economics imports core
+only; all arithmetic comes from the injected OfficialCostOracle.
+
+Resolution records field origins: declared pinned-kit buyer-plan defaults, then applicable
+supplier standards, then buyer fixed terms, then permitted sheet bindings. A sheet cannot
+transmit fixed fields. Buyer-default volume must be integral to fit the existing term contract;
+fractional need requires an explicitly declared integral volume. Defaults are attributed to the
+case hash, standards retain their source refs, and sheet origins cite the package fingerprint.
+Required price, option domains/explicit quote-standard exceptions, price ticks/bounds, supplier,
+basis and must-haves are checked without snapping or repairing. Invalid shape/scope/basis/source
+inputs raise ContractViolation. A calculable must-have violation retains numeric costs but has
+must_haves_ok=False and an infeasible error. Arithmetic/kit-rounding failures have null nominal
+cost, empty components/scenarios and a nonfinite_cost error retaining the original failure.
+Unexpected oracle implementation errors propagate.
+
+**Concrete comparisons:** frozen P10's first two legal packages cost EUR 1,335,154.08 and
+EUR 1,368,754.08, matching all eleven official components exactly. The original relationship
+fixture also demonstrates a genuine price-order reversal: EUR 45/unit costs EUR 429,044.44,
+while EUR 49/unit costs EUR 401,600.00. The kit's relationship penalty outweighs the lower
+purchase price; no new ranking rule or fixture mutation is used. Disabled estimates are explicit;
+no supplier evidence modifies buyer economics. Enabled scenarios use exact declared estimates
+and require their reference standards to match the applicable standards. Estimate/source refs
+are preserved and source-revision changes invalidate the economic fingerprint even with equal costs.
+
+**Scenario limitation / unresolved specification:** disabled mode and one explicit scenario
+(nominal or robust) are supported; its exact official calculation supplies nominal and scenario
+costs. Multiple robust scenarios do not designate a nominal estimate in C. They fail explicitly
+with unsupported_capability rather than silently picking the first estimate, averaging or
+inventing a no-estimate nominal. Supplier value/margin stay absent: OfficialCostOracle exposes
+only cost/components, not those diagnostics. Full robust evaluation needs a settled nominal
+convention; no public interface or invariant was changed in this increment.
+
+**Verification:** direct evaluator **15 passed**; evaluator plus oracle **47 passed**;
+existing remaining-DTO gate requiring D4 **380 passed, 483 explicit unimplemented xfails**;
+full scoped V2 **702 passed, 603 explicit unimplemented xfails**, zero unexpected failures.
+V2 Ruff, frozen V1 replay (3653046), whitespace checks pass. Manifest: 1,305 cases.
+Existing assertions, frozen fixtures, V1 sources, dependencies and CLI defaults are preserved.
+
+```bash
+.venv/bin/python -m pytest -q tests/v2/contracts/test_package_evaluation.py tests/v2/contracts/test_official_adapter.py --v2-require economics.official --v2-require adapters.official
+.venv/bin/python -m pytest -q tests/v2/contracts/test_remaining_dtos.py --v2-dto-require D4
+.venv/bin/python -m pytest -q tests/v2 --v2-require core --v2-require config --v2-require evidence.claims --v2-require evidence.resolver --v2-require adapters.official --v2-require economics.official --v2-dto-require D3 --v2-dto-require D4
+.venv/bin/ruff check src/negotiator/v2 tests/v2
+.venv/bin/python tests/v2/replay_v1_baseline.py
+```
+
+**Next meaningful increment:** T2.3 explicit source-cost estimate construction using the working
+resolver/cost_input and applicable standards, retaining actual source revisions in assumptions.
+Directly compare the same two legal packages with admitted EUR 140/150 cost-source revisions
+through this evaluator. Keep disabled-estimate costs unchanged as a control. This connects real
+evidence to economic consequences without needing strategy, persistence or the full loop;
+grounded selection and independent used-action validation remain later gates.
+
+## Open tabs:
+- implementation-order-addendum-2026-10-10.md: tacto-negotiator/docs/v2/implementation-order-addendum-2026-10-10.md
+- task-specs.md: tacto-negotiator/docs/v2/task-specs.md
+- 21-negotiation-v2-plan-2026-10-10.md: tacto-negotiator/docs/21-negotiation-v2-plan-2026-10-10.md
+- first-three-prompts.md: tacto-negotiator/docs/v2/first-three-prompts.md
+- D-roadmap.md: tacto-negotiator/docs/v2/D-roadmap.md
+
+## My request:
+Implement the next bounded evidence-to-economics integration increment.
+
+Read the existing V2 architecture, interface contracts,
+task specifications, implementation-order addendum,
+evidence resolver, cost projections, OfficialArithmetic,
+and OfficialEconomicEvaluator.
+
+GOAL
+
+Demonstrate how changing admissible cost evidence can
+affect an explicitly constructed supplier estimate and
+the economic evaluation of unchanged legal packages.
+
+1. SUPPLIER ESTIMATE CONSTRUCTION
+
+Implement the required evidence-to-SupplierEstimate
+construction within the existing architecture.
+
+Preserve the distinction between:
+
+- Verified observations
+- Explicit assumptions
+- Derived estimates
+- Unknown quantities
+
+Use only estimation relationships already authorized
+by the existing contracts and official model.
+
+Do not invent supplier margins, reservation prices,
+preference weights, or economic relationships.
+
+If evidence is insufficient to construct an estimate,
+return an explicit typed failure or unavailable result
+through the established contract boundary.
+
+Preserve evidence provenance and assumption attribution.
+
+2. ECONOMIC INTEGRATION
+
+Connect the constructed SupplierEstimate to the
+existing OfficialEconomicEvaluator.
+
+Use the injected official oracle.
+
+Do not alter BuyerEconomics or the official arithmetic.
+
+Keep package terms and legality independent of estimates.
+
+Preserve the distinction between nominal evaluations
+without estimates and admitted relationship-sensitive
+evaluations.
+
+3. CONTROLLED BEHAVIORAL DEMONSTRATION
+
+Construct two legal candidate packages.
+
+Keep both packages identical across experiments.
+
+Experiment A:
+Evaluate using admissible cost evidence A.
+
+Experiment B:
+Replace the relevant cost evidence with evidence B.
+
+Demonstrate the full causal chain:
+
+Evidence revision
+→ ResolvedCostInput
+→ SupplierEstimate
+→ EconomicContext
+→ PackageEvaluation
+→ Economic comparison
+
+If the existing model supports a controlled example
+where the preferred package changes, demonstrate it.
+
+Do not manufacture a preference reversal by introducing
+unsupported assumptions.
+
+4. NEGATIVE CONTROLS
+
+Verify that:
+
+- Irrelevant supplier wording does not change economics.
+- Unsupported supplier claims do not become facts.
+- Inapplicable evidence cannot influence estimates.
+- Conflicting evidence blocks affected construction.
+- Missing assumptions cannot become default estimates.
+- Changing evidence without enabling estimates does
+  not alter official nominal costs.
+- A source-only revision changes attribution/fingerprints
+  without necessarily changing calculated costs.
+- Invalid packages cannot become economically admissible.
+- The result remains deterministic and reproducible.
+
+5. ARCHITECTURAL LIMITS
+
+Do not introduce an LLM, strategy algorithm, persistence,
+or full orchestration.
+
+Do not change public DTOs or ports unless a genuine
+contract defect makes the increment impossible.
+Document such defects before proposing a narrow revision.
+
+Do not resolve the known multiple-robust-scenario nominal
+estimate ambiguity through an arbitrary default.
+
+6. VERIFICATION
+
+Provide direct tests, contract tests, scoped V2 checks,
+Ruff, and frozen V1 replay.
+
+Report the economic comparison, attribution trace,
+assumptions, negative controls, and remaining limitations.
+
+Keep existing golden fixtures and V1 behavior unchanged.

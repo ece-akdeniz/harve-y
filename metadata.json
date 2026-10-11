@@ -3,18 +3,35 @@
   "checkpoint_id": "01M4MGHHM8HKRWZDVZ2EX0EC0T",
   "strategy": "manual-commit",
   "branch": "codex-negotiator-v2-t1-1a-2026-10-10",
-  "checkpoints_count": 2,
+  "checkpoints_count": 8,
   "files_touched": [
     "tacto-negotiator/docs/21-negotiation-v2-plan-2026-10-10.md",
     "tacto-negotiator/docs/22-combined-latest-updates-review-2026-10-10.md",
     "tacto-negotiator/docs/v2/B-architecture.md",
     "tacto-negotiator/docs/v2/C-interfaces.md",
     "tacto-negotiator/docs/v2/D-roadmap.md",
+    "tacto-negotiator/docs/v2/first-three-prompts.md",
+    "tacto-negotiator/docs/v2/implementation-order-addendum-2026-10-10.md",
     "tacto-negotiator/docs/v2/task-specs.md",
     "tacto-negotiator/docs/v2/test-catalog.md",
+    "tacto-negotiator/experiments/LOG.md",
+    "tacto-negotiator/src/negotiator/v2/adapters/__init__.py",
+    "tacto-negotiator/src/negotiator/v2/adapters/official.py",
+    "tacto-negotiator/src/negotiator/v2/core/models.py",
+    "tacto-negotiator/src/negotiator/v2/economics/__init__.py",
+    "tacto-negotiator/src/negotiator/v2/economics/estimates.py",
+    "tacto-negotiator/src/negotiator/v2/economics/official.py",
+    "tacto-negotiator/src/negotiator/v2/evidence/__init__.py",
+    "tacto-negotiator/src/negotiator/v2/evidence/claims.py",
+    "tacto-negotiator/src/negotiator/v2/evidence/resolver.py",
     "tacto-negotiator/tests/fixtures/v2/test-manifest.json",
     "tacto-negotiator/tests/v2/catalog.py",
     "tacto-negotiator/tests/v2/conftest.py",
+    "tacto-negotiator/tests/v2/contracts/test_cost_projection.py",
+    "tacto-negotiator/tests/v2/contracts/test_evidence_economics.py",
+    "tacto-negotiator/tests/v2/contracts/test_layered_resolver.py",
+    "tacto-negotiator/tests/v2/contracts/test_official_adapter.py",
+    "tacto-negotiator/tests/v2/contracts/test_package_evaluation.py",
     "tacto-negotiator/tests/v2/contracts/test_remaining_dtos.py",
     "tacto-negotiator/tests/v2/dto-contracts.json",
     "tacto-negotiator/tests/v2/dto_spec.py"
@@ -26,14 +43,21 @@
       "compact_transcript": "/0/transcript.jsonl",
       "content_hash": "/0/content_hash.txt",
       "prompt": "/0/prompt.txt"
+    },
+    {
+      "metadata": "/1/metadata.json",
+      "transcript": "/1/full.jsonl",
+      "compact_transcript": "/1/transcript.jsonl",
+      "content_hash": "/1/content_hash.txt",
+      "prompt": "/1/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 279488,
+    "input_tokens": 728567,
     "cache_creation_tokens": 0,
-    "cache_read_tokens": 6462336,
-    "output_tokens": 65036,
-    "api_call_count": 66,
+    "cache_read_tokens": 17060955,
+    "output_tokens": 157492,
+    "api_call_count": 163,
     "subagent_tokens_complete": true
   }
 }
