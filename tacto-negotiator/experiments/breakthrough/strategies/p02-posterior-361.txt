@@ -1,0 +1,22 @@
+P02 — Antriebstechnik Nordmark AG (70510), strategic / "stabilise", copper +47.7 % pass-on 348.32 → 370.96.
+Decision 2026-10-11: NO LLM explorer screen for P02. Reasons (from all 40 saved P02 sessions):
+
+1. The score is relationship-bound, not supplier-bound. On the only package the supplier walks (CU db5 clause,
+   90 d) it accepts instantly at 366.23 (.5993), 363.37 (.7115 ×16), 361.09 (.7351 ×1) and even 351.90/349.37
+   (.0867: relationship charge 140 k). The hosted relationship charge fits R ≈ 247·(373.4 − p)² EUR at 90 d
+   (12,647 / 24,834 / 37,667 / 140,072 at 366.23 / 363.37 / 361.09 / 349.37); its marginal cost equals the
+   price saving (6,110 EUR per EUR) at p ≈ 361.0. So 361.09 is the optimum of that line (gain to 358.96 ≈ −0.002),
+   ceiling ≈ .735–.74. No wording can change that.
+2. The no-clause line (where c_best lives, ≈ 366–368 / 90 d) has never gone below 373.65 at 90 d (hardball from
+   326, scorecard claim from 369.27, five-step creep from 363.05 @ 14 d → 368.45) and there is no favourable verified
+   claim for this part: CU-NOTATION, LCI-C and PPI-C241 all rose; scorecard verified "does not warrant"; the
+   supplier's own numbers (370.96 @ 30 d; 374.50 @ 90 d) show it prices 60 days at ≈ 3.5 EUR while 90 d is worth
+   2.44 EUR to us. Beating .7351 there needs ≤ 370.0 @ 90 d: 3.65 below its best-ever no-clause price.
+3. Payment and clause variants are zero- or negative-sum: 14 d optimum ≈ .61 (measured .6018 at 357.26 @ 14 d),
+   60 d ≈ .68; db0/db3 add index-clause cost (new·0.2·max(0, 5 − deadband) % ≈ 22 k / 8.8 k) while the relationship
+   formula does not credit the clause.
+
+Lever: `cost_target_posterior` 0.15 → 0.10 (configs/score-push-v6). The self-consistent opening on CU db5 / 90 d
+moves 363.37 → 361.09 — the exact message that scored .7351 on 2026-10-10 21:28 (session d33b6a775d2448a6,
+commit dae00f0). Replay: changes P02 only (266/266 other-case replays identical to v5). Confirmation: one tracked
+lab run of score-push-v6 on P02.

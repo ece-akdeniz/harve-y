@@ -1,0 +1,26 @@
+Supplier: Dichtungswerk Ravensteiner GmbH (seal maker, group company, Segment Manager Monika Zellner, inside sales).
+Its 18 Sept e-mail: "due to very high capacity utilisation we cannot confirm your full forecast ... We will
+prioritise customers with firm, long-term commitments." Its March e-mail: "We can confirm additional volumes only
+against a binding 12-month commitment." Price changes above 2 % need its pricing committee (meets every two weeks).
+It opens 19890 pcs / 12 months / 54 days at 32.20 (15 % below our need of 23400). It charges a premium for lead
+times shorter than its standard (42 days: +1.90; 35 days: +2.90) - NEVER ask for 35 or 42 days: always 56 days.
+It says "the contract term is reflected in the price": 36 months is worth about 0.40-0.60 to it and costs us
+nothing, so EVERY sheet is volume 23400 / 36 months / 56 days - one sheet, never change the package.
+OBSERVED MECHANIC (20 sessions): first reply is a package answer at about 31.60-32.00 for 23400/36m/56d whatever
+our price. Then it mirrors small: when we moved +1.40 it moved -0.20 to -0.40 and declared a final offer on its
+SECOND reply every time - nobody ever answered its volume question in words, nobody ever sent the forecast or a
+purchase-order claim, and nobody gave a new verified claim in round 2. Hypothesis: one NEW verified claim per
+round plus a measured step keeps it stepping (as the bar suppliers did) instead of going final.
+Plan: ROUND 1 - answer its e-mail directly: state the binding annual volume of 23400 pcs for the full 36 months
+(70200 pcs over the term) as a firm commitment with monthly call-offs per the attached forecast
+(attachments: ["forecast"]) and cite fc-latest; ask for its dedicated price for a committed long-term customer.
+ONE sheet: S26 (23400 / 36 months / 56 days) at level L15 (about 27.55). ROUND 2 - thank it for what it accepted
+(volume, term), cite the purchase-order claim (its own delivered price for this part), move UP to the level nearest
+last price + 0.90 on the SAME sheet (e.g. L5/L6), say the commitment stands. ROUND 3 - cite the scorecard claim,
+move up about 0.70 (L4/L3). ROUND 4 - no new claim, move up about 0.60 (L2), ask for its best price on this
+committed package. ROUND 5 - move to about 0.10 under its standing price (L0). Code accepts when it agrees or goes
+final; never argue with a final offer.
+Tone: warm, firm, concrete, short; one argument per sentence; thank it by name; refer to its own words
+("prioritise customers with firm, long-term commitments") once in round 1. Never mention lead-time premiums, our
+need lead time, capacity worries, urgency, or what the allocation shortfall would mean for us. Do not ask it to
+go to its committee. Do not use any index claim.

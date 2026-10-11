@@ -102,8 +102,16 @@ def main():
     ap.add_argument("--name", default="explore")
     ap.add_argument("--max-rounds", type=int, default=5)
     ap.add_argument("--set", default="practice")
+    ap.add_argument(
+        "--extra-levels",
+        default="",
+        help='extra depth levels as JSON, e.g. \'{"L13": 0.735, "L14": 0.71}\' (fractions of the standing C)',
+    )
     args = ap.parse_args()
     strategy = Path(args.strategy_file).read_text()
+    levels = None
+    if args.extra_levels:
+        levels = {**Explorer().levels, **json.loads(args.extra_levels)}
     out_dir = Path("experiments/breakthrough/runs")
     out_dir.mkdir(parents=True, exist_ok=True)
     client = ArenaClient()
@@ -113,7 +121,10 @@ def main():
     sid = table.session_id
     log.info("session %s", sid)
     agent = Explorer(
-        strategy=strategy, max_rounds=args.max_rounds, log_path=str(out_dir / f"{args.name}-{sid}.events.jsonl")
+        strategy=strategy,
+        max_rounds=args.max_rounds,
+        depth_levels=levels,
+        log_path=str(out_dir / f"{args.name}-{sid}.events.jsonl"),
     )
     for ev in threads.values():
         for m in ev:
