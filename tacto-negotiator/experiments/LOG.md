@@ -1934,3 +1934,20 @@ it is not a new score improvement or a fresh full-suite evaluation.
   explicit reasoning-effort override. Preserve at least 20 remaining sessions. Freeze
   execution to the committed source and persist an exclusive single-use start marker.
 - Results will be recorded after the authorized trial; no score claim at preflight.
+
+### 2026-10-11 — V5 supplier-aware P10 rerun (one authorized session)
+
+- Tested pushed commit `b789414c2d9b4164d3c4e37e3c61644bdc21d0ce`, clean source,
+  `configs/score-push-v5-intelligence.json`, serial, `gpt-6-sol`, no effort override.
+- Run `dff100bb-eb5f-42f6-9ac4-1327ff004c0c`; session `05b6ba431b7874d0`.
+  Completed, Lab uploaded and read-back verified equal to local outcome/transcript.
+- One adviser call timed out after 8.003s: admitted 0, changed 0, fallback 1, token
+  usage unknown. Sent the exact V5 EUR28.34 / 42-day / 24-month / 23,400-unit opening.
+- Accepted the final standing EUR33.80 / 42-day sheet. Cost EUR1,597,720.80, score
+  0.5546564482: identical to the preceding trial. Two actions, 10.870s, valid must-haves,
+  zero Arena timeouts. Supplier also quoted EUR31.90/54 days; 54 is not a buyer option.
+- Quota immediately before/after: 326 -> 325 of 750; one session consumed. No rerun.
+- Decision: no demonstrated improvement; adviser trade hypothesis remains untested live
+  because inference timed out. Diagnose exact-payload latency before another separately
+  authorized trial. No default/promotion change. Source branch and result report pushed.
+- Full evidence: [P10 repair trial](../docs/v5-intelligence-p10-repair-trial-2026-10-11.md).

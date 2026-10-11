@@ -87,6 +87,9 @@ failures remain outside the serial capacity-advice change.
 The implementation/repair stage used no hosted inference, practice sessions,
 external publication, push or promotion. The user subsequently authorized committing,
 pushing this candidate and one new tracked P10 practice session.
+The [completed rerun](v5-intelligence-p10-repair-trial-2026-10-11.md) used commit
+`b789414c2d9b4164d3c4e37e3c61644bdc21d0ce`: the adviser timed out, exact V5 fallback
+executed, and the outcome remained unchanged. Live trade selection remains unverified.
 The next commercial check requires a separately budgeted, source-frozen P10 comparison
 with consistent model/settings. Final-counter risk policy should be evaluated in a
 separate candidate so its effect can be distinguished from better opening trades.
