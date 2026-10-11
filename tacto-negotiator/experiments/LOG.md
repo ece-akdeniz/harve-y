@@ -1951,3 +1951,19 @@ it is not a new score improvement or a fresh full-suite evaluation.
   5.42; the final was "our pricing committee has approved only a marginal further reduction" (5.38).
   Observation: +1 cent on the final. The answer was read as cited facts but not as new information. This is
   within one-cent noise of an LLM supplier, so it needs the repeat before any claim.
+- **P07 repeat `d42b3034` / session `50d70d560f6e2515`: .7600 (= baseline).** 5 rounds, 0 timeouts, 26 s.
+  LLM: traits 3.0 s; answers 3.3 / **8.0 s timeout → template fallback** / 3.3 s. The round-3 two-question
+  turn ("Which figures…? … Which volume…?") timed out, so our body was the v3 template with no cited figures.
+  Backoffice round 3 was "… term sheet" (no "cited facts to check"). Supplier path and final 5.39 are
+  byte-identical to v3: "We have presented your package to our pricing committee as requested. With their
+  approval, we can offer a further reduction to €5.39".
+- Read across the three P07 sessions (6b162c54 v3, b345ac83, d42b3034): the round-3 cited-figures answer is the
+  only difference. With it the final is 5.38 (n=1); without it, 5.39 (n=2, v3 + timed-out repeat). That fits a
+  real but tiny effect (+.0065 on P07). It is not proven, and its delivery is unreliable: two-question answers
+  take 5.4–8 s against the 8 s budget (2 of 4 such turns have timed out across replay and live).
+- Sessions used: 3 / 4 (P10 ×1, P07 ×2). Step 3 (model_choice) not built.
+- Decision for Sunday consolidation: merge-safe (0 decision changes, code-checked terms, fallback = v3), but
+  keep `model_traits`/`model_answers` **off** in the final config. The expected gain is ≤ +.0007 on the
+  ten-case mean, which is smaller than the 3–8 s added per answered turn under the 8-min wave cap.
+  If it is turned on later, first raise the answer budget for two-question turns, or precompute the
+  cited-figures paragraph deterministically (it only uses code facts), and re-run P07 n≥2.
