@@ -3,7 +3,7 @@
   "checkpoint_id": "01M4MVRDVT55DP39QDT7BWKYM4",
   "strategy": "manual-commit",
   "branch": "codex/harvey-intelligence-desk",
-  "checkpoints_count": 8,
+  "checkpoints_count": 11,
   "files_touched": null,
   "sessions": [
     {
@@ -19,13 +19,20 @@
       "compact_transcript": "/1/transcript.jsonl",
       "content_hash": "/1/content_hash.txt",
       "prompt": "/1/prompt.txt"
+    },
+    {
+      "metadata": "/2/metadata.json",
+      "transcript": "/2/full.jsonl",
+      "compact_transcript": "/2/transcript.jsonl",
+      "content_hash": "/2/content_hash.txt",
+      "prompt": "/2/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 36320,
+    "input_tokens": 180603,
     "cache_creation_tokens": 0,
-    "cache_read_tokens": 4784419,
-    "output_tokens": 8186,
-    "api_call_count": 38
+    "cache_read_tokens": 6590799,
+    "output_tokens": 14694,
+    "api_call_count": 61
   }
 }
