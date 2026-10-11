@@ -61,7 +61,10 @@
     },
     "rounds_by_type": {
       "raw_material": 10
-    }
+    },
+    "tenor_extend_types": [
+      "capacity"
+    ]
   },
   "estimates": {},
   "meso": false
