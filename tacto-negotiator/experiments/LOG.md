@@ -1912,3 +1912,24 @@ Byte-identity without a cap: `tools/replay_decisions.py` on every saved hosted a
 P01/P03/P04/P05/P08/P11/P18 under score-push-v3 and fresh-h1h2 (396 replays), 0a6940e vs this HEAD:
 identical JSON (sha256 8a88e412...9144 both sides); tests/test_compressed_schedule_replay.py keeps the
 on/off comparison in the suite.
+
+## 2026-10-11 — codex/consolidated: wave + prewarm lanes merged, compressed_schedule default off (0 hosted sessions, 1 free sandbox run)
+
+Cherry-picked `0a6940e`, `1a7325e` (codex/fresh-wave; `485b60f` skipped — duplicate P05 port) and `149afea`
+(codex/fresh-prewarm) onto codex/consolidated; conflicts in runner.py `_worker` (main's propose/fallback
+kept, wave timing hooks additive), agent.py `_reciprocal_price`, policy.py, score-push-v4.json, LOG.md,
+tools/wave_rehearsal.py (hand-merged `--compression` + `--prewarm`). **Correction to the entry above:** the
+`compressed_schedule` dataclass default is now **False** (the sim table above is the evidence: the rescale
+costs -0.4 to -0.6 per case); a run config that omits the key does NOT compress. `score-push-v4.json`
+records all nine flags explicitly (`time_guard: true, compressed_schedule: false, prewarm: true,
+claim_pacing: true, rfq_fast_payment_reanchor: true`, the other four false). 838 tests, ruff clean;
+replay A=v3 vs pure 09e7fe4: 130/130 byte-identical (848 decision points); B=v4 unchanged by the two
+lanes (172/172, 1000 points); sandbox D01 0.9192 / D02 0.5239 (run `625209f1`, 0 timeouts). Wave rehearsal
+(10 cases, guard on, compression off, prewarm on): first decisions <= 0.18 s (was 11-27 s); at 75 s replies
+nine cases reproduce the "guard on, compression off" column incl. P11 0.797, **P05 ends 0.02 in both the
+52 s and 75 s regimes** — a rehearsal-tool artifact (`Sim.message` answers synchronously, `SimArena.send`
+only sleeps afterwards, so rivals' `_refresh_all` see the leader's reply while its POST is "in flight" and
+the runner's `_close` excludes the leader after CLOSE_WAIT_S) — not evidence either way for P05 under the
+guard. propose() arity fix kept: the new path reproduces both hosted P05 0.8136 transcripts 13/13 and
+12/12 decision points (the old decide+single-thread path 12/13 and 11/12, missing the r11 rival ref).
+Details: experiments/CONSOLIDATED.md.
