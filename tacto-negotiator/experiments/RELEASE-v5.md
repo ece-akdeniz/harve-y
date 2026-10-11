@@ -214,3 +214,25 @@ caffeinate -dimsu uv run --locked negotiator lab run \
 ```
 
 Expected: P01/P03/P04/P07/P10/P11 = v4 values, P02 .7351, P05 .8136, P08 .7036, P18 .5870 (projected mean .7862).
+
+## 9. Generalisation hardening — AUDIT #1–#4 (2026-10-11 05:55–06:20 CEST)
+
+Source: `ysamet-coord/AUDIT-generalization.md` (sim-only audit of v6 on unseen-style fixtures; harness
+`/tmp/audit-gen/sim_unseen.py`, before/after runs `/tmp/audit-gen/hardening-{before,after}.log` via
+`sim_hardening.py`, holding supplier, 6 rounds, no guard). All four fixes fail closed and touch only
+`price_unit != 1` parts, raw_material cases without a reconcilable plan, and listings without `type`.
+
+| # | fix | before (bfa23e6) | after (842f46d) |
+|---|---|---|---|
+| 1 | `claims._unit_price` → None unless `price_unit` is 1 (used by `fixed_volume.ladder`, `history_claims`, `render`, `_check` → "invalid price basis"). No PO / own-quote claim on per-100 / per-1000 lines. | P16 r1: "Our orders po:4500014324-20, … for part:370020 were placed at **EUR 0.84 per unit**" next to a 94.44 (per 100 kg) ask | P16 r1: reminder only, `refs=None`; P08 PO claim unchanged (EUR 5.17 per unit, `price_unit 1`) |
+| 2 | `fixed_volume.need` parses the briefing `Need: N[ x M] UNIT a year`; `plan` requires N == `fixed_terms.volume_per_year`, uses N×M in `unit`, and returns None when the line is missing, disagrees, or N×M exceeds the shared forecast. | P16 r0: "fixed at **5510 kg** … 11020 kg in total", CSV `your_committed_qty` = 1 % of each month (quota 100 %) | P16 r0: "fixed at **551000 kg** … 1102000 kg in total", CSV committed = forecast; P08/P18 text and CSV unchanged (94800 / 23700 kg, total 118500). Fixture H (volume 5500 vs Need 5510): no paragraph, no CSV, no fc ref |
+| 3 | `_enrich_evidence` short-circuits only when `_fixed_volume_plan(case, sid)` is not None (plan cached per (case, supplier) on the agent; `_fixed_volume` uses the same cache). | P18 minus `volume_per_year`: `refs=None` all 6 rounds | same fixture: r0 AS-14404 −5.5 %, r1 PPI-C2431 −2.3 %, r2 four `po:` lines at EUR 5.84, r3 scorecard sc:70740@2026Q3 (the v4 path). P08 minus volume (70710) still sends nothing — its hedge statements empty the preferred bank, as under v4. |
+| 4 | `_typed(case)` in `decide` / `propose`: a listing without `type` gets `type: None` (copy; caller's dict untouched); every type gate is membership/equality → inert. | fixture E: `KeyError: 'type'` on the first decide (runner → fallback every round) | fixture E: default schedule (anchor 0.12, 5 rounds: 5.23 → 5.37 → … → 5.94), no crash |
+
+- `uv run --locked pytest -q`: **852 passed** (ARENA_DATA exported; `tests/test_generalization_hardening.py`
+  adds 10). `ruff check .` clean.
+- Replay, all 10 hosted practice cases, 305 transcripts / 1611 rounds, v6 A = B, `--conditional-exchange off`:
+  **842f46d ≡ bfa23e6 byte-identical**, sha256 `954e8289…8008` — the same hash as v6 on 427674f
+  (`/tmp/replay-v6-bfa23e6.json`, `/tmp/replay-v6-hardened.json`).
+- Not applied (per the audit's recommendation): #5 final counter, #6 quality value-swap re-send, #7–#9.
+- Launch and ten-case commands: unchanged from section 8 (v6).
