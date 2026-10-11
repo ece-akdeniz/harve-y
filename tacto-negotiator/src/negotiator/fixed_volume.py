@@ -54,6 +54,17 @@ def plan(case, package, supplier) -> dict | None:
     if parsed is None or parsed[0] != int(volume):
         return None  # briefing missing or its count disagrees with the fixed volume: say nothing
     _, mult, unit = parsed
+    try:
+        part_rows = package.query("SELECT price_unit, uom FROM parts WHERE id = ?", (part,))
+    except Exception:  # noqa: BLE001 - missing unit metadata cannot justify a binding quantity
+        return None
+    if len(part_rows) != 1:
+        return None
+    price_unit, physical_unit = part_rows[0].get("price_unit"), part_rows[0].get("uom")
+    if (type(price_unit) not in (int, float) or int(price_unit) != price_unit
+            or int(price_unit) != mult or not isinstance(physical_unit, str)
+            or _UNIT_LABEL.get(physical_unit.lower(), physical_unit.lower()) != unit):
+        return None
     quantity = int(volume) * mult
     total = f["volume_per_year"]
     if not total or quantity > total * 1.001:

@@ -126,6 +126,9 @@ def test_plan_is_none_when_the_volume_does_not_reconcile(package):
     assert fixed_volume.plan({**c, "briefing": "Raw material case."}, package, sid) is None
     # multiplier makes the quantity exceed the whole shared forecast
     assert fixed_volume.plan({**c, "briefing": "Need: 5510 x 1000 kg a year."}, package, sid) is None
+    # A smaller wrong multiplier used to pass the forecast upper-bound check.
+    assert fixed_volume.plan({**c, "briefing": "Need: 5510 kg a year."}, package, sid) is None
+    assert fixed_volume.plan({**c, "briefing": "Need: 5510 x 100 pcs a year."}, package, sid) is None
 
 
 def test_p16_opening_body_has_the_right_quantity_and_no_per_unit_po_claim(package):

@@ -5,8 +5,11 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 data/
+/data
 experiments/runs/*
 !experiments/runs/.gitkeep
+**/model-evidence/
+**/model-budget.jsonl
 experiments/dossiers.json
 *.log
 .DS_Store

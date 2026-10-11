@@ -2,6 +2,136 @@
 
 Format and decision rule: `docs/04-experiments.md`. Newest on top. One entry per change.
 
+## 2026-10-11 — V6 supplier intelligence reliability repair (LOCAL ONLY)
+
+- Hypothesis: field-specific source admission, constrained buyer wording, shared durable model reservations and issue-aware context reduce unsupported advice/writing without changing the selected package economics or the closing policy.
+- Source/config: base `279f7a8`; current uncommitted worktree identity in `experiments/v6-reliability-source-manifest.json`. Default V6, briefed, skilled and all-case configurations remain distinct; no config was promoted. The existing zero-concession strategy setting and final risk limits are unchanged. Candidate source, lock, data, skill and nonsecret model identities are in the manifest.
+- Cases/quota: synthetic payment/delivery and English/German condition fixtures; saved P10 capacity fixture; seven practice case-type writer fixtures; serial/async simulator paths. Zero new provider calls and zero new Arena sessions. No practice quota was spent.
+- Validation: 140 focused tests passed with the two async RFQ writing tests excluded from that sandbox run. Those two tests and one async ModelAssist test passed individually outside the sandbox. After the final semantic parsing fix, the full available local suite passed **985 tests**, with two lab subprocess tests deselected because this environment has no `uv` executable. Ruff and `git diff --check` passed. A repeatable async wave-cap control failure was fixed by waiting for a pending supplier reply through the existing closing window; all seven wave-guard tests then passed. A minimal `asyncio.to_thread` stalls inside the tool sandbox and works outside it, establishing an environment cause for the async RFQ stall reported in review.
+- Results/failures: payment-only evidence cannot authorize delivery; an unmet conditional antecedent cannot authorize a trade; unsupported qualitative claims or additional-volume promises fall back to the code-rendered body without losing a legal selected package. Reservations cover strategy, final review, legacy advice, writer and optional ModelAssist across restart. Private bounded model artifacts and stable rejection checks are retained locally. Provider completion after client timeout remains uncertain and charged; no supplier impact was measured.
+- Decision: keep this as a local safety candidate. The two `uv`-dependent lab tests and a locked `uv run --locked` invocation remain unverified in this environment. Follow the separate provider-only and controlled Arena proposal in `docs/v6-supplier-intelligence-reliability-implementation-2026-10-11.md` only after a frozen checkpoint and explicit call/session allowance. No commercial or release-readiness claim.
+
+## 2026-10-11 — All seven practice case types can reach opt-in model prose (LOCAL ONLY)
+
+- Hypothesis: moving response writing to a separate bounded step after the code-approved decision lets every case type use qualitative supplier context and approved quantitative terms without weakening each type's existing package and closing logic.
+- Source/config: isolated candidate identity `3257be9d2c67d644ae6e021573917f8b567e156ebe1002250c6f1ad4612e106e` in `experiments/v6-all-cases-source-manifest.json`; opt-in `configs/score-push-v6-all-cases.json` SHA-256 `3e526e4ad6c691c37ef49a1d9032dcb29096a1631cc66f95fb0f3752b51e6779`. This config differs from the preceding skilled config only by `llm_response_mode: all-v1`. The previously tested three-session candidate and its source/config hashes remain preserved.
+- Coverage: Arena lists 19 practice cases, ten hosted, spanning price increase, renewal, RFQ, bundling, raw material, capacity and quality. The generic writer is eligible for all seven types. Serial cases call it after decision and before dispatch; RFQ previews outside the async coordinator lock and applies model prose only when the live message exactly matches the preview. Strategy/final advisers retain their earlier capacity/renewal choice scope but no longer generate prose in this mode. Code owns terms, verified claims, economics, accept/walk-away and journaling. A message with references, attachments, multiple sheets or insufficient time retains deterministic text; at most two writer calls per supplier are admitted.
+- Evidence/budget: fake-provider tests admitted safe prose for all seven fixture types; saved P11 quality and P07 bundling situations were locally replayed through `agent.decide` and `rewrite_response`; a serial quality runner dispatched model prose; a local two-supplier RFQ simulator under the full candidate config sent model prose with zero timeouts using a real clock. Strict provider schema, CLI launch, zipped skill resource, unsafe-prose fallback, guarded-payload rehash and async worker dispatch were checked. A 129-test targeted regression suite and Ruff passed. Zero new provider calls and zero new Arena sessions for this change.
+- Timing limitation: an exploratory 250x accelerated-clock RFQ diagnostic of the earlier unoptimized preview incurred two/four thread timeouts, versus one/one in its baseline control; it magnifies subsecond local setup and is not a hosted timing estimate. The candidate now skips brief loading for ineligible messages and passed the real-clock local simulator, but hosted latency is still unmeasured.
+- Decision: retain this as an unpromoted opt-in coverage candidate. The previous P10 hosted failure remains evidence against claiming a score gain. Live provider validity, latency and outcomes across all seven types remain unmeasured; any further practice requires a separately bounded run.
+
+## 2026-10-11 — Same three hosted practices with role skills and LLM buyer prose
+
+- Hypothesis: the opt-in role skills and model-written buyer prose improve the P10 exchange without weakening validity or timing; P11 and P07 are comparison smoke cases but outside the live writing scope.
+- Budget/provenance: one tracked Lab run `1ab0d8f8-95f9-4c05-9f92-3a84c3f67f17`, exactly three authorized practice sessions, P11/P07/P10 once each, `negotiator.agent:configured_agent`, runner `auto`, `gpt-6-sol`. Config `configs/score-push-v6-skilled.json` SHA-256 `d87eb7bbb5c06447714bf0391fec6830589d4fd207fcb8898feb913f39bd3eb6` differs from the earlier briefed config only by `llm_response_mode: skill-v1`. Candidate identity `b8f4e66e5e92fa72be8c3e04a72af9e6e11268710d7615cd7adc374c92c10369`; captured source patch SHA-256 `0795dd2bc41748be385a33babba6c315500e366de0b587322644fa0cba96b713`; base-plus-Sunday data SHA-256 `eccf11a79ba1d0afcbc4c839eaddf3e1335c3790cc84da8d47ee4272d15988ad`, matching the prior three runs. Final shared quota snapshot 235/750 remaining; this is a shared account, so its change since the previous snapshot is not attributed solely to these sessions.
+- Outcomes: P11 session `c70d007b613ef639` scored **0.8771273853**, deal, 6 rounds, 0 timeouts (identical score to earlier P11). P07 session `ea5a7fd81a9073a7` scored **0.7599706752**, deal, 5 rounds, 0 timeouts (identical to earlier P07). P10 session `aba3502b4f89d128` scored **0.5546564482**, deal at EUR33.80/42 days/24 months, 2 rounds, 0 timeouts; earlier P10 scored **0.6472939821** at EUR31.90/56 days/24 months, 3 rounds. Three-case mean fell from **0.7614640142** to **0.7305848363**; this single unpaired repeat is not a causal estimate.
+- Agent behavior: P11 and P07 made zero live adviser calls. P10's strategy call took 4.41 s, chose `keep`, and its `body` failed prose admission, so the deterministic opening email was sent. The final-advice call took 6.62 s and fell back with `ValueError` before a selected counter or model-written email was admitted; the coordinator accepted the standing offer. P10 used an extractive supplier brief; the new model brief compiler skill was not exercised. The trace records the exception class, but not the raw provider response, so the exact `ValueError` cause is unknown. There were zero model-authored buyer emails in these sessions.
+- Decision: do not promote this candidate from this screen. Preserve the saved outcomes, investigate the prose rejection and final provider failure locally, then require another separately authorized bounded practice comparison before claiming an improvement.
+
+## 2026-10-11 — Packaged role skills and opt-in LLM buyer prose (LOCAL ONLY)
+
+- Hypothesis: role-specific instructions and model-authored buyer prose can use qualitative evidence and code-approved quantitative terms to express a better conditional exchange, while deterministic code retains terms, verified claims and closing authority.
+- Source/config: isolated V6 candidate identity `b8f4e66e5e92fa72be8c3e04a72af9e6e11268710d7615cd7adc374c92c10369` in `experiments/v6-skilled-source-manifest.json`; new opt-in `configs/score-push-v6-skilled.json` SHA-256 `d87eb7bbb5c06447714bf0391fec6830589d4fd207fcb8898feb913f39bd3eb6`. The briefed config used in the three prior practices is unchanged and remains separately reproducible.
+- Change: packaged skill files now guide the brief compiler, strategy adviser and final reviewer. The strategy skill adds active listening, calibrated questions, objective standards, private alternative discipline, approved anchoring, reciprocal conditional trades and explicit qualitative/quantitative input handling. The two live advisers can return model-authored buyer prose in their existing bounded calls; code validates the prose and falls back to its prepared text if unsupported. No model can alter term sheets, verified claims, accept/walk-away or the coordinator's risk screen through prose.
+- Cases/budget: local synthetic capacity, final-offer and brief fixtures, plus an installed-resource zip check. Zero new Arena sessions and zero provider calls. Scope remains serial single-supplier capacity/renewal for model-written responses; other case types keep existing dispatch. The eight previously compiled model briefs still use their older inline compiler instruction until explicitly refreshed.
+- Validation: 48 adviser/brief/config tests and 128 broader agent, evidence, claim, policy and context tests passed; Ruff and diff check passed. A supported model-written opening and final counter reach fresh dispatch validation; unsupported numbers, private phrases and promises fall back to the prepared text. No hosted score, production latency or semantic quality gain is claimed.
+- Decision: retain as an opt-in candidate. Compare exact saved situations with writing on/off before any promotion; inspect the resulting supplier reply and full commercial outcome in a separately bounded Arena test.
+
+## 2026-10-11 — Three random hosted practice screens of V6 briefed candidate
+
+- Hypothesis: the opt-in briefed policy completes varied hosted cases without timeouts; a capacity case exercises the strategy and final-offer handoff. This is a three-case smoke test, not a paired comparison or promotion gate.
+- Draw/budget: randomly drew P11, P16, P07 from Arena's 19 listed practice cases. P16 was `hosted: false`, so it was replaced by a random draw from the hosted roster, P10. The user authorized three practices. Three sessions opened, one each for P11, P07 and P10; quota 243/750 left before the first session and 240/750 left after the third. Preflight runs `23e6f07d-7e1a-4037-8dee-95b58ea2e50c` and `e8138823-e79e-45e1-9c0c-f6aa14a8d8de` failed before sessions (wrong factory arguments, then an unhosted case in the batch). The isolated P16 attempt `e6423cb0-6f5b-402f-8102-f6396b923067` also opened no session.
+- Provenance: isolated V6 worktree commit `279f7a8348f4f94f0de650cb5f990aeaff794ab4` plus captured dirty-source patch SHA-256 `474a87255d5005259b4ec3c82daa3cd900ad290b9ad214b29835628debcd42e6`; `configs/score-push-v6-briefed.json` SHA-256 `c1083b1d1ecd671383d856cd7d2f994b74ab587c79fbb9c1474daec1de340c1e`; Lab base+Sunday data SHA-256 `eccf11a79ba1d0afcbc4c839eaddf3e1335c3790cc84da8d47ee4272d15988ad`. Agent `negotiator.agent:configured_agent`, `estimates={}`, `meso=false`, runner `auto`, provider model `gpt-6-sol`.
+- Results: P11 run `544223be-a6ab-41d3-9c42-54c1829ab508`, session `f3f940a92916f3e9`: score **0.8771273853**, deal, 6 rounds, 0 timeouts. P07 run `f8212a55-55a7-46ba-9587-8d4e1a7d47fc`, session `cc4d5eac7a5aaed9`: **0.7599706752**, deal, 5 rounds, 0 timeouts. P10 run `bad636e8-21a4-4ce8-bf2f-a254b681baac`, session `2b19a78be2219f61`: **0.6472939821**, deal at EUR31.90/56 days/24 months, 3 rounds, 0 timeouts. All three passed Arena must-haves; mean **0.7614640142** across this sampled trio only.
+- Behavior: P11 and P07 made no live adviser calls, as expected for their case types. P10 supplier `sup:70410` used an **extractive**, source-linked brief. The strategy adviser made one admitted call in 5.36 s and kept the prepared move; the final adviser made one admitted call in 4.57 s and chose a legal exploratory counter, which the supplier accepted. The P10 score repeats the earlier exploratory-counter result (0.6473) and is below the previously recorded 0.6551 P10 practice; one sample does not identify a brief effect. No model-compiled brief was exercised in these three sessions.
+- Decision: keep the combined policy opt-in and unpromoted. This verifies end-to-end execution and bounded adviser latency on one capacity case, not a score gain, walk-risk calibration, or the latency percentile gate. Saved original results and owned threads are under the three run IDs above.
+
+## 2026-10-11 — General supplier brief compiler and runtime handoff (LOCAL + PROVIDER ONLY)
+
+- Hypothesis: a source-linked brief compiled ahead of negotiation can carry subjective supplier statements, conflicting news and past observations into the existing strategy/final reviewers without adding a live compilation call or granting the brief authority over terms.
+- Source/config: local candidate identity `f25874c9414f8f8bb7b18d1af0845f5ba85a6bfc0415810c355dc2f25e6fc4c4` in `experiments/v6-candidate-source-manifest.json`; opt-in combined config `configs/score-push-v6-briefed.json` SHA-256 `c1083b1d1ecd671383d856cd7d2f994b74ab587c79fbb9c1474daec1de340c1e`; permanent package data identity `00317624303f28b4cbae883fd0554d9ce88779fb40b33de7f262e6784e0b5980`. Default V6 behavior remains unchanged.
+- Data/calls: `prep --briefs` stored 46 versioned briefs under the permanent `tacto-negotiator/data/briefs/<data-sha256>/`: eight model briefs for suppliers affected by the Sunday release and 38 extractive fallbacks. Ten provider-only calls were made: one empty response, one initially rejected conflict, then eight successfully admitted semantic briefs. No Arena session, practice quota or new score. The earlier DNS-blocked sandbox attempts did not reach the provider.
+- Validation: 154 focused tests passed across brief source scope, quote admission, stale/tampered fallback, strict provider schema, CLI prep, strategy and final-review routing, policy, release, dossier, claims, context and agent behavior; 42 additional package-adviser, memory, question and assessment tests passed. Ruff and `git diff --check` passed. The separate runner suite stalled on its first slow-reply simulator test under this sandbox and was interrupted; no runner-suite pass is claimed. A fake-provider local P10 strategy decision and final-offer decision both read the prepared brief and retained current-reply citation and closing checks. The live runtime latency and commercial effect of this combination are not measured.
+- Decision: retain the combined config opt-in and unpromoted. The compiled brief's tactics are hypotheses; the latest supplier reply, current case facts, legal package menu and coordinator checks control action. The remaining 38 suppliers have source excerpts but no model interpretation. See `docs/v6-supplier-brief-architecture-2026-10-11.md`.
+
+## 2026-10-11 — Skill-guided strategy review of prepared moves (LOCAL ONLY)
+
+- Hypothesis: a smaller, skill-guided choice contract can select a supported complete package or registered question from the deterministic V6 move when the latest supplier reply supplies a relevant constraint. Provider latency and commercial effect remain unmeasured.
+- Source/config: local candidate identity `c855992909105e71907fddb0a3ebe302f451ac2895928bb73b9a72ec25ea077b` in `experiments/v6-candidate-source-manifest.json`; opt-in `configs/score-push-v6-strategy.json` SHA-256 `08f9eb993a9a11d9e626a4d4a5768673f54d3141be42069cdf59c15e5acd6d97`; packaged negotiation skill SHA-256 `e2e7a26387d9f1381da837705aff0c26bc4c96f08468b307674a3c681f2e50c1`. The default V6 config is unchanged.
+- Cases/budget: synthetic capacity and renewal fixtures and a fake-provider CLI launch. Zero provider calls, zero hosted Arena sessions and no practice quota used; no new score.
+- Validation: 96 focused strategy/advice/final/policy/launch tests passed. Ruff and `git diff --check` passed. Tests cover legal package and question selection, exact source quote, refusal/term/cost checks, timeout and malformed fallback, stale state, restart accounting, scoped public notes, skill resource loading from a zipped package and default isolation. The recorded source manifest includes the new module, skill, config and tests.
+- Decision: keep `strategy-v1` opt-in and unpromoted. A live latency and outcome comparison is required before claiming that the shorter contract remedies the P10 opening timeout or improves negotiation results. The separate final-offer reviewer and closing coordinator retain final-decision authority. See `docs/v6-strategy-llm-layer-2026-10-11.md`.
+
+## 2026-10-11 — Exploratory final counter, live P10 diagnostic (ONE PRACTICE SESSION)
+
+- Hypothesis: after disabling the repeatedly timed-out opening adviser, the source-linked final reviewer can select one legal counter and the explicit no-deal loss envelope can permit it to reach the supplier. Acceptance and score were unknown before the run.
+- Source/config: local candidate byte identity `a8c9293baa3b68eb3aa058ab4ebaffea64a2f8e658b40fd3773916873c956e96`, config `configs/score-push-v6-final-explore.json` SHA-256 `74fd997bd3dfd687a5709f97f5a837abf52527836c9b6408e45cac1e717cc9f9`, captured dirty-source patch SHA-256 `5da8ee81829f339d392a2176617c83d3dd714d05745f1276dfee3b83e0d880cf`, supplied data SHA-256 `d5088ef05eb836b9b818f00adc584252d01362b28f73af964d9fac15a61f33dd`. Serial Lab runner, `gpt-6-sol`, practice P10. This is a combined change in opening-adviser call allocation and final-counter risk policy; their separate effects are not identified by this one run.
+- Budget/evidence: user explicitly accepted one exploratory P10 counter with unknown walk probability. One practice session opened: run `6ddfcb54-5f8c-49e7-89ac-7e35cd46a64e`, session `54955c958d59d8c2`, attempt `case:P10:1`, completed Lab revision 7. Original outcome: `/home/ugur/harve-y/tacto-negotiator/experiments/runs/6ddfcb54-5f8c-49e7-89ac-7e35cd46a64e/run.json`; decision trace: `/tmp/v6-p10-final-explore-practice-20261011-trace/trace.jsonl`. Final shared quota snapshot: 255/750 left; other agents use the key, so its delta does not measure this run's consumption.
+- Outcome: **0.6472939821** score, valid deal, must-haves met, zero Arena timeouts, three rounds, 19.01-second attempt. Opening adviser made zero calls. Final reviewer made one 2.90-second call (1,420 input/201 output tokens), cited the supplier's lead-time premium, and selected the legal EUR31.90/56-day buyer counter. The explicit no-deal screen logged EUR55,912.80 modeled gain if accepted, EUR587,839.20 possible loss relative to the case-priced no-deal fallback, and 8.69% binary break-even walk probability; actual walk probability remained unknown. The buyer sent that counter, supplier agreed, and the buyer accepted. Complete deal cost was EUR1,541,808.00.
+- Comparison/decision: the prior one-session `select-v1` diagnostic accepted EUR33.80/42 days at score 0.5546564482 and cost EUR1,597,720.80. This run is +0.0926375339 score and EUR55,912.80 lower modeled cost on this exposed P10 reply. Keep `explore-v1` opt-in and unpromoted: one supplier acceptance does not calibrate walk probability, establish a win rate, or satisfy the plan's latency and commercial gates. No second session was started.
+
+## 2026-10-11 — Explicit no-alternative final-counter exploration (LOCAL ONLY)
+
+- Hypothesis: the P10 final reviewer can send its legal, source-linked counter when a user explicitly accepts exploratory no-deal risk, while preserving bounded execution and visible downside.
+- Source/config: current local byte identity `a8c9293baa3b68eb3aa058ab4ebaffea64a2f8e658b40fd3773916873c956e96` in `experiments/v6-candidate-source-manifest.json`; isolated config `configs/score-push-v6-final-explore.json` SHA-256 `74fd997bd3dfd687a5709f97f5a837abf52527836c9b6408e45cac1e717cc9f9`. The default V6 and the prior `select-v1` candidate are unchanged in behavior. The new config suppresses the opening adviser call that timed out in the prior live run; it is a different experimental factor from the final risk mode.
+- Case/evidence: exposed saved P10 supplier reply, case buyer fields and synthetic cases. Code prices no deal from the case's published fallback unit price and risk; the result is a scenario, not an executable alternative or calibrated walk probability. `explore-v1` requires a legal cited counter, positive buyer cost gain, at least 20 seconds closing reserve, at most one final counter, and a configured loss limit of 40% of standing cost. P10's break-even walk probability in the saved-thread local replay is about 8.6%; actual supplier walk probability remains unknown.
+- Validation: 72 focused tests passed, Ruff and diff check passed. A fake-provider replay of the saved live supplier reply selected and pre-dispatch validated EUR31.90/56 days, with zero opening adviser calls. Its cost figures omit PDF defaults in the saved thread and are not a hosted outcome. No provider call or Arena session was opened for this change; there is no score or acceptance result.
+- Decision: retain both default V6 and the conservative `select-v1` mode. The new `explore-v1` config is a separately labeled practice candidate for an explicit risk-tolerant test, not a promotion or expected-value claim.
+
+## 2026-10-11 — V6 final-offer adviser, live P10 diagnostic (ONE PRACTICE SESSION)
+
+- Hypothesis: the source-linked final-offer reviewer can recognize P10's cheaper lead-time variant in a real supplier reply and propose a legal counter, with code retaining closing authority.
+- Source/config: local candidate identity `e71233c7445ba770dc093576d6f279d31851a1bb6b749481e5d23b0333d96412` was byte-checked before launch; `configs/score-push-v6-final-advice.json` SHA-256 `e8930458348205600d85e68b633b7805d2ae31c4b6f3990e82a1c8537d80f3f0`; captured dirty-source patch SHA-256 `1b04d00bfc6535c1713dd8115d5d87635d8c9f2ec6b7984d47dac2ee5d8e787d`; supplied data SHA-256 `d5088ef05eb836b9b818f00adc584252d01362b28f73af964d9fac15a61f33dd`. Serial Lab runner, `gpt-6-sol`, practice P10. Shared Lab recommendation and findings were read before launch; this standalone run did not promote a checkpoint.
+- Budget/evidence: one session, run `59c67205-59ca-4dba-b187-b1de4eeb0c39`, session `9f8060c60c5d4648`, attempt `case:P10:1`, completed revision 7. Original result: `/home/ugur/harve-y/tacto-negotiator/experiments/runs/59c67205-59ca-4dba-b187-b1de4eeb0c39/run.json`; agent decision trace: `/tmp/v6-p10-final-advice-practice-20261011-trace/trace.jsonl`. Final shared quota snapshot was 276/750 left; other agents share the account, so the quota delta is not attributed to this session.
+- Outcome: score **0.5546564482**; valid deal and must-haves, zero Arena timeouts, two rounds, 13.40-second attempt. Opening capacity adviser timed out after 8.01 seconds and fell back to the prepared EUR28.34/42-day offer. Final adviser completed in 2.50 seconds (1,420 input/224 output tokens), cited the supplier's EUR31.90/54-day variant, and selected the code-generated **EUR31.90/56-day buyer counter**. The risk gate rejected dispatch with `no_comparable_executable_alternative` (`c_alt` absent), so the buyer accepted the valid standing EUR33.80/42-day offer, 23,400/year for 24 months, complete deal cost EUR1,597,720.80. The proposed counter's modeled cost was EUR1,541,808.00; it was never offered, and supplier acceptance is unknown.
+- Decision: the live test confirms source-linked recognition and counter selection, but no commercial effect under the current no-outside-alternative policy. Keep the opt-in candidate unpromoted. The opening adviser timeout remains a separate failure to address; no second practice session was started.
+
+## 2026-10-11 — V6 final-offer LLM review (LOCAL ONLY)
+
+- Hypothesis: a small source-linked review can flag a legal final counter before the deterministic accept path, while code retains closing authority and its independent risk gate.
+- Source/config: opt-in `configs/score-push-v6-final-advice.json` (SHA-256 `e8930458348205600d85e68b633b7805d2ae31c4b6f3990e82a1c8537d80f3f0`); candidate byte identity `e71233c7445ba770dc093576d6f279d31851a1bb6b749481e5d23b0333d96412` in `experiments/v6-candidate-source-manifest.json`. Implementation and limits: `docs/v6-final-offer-advice-implementation-2026-10-11.md`. V6 default unchanged.
+- Cases/evidence: synthetic capacity final replies and the saved P10 final reply are development evidence. The P10 reply produces one legal 56-day/EUR31.90 buyer-counter candidate; the supplier's 54-day sheet itself is outside the allowed options. The supplied data package has four scoped dossier notes for this supplier. No clean holdout claim.
+- Validation: 68 focused tests passed with the supplied package; Ruff and diff check passed. A fake-provider dry run used the actual P10 dossier and saved final reply (4,117-byte context, three scoped notes, one legal counter). The broader run reached the known sandbox async worker-crash stall. No provider calls or Arena sessions were opened for this change; no new score or latency result.
+- Decision: keep the reviewer opt-in and V6 default. P10 has no executable outside alternative, so a model-selected counter remains a logged recommendation and the deterministic accept stands. The next live practice is a separate tracked experiment; no rollout or promotion is claimed.
+
+## 2026-10-11 — V6 P10 selection candidate, live diagnostic (ONE PRACTICE SESSION)
+
+- Hypothesis: the reconstructed P10 provider probe may overstate failure on the real hosted P10 request. User authorized one real practice run to check. This is a diagnostic, not the proposed matched-arm screen or an inference-gate override for promotion.
+- Source/config: opt-in `select-v1`, `configs/score-push-v6-select.json` SHA-256 `ae6bc0079f460567f5103d5e1f7ad7ec221d7d3b0bbcc1b948f479694b196310`; candidate identity `bcea19954ff7fb95e94de195670df614218fd9f410b570242bef33be6ab56e3d`. Dirty source captured before the run as patch SHA-256 `0812fadf139fed7607b09d05e6670a138a4be3178ed0acb3a7183da99f6b25a1`, lock SHA-256 `a0ec7fe14679fbe9e9c2bc75b87316a4d3026b94a2fc1a590bf20584c193cf7f`, data SHA-256 `d5088ef05eb836b9b818f00adc584252d01362b28f73af964d9fac15a61f33dd`. Serial runner; `gpt-6-sol` provider. Shared Lab recommendation and findings were read before the run; this standalone experiment did not alter the recommendation.
+- Budget/evidence: exactly one practice session opened: run `a5132f52-3187-44fa-a4dd-7b6152ce15a0`, session `193e32132c201b49`, attempt `case:P10:1`; Lab revision 7 completed. Owned evidence: `/home/ugur/harve-y/tacto-negotiator/experiments/runs/a5132f52-3187-44fa-a4dd-7b6152ce15a0/run.json`. Live shared quota read 291 left before and 288 after; other agents share the account, so the delta is not attributed to this run.
+- Outcome: score **0.5546564482**, valid deal, must-haves met, zero Arena timeouts, two rounds, 10.84-second attempt. Accepted EUR33.80, 42-day lead, 23,400 units/year, 24 months; complete deal cost EUR1,597,720.80. One combined adviser attempt reached its eight-second limit (`TimeoutError`, 8.01 s); no provider usage was reported. The adviser admitted no observation, changed no package and fell back to the prepared V6 opening. The live request had 3,872 context bytes and five candidates. The previous guarded P10 run had the same score and terms, but its exact fallback reason was not retained.
+- Decision: the real P10 run confirms a latency failure for this candidate; the offline reconstruction was useful as a warning, although one live attempt cannot establish a failure rate. Keep V6 as default. Revise/measure the combined request before matched-arm screening. No retry or additional session was started.
+
+## 2026-10-11 — V6 reconstructed provider latency probe (30 CALLS, ZERO ARENA)
+
+- Approval: user separately authorized up to 30 provider-only calls. The script enforced exactly six payloads × five repeats, sequentially, with a fresh HTTP client and eight-second request timeout. All 30 slots were consumed; no Arena session opened. Model `gpt-6-sol`, no explicit effort setting. Original complete P10 request was not saved, so this is reconstructed development evidence.
+- Source: candidate identity `bcea19954ff7fb95e94de195670df614218fd9f410b570242bef33be6ab56e3d`; probe script SHA-256 `1ec059c75964b0cf4071d75d6a8b6eebb236f1713b526a0e4329debf6f5e3bbd`; report `experiments/v6-provider-probe-2026-10-11.json` SHA-256 `850d7743434d946baf7b192a94dff85f4dd7881c4366a45602356544be1ad5b5`. Request digests and sizes are in the report; no key, raw response or request text is recorded.
+- Results: legacy schema 15/15 valid, wall 1.60–3.02 s. Combined assessment schema 10/15 valid. All five reconstructed saved P10 combined calls failed (three invalid JSON, two read timeouts; wall 7.67–8.16 s). The other two combined variants passed 10/10 (2.62–6.00 s). Combined nearest-rank p95 8.16 s. Reported tokens for the 25 valid calls: 30,440 input / 5,054 output; usage unknown for five failed calls. Provider HTTP and parsing are not separately timed; model warm/cold state and finish reasons are unknown.
+- Decision: inference gate fails on this exploratory batch, even before representative concurrency. Do not run the proposed 12+18 Arena screening sessions or promote. No further provider calls are covered by this approval. Next iteration should reduce the saved-P10 contract's failure rate, freeze a new source/config identity, then obtain a fresh provider allowance and verify the gate before Arena evaluation.
+
+## 2026-10-11 — V6 P2–P6 local supplier intelligence candidate (NO HOSTED CALLS)
+
+- Hypothesis: independent source admission plus bounded package selection can adapt to different current constraints while preserving V6's prepared move on rejection. Questions and final counters are separate opt-in factors.
+- Source: uncommitted worktree based on `279f7a8348f4f94f0de650cb5f990aeaff794ab4`; the P0/P1 worktree edits remain part of this candidate. Local candidate identity `bcea19954ff7fb95e94de195670df614218fd9f410b570242bef33be6ab56e3d` (`experiments/v6-candidate-source-manifest.json`). Config hashes: shadow `acd83bb5b09ffcb7361bab96bc6efac75ec6f1782bfaf19ec0b72ac57ea8afd5`, selection `ae6bc0079f460567f5103d5e1f7ad7ec221d7d3b0bbcc1b948f479694b196310`, questions `c1f3f15ab2a4131c4dd509f35780e4278378d4123014e9a92dea1fd566555488`, final review `f351a3f03454fe3e330bdee39383062e30710191f488781fec2b6d35f92223f3`. Full paths and gate status: `docs/v6-p2-p6-implementation-2026-10-11.md`.
+- Cases/evidence: checked-in capacity/renewal fixtures and synthetic source/restart/final scenarios are development evidence. The exposure manifest makes no clean hosted holdout claim. Relevant regression: 112 passed (111 in sandbox and one local socket test after permitted unsandboxed rerun); Ruff passed. A full-suite attempt reached a test requiring absent `uv`, then other tests requiring absent `data/package`; an async simulator test stalled in this sandbox. This local implementation itself made no provider or Arena call and no new commercial score; the separate 30-call provider probe is logged above.
+- Decision: V6 remains default. Shadow, selection, question and final-review configs are reviewable arms, not a launch approval. The 30-call latency proposal, 12+18 Arena comparison and separate question/final budgets remain unspent pending explicit allowances, frozen source/model/data and a usable holdout.
+
+## 2026-10-11 — One guarded V6 P10 practice run (ONE SESSION)
+
+- Hypothesis: bounded source-linked capacity advice can change P10 to a supported cost-neutral package while keeping V6's fallback and closing behavior safe.
+- Source/config: local dirty worktree based on `279f7a8`, captured patch SHA-256 `779df891b32da726d2ab987811a137731eaecf892761ce4e6b17c937c0d40875`; `configs/score-push-v6-guarded.json` SHA-256 `ee82a755f7945e0bc0e480e7d1149c080db459aa88a1e1948408e7dcdff41903`; supplied data SHA-256 `d5088ef05eb836b9b818f00adc584252d01362b28f73af964d9fac15a61f33dd`. Serial runner, provider `openai`, model `gpt-6-sol`. The standalone run recorded no lockfile hash because `--repo` pointed at the worktree root; the captured source patch remains available locally.
+- Budget/evidence: exactly one practice session, run `993256b3-4c90-4b17-8a62-31861dd6e467`, session `7de508c85d766d1f`, attempt `case:P10:1`. Shared quota 312 → 311 left of 750. The completed revision 7 is present in the shared Lab. Original local evidence is `experiments/runs/993256b3-4c90-4b17-8a62-31861dd6e467/run.json` in the tooling checkout.
+- Outcome: score **0.5546564482**, valid deal, must-haves met, zero Arena timeouts, two rounds, 9.97-second attempt. Accepted standing offer: EUR33.80, 42-day lead, 23,400 units/year, 24 months. Complete recorded deal cost EUR1,597,720.80. The adviser made one call (6.99 seconds; 1,799 input and 714 output tokens), changed no package, and fell back to the prepared V6 move. ModelAssist made zero calls. The standalone metrics did not retain the precise fallback reason, so this run cannot attribute it to schema, semantic admission, or another provider error.
+- Decision: keep V6 default and make no commercial claim from one unpaired P10 result. After the run, local adviser metrics were extended to retain bounded outcome reasons for future runs; that change was **not** part of this session and was not retested live. No second session is authorized or started.
+
+## 2026-10-11 — V6 P0/P1 guarded advice integration (LOCAL ONLY)
+
+- Hypothesis: a bounded opt-in adviser can be attached to one V6 serial capacity move while preserving the prepared move on keep/failure and preventing stale or expired sends.
+- Source/control: base `279f7a8`, `configs/score-push-v6.json` (SHA-256 `d093a41d23b0a8e4b9c08046ae5eaf9ed74b85b16646e82f586878b5aa56591d`); candidate `configs/score-push-v6-guarded.json` (SHA-256 `ee82a755f7945e0bc0e480e7d1149c080db459aa88a1e1948408e7dcdff41903`). Implementation is an uncommitted worktree change. P10 saved trace and all checked-in practice cases are development exposure, recorded in `experiments/v6-exposure-manifest.json`.
+- Cases/quota/scores: saved P10 and synthetic capacity replies only; zero Arena sessions, zero provider calls, no new scores. The dry-run provider probe emits six reconstructed request digests and a 30-call proposal, without executing it.
+- Validation/failures: 91 focused tests and Ruff pass. One async model test stalls, one dashboard test needs a forbidden local socket, and two policy tests need an absent data package; see the implementation record. Unsupported, malformed, stale, expired and delayed advice are covered by local tests.
+- Decision: retain V6 as default. Keep this candidate local until provider allowance, latency measurement and later assessment/action stages are reviewed; no promotion or launch change.
+
 ## 2026-10-10 — Shared-lab ingestion compatibility hotfix (DEPLOYMENT CHECK)
 
 - Hypothesis: registering a matching supplied package should refresh feedback for versioned runs while skipping historical imports that have no provenance. The first deployed ingest stopped on such an import before refresh; the original runs and recommendation were unchanged.
@@ -1878,3 +2008,139 @@ it is not a new score improvement or a fresh full-suite evaluation.
   full Ruff, 36 existing frontend checks and the overview DOM check passed. Fixed the
   latter's missing browser globals in its test harness. Browser flows passed on desktop
   and mobile, including environment switching and logout.
+
+### 2026-10-11 — Five random V6 supplier intelligence practice runs
+
+- Hypothesis: an exploratory five-case screen would show ended, valid practice outcomes
+  while exposing model admission and fallback behavior. This was not a paired comparison.
+- Tracked lab run `56309be0-e434-4d95-a2f3-faa5c14cad94`, using the local dirty
+  `codex/v6-supplier-intelligence-plan` candidate at base commit `279f7a8348f4f94f0de650cb5f990aeaff794ab4`
+  and recorded patch SHA-256 `9c33af4821a342cb4c279acdf0cea73ce7674f217410ebca791456d516ef19f1`.
+  Config: `configs/score-push-v6-all-cases.json` as `PackageAgent.policy`, auto runner
+  (all selected cases used serial), Sunday release overlay, OpenAI `gpt-6-sol`.
+- Five distinct cases were uniformly sampled without replacement from the ten hosted
+  practice IDs: P03, P10, P04, P07, P08. Ceiling and actual use: five Arena sessions,
+  one repetition per case. Authoritative practice quota moved from 210 to 205 of 750.
+- Original outcomes, in sampled order: P03 **89.98%** (7 rounds), P10 **55.47%**
+  (2), P04 **86.04%** (4), P07 **74.70%** (5), P08 **70.36%** (5).
+  Mean across this sample: **75.31%**. All five ended as valid deals, with must-haves
+  satisfied and zero recorded timeouts or attempt errors.
+- The shared per-session model ledger recorded 11 calls in total. P03/P10/P04 used
+  three calls each, P07 two, P08 zero. All admitted strategy decisions kept the
+  deterministic package. P03 rejected one strategy response for
+  `quotation_without_constraint`; P10 rejected final advice for
+  `unsupported_citation`. Accepted buyer prose appeared in four cases.
+- Lab sync reported one upload and zero failures. Decision: retain this as an
+  exploratory screen only. No baseline was run, no causal score gain is claimed,
+  and the shared recommendation was not changed. P10's 42-day, 33.80-unit close
+  and final-advice citation fallback merit inspection before any separately
+  authorized comparison. Original attempt details and journals are in
+  `experiments/runs/56309be0-e434-4d95-a2f3-faa5c14cad94/`.
+
+### 2026-10-11 — Source-linked alternative and validation repair (0 new sessions)
+
+- Hypothesis: admitting explicit supplier alternatives with checked fields, then
+  giving a rejected suggestion one separate validation-model review, reduces
+  avoidable deterministic fallbacks without bypassing economic or dispatch gates.
+- The saved P03 and P10 original model answers were replayed locally against their
+  original supplier threads. P03 now selects the legal 60-day, EUR 392.48 buyer
+  counter; P10 selects the legal 56-day, EUR 31.90 buyer counter derived from a
+  quoted 54-day supplier alternative. No supplier response or new score is inferred.
+- A `validation-repair-v1` model role is called once after a semantic rejection or
+  primary provider failure, using a separate strict schema and the same final
+  decision checks. The session ledger reserves one six-second repair allowance;
+  an independent endpoint is optional. Tests cover successful repair, invalid
+  repair, provider-timeout takeover, risk rejection, source fields and budget
+  charging. The prior all-case policy values and hosted run are unchanged.
+- Focused tests: 66 passed. Full regression suite: 994 passed, 2 failed solely
+  because the `uv` executable is absent in this environment; those two lab
+  subprocess tests invoke `uv lock --offline`. Ruff passed. No Arena sessions,
+  hosted provider calls, publication or recommendation change for this revision.
+- Decision: retain as a local candidate pending an explicitly budgeted hosted
+  comparison. The validator cannot guarantee a safe counter when source support,
+  time, budget or provider availability is missing. Candidate identity:
+  `9c078e79ea316655daa8cb7877d11643abc0125d73847a34c37dd75d9df8644b`
+  in `experiments/v6-validation-repair-source-manifest.json`.
+
+### 2026-10-11 — Full ten-case hosted practice screen of V6 validation repair
+
+- Hypothesis: the committed V6 candidate would complete all ten hosted practice
+  cases with valid outcomes while exposing remaining model fallback paths. This
+  was one exploratory session per case, not a paired comparison or promotion test.
+- Tracked Lab run `f69d2cba-c6ca-4544-941f-38cb72f63933` used clean commit
+  `ae4990f341a7b10e96804b2a5b9f8c31698fbb87`, opt-in policy
+  `configs/score-push-v6-all-cases.json` SHA-256
+  `3e526e4ad6c691c37ef49a1d9032dcb29096a1631cc66f95fb0f3752b51e6779`,
+  Sunday release overlay, auto runner and `gpt-6-sol`. The combined data
+  fingerprint was `eccf11a79ba1d0afcbc4c839eaddf3e1335c3790cc84da8d47ee4272d15988ad`.
+- Preflight confirmed the ten hosted IDs, zero open practice sessions and
+  201/750 remaining. Exactly ten sessions opened, one each for P01–P05,
+  P07–P08, P10–P11 and P18. Final authoritative quota was 191/750 remaining.
+- Original scores: P01 **99.08%**, P02 **73.51%**, P03 **89.98%**,
+  P04 **86.04%**, P05 **81.36%**, P07 **74.70%**, P08 **70.36%**,
+  P10 **64.73%**, P11 **87.71%**, P18 **58.70%**. Mean **78.62%**.
+  All ten attempts completed with `ended: true`, `must_haves_ok: true`,
+  valid deals and zero recorded Arena timeouts or attempt errors. P05 used
+  the async RFQ runner; the others used serial.
+- The shared model ledger recorded 18 calls: ten accepted model-written buyer
+  responses, five strategy calls, one final-advice call, one validation-repair
+  call and one buyer-writer call that timed out. P10's admitted final advice
+  selected an exploratory counter and closed at 64.73%; its earlier sampled
+  P10 result was 55.47%, but single runs do not identify a causal gain.
+- P03 still fell back on one strategy decision: the primary provider returned
+  empty output, then the validation model proposed an alternative rejected as
+  `quotation_without_constraint`. Its later buyer-writer timeout also used
+  deterministic prose. Thus the validator was invoked as intended but did
+  not always produce an admissible counter. P08 and P18 made no eligible model
+  calls under the configured gates.
+- The current run was individually uploaded to the shared Lab successfully.
+  Original evidence remains in the ignored `experiments/runs/` directory;
+  private provider request/response files were not committed. Decision:
+  retain this as an exploratory screen, do not promote or claim final-case
+  readiness, and investigate the P03 repair rejection locally before any
+  separately authorized hosted retest.
+
+### 2026-10-11 — Two-wave final rehearsal and hosted 403 wait (LOCAL SIM)
+
+- Hypothesis: the committed V6 final runner starts each case once after its
+  wave opens, follows `seconds_left`, closes before the cap, and remains alive
+  across the break. This is a mechanics rehearsal on scripted demo suppliers,
+  not evidence about hidden final negotiation outcomes.
+- Pulled arena kit `tacto-ai/negotiation-arena-kit` to `273a9bc` and synced
+  `starter-kit/` with its lockfile and simulator extra. Ran its new
+  `arena-sim serve --final-rehearsal` on localhost, using the supplied package
+  and six demo cases across two waves. V6 source was clean commit `ba15fff`;
+  policy was the opt-in `configs/score-push-v6-all-cases.json`, auto runner,
+  Sunday overlay. Simulator keys stayed local; no hosted practice or final
+  session was opened by these rehearsals.
+- First pass used the simulator's default 240-second cap (120-second initial
+  wait, 30-second break), with the kit `arena run --set final --waves 2`
+  and V6 runner on separate local teams. Both waited through initial 403s,
+  started three cases per wave, and returned after wave 2 closed. All six V6
+  cases ended as valid deals with no `wave_cap`; mean simulator score 14.26%.
+  Four V6 decisions immediately invoked the time guard and accepted opening
+  offers: `TIME_GUARD_ROUNDS=2` × `ROUND_ESTIMATE_S=120` equals the shortened
+  240-second wave. The kit's naive runner scored 57.0 points per wave in this
+  short-cap pass. These scores describe different policies on a scripted sim.
+- Second pass used the actual 480-second cap (60-second initial wait,
+  30-second break) with V6 only. It waited for both wave starts and exited
+  after the second cap. All six original cases ended as valid deals with
+  `must_haves_ok: true`, no `wave_cap`, and one session start per case.
+  Four cases took the serial path and two the async path. Scores: wave 1
+  R1-S01 **69.55%**, R1-S02 **86.09%**, R1-S03 **88.56%**; wave 2 R2-S01
+  **69.55%**, R2-S02 **68.20%**, R2-S03 **88.56%**. Mean **78.42%**.
+  Serial cases made four or five offers before accepting; their results
+  appeared in the trace when the two-wave run returned. The two async
+  cases reported zero supplier-thread timeouts.
+- A separate one-minute read-only hosted final preflight saw 403 before
+  launch and after intentional stop; the V6 runner remained alive for the
+  full minute and the hosted final session count stayed **0 → 0**. The
+  earlier authorized ten-case practice screen supplied the practice-path
+  check; this preflight consumed no additional practice quota.
+- Evidence: local traces under `/tmp/v6-final-rehearsal-runs/` and
+  `/tmp/v6-final-rehearsal-8min-runs/`, and hosted wait log
+  `/tmp/v6-hosted-final-wait.log`. Decision: preserve the 90-second kit
+  close constant and existing V6 time guard; use the eight-minute cap for
+  policy rehearsal because the four-minute shortcut invokes that guard at
+  wave start. The simulator's quick scripted replies do not test long
+  provider or supplier latency, and no final policy promotion follows.

@@ -66,7 +66,13 @@ def test_terminal_feedback_is_retryable_and_does_not_rewrite_original(tmp_path):
                                       "agent_metrics": {"model": {"calls": 2, "fallbacks": 1,
                                                                   "latency_s": [0.2, 0.3],
                                                                   "input_tokens": 100,
-                                                                  "output_tokens": 40}}})
+                                                                  "output_tokens": 40},
+                                                        "package_advice": {"calls": 1, "fallbacks": 0,
+                                                                           "reported_input_tokens": 80,
+                                                                           "reported_output_tokens": 12,
+                                                                           "usage_reported_calls": 1,
+                                                                           "unknown_usage_calls": 0,
+                                                                           "latency_s": [0.4]}}})
     Store(learning.path).upsert(Run.model_validate(run))
     before = Store(learning.path).get("terminal")
     report = learning.review("terminal")
@@ -74,6 +80,9 @@ def test_terminal_feedback_is_retryable_and_does_not_rewrite_original(tmp_path):
     assert report == learning.report("terminal")
     assert len(report["proposed_experiments"]) == 1
     assert report["model_calls"] == 2 and report["model_usage"]["fallbacks"] == 1
+    assert report["model_usage"]["unknown_usage_calls"] == 2
+    assert report["package_advice_usage"]["calls"] == 1
+    assert report["package_advice_usage"]["reported_input_tokens"] == 80
     assert any(item.get("code") == "low_score" and item["category"] == "test"
                for item in report["findings"])
     assert learning.review("terminal")["proposed_experiments"] == report["proposed_experiments"]

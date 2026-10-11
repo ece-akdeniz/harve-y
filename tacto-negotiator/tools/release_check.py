@@ -50,7 +50,12 @@ def resolve_base(base) -> Path:
 
 def resolve_release(base: Path, release) -> Path | None:
     """`--release`, else ARENA_RELEASE, else a `release-sunday` folder in/next to the package."""
-    candidates = [release, os.environ.get("ARENA_RELEASE"), base / RELEASE_FOLDER, base.parent / RELEASE_FOLDER]
+    # An explicit path is authoritative, including when it is deliberately absent
+    # for a base-only comparison on a machine that already has the Sunday overlay.
+    if release is not None:
+        path = Path(release).expanduser()
+        return path.resolve() if (path / "facts.json").is_file() else None
+    candidates = [os.environ.get("ARENA_RELEASE"), base / RELEASE_FOLDER, base.parent / RELEASE_FOLDER]
     for c in candidates:
         if c and (Path(c).expanduser() / "facts.json").is_file():
             return Path(c).expanduser().resolve()

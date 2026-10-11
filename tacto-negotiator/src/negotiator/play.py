@@ -31,6 +31,7 @@ from arena_kit.play import (
 )
 
 from . import AGENT_NAME, TEAM_NAME
+from .advice import AdviceExecutionBlocked
 from .evaluator import close_decision
 
 log = logging.getLogger("negotiator")
@@ -90,6 +91,8 @@ def guarded_decision(agent, case, threads, decide, case_id=""):
     """`decide()` with a safe fallback: a crash must never leave a session to time out."""
     try:
         return _valid_decision(decide(), threads)
+    except AdviceExecutionBlocked:
+        raise
     except Exception as exc:
         log.exception("%s: decision step failed; using the fallback", case_id)
         error = repr(exc)[:500]
@@ -147,6 +150,21 @@ def run_config(agent, runner="serial-play_case", facts="data/package/facts.json"
     params = {k: getattr(agent, k) for k in keys if hasattr(agent, k)}
     assist = getattr(agent, "model_assist", None)
     params["model_assist"] = bool(assist)
+    strategy = getattr(getattr(agent, "package_advisor", None), "skill", None)
+    final_skill = getattr(getattr(agent, "final_advisor", None), "skill", None)
+    response_skill = getattr(getattr(agent, "response_writer", None), "skill", None)
+    policy = getattr(agent, "policy", None)
+    capabilities = {
+        "strategy": bool(getattr(agent, "package_advisor", None)),
+        "final_review": bool(getattr(agent, "final_advisor", None)),
+        "response_writer": bool(getattr(agent, "response_writer", None)),
+        "model_assist": bool(assist),
+        "advice_case_types": list(policy.package_advice_types) if policy else [],
+        "strategy_runner": "serial_only",
+        "closing_authority": "case_coordinator",
+        "model_budget": getattr(agent, "model_budget", None).metrics()
+        if getattr(agent, "model_budget", None) else None,
+    }
     if assist:
         params["model_provider"] = assist.provider or os.environ.get("LLM_PROVIDER", "anthropic")
         params["model_name"] = assist.model or os.environ.get("LLM_MODEL")
@@ -175,6 +193,19 @@ def run_config(agent, runner="serial-play_case", facts="data/package/facts.json"
         "facts_sha256": data,
         "data_provenance": provenance,
         "policy": agent.policy.record() if getattr(agent, "policy", None) else None,
+        "effective_capabilities": capabilities,
+        "negotiation_skill": (
+            {"resource": "negotiator/skills/negotiation/SKILL.md", "sha256": strategy.sha256}
+            if strategy else None
+        ),
+        "final_offer_skill": (
+            {"resource": "negotiator/skills/final/SKILL.md", "sha256": final_skill.sha256}
+            if final_skill else None
+        ),
+        "response_skill": (
+            {"resource": "negotiator/skills/response/SKILL.md", "sha256": response_skill.sha256}
+            if response_skill else None
+        ),
         "runtime_guidance": getattr(agent, "runtime_guidance", None),
     }
 
@@ -205,6 +236,16 @@ def play_case(table, case_id, agent, deadline=None):
     if hasattr(agent, "round_estimate_fn"):
         agent.round_estimate_fn = lambda: timing["slowest"]
     case, threads = table.open(case_id)
+    journal = getattr(getattr(table, "client", None), "journal", None)
+    journal_path = (getattr(journal, "path", None)
+                    or getattr(getattr(agent, "tracer", None), "path", None))
+    if budget := getattr(agent, "model_budget", None):
+        budget.bind(getattr(table, "session_id", None), journal_path)
+    for adviser in (getattr(agent, "package_advisor", None), getattr(agent, "final_advisor", None)):
+        if adviser is None:
+            continue
+        if attach := getattr(adviser, "attach", None):
+            attach(getattr(table, "session_id", None), journal_path)
     if (tracer := getattr(agent, "tracer", None)) and getattr(table, "session_id", None):
         base = os.environ.get("ARENA_URL", "").rstrip("/")
         replay = f"{base}/replay/{table.session_id}"
@@ -234,9 +275,20 @@ def play_case(table, case_id, agent, deadline=None):
                     except Exception:
                         log.exception("%s %s: e-mail interpretation failed; continuing without", case_id, sid)
             decision = guarded_decision(agent, case, threads, lambda: agent.decide(case, threads), case_id)
+            if rewrite := getattr(agent, "rewrite_response", None):
+                decision = rewrite(case, threads, decision)
         if (took := time.monotonic() - t0) > MOVE_LIMIT_S * 0.75:
             log.warning("decision took %.1fs - the limit is %ss per message", took, MOVE_LIMIT_S)
         sid, msg = decision["supplier_id"], decision["message"]
+        from .decision_contract import decision_record
+
+        record = decision_record(agent, case, threads, decision, runner="serial")
+        if validate := getattr(agent, "validate_decision", None):
+            validate(case, threads, decision)
+        if journal is not None:
+            journal.decision(record)
+        elif tracer := getattr(agent, "tracer", None):
+            tracer.log("decision_record", **record)
         try:
             if msg.get("action"):
                 log.info("%s %s", sid, msg["action"])

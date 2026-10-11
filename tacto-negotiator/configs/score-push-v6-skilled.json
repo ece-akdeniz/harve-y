@@ -1,0 +1,72 @@
+{
+  "version": 1,
+  "package_types": [
+    "renewal",
+    "quality",
+    "raw_material"
+  ],
+  "evidence_types": [
+    "price_increase",
+    "quality"
+  ],
+  "final_offer_risk": "legacy",
+  "chargeback_steps": 2,
+  "cost_neutral_lead_time": true,
+  "package_advice_types": [
+    "capacity",
+    "renewal"
+  ],
+  "cost_target_types": [
+    "price_increase"
+  ],
+  "cost_target_index_clause": true,
+  "standard_payment_types": [
+    "price_increase"
+  ],
+  "rfq_nonleading_hold": true,
+  "rfq_rival_offer": true,
+  "rfq_rival_offer_history": true,
+  "rfq_undercut_reanchor": true,
+  "rfq_data_claims": true,
+  "recent_index_window_types": [
+    "bundling",
+    "capacity",
+    "price_increase",
+    "quality",
+    "raw_material",
+    "renewal"
+  ],
+  "cost_target_posterior": 0.1,
+  "bundle_volume_types": [
+    "bundling"
+  ],
+  "bundle_commitment_types": [
+    "bundling"
+  ],
+  "value_swap_types": [
+    "quality"
+  ],
+  "value_swap_holds": 1,
+  "value_swap_split": 0.5,
+  "fast_payment_types": [
+    "price_increase"
+  ],
+  "claim_pacing": true,
+  "rfq_fast_payment_reanchor": true,
+  "fixed_volume_types": [
+    "raw_material"
+  ],
+  "anchor_by_type": {
+    "raw_material": 0.19
+  },
+  "rounds_by_type": {
+    "raw_material": 10
+  },
+  "package_advice_mode": "strategy-v1",
+  "llm_response_mode": "skill-v1",
+  "package_advice_max_calls": 2,
+  "package_advice_total_s": 16.0,
+  "final_advice_mode": "explore-v1",
+  "final_review_max_walk_probability": 0.2,
+  "final_explore_max_loss_fraction": 0.4
+}
