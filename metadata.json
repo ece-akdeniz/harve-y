@@ -3,7 +3,7 @@
   "checkpoint_id": "01M4M9RJY543BXVXK05J8TF8BA",
   "strategy": "manual-commit",
   "branch": "codex/v5-breakthrough",
-  "checkpoints_count": 1,
+  "checkpoints_count": 2,
   "files_touched": [
     "tacto-negotiator/src/negotiator/agent.py",
     "tacto-negotiator/src/negotiator/policy.py"
@@ -15,13 +15,20 @@
       "compact_transcript": "/0/transcript.jsonl",
       "content_hash": "/0/content_hash.txt",
       "prompt": ""
+    },
+    {
+      "metadata": "/1/metadata.json",
+      "transcript": "/1/full.jsonl",
+      "compact_transcript": "/1/transcript.jsonl",
+      "content_hash": "/1/content_hash.txt",
+      "prompt": "/1/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 85131,
-    "cache_creation_tokens": 0,
-    "cache_read_tokens": 12459131,
-    "output_tokens": 25953,
-    "api_call_count": 88
+    "input_tokens": 85137,
+    "cache_creation_tokens": 4412,
+    "cache_read_tokens": 13033568,
+    "output_tokens": 30151,
+    "api_call_count": 89
   }
 }
