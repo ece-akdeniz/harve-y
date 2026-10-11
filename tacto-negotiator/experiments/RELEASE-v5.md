@@ -1,8 +1,11 @@
-# codex/release-v5 — Live Final release (safety-wave-prewarm + v5 fixed-volume ladder)
+# codex/release-v5 — Live Final release (safety-wave-prewarm + v5 fixed-volume ladder + v6 posterior 0.10)
+
+> **Current state: section 8 (v6).** `FINAL_POLICY` = `configs/score-push-v6.json`. Sections 1–7 are the v5
+> release as shipped at 2e4e3ef; the v6 follow-up supersedes their commands.
 
 Worktree `/Users/sametdegirmenci/Downloads/ysamet-release`, branch `codex/release-v5`. Built 2026-10-11
-04:25–05:30 CEST, sim-only (no hosted or practice session was opened; no `negotiator lab run`).
-`main` is fast-forwarded to this branch (section 7).
+04:25–05:30 CEST (v5) and 05:30–06:05 CEST (v6), sim-only (no hosted or practice session was opened; no
+`negotiator lab run`). `main` is fast-forwarded to this branch (sections 7 and 8).
 
 ## 1. What this release is
 
@@ -143,3 +146,71 @@ Expected: P01/P02/P03/P04/P07/P10/P11 = v4 values, P05 .8136, P08 .7036, P18 .58
   anything after 9c1ee52 is **not** in this release), `ysamet-safety`, `ysamet-pure-main`.
 - Temporary detached worktrees `/tmp/ysamet-rel-v5base` (9c1ee52) and `/tmp/ysamet-rel-v4base` (7dba7c0)
   were used for the cross-tree replay and removed afterwards.
+
+## 8. v6 follow-up — merge of `codex/v5-breakthrough` @ 427674f (2026-10-11 05:30–06:05 CEST)
+
+The P02/P10 lane finished after the v5 release. Delta 9c1ee52 → 427674f: `configs/score-push-v6.json` /
+`-run.json` (= v5 + `"cost_target_posterior": 0.10`; live P02 .7351 vs .7115), opt-in `tenor_extend_types` +
+`PackageAgent._extend_tenor` (OFF in v6; only `configs/p10-tenor-extend.json`), explorer tooling fixes
+(`tools/explore_run.py`, `tools/list_attempts.py`, `Explorer.acceptable()`), strategies/traces, `V5.md` lanes 2–3.
+
+| commit | content |
+|---|---|
+| `28fd4cf` | **merge** of 427674f into 2e4e3ef; `_extend_tenor` gated on `not self._guarded()`; `tests/test_tenor_extend.py::test_no_tenor_extension_under_the_wave_guard` |
+| (this) | `FINAL_POLICY` → `configs/score-push-v6.json`; help/comment; `test_final_robust` pins v6 (+ posterior 0.1, `tenor_extend_types == ()`); runbook, LAB_PLAYBOOK, CONSOLIDATED §5, SAFETY §5, this file |
+
+Conflicts: one, `experiments/V5.md` (the v5 release had struck the "open items" paragraph that the lane rewrote
+below its lanes 2–3) — kept the release wording, appended lanes 2–3. `agent.py` / `policy.py` auto-merged.
+Guard vs `_extend_tenor`: the extension runs inside `_nonprice`, which `decide_thread` evaluates **before** the
+`guarded → _time_guard_move` early return, and its result `n` is what the guard's "its ask, our terms" match
+would carry — so an extension would have ridden on the guard's offer. Added `and not self._guarded()` to the
+call site: under the guard the non-price package is left as the supplier has seen it (test: unguarded thread
+extends 24 → 36 m and logs `tenor_extend`; the same thread with 100 s left logs `time_guard`, no
+`tenor_extend`, no 36 m sheet). No effect on v6 (`tenor_extend_types` empty).
+
+v6 config check: `prewarm` not set → `PolicyConfig.prewarm` default **True** applies (offline launch check below
+reports `prewarm True`, `prewarm()` not disabled); `fixed_volume_types == ["raw_material"]`, `anchor_by_type` /
+`rounds_by_type` as v5; `cost_target_posterior 0.1`; `tenor_extend_types` absent → `()`.
+
+Verification:
+- `uv run --locked pytest -q`: **842 passed** (ARENA_DATA exported; 840 + 2 skips without). `ruff check .` clean.
+- Replay (305 transcripts, 1611 rounds, all 10 hosted practice cases, `--conditional-exchange off`, A = B):
+  **v6 on release ≡ v6 on 427674f** — byte-identical, sha256 `954e8289…8008`
+  (`/tmp/replay-v6-base.json`, `/tmp/replay-v6-release.json`);
+  **v5 on release ≡ v5 on 2e4e3ef** — byte-identical, sha256 `03cd9b2f…6145` (same hash as the v5 release
+  check; `/tmp/replay-v5-2e4e3ef.json`, `/tmp/replay-v5-release2.json`).
+- Offline stubbed `negotiator run --set final`: `runner=auto`, `policy_config=…/configs/score-push-v6.json`,
+  `policy.prewarm=True`, `fixed_volume_types=('raw_material',)`, `cost_target_posterior=0.1`,
+  `tenor_extend_types=()`, `time_guard_rounds=2`, `ROUND_ESTIMATE_S=120.0`.
+- Guard calibration (section 4) is unchanged by v6: the posterior only moves P02's opening price; the
+  rehearsal's timing/round structure is the same.
+
+### Final launch command (v6)
+
+```bash
+cd /Users/sametdegirmenci/Downloads/ysamet-release/tacto-negotiator   # or any checkout at main
+export ARENA_DATA=/Users/sametdegirmenci/Downloads/ysamet/tacto-negotiator/data/package
+mkdir -p experiments/runs
+NEGOTIATOR_JOURNAL="$PWD/experiments/runs/final-journal.jsonl" \
+caffeinate -dimsu uv run --locked negotiator run --set final --runner auto \
+  --policy-config configs/score-push-v6.json --parallel 10 > experiments/runs/final.log 2>&1
+```
+
+### Ten-case practice confirmation (v6; not run by this worker)
+
+```bash
+cd /Users/sametdegirmenci/Downloads/ysamet-release/tacto-negotiator
+export ARENA_DATA=/Users/sametdegirmenci/Downloads/ysamet/tacto-negotiator/data/package
+mkdir -p experiments/runs
+caffeinate -dimsu uv run --locked negotiator lab run \
+  --name score-push-v6-confirm \
+  --hypothesis "codex/release-v5 + score-push-v6 (v4 + raw_material fixed-volume ladder + posterior 0.10, wave guard, prewarm): ten-case practice mean >= .7862 projected, P02 .7351, P08 .7036, P18 .5870, others = v4" \
+  --author samet \
+  --agent negotiator.agent:configured_agent --runner auto \
+  --config "$(cat configs/score-push-v6-run.json)" \
+  --cases case:P01 case:P02 case:P03 case:P04 case:P05 case:P07 case:P08 case:P10 case:P11 case:P18 \
+  --repetitions 1 --max-sessions 10 --environment practice \
+  2>&1 | tee experiments/runs/score-push-v6-confirm.log
+```
+
+Expected: P01/P03/P04/P07/P10/P11 = v4 values, P02 .7351, P05 .8136, P08 .7036, P18 .5870 (projected mean .7862).

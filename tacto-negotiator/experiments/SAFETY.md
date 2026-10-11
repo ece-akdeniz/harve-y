@@ -103,13 +103,14 @@ unguarded P05 would have ended ~420 s in, inside the 480 s cap but past the watc
 guard would have been needed there anyway. Lowering the constant (e.g. 90 s) would buy P05 the fifth
 round at 50 s replies at the price of less margin for a late or lost reply; not changed in this lane.
 
-## 5. FINAL_POLICY — repointed to v5 on `codex/release-v5`
+## 5. FINAL_POLICY — repointed to v6 on `codex/release-v5`
 
-`src/negotiator/cli.py` line 24 now reads `FINAL_POLICY = … / "configs" / "score-push-v5.json"`; help text
-(line 55) says "(final default: v5)", comment at the application site (line 81) likewise.
-`negotiator run --set final` without `--policy-config` plays v5 (`tests/test_final_robust.py::
-test_final_cli_defaults_to_auto_runner_and_v5_policy` pins the path, `policy.prewarm is True` and
-`fixed_volume_types == ("raw_material",)`). See `experiments/RELEASE-v5.md`.
+`src/negotiator/cli.py` line 25 now reads `FINAL_POLICY = … / "configs" / "score-push-v6.json"` (v5 first, then v6 =
+v5 + `cost_target_posterior` 0.10 after the 427674f merge; the guard/prewarm behaviour is identical); help text
+(line 56) says "(final default: v6)", comment at the application site (line 82) likewise.
+`negotiator run --set final` without `--policy-config` plays v6 (`tests/test_final_robust.py::
+test_final_cli_defaults_to_auto_runner_and_v6_policy` pins the path, `policy.prewarm is True`,
+`fixed_volume_types == ("raw_material",)`, `cost_target_posterior == 0.1`, `tenor_extend_types == ()`). See `experiments/RELEASE-v5.md`.
 
 ## 5a. ROUND_ESTIMATE_S calibration (codex/release-v5, 2026-10-11 04:47–05:17 CEST)
 
