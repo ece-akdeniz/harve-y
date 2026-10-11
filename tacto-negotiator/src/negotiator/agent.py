@@ -160,6 +160,7 @@ class PackageAgent:
         self.reanchored = set()  # rfq suppliers re-anchored after undercutting our own ask
         self.value_swapped = set()  # suppliers offered the value-equivalent chargeback swap (once)
         self.payment_traded = set()  # suppliers whose main sheet moved to their payment term (once)
+        self.alt_clause_countered = {}  # supplier -> {"counter", "alt"} terms of our one alt-clause counter
         self.final_seen = {}  # final-offer sheet id -> monotonic time first seen
         if estimates is None and os.environ.get("NEGOTIATOR_ESTIMATES") != "1":
             estimates = {}  # dossier estimates are opt-in until calibrated (docs: experiments/LOG.md)
@@ -890,6 +891,10 @@ class PackageAgent:
                 if saw_final and event.get("from") == "buyer" and event.get("term_sheets"):
                     count += 1
             self.final_counters[supplier_id] = count
+            if self.policy.alt_clause_counter:
+                found = self._alt_clause_history(case, threads[supplier_id])
+                if found is not None:
+                    self.alt_clause_countered[supplier_id] = found
         move = self._propose(case, threads, supplier_id)
         move = self._bundle_volume(case, threads, supplier_id, move)
         move = self._fast_payment_note(case, threads, supplier_id, move)
@@ -1193,6 +1198,72 @@ class PackageAgent:
                   held_by_schedule=held_by_schedule)
         return price
 
+    # -- alt clause counter (opt-in: policy.alt_clause_counter) ---------------------------------
+    @staticmethod
+    def _alt_clause_history(case, events):
+        """{"counter", "alt"} of our alt-clause counter already in this thread, else None: a sheet of
+        ours that is exactly one of the answered message's alternatives repriced at that message's
+        standing (first) sheet price, below the alternative's own price. Rebuilt from history so the
+        once-per-thread budget survives a restart."""
+        found = None
+        for i, m in enumerate(events):
+            if m.get("from") != "buyer" or not m.get("term_sheets"):
+                continue
+            answered = next((e for e in reversed(events[:i]) if e.get("from") != "buyer"), None)
+            sheets = (answered or {}).get("term_sheets") or []
+            if len(sheets) < 2:
+                continue
+            ours = m["term_sheets"][0].get("terms") or {}
+            standing_price = (sheets[0].get("terms") or {}).get("unit_price")
+            if standing_price is None or ours.get("unit_price") != standing_price:
+                continue
+            for s in sheets[1:]:
+                alt = s.get("terms") or {}
+                if (alt.get("unit_price") or 0) > standing_price + 1e-9 and ours == complete_offer(
+                        case, {**alt, "unit_price": standing_price}):
+                    found = {"counter": ours, "alt": complete_offer(case, alt)}
+        return found
+
+    def _alt_clause_counter(self, case, sid, events, alt, std, sup, ours):
+        """Opt-in `alt_clause_counter`: on `gap closed: take alternative` while the supplier is open
+        and more than two of our moves remain, the alternative's package at the standing sheet's
+        lower nominal price - once per thread, never a sheet we already sent, only when it beats the
+        alternative by C. None when today's move (take the alternative) should run."""
+        if not (self.policy and self.policy.alt_clause_counter) or sid in self.alt_clause_countered:
+            return None
+        if latest(events).get("status") != "open" or moves_left(case, events) <= 2:
+            return None
+        sheets = latest(events).get("term_sheets") or []
+        standing_price = (sheets[0].get("terms") or {}).get("unit_price") if sheets else None
+        if standing_price is None or standing_price >= alt["unit_price"] - 1e-9:
+            return None
+        counter = complete_offer(case, {**alt, "unit_price": standing_price})
+        if counter in ours or counter == alt or not must_haves_ok(case, counter, std):
+            return None
+        c_counter, c_alt_sheet = total_cost(case, counter, std, sup), total_cost(case, alt, std, sup)
+        if not math.isfinite(c_counter) or c_counter >= c_alt_sheet - 1e-6:
+            return None
+        self.alt_clause_countered[sid] = {"counter": counter, "alt": alt}
+        self._log(case, "alt_clause_counter", sid, standing_price=standing_price, alt_price=alt["unit_price"],
+                  counter=counter, c_counter=c_counter, c_alt_sheet=c_alt_sheet, moves_left=moves_left(case, events))
+        return counter
+
+    def _alt_clause_fallback(self, case, sid, events, cands, standing_id, std, sup, ours, c_alt):
+        """The decision after our alt-clause counter when the supplier stayed open without taking it:
+        today's move - its cheapest eligible alternative (not the standing sheet) - provided that
+        alternative is no worse by C than the one we deferred and was never sent by us. None otherwise
+        (today's logic runs, e.g. an accept when only the standing sheet is left)."""
+        state = self.alt_clause_countered.get(sid)
+        if state is None or not ours or ours[-1] != state["counter"]:
+            return None
+        if latest(events).get("status") != "open" or not cands or cands[0][1] == standing_id:
+            return None
+        alt = complete_offer(case, cands[0][2])
+        if alt in ours or total_cost(case, alt, std, sup) > total_cost(case, state["alt"], std, sup) + 1e-6:
+            return None
+        self._log(case, "alt_clause_declined", sid, counter=state["counter"], alt=alt)
+        return self._offer(case, sid, alt, std, sup, c_alt, "alt clause counter declined: take alternative")
+
     def decide_thread(self, case, threads, sid, c_alt, cap_c=None, why=None):
         events = threads[sid]
         std, sup = standard_terms(events), self._sup(case, threads, sid)
@@ -1244,6 +1315,11 @@ class PackageAgent:
         last_c = total_cost(case, ours[-1], std, sup) if ours else None
         last_p = price_for_cost(case, {**n, "unit_price": p}, last_c, std, sup) if last_c is not None else None
 
+        if cap_c is None and sid in self.alt_clause_countered:
+            fallback = self._alt_clause_fallback(case, sid, events, cands, standing_id, std, sup, ours, c_alt)
+            if fallback is not None:
+                return fallback
+
         if last_p is not None and p - last_p <= p * self.close_gap and cap_c is None:
             if (
                 self.policy
@@ -1267,6 +1343,10 @@ class PackageAgent:
             if eligible and cands[0][1] != standing_id and complete_offer(case, cands[0][2]) != ours[-1]:
                 # only the standing sheet can be accepted: counter with the cheaper alternative
                 alt = complete_offer(case, cands[0][2])
+                counter = self._alt_clause_counter(case, sid, events, alt, std, sup, ours)
+                if counter is not None:
+                    return self._offer(case, sid, counter, std, sup, c_alt,
+                                       "alt clause counter: standing price with alternative clause")
                 return self._offer(case, sid, alt, std, sup, c_alt, "gap closed: take alternative")
             if self.policy and self.policy.rfq_nonleading_hold and case["type"] == "rfq":
                 best = best_close(case, threads, self.estimates_for(case))

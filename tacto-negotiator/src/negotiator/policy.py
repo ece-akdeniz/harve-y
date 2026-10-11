@@ -82,6 +82,11 @@ class PolicyConfig:
     # stated/fastest legal payment term at the price where its `supplier_value` is unchanged, floored at
     # buyer-cost parity (our C never rises).
     supplier_payment_trade: bool = False
+    # On a `gap closed: take alternative` decision while the supplier is `open` (never on a final
+    # offer) and more than two of our moves remain, counter ONCE with the alternative's package
+    # (e.g. its deadband clause) at the standing sheet's lower nominal price before taking the
+    # alternative; if the supplier does not accept, the next decision takes the alternative as today.
+    alt_clause_counter: bool = False
 
     @classmethod
     def load(cls, path):
@@ -117,7 +122,7 @@ class PolicyConfig:
         for k in ("cost_neutral_lead_time", "cost_target_index_clause", "rfq_nonleading_hold", "rfq_final_guard",
                   "rfq_supplier_lead_time", "rfq_rival_offer", "rfq_supplier_payment", "rfq_rival_offer_history",
                   "rfq_undercut_reanchor", "rfq_data_claims", "rfq_data_claims_stack",
-                  "claim_pacing", "reciprocal_schedule", "supplier_payment_trade"):
+                  "claim_pacing", "reciprocal_schedule", "supplier_payment_trade", "alt_clause_counter"):
             if type(d.get(k, False)) is not bool:
                 raise ValueError(f"{k} must be boolean")
         post = d.get("cost_target_posterior", 0.0)
