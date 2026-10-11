@@ -3,7 +3,7 @@
   "checkpoint_id": "01M4MKTC0CXP0RE7PQNX8NQPJR",
   "strategy": "manual-commit",
   "branch": "codex/v5-intelligence",
-  "checkpoints_count": 5,
+  "checkpoints_count": 6,
   "files_touched": [
     "tacto-negotiator/docs/v5-intelligence-p10-repair-trial-2026-10-11.md",
     "tacto-negotiator/docs/v5-intelligence-supplier-trade-repair-2026-10-11.md",
@@ -15,6 +15,13 @@
       "transcript": "/0/full.jsonl",
       "compact_transcript": "/0/transcript.jsonl",
       "content_hash": "/0/content_hash.txt",
+      "prompt": ""
+    },
+    {
+      "metadata": "/1/metadata.json",
+      "transcript": "/1/full.jsonl",
+      "compact_transcript": "/1/transcript.jsonl",
+      "content_hash": "/1/content_hash.txt",
       "prompt": ""
     }
   ]
