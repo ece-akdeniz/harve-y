@@ -702,6 +702,7 @@ class PackageAgent:
             self.final_counters[supplier_id] = count
         move = self._propose(case, threads, supplier_id)
         move = self._bundle_volume(case, threads, supplier_id, move)
+        move = self._fixed_volume(case, threads, supplier_id, move)
         if self.policy and self.policy.rfq_rival_offer and case["type"] == "rfq":
             before = move
             move = self._rival_offer_claim(case, threads, supplier_id, move)
@@ -802,6 +803,43 @@ class PackageAgent:
         refs = list(dict.fromkeys([*(msg.get("refs") or []), *ids]))
         self._log(case, "bundle_volume", sid, new=p["new"], total=p["total"], refs=ids)
         return {**move, "message": {**msg, "body": body, **({"refs": refs} if refs else {})}}
+
+    def _fixed_volume(self, case, threads, sid, move):
+        """Opt-in: answer the volume question with the fixed volume, the forecast file and its fc claim."""
+        if not (self.policy and case["type"] in self.policy.fixed_volume_types):
+            return move
+        msg = move.get("message")
+        if not msg or msg.get("action") or not msg.get("term_sheets"):
+            return move
+        from . import fixed_volume
+        from .context import DATA_ERRORS
+        from .dossiers import load_package
+
+        try:
+            p = fixed_volume.plan(case, load_package(), sid)
+        except DATA_ERRORS:
+            p = None
+        if not p:
+            return move
+        sheet = (msg.get("term_sheets") or [{}])[0]
+        terms = sheet.get("terms") or sheet
+        ours = self._ours(threads[sid])
+        ids, att = [], None
+        if not ours:
+            text, ids = fixed_volume.first_paragraph(p, terms)
+            att = fixed_volume.attachment(p)
+        elif fixed_volume.asked_for_volume(threads[sid][-1:]):
+            text = fixed_volume.reminder(p, terms)
+        else:
+            return move
+        body = msg["body"] + "\n\n" + text
+        assert not leaks(body), "body would leak internal information"
+        refs = list(dict.fromkeys([*(msg.get("refs") or []), *ids]))
+        self._log(case, "fixed_volume", sid, volume=p["volume"], fc=p["fc"], attached=bool(att), refs=ids)
+        out = {**msg, "body": body, **({"refs": refs} if refs else {})}
+        if att:
+            out["attachments"] = [*(msg.get("attachments") or []), att]
+        return {**move, "message": out}
 
     def _propose(self, case, threads, supplier_id):
         """The proposal for one thread given the whole snapshot: an offer move

@@ -1,0 +1,21 @@
+Supplier: Blankstahl Werdenfels (family stainless bar stockholder, inside sales desk, owner in background). Public
+notes: its sales director "will focus on customers with volume"; price changes above 2 % need its pricing committee
+(meets every two weeks); the owner offered to walk us through their calculation. It inserts an AS-14404 index
+clause itself for long terms (do NOT propose a clause), accepts 90-day payment, and asks "Which figures is that
+based on? Please send us the data." when we state things without IDs.
+OBSERVED MECHANIC (35 sessions): it anchors close to OUR first ask when the ask is credible (ask 5.37 with a verified
+claim -> it answered 5.40), but a deep ask (5.12 or lower) makes it answer 5.60-5.70 instead. After the first reply
+it moves at most 2 % (about 0.10) per round, only when we move too, and it goes final after 2-3 steps or at once if
+our sheet is unchanged or our move is upward past its price. Every past session was lost by moving UP after it had
+nearly met our ask. So: ask a credible but low price in round 1 WITH its own purchase-order price as the argument,
+then move up only in tiny steps (+0.02 to +0.03) staying below its price, one new verified claim each round, same
+package (no clause, 90 days, 24 months), never touch payment or term.
+Plan: ROUND 1 - state our fixed annual requirement (case volume) and that we commit to it bindingly for the term,
+attach the forecast (attachments: ["forecast"]) and cite the purchase-order claim (its own delivered price this
+year for this part: the point is that its 2026 deliveries ran at that price); ONE sheet: no index clause, 90 days,
+24 months at the level closest to EUR 5.22. ROUND 2 - thank it, cite fc-latest, move up +0.03; if its price is
+already within 0.05 of ours, move only +0.01. ROUND 3 - cite the AS-14404 fall (one window), move up +0.03; ask
+it to take the package to its pricing committee if the step exceeds 2 %. ROUND 4 - cite the PPI-C2431 fall, +0.03.
+ROUND 5 - no new claim (never re-cite a series), +0.02, ask for its best committee-approved price. Code accepts
+when it agrees or goes final. Tone: warm, concrete, partner-like, short; one argument per sentence. Do not use
+the scorecard claim.
