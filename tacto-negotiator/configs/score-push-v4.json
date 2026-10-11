@@ -51,5 +51,12 @@
     "price_increase"
   ],
   "claim_pacing": true,
-  "rfq_fast_payment_reanchor": true
+  "rfq_fast_payment_reanchor": true,
+  "reciprocal_schedule": false,
+  "alt_clause_counter": false,
+  "supplier_payment_trade": false,
+  "cost_breakdown_request": false,
+  "time_guard": true,
+  "compressed_schedule": false,
+  "prewarm": true
 }
