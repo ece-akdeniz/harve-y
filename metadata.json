@@ -3,7 +3,7 @@
   "checkpoint_id": "01M4MKPRQ5JKBFRBXX8AXD22ER",
   "strategy": "manual-commit",
   "branch": "codex/v5-intelligence",
-  "checkpoints_count": 6,
+  "checkpoints_count": 10,
   "files_touched": [
     "tacto-negotiator/configs/score-push-v5-intelligence.json",
     "tacto-negotiator/docs/v5-intelligence-architecture-2026-10-11.md",
@@ -33,13 +33,20 @@
       "compact_transcript": "/1/transcript.jsonl",
       "content_hash": "/1/content_hash.txt",
       "prompt": "/1/prompt.txt"
+    },
+    {
+      "metadata": "/2/metadata.json",
+      "transcript": "/2/full.jsonl",
+      "compact_transcript": "/2/transcript.jsonl",
+      "content_hash": "/2/content_hash.txt",
+      "prompt": "/2/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 36376,
+    "input_tokens": 325811,
     "cache_creation_tokens": 0,
-    "cache_read_tokens": 74320,
-    "output_tokens": 1081,
-    "api_call_count": 5
+    "cache_read_tokens": 10598599,
+    "output_tokens": 74170,
+    "api_call_count": 109
   }
 }

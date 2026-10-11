@@ -1,0 +1,59 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4MKPRQ5JKBFRBXX8AXD22ER",
+  "session_id": "01a12921-500a-75e0-a795-6668c41c59a4",
+  "strategy": "manual-commit",
+  "created_at": "2026-10-11T04:32:01.822421077Z",
+  "branch": "codex/v5-intelligence",
+  "checkpoints_count": 4,
+  "files_touched": [
+    "tacto-negotiator/configs/score-push-v5-intelligence.json",
+    "tacto-negotiator/docs/v5-intelligence-architecture-2026-10-11.md",
+    "tacto-negotiator/docs/v5-intelligence-implementation-2026-10-11.md",
+    "tacto-negotiator/docs/v5-intelligence-p10-trial-2026-10-11.md",
+    "tacto-negotiator/docs/v5-intelligence-supplier-trade-repair-2026-10-11.md",
+    "tacto-negotiator/experiments/LOG.md",
+    "tacto-negotiator/src/negotiator/advice.py",
+    "tacto-negotiator/src/negotiator/agent.py",
+    "tacto-negotiator/src/negotiator/package_advisor.py",
+    "tacto-negotiator/src/negotiator/play.py",
+    "tacto-negotiator/src/negotiator/policy.py",
+    "tacto-negotiator/tests/fixtures/p10-capacity-advice-repair.json",
+    "tacto-negotiator/tests/test_capacity_advice.py"
+  ],
+  "agent": "Codex",
+  "model": "gpt-6-astra",
+  "turn_id": "4844e19e619a",
+  "compact_transcript_start": 0,
+  "token_usage": {
+    "input_tokens": 289435,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 10524279,
+    "output_tokens": 73089,
+    "api_call_count": 104
+  },
+  "session_metrics": {
+    "turn_count": 4
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-10-11T04:32:01.756626568Z",
+    "agent_lines": 4145,
+    "agent_removed": 621,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 4145,
+    "total_lines_changed": 4766,
+    "agent_percentage": 100,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    }
+  ]
+}
