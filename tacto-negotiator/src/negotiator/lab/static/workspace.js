@@ -142,11 +142,23 @@ globalThis.HarveyWorkspace = (() => {
     if(!findings.length)box.append(el('p',n.status==='running'?'Review the latest supplier reply and unresolved terms. No saved next-action decision is available in this snapshot.':'Review offer changes and source-backed memory before planning a new negotiation. No tested supplier-specific next action is recorded.'));
     return box;
   }
+  function decisionRecord(d) {
+    const n=d.negotiation,record=el('section',null,'decision-record');
+    const outcome=n.selected ? (n.deal ? 'Selected outcome' : 'Selected without a deal') : 'Recorded supplier thread';
+    record.append(el('span',outcome,'record-label'),el('h3',`${n.case_id} · ${status(n)}`));
+    const facts=el('div',null,'record-facts');
+    facts.append(el('span',`${n.message_count} messages`),el('span',`Updated ${date(n.updated_at)}`));
+    if(finite(n.score)) facts.append(el('span',`${number(n.score * 100)} / 100 case score`));
+    record.append(facts);
+    if(n.savings) record.append(el('p',`${money(n.savings.change_eur)} simulated reduction from the recorded case opening full cost.`));
+    else record.append(el('p','This thread has saved evidence, but no comparable valid savings outcome is available.'));
+    return record;
+  }
   function conversation(d) {
     const layout=el('div',null,'negotiation-layout'),main=el('div'),aside=el('aside',null,'decision-aside');
-    const digest=el('section',null,'workspace-panel conversation-digest');digest.append(el('p','CONVERSATION AT A GLANCE','eyebrow'));
+    const digest=el('section',null,'workspace-panel conversation-digest');digest.append(el('h3','What changed in this negotiation'));
     (d.digest?.summary || []).forEach(item=>digest.append(el('p',item.text)));
-    main.append(digest,HarveyConversations.render(d));
+    main.append(decisionRecord(d),digest,HarveyConversations.render(d));
     const outcome=panel('Current recorded position');outcome.append(fields({session_status:status(d.negotiation),supplier_thread:d.thread_status,selected_supplier:d.negotiation.selected,must_haves_satisfied:d.negotiation.must_haves_ok}));
     if(d.negotiation.savings)outcome.append(el('p',`${money(d.negotiation.savings.change_eur)} simulated reduction from case opening full cost.`));
     aside.append(outcome,nextSteps(d));layout.append(main,aside);return layout;
