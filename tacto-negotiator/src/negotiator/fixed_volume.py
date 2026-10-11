@@ -4,9 +4,14 @@ checkable claim. Behaviour-triggered: only cases with a fixed `volume_per_year` 
 for the part. Found in the breakthrough sessions (P08 S3-S7, P18 S9-S12): the bar stockholders ask
 "Which volume can you commit to?" in every reply and never got a number; with the number, the file
 and the ID the claim comes back `verified` ("we took it into account") and the ladder keeps moving.
+
+Rounds after the opening carry one new checkable claim each (`ladder`/`next_claim`): the supplier's
+lowest delivered price on our orders first, then one recent fall per index cost driver. For these case
+types the ladder owns the claims; the generic evidence enrichment is not run (`PackageAgent.propose`).
 """
 import base64
 import re
+from dataclasses import replace
 
 from . import claims as claims_mod
 
@@ -80,3 +85,74 @@ def reminder(p: dict, terms) -> str:
 
 def asked_for_volume(events) -> bool:
     return any(e.get("from") != "buyer" and _WHICH_VOLUME.search(e.get("body") or "") for e in events)
+
+
+# ---------------------------------------------------------------- the claim ladder (rounds 2+)
+
+_ENDED = {"final_offer", "agreed", "walked_away", "no_bid"}
+
+
+def ladder(case, package, supplier) -> list[claims_mod.Claim]:
+    """One new checkable claim per round after the opening, in this order: our purchase orders with
+    this supplier at its lowest delivered price for the part (two or more lines at one price), then the
+    largest recent fall per listed index cost driver (driver weight order), each series once.
+
+    The supplier's hedge statements are deliberately not applied here (unlike `recent_index_claims`):
+    the arena verifies the public series regardless, and 70710 priced the verified PPI-C2431 / AS-14404
+    falls in despite its fixed-price material cover (S6: 5.31 -> 5.16, S16: 5.57 -> 5.37). A second
+    window of a series already cited comes back `duplicate`, so every series is used at most once."""
+    parts = case.get("parts") or []
+    if len(parts) != 1 or supplier not in (case.get("suppliers") or []):
+        return []
+    part = parts[0]
+    facts = claims_mod.case_facts(case, package)
+    out = []
+    by_price: dict[float, list[str]] = {}
+    for ref, f in facts.items():
+        if (ref.startswith("po:") and isinstance(f, dict) and f.get("supplier") == supplier
+                and f.get("part") == part and (price := claims_mod._unit_price(f)) is not None):
+            by_price.setdefault(round(price, 2), []).append(ref)
+    groups = [(p, sorted(ids)[-3:]) for p, ids in by_price.items() if len(ids) >= 2]
+    if groups:
+        price, ids = min(groups)
+        claim = claims_mod.Claim(kind="po_history", ids=tuple(ids), figure=price, unit="EUR", sentence="",
+                                 supplier_id=supplier, part_id=part, disclosure="supplier_own", subject=supplier,
+                                 note="lowest delivered price for the part, this supplier")
+        out.append(replace(claim, sentence=claims_mod.render(claim, facts)))
+    drivers = {s: w for s, w in claims_mod._drivers(package, part).items() if w >= claims_mod.MIN_DRIVER_WEIGHT}
+    names = claims_mod._series_names(package)
+    series = claims_mod.series_values(facts)
+    refs = set(case.get("refs") or [])
+    for sid in sorted(drivers, key=lambda s: -drivers[s]):
+        values = series.get(sid, {})
+        if (w := claims_mod.recent_buyer_window(values)) is None:
+            continue
+        c = claims_mod._index_claim(sid, values, w, part, drivers[sid], refs, "recent buyer window", names, cherry=True)
+        c = replace(c, sentence=claims_mod.render(c, facts))
+        if c.figure is not None and c.figure <= -claims_mod.BEST_WINDOW_MIN_PP:
+            out.append(c)
+    return [c for c in out if claims_mod.verify(c, facts, package, case)]
+
+
+def next_claim(case, package, supplier, events) -> claims_mod.Claim | None:
+    """The first ladder claim this thread has not carried yet; None once the supplier's latest message
+    ended the ladder (final offer, agreed, ...), when a claim's IDs/series were already cited, or when the
+    order price is not below the supplier's standing ask (a figure at or above its ask is no argument)."""
+    latest = next((e for e in reversed(events) if e.get("from") != "buyer"), {})
+    if latest.get("status") in _ENDED:
+        return None
+    sent = {r for e in events if e.get("from") == "buyer" for r in e.get("refs") or []}
+    sent_series = {r[4:].split("@")[0] for r in sent if r.startswith("idx:")}
+    standing = next((e for e in reversed(events) if e.get("from") != "buyer" and e.get("term_sheets")), None)
+    prices = [(s.get("terms") or {}).get("unit_price") for s in (standing or {}).get("term_sheets") or []]
+    prices = [p for p in prices if isinstance(p, int | float)]
+    ask = min(prices) if prices else None
+    for c in ladder(case, package, supplier):
+        if set(c.ids) & sent:
+            continue
+        if c.kind == "index_change" and c.subject in sent_series:
+            continue
+        if c.kind == "po_history" and (ask is None or c.figure is None or c.figure >= ask - 0.005):
+            continue
+        return c
+    return None

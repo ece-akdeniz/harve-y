@@ -950,6 +950,8 @@ class PackageAgent:
         return move if defer_evidence else self._enrich_evidence(case, threads, supplier_id, move)
 
     def _enrich_evidence(self, case, threads, supplier_id, move):
+        if self.policy and case["type"] in self.policy.fixed_volume_types:
+            return move  # the fixed-volume ladder owns this thread's claims (one per round, fixed order)
         if self.evidence and self.evidence.eligible(case, move):
             from .context import DATA_ERRORS
 
@@ -1035,7 +1037,9 @@ class PackageAgent:
         return {**move, "message": {**msg, "body": body, **({"refs": refs} if refs else {})}}
 
     def _fixed_volume(self, case, threads, sid, move):
-        """Opt-in: answer the volume question with the fixed volume, the forecast file and its fc claim."""
+        """Opt-in: answer the volume question with the fixed volume, the forecast file and its fc claim
+        (first offer); afterwards one new checkable ladder claim per offer (orders at its lowest price,
+        then one recent fall per index driver) and a one-line volume reminder whenever it asks again."""
         if not (self.policy and case["type"] in self.policy.fixed_volume_types):
             return move
         msg = move.get("message")
@@ -1046,7 +1050,8 @@ class PackageAgent:
         from .dossiers import load_package
 
         try:
-            p = fixed_volume.plan(case, load_package(), sid)
+            package = load_package()
+            p = fixed_volume.plan(case, package, sid)
         except DATA_ERRORS:
             p = None
         if not p:
@@ -1054,15 +1059,25 @@ class PackageAgent:
         sheet = (msg.get("term_sheets") or [{}])[0]
         terms = sheet.get("terms") or sheet
         ours = self._ours(threads[sid])
-        ids, att = [], None
+        ids, att, parts = [], None, []
         if not ours:
             text, ids = fixed_volume.first_paragraph(p, terms)
             att = fixed_volume.attachment(p)
-        elif fixed_volume.asked_for_volume(threads[sid][-1:]):
-            text = fixed_volume.reminder(p, terms)
+            parts.append(text)
         else:
+            if fixed_volume.asked_for_volume(threads[sid][-1:]):
+                parts.append(fixed_volume.reminder(p, terms))
+            try:
+                claim = fixed_volume.next_claim(case, package, sid, threads[sid])
+            except DATA_ERRORS:
+                claim = None
+            if claim is not None:
+                parts.append(claim.sentence)
+                ids = list(claim.ids)
+                self._log(case, "fixed_volume_claim", sid, claim_kind=claim.kind, ids=ids, figure=claim.figure)
+        if not parts:
             return move
-        body = msg["body"] + "\n\n" + text
+        body = msg["body"] + "\n\n" + "\n\n".join(parts)
         assert not leaks(body), "body would leak internal information"
         refs = list(dict.fromkeys([*(msg.get("refs") or []), *ids]))
         self._log(case, "fixed_volume", sid, volume=p["volume"], fc=p["fc"], attached=bool(att), refs=ids)
@@ -1474,7 +1489,18 @@ class PackageAgent:
             if trade is not None:
                 return trade
         floor = p_open * (1 - self._anchor_for(case))
-        price = floor + (p - floor) * min(1.0, k / self._rounds(case))
+        if self.policy and case["type"] in self.policy.fixed_volume_types:
+            # Fixed-volume ladder: equal steps from the anchor towards the supplier's OPENING price
+            # (`rounds_by_type` = ladder length), capped at its current ask. The default schedule
+            # re-targets the supplier's latest price every round, so when it concedes fast our step
+            # collapses (P08: +0.09 then +0.02 against 5.57 -> 5.31) and the bar stockholders answer a
+            # token move with a final offer (S4). The agent's default k/rounds convergence stays as a
+            # floor so the thread still reaches the supplier's price within the usual move budget
+            # (worst case ~6 supplier replies inside an 8-minute wave).
+            ladder = floor + (p_open - floor) * min(1.0, k / self._rounds(case))
+            price = max(ladder, floor + (p - floor) * min(1.0, k / self.rounds))
+        else:
+            price = floor + (p - floor) * min(1.0, k / self._rounds(case))
         if last_p is not None:
             price = max(price, _ceil2(last_p))  # no backtracking on our own concessions (by C)
         price = min(price, p)
