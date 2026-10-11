@@ -67,6 +67,21 @@ class PolicyConfig:
     # Fraction of the way from our last price to the value-equivalent ceiling the swap offers
     # (1.0 = the ceiling itself); later rounds concede toward it on the swapped package.
     value_swap_split: float = 1.0
+    # Release at most one new verified claim per message and, once the preferred queue is spent, draw
+    # from the deeper bank (latest index windows, scorecards, the supplier's own quote, our order
+    # history with it). Keyed on supplier status (never on final/agreed), not on case type.
+    claim_pacing: bool = False
+    # Replace the fixed k/rounds convergence by a reciprocal schedule: while the supplier is open, has
+    # more than two of our moves ahead and still asks more than our last price plus the closing gap, our
+    # price step is at most its last step (a token step when it held) and we stay outside the closing gap
+    # of its ask. From round N-2 on, on any final offer, and once it is within the gap, behaviour is
+    # today's (same close/accept logic). No case-type gate.
+    reciprocal_schedule: bool = False
+    # Any case type: when the supplier signals a payment trade (reply text) or is cash-short by its
+    # public dossier (traits incl. a skonto in master data), the main sheet moves to the supplier's
+    # stated/fastest legal payment term at the price where its `supplier_value` is unchanged, floored at
+    # buyer-cost parity (our C never rises).
+    supplier_payment_trade: bool = False
 
     @classmethod
     def load(cls, path):
@@ -101,7 +116,8 @@ class PolicyConfig:
             d[k] = tuple(sorted(set(v)))
         for k in ("cost_neutral_lead_time", "cost_target_index_clause", "rfq_nonleading_hold", "rfq_final_guard",
                   "rfq_supplier_lead_time", "rfq_rival_offer", "rfq_supplier_payment", "rfq_rival_offer_history",
-                  "rfq_undercut_reanchor", "rfq_data_claims", "rfq_data_claims_stack"):
+                  "rfq_undercut_reanchor", "rfq_data_claims", "rfq_data_claims_stack",
+                  "claim_pacing", "reciprocal_schedule", "supplier_payment_trade"):
             if type(d.get(k, False)) is not bool:
                 raise ValueError(f"{k} must be boolean")
         post = d.get("cost_target_posterior", 0.0)

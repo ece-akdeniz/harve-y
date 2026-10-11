@@ -10,11 +10,12 @@ import math
 import os
 import time
 
-from arena_kit.cost import closing_terms, complete_offer, must_haves_ok, total_cost
+from arena_kit.cost import closing_terms, complete_offer, must_haves_ok, supplier_value, total_cost
 from arena_kit.docs import standard_terms
 from arena_kit.play import latest, live_threads, moves_left
 
 from . import value_swap
+from .economics import InfeasiblePackage
 from .evaluator import (
     best_close,
     close_decision,
@@ -151,12 +152,14 @@ class PackageAgent:
                 interpretation=self.model_context,
                 recent_window_types=policy.recent_index_window_types if policy else (),
                 rival_quote_types=policy.rival_quote_types if policy else (),
-                index_window_types=policy.index_window_types if policy else ())
+                index_window_types=policy.index_window_types if policy else (),
+                claim_pacing=bool(policy and policy.claim_pacing))
         self.prev = {}  # supplier -> non-price terms of our last offer
         self.final_counters = {}  # supplier -> counters sent to its final offers (at most one)
         self.beat_asked = {}  # rival supplier -> final-offer sheet id we asked it to beat
         self.reanchored = set()  # rfq suppliers re-anchored after undercutting our own ask
         self.value_swapped = set()  # suppliers offered the value-equivalent chargeback swap (once)
+        self.payment_traded = set()  # suppliers whose main sheet moved to their payment term (once)
         self.final_seen = {}  # final-offer sheet id -> monotonic time first seen
         if estimates is None and os.environ.get("NEGOTIATOR_ESTIMATES") != "1":
             estimates = {}  # dossier estimates are opt-in until calibrated (docs: experiments/LOG.md)
@@ -401,6 +404,8 @@ class PackageAgent:
                 if "payment_days" in new and prev.get("payment_days") == self._fast_payment(
                         case, sid, {**ref_terms, **new}, std):
                     new["payment_days"] = prev["payment_days"]
+                if "payment_days" in new and sid in self.payment_traded:
+                    new["payment_days"] = prev["payment_days"]  # the traded payment term stays
                 n = new
                 self._log(case, "package_switch", sid, prev=prev, new=n, c_prev=min(on_prev), c_new=ref_c)
         if self.policy and self.policy.rfq_supplier_payment and case["type"] == "rfq":
@@ -503,6 +508,130 @@ class PackageAgent:
                   new=out["lead_time_days"])
         return out
 
+    # -- supplier payment trade (opt-in: policy.supplier_payment_trade) ------------------------
+    # The skonto-implied annual rate (skonto_pct over the days gained) is capped: a 2 % discount for
+    # paying 20 days earlier annualises to 36 %, which no supplier values money at for a whole term;
+    # 30 % is an assumption, not observed.
+    SKONTO_RATE_CAP = 0.30
+
+    def _payment_trade_on(self, case):
+        return bool(self.policy and self.policy.supplier_payment_trade and "payment_days" in case["negotiable"])
+
+    def _payment_trade_target(self, case, base, events, std):
+        """The payment term to move to: the supplier's stated days from its latest sheet when legal
+        and shorter than ours, else the shortest legal option - the first that keeps must-haves."""
+        options = (case.get("term_options") or {}).get("payment_days") or []
+        cur = base.get("payment_days")
+        if not options or cur is None:
+            return None
+        sheets = latest(events).get("term_sheets") or []
+        stated = (sheets[0].get("terms") or {}).get("payment_days") if sheets else None
+        cands = ([stated] if stated in options and stated < cur else []) + sorted(options)
+        for days in cands:
+            if must_haves_ok(case, complete_offer(case, {**base, "payment_days": days, "unit_price": 1.0}), std):
+                return days
+        return None
+
+    def _payment_trade_done(self, case, sid, events, std):
+        """True once this thread traded payment for price; rebuilt from our own sheets after a
+        restart (our last sheet is at or below the target, or we shortened payment once before)."""
+        if sid in self.payment_traded:
+            return True
+        ours = [t for t in self._ours(events) if t.get("payment_days") is not None]
+        if not ours:
+            return False
+        target = self._payment_trade_target(case, nonprice(case, ours[-1]), events, std)
+        done = (target is not None and ours[-1]["payment_days"] <= target) or any(
+            b["payment_days"] < a["payment_days"] for a, b in zip(ours, ours[1:], strict=False))
+        if done:
+            self.payment_traded.add(sid)
+        return done
+
+    def _payment_trade_trigger(self, sid, events):
+        """'signal' when any supplier message of the thread asks for a payment trade, else
+        'trait:<name>' for a public cash-short trait (incl. a skonto in master data), else None."""
+        from . import traits as T
+        from .replies import interpret
+
+        if any(s["kind"] == "payment_trade" for s in interpret(events)["signals"]):
+            return "signal"
+        traits = self._public_traits(sid)[0] & T.CASH_SHORT
+        if not traits:
+            return None
+        name = next((t for t in ("offers_skonto", "wants_fast_payment") if t in traits), min(traits))
+        return f"trait:{name}"
+
+    def _public_supplier(self, case, sid, std):
+        """Supplier estimate for `supplier_value` from public data only: standard terms from master
+        data (quote PDF overrides), interest rate BASE_RATE (company.md) unless the master row states
+        a skonto, then its implied annual rate skonto_pct/100 * 360 / (payment_days - skonto_days),
+        capped at SKONTO_RATE_CAP. Never the dossier's cash-short constants."""
+        from . import traits as T
+        from .dossiers import BASE_RATE
+
+        _, dossier = self._public_traits(sid)
+        master = (dossier.master if dossier else None) or {}
+        standard = {k: v for k, v in {
+            "payment_days": master.get("payment_days"),
+            "incoterm": master.get("incoterm"),
+            "lead_time_days": master.get("standard_lead_time_days"),
+        }.items() if v is not None}
+        standard.setdefault("payment_days", case["buyer"]["reference_payment_days"])
+        standard.setdefault("incoterm", "FCA")
+        standard.update(std or {})
+        rate = BASE_RATE
+        pct = T.skonto_pct(dossier) if dossier else 0.0
+        if pct > 0:
+            days = master.get("payment_days") or standard["payment_days"]
+            gained = max(1, days - (master.get("skonto_days") or 0))
+            rate = min(self.SKONTO_RATE_CAP, pct / 100 * 360 / gained)
+        return {"standard": standard, "interest_rate": rate}
+
+    def _payment_trade(self, case, sid, events, std, sup, c_alt):
+        """Once per thread, on a payment-trade signal or a public cash-short trait: move the main
+        sheet to the target payment term at the unit price that leaves the supplier's value (public
+        rate) unchanged versus our previous sheet, floored at buyer-cost parity (our C never rises).
+        Our schedule then continues on the new package by C. None when it does not apply."""
+        if not self._payment_trade_on(case) or self._payment_trade_done(case, sid, events, std):
+            return None
+        ours = self._ours(events)
+        if not ours or latest(events).get("status") != "open" or moves_left(case, events) <= 1:
+            return None
+        prev_terms = ours[-1]
+        base = nonprice(case, prev_terms)
+        target = self._payment_trade_target(case, base, events, std)
+        if target is None or base.get("payment_days") is None or target >= base["payment_days"]:
+            return None
+        trigger = self._payment_trade_trigger(sid, events)
+        if trigger is None:
+            return None
+        pub = self._public_supplier(case, sid, std)
+        new = {**base, "payment_days": target}
+        v_prev = supplier_value(case, prev_terms, pub)
+        v0 = supplier_value(case, {**new, "unit_price": 0.0}, pub)
+        v1 = supplier_value(case, {**new, "unit_price": 1.0}, pub)  # value is affine in the unit price
+        if v1 - v0 <= 0:
+            return None
+        value_price = math.floor(round((v_prev - v0) / (v1 - v0) * 100, 6)) / 100
+        c_prev = total_cost(case, prev_terms, std, sup)
+        try:
+            cost_price = price_for_cost(case, {**new, "unit_price": prev_terms["unit_price"]}, c_prev, std, sup)
+        except InfeasiblePackage:
+            return None
+        terms = complete_offer(case, {**new, "unit_price": min(value_price, cost_price)})
+        if (terms["unit_price"] <= 0 or terms["payment_days"] != target or not must_haves_ok(case, terms, std)
+                or total_cost(case, terms, std, sup) > c_prev + 1e-6):
+            return None
+        self.payment_traded.add(sid)
+        self._log(case, "supplier_payment_trade", sid, prev_days=base["payment_days"], new_days=target,
+                  rate=pub["interest_rate"], value_parity_price=value_price, cost_parity_price=cost_price,
+                  price=terms["unit_price"], trigger=trigger)
+        move = self._offer(case, sid, terms, std, sup, c_alt, "supplier payment trade: their term at value parity")
+        body = move["message"]["body"] + (
+            f" We can pay within {target} days; the attached unit price reflects that faster payment.")
+        assert not leaks(body), "body would leak internal information"
+        return {**move, "message": {**move["message"], "body": body}}
+
     def _anchor(self, case):
         return self._anchor_for(case)
 
@@ -533,6 +662,8 @@ class PackageAgent:
                 continue
             if f == "payment_days" and self._fast_payment(case, sid, {**n, "unit_price": price}, std) == n[f]:
                 continue
+            if f == "payment_days" and sid in self.payment_traded:
+                continue  # the payment term we traded for price is not given back for free
             if trial_c <= previous_c + 1e-6:
                 n = trial
         return n
@@ -995,6 +1126,73 @@ class PackageAgent:
         self.final_counters[sid] = self.final_counters.get(sid, 0) + 1
         return self._offer(case, sid, complete_offer(case, terms), std, sup, c_alt, reason)
 
+    def _standing_sheet(self, case, events, sup):
+        """[(C, id, terms)] of the first sheet of the supplier's latest message - the standing offer
+        the arena lets us accept - or [] when it is unpriced. Variants ("offer:...-a") are left out."""
+        standing = eligible_sheets(case, events, sup)
+        if standing:
+            return standing
+        sheets = latest(events).get("term_sheets") or []
+        first_id = sheets[0].get("term_sheet_id") if sheets else None
+        return [x for x in _priced(case, events, sup) if x[1] == first_id]
+
+    def _supplier_asks(self, case, events, n, std, sup):
+        """The supplier's successive asks on our non-price terms `n` (one per priced supplier message),
+        each measured on its STANDING sheet only. Hosted run 9a4fbb93 (P08) priced the step on an
+        equal-cost variant (5.55 db5) instead of the standing 5.43 db0 and read 0.48/0.16 for what was
+        0.62/0.04; `decide_thread`'s own `p` keeps using every sheet and is unaffected."""
+        asks = []
+        for i, m in enumerate(events):
+            if m.get("from") == "buyer" or not m.get("term_sheets"):
+                continue
+            cands = self._standing_sheet(case, events[: i + 1], sup)
+            if cands:
+                asks.append(self._ask_on(case, n, cands, std, sup))
+        return asks
+
+    def _reciprocal_price(self, case, sid, events, n, std, sup, p, last_p, scheduled):
+        """Opt-in `reciprocal_schedule`: while the supplier is open, keeps more than two of our moves
+        ahead and still asks more than our last price plus the closing gap, our concession is at most
+        its last concession (a token step when it held), and we stay outside the closing gap of its
+        ask - the fixed k/rounds convergence only applies from round N-2 on or when the supplier is
+        already within the gap (then today's closing logic runs). Keyed on supplier moves and our own
+        cost mapping only; no case-type gate and no constant fitted to results.
+
+        Never resends an identical sheet while the supplier is open: the price is at least one cent
+        above our last one even when the k/rounds schedule has plateaued (`held_by_schedule`; hosted
+        run 9a4fbb93 repeated 5.36 and drew a "letztes Angebot" at 5.39). When no strictly higher price
+        fits under the closing gap of its ask, the supplier is within about three cents on our terms:
+        we return its price on our terms so the gap-closed logic closes the deal next round."""
+        if not (self.policy and self.policy.reciprocal_schedule):
+            return scheduled
+        if latest(events).get("status") != "open" or moves_left(case, events) <= 2:
+            return scheduled
+        gap = max(p * self.close_gap, 0.01)
+        if p - last_p <= gap:
+            return scheduled
+        asks = self._supplier_asks(case, events, n, std, sup)
+        their_step = max(0.0, asks[-2] - asks[-1]) if len(asks) >= 2 else 0.0
+        token = max(0.01, round(p * 0.002, 2))
+        sched_step = max(0.0, scheduled - last_p)
+        step = min(sched_step, their_step) if their_step > 0.005 else min(sched_step, token)
+        outside_gap = math.floor(round((p - gap) * 100, 6)) / 100  # floor: never within the gap of its ask
+        at_least = round(_ceil2(last_p) + 0.01, 2)  # the smallest sheet that is not our last one again
+        held_by_schedule = round(scheduled, 2) < at_least - 1e-9
+        if at_least > outside_gap + 1e-9:
+            self._log(case, "reciprocal", sid, ask=p, last=last_p, their_step=round(their_step, 4),
+                      scheduled=round(scheduled, 2), step=round(p - last_p, 4), price=p,
+                      moves_left=moves_left(case, events), held=their_step <= 0.005,
+                      held_by_schedule=held_by_schedule, reason="no non-identical price outside the gap: match")
+            return p
+        price = min(round(last_p + step, 2), outside_gap)
+        price = max(price, at_least)  # no backtracking, no identical sheet: wins over the gap when they conflict
+        price = min(price, max(round(scheduled, 2), at_least))  # the schedule caps, but may not force a repeat
+        self._log(case, "reciprocal", sid, ask=p, last=last_p, their_step=round(their_step, 4),
+                  scheduled=round(scheduled, 2), step=round(price - last_p, 4), price=price,
+                  moves_left=moves_left(case, events), held=their_step <= 0.005,
+                  held_by_schedule=held_by_schedule)
+        return price
+
     def decide_thread(self, case, threads, sid, c_alt, cap_c=None, why=None):
         events = threads[sid]
         std, sup = standard_terms(events), self._sup(case, threads, sid)
@@ -1029,6 +1227,8 @@ class PackageAgent:
             if swapped:
                 return self._offer(case, sid, complete_offer(case, swapped), std, sup, c_alt,
                                    "value-equivalent chargeback swap")
+        if self._payment_trade_on(case):
+            self._payment_trade_done(case, sid, events, std)  # rebuild the once-per-thread state first
         n = self._nonprice(case, sid, events, std, sup, cands, eligible)
         p = self._ask_on(case, n, cands, std, sup)
         first = next((i for i, m in enumerate(events) if m.get("from") != "buyer" and m.get("term_sheets")), None)
@@ -1078,11 +1278,17 @@ class PackageAgent:
                     return {"hold": True, "reason": "nonleading supplier converged; leader still workable"}
             return {"close": True, "reason": "gap closed"}
 
+        if cap_c is None:
+            trade = self._payment_trade(case, sid, events, std, sup, c_alt)
+            if trade is not None:
+                return trade
         floor = p_open * (1 - self._anchor_for(case))
         price = floor + (p - floor) * min(1.0, k / self._rounds(case))
         if last_p is not None:
             price = max(price, _ceil2(last_p))  # no backtracking on our own concessions (by C)
         price = min(price, p)
+        if cap_c is None and last_p is not None:
+            price = self._reciprocal_price(case, sid, events, n, std, sup, p, last_p, price)
         if cap_c is not None:
             cap_p = math.floor(price_for_cost(case, {**n, "unit_price": p}, cap_c, std, sup) * 100) / 100 - 0.01
             if last_p is not None and cap_p < last_p - 1e-6:

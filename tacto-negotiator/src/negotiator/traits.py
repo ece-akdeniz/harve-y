@@ -35,8 +35,9 @@ NEWS_TRAITS = {
 }
 
 # Suppliers for whom money now is worth more than usual (supplier_value interest_rate).
+# `offers_skonto`: the master data (suppliers row) states a cash discount for early payment.
 CASH_SHORT = {"liquidity_crisis", "wants_fast_payment", "overdue_invoices", "credit_worsening",
-              "credit_downgrade", "credit_watch", "restructuring", "short_time_work"}
+              "credit_downgrade", "credit_watch", "restructuring", "short_time_work", "offers_skonto"}
 
 CREDIT_WORSENING_POINTS = 20  # credit index: higher is worse
 LATE_PAYER_DAYS = 10  # we pay this supplier's invoices late on average
@@ -57,7 +58,15 @@ def classify(dossier) -> set[str]:
         out.add("credit_worsening")
     if (dossier.payment_lateness_days or 0) > LATE_PAYER_DAYS:
         out.add("paid_late_by_us")
+    if skonto_pct(dossier) > 0:
+        out.add("offers_skonto")
     return out
+
+
+def skonto_pct(dossier) -> float:
+    """The cash discount (%) the supplier's master row states, 0 when none or not a number."""
+    pct = (getattr(dossier, "master", None) or {}).get("skonto_pct")
+    return float(pct) if isinstance(pct, int | float) and not isinstance(pct, bool) else 0.0
 
 
 def evidence(dossier, trait: str) -> list[str]:
@@ -66,4 +75,6 @@ def evidence(dossier, trait: str) -> list[str]:
         return [n["id"] for n in dossier.notes if NOTE_TRAITS[trait].search(_note_text(n, dossier.name))]
     if trait in NEWS_TRAITS:
         return [n["id"] for n in dossier.news if n.get("topic") == trait]
+    if trait == "offers_skonto":
+        return []  # master data, not a citable document
     return []

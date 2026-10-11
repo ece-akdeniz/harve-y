@@ -14,6 +14,7 @@ from .claims import (
     MAX_CHECKED,
     case_facts,
     claim_keys,
+    history_claims,
     index_relevance,
     pick,
     public_rival_quotes,
@@ -27,7 +28,7 @@ from .replies import evidence_constraints
 
 class EvidencePolicy:
     def __init__(self, package=None, tracer=None, case_types=None, interpretation=None, recent_window_types=(),
-                 rival_quote_types=(), index_window_types=()):
+                 rival_quote_types=(), index_window_types=(), claim_pacing=False):
         self.recent_window_types = set(recent_window_types)
         self.default_types = set(case_types if case_types is not None else ["price_increase"])
         self.case_types = self.default_types | self.recent_window_types
@@ -37,6 +38,11 @@ class EvidencePolicy:
         # Opt-in: allow the verified buyer-favourable index window (<= 12 months, ending in the last 12)
         # for listed cost drivers whose latest 12-month change supports the supplier.
         self.index_window_types = set(index_window_types or ())
+        # Opt-in: release at most one new verified claim per message (each verified fact tends to buy
+        # one concession; two in one message buy one), and when the preferred queue is exhausted fall
+        # back to the deeper bank: latest index windows, scorecards, the supplier's own quote and our
+        # order history with it (`claims.history_claims`). Never cherry-picked windows, never should-cost.
+        self.claim_pacing = bool(claim_pacing)
         self.package = package
         self.tracer = tracer
         self.banks = {}
@@ -94,6 +100,26 @@ class EvidencePolicy:
     def fallback(self, case, exc):
         if self.tracer:
             self.tracer.log("evidence_fallback", case=case["case_id"], error_type=type(exc).__name__)
+
+    def deep_bank(self, case, events, sid, usable, context):
+        """Pacing fallback queue: the context bank without cherry-picked windows, plus the supplier's
+        own quote and our order history with it - the latter only below its standing ask (a figure at
+        or above what it asks is no argument)."""
+        bank = [c for c in usable(context.candidates) if not c.cherry_picked]
+        standing = next((e for e in reversed(events) if e.get("from") != "buyer" and e.get("term_sheets")), None)
+        ask = None
+        if standing is not None:
+            prices = [(s.get("terms") or {}).get("unit_price") for s in standing["term_sheets"]]
+            prices = [p for p in prices if isinstance(p, (int, float))]
+            ask = min(prices) if prices else None
+        for claim in usable(history_claims(case, self.package)):
+            if ask is not None and claim.figure is not None and claim.figure >= ask - 0.005:
+                if self.tracer:
+                    self.tracer.log("history_claim_skipped", case=case["case_id"], supplier=sid,
+                                    kind=claim.kind, figure=claim.figure, ask=ask)
+                continue
+            bank.append(claim)
+        return bank
 
     def enrich(self, case, threads, sid, move, context=None, rfq_claims=0):
         """`rfq_claims` > 0 enables RFQ (multi-supplier) decoration with at most that many claims,
@@ -163,19 +189,32 @@ class EvidencePolicy:
             budget = max(0, MAX_CHECKED - len(existing))
             if rfq:
                 budget = min(budget, rfq_claims)
+            if self.claim_pacing:
+                budget = min(budget, 1)
+            case_type = "renewal_trade" if case["type"] == "renewal" else case["type"]
             chosen = pick(
                 bank, used, max_claims=budget, supplier_id=sid,
-                case_type="renewal_trade" if case["type"] == "renewal" else case["type"],
+                case_type=case_type,
                 index_priorities=priorities, disclosures=disclosures,
                 allow_cherry_pick=recent or case["type"] in self.index_window_types,
                 skip_kinds=frozenset({"should_cost"}) if rfq else frozenset(),
             )
+            queue = "preferred"
+            if not chosen and self.claim_pacing and budget > 0:
+                deep = self.deep_bank(case, threads.get(sid, []), sid, usable, context)
+                priorities, reasons = index_relevance(deep, case, self.package, threads.get(sid, []))
+                chosen = pick(
+                    deep, used, max_claims=budget, supplier_id=sid, case_type=case_type,
+                    index_priorities=priorities, disclosures=DEFAULT_DISCLOSURE,
+                    skip_kinds=frozenset({"should_cost"}),
+                )
+                queue = "deep"
         except DATA_ERRORS as exc:
             self.fallback(case, exc)
             return move
         if self.tracer:
             self.tracer.log("evidence_selection", case=cid, supplier=sid, context_version=context.version,
-                            index_relevance=reasons, available_slots=budget,
+                            index_relevance=reasons, available_slots=budget, queue=queue,
                             selected=[{"kind": c.kind, "ids": list(c.ids)} for c in chosen])
         if not chosen:
             return move
