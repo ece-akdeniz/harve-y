@@ -8,7 +8,25 @@
 - Every POST is journalled (move id + payload) before it leaves; retries reuse both; after an
   uncertain outcome or 409 the coordinator reconciles from GET session/thread first.
 - Wave cap: close at max(90 s, slowest round + 15 s) before the cap, re-read on every tick.
+- Wave time guard (agent side, fed from here): `agent.time_left_fn` returns seconds to the cap and
+  `agent.round_estimate_fn` the slowest round measured; with < TIME_GUARD_ROUNDS (2) x
+  max(120 s, slowest round) left the agent stops extending (accepts / converges to the ask).
 - `run_waves` polls `/v1/cases?set=final` only. Spectator endpoints are blocked in the client.
+
+Worst-case fit (brief: 60 s per buyer message, supplier replies up to ~1 min, 10 messages, 8-minute
+wave): 10 x (60 s ours + 60 s theirs) = 1200 s = 20 min > 480 s. Even at a realistic 50-60 s round
+(fast decision, slow supplier) only ~8 rounds fit before the cap margin, and the slower opt-in
+schedules (`reciprocal_schedule`, `claim_pacing`) need all 10. The agent's time guard therefore ends the
+negotiation on its own with >= 2 rounds (>= 240 s, or 2 x the slowest measured round) of margin: one
+round for the converging message and the supplier's reply, one spare for a late or lost reply before
+the coordinator's cap close (`_watchdog`, max(90 s, slowest + 15 s)) would take over.
+
+Timing trace (events through `tracer.log`, all with case/session): `wave_time_left` {supplier,
+seconds, guard_s} at every decision while a cap exists; `round_time` {supplier, round, reply_s,
+decide_s, round_s, status} per observed supplier reply (round = this thread's buyer messages so far,
+reply_s = send -> reply observed, decide_s = agent compute, round_s = decision start -> reply);
+`thread_time` {supplier, total_s, rounds, slowest_round_s, slowest_decide_s, timeouts, end} per thread
+at the end of the case.
 """
 
 import asyncio
@@ -22,6 +40,7 @@ from arena_kit.client import ArenaError
 from arena_kit.docs import read_document
 from arena_kit.play import CLOSE_BEFORE_CAP_S, ENDED, MOVE_LIMIT_S, ROUND_MARGIN_S, RUNNING, hosted, latest, moves_left
 
+from .agent import ROUND_ESTIMATE_S, TIME_GUARD_ROUNDS
 from .client import UncertainOutcome
 from .evaluator import best_close
 from .play import _safe_estimates, poll_backoff, repeat_last_offer
@@ -210,6 +229,21 @@ class CaseRunner:
     def _cap_margin(self) -> float:
         return max(CLOSE_BEFORE_CAP_S, self.st.slowest_round_s + ROUND_MARGIN_S)
 
+    def _time_left(self):
+        """Seconds to the wave cap on the runner's clock; None without a cap (practice/sandbox)."""
+        cap = self._cap()
+        return None if cap is None else cap - self.clock.time()
+
+    def _slowest_round(self) -> float:
+        return self.st.slowest_round_s if self.st else 0.0
+
+    def _wire_agent_clock(self):
+        """Give the agent the wave clock (time left, slowest measured round) for its time guard."""
+        if hasattr(self.agent, "time_left_fn"):
+            self.agent.time_left_fn = self._time_left
+        if hasattr(self.agent, "round_estimate_fn"):
+            self.agent.round_estimate_fn = self._slowest_round
+
     async def _docs(self, message: dict) -> dict:
         for att in message.get("attachments") or []:
             aid = att.get("attachment_id")
@@ -243,6 +277,7 @@ class CaseRunner:
 
     # -- open / resume -------------------------------------------------------------------------
     async def _open(self):
+        self._wire_agent_clock()  # coordinator start: before any decision, with or without a cap
         if getattr(self.agent, "trades", None):
             meta = self.case_meta
             if meta is None:
@@ -270,7 +305,7 @@ class CaseRunner:
                 self.journal.outcome(intent["move_id"], "done", session=r["session_id"])
                 self.journal.session(self.case_id, r["session_id"], r["case"])
                 now = self.clock.time()
-                self.st = CaseState(case=r["case"], session_id=r["session_id"])
+                self.st = CaseState(case=r["case"], session_id=r["session_id"], opened_at=now)
                 for sid, events in r["threads"].items():
                     self.st.threads[sid] = ThreadState(sid, list(events), deadline_utc=now + self.move_limit_s)
                 for t in self.st.threads.values():
@@ -288,7 +323,7 @@ class CaseRunner:
         case = self.case_meta or state.get("case") or self.journal.case_file(self.case_id)
         if case is None:
             raise RuntimeError(f"cannot resume {session_id}: case metadata unknown")
-        self.st = CaseState(case=case, session_id=session_id)
+        self.st = CaseState(case=case, session_id=session_id, opened_at=self.clock.time())
         self._trace("resume", status=state.get("status"))
         if state.get("status") == "ended":
             self._end(state.get("result") or {"deal": False, "end_reason": state.get("end_reason")}, "resumed ended")
@@ -403,6 +438,12 @@ class CaseRunner:
                 snap = self._live_snapshot()
                 if getattr(self.agent, "trades", None):
                     self.agent.trades.deadlines[sid] = time.time() + max(0, (t.deadline_utc or 0) - self.clock.time())
+                if (left := self._time_left()) is not None:
+                    tg = getattr(self.agent, "time_guard", None)
+                    tg = tg() if callable(tg) else None
+                    self._trace("wave_time_left", supplier=sid, seconds=round(left, 1),
+                                guard_s=round(tg[1], 1) if tg else None)
+                d0 = self.clock.time()
                 try:
                     kind, what = await asyncio.to_thread(
                         propose, self.agent, self.st.case, snap, sid, self._workable())
@@ -411,6 +452,8 @@ class CaseRunner:
                     kind, what = fallback_propose(self.agent, self.st.case, snap, sid)
                     self._trace("propose_fallback", supplier=sid, error=repr(exc)[:500], kind=kind,
                                 reason=what if kind != "send" else "repeat last offer")
+                t.decide_s = self.clock.time() - d0
+                t.slowest_decide_s = max(t.slowest_decide_s, t.decide_s)
                 if kind == "send":
                     events = t.events
                     offer = (latest(events).get("term_sheets") or [{}])[0].get("term_sheet_id")
@@ -479,6 +522,7 @@ class CaseRunner:
             terms=[s.get("terms") for s in message.get("term_sheets") or []],
         )
         ok = False
+        sent_at = self.clock.time()
         try:
             reply = await self.arena.send(self.st.session_id, sid, message, mid)
             ok = True
@@ -518,8 +562,19 @@ class CaseRunner:
         t.deadline_utc = now + self.move_limit_s
         t.in_flight = None  # only now: a closer waiting on this thread sees the new offer
         self.st.slowest_round_s = max(self.st.slowest_round_s, now - t0)
+        t.slowest_round_s = max(t.slowest_round_s, now - t0)
+        t.rounds_timed += 1
         self.changed.set()
         self._trace("reply", supplier=sid, status=reply.get("status"), round_s=round(now - t0, 1))
+        self._trace(
+            "round_time",
+            supplier=sid,
+            round=sum(m.get("from") == "buyer" for m in t.events),
+            reply_s=round(now - sent_at, 1),
+            decide_s=round(t.decide_s, 2),
+            round_s=round(now - t0, 1),
+            status=reply.get("status"),
+        )
         if reply.get("status") == "agreed":
             await self._close(f"{sid} agreed")
 
@@ -624,6 +679,25 @@ class CaseRunner:
             except TimeoutError:
                 pass
 
+    def _trace_thread_times(self):
+        """One `thread_time` per thread at the end of the case (see the module docstring)."""
+        if not self.tracer or not self.st:
+            return
+        now = self.clock.time()
+        total = round(now - self.st.opened_at, 1) if self.st.opened_at is not None else None
+        for sid, t in self.st.threads.items():
+            end = t.closed or t.parked or latest(t.events).get("status") if t.events else None
+            self._trace(
+                "thread_time",
+                supplier=sid,
+                total_s=total,
+                rounds=sum(m.get("from") == "buyer" for m in t.events),
+                slowest_round_s=round(t.slowest_round_s, 1),
+                slowest_decide_s=round(t.slowest_decide_s, 2),
+                timeouts=t.timeouts,
+                end=end,
+            )
+
     # -- entry ---------------------------------------------------------------------------------
     async def run(self) -> dict:
         early = await self._open()
@@ -651,6 +725,7 @@ class CaseRunner:
         if self.st.ended:
             for p in self.journal.pending(session_id=self.st.session_id):
                 self.journal.outcome(p["move_id"], "abandoned", why="case ended")
+        self._trace_thread_times()
         result = dict(self.st.result or {})
         self.journal.result(self.case_id, self.st.session_id, result)
         try:
@@ -816,6 +891,8 @@ def runtime_config(parallel: int | None = None, calls_per_s: float = 8.0) -> dic
             "max_close_attempts": MAX_CLOSE_ATTEMPTS,
             "send_slots_per_session": 1,
             "send_reserve_s": SEND_RESERVE_S,
+            "time_guard_rounds": TIME_GUARD_ROUNDS,
+            "time_guard_round_estimate_s": ROUND_ESTIMATE_S,
         },
     }
 

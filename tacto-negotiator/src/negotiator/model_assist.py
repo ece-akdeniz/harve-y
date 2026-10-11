@@ -12,6 +12,7 @@ from pathlib import Path
 
 import httpx
 
+from .budget import bounded
 from .replies import interpret
 
 KINDS = {"index_objection", "payment_trade", "quality_objection", "clause_required", "authority_constraint",
@@ -89,7 +90,7 @@ class ModelAssist:
         self.complete = complete or self._provider
         self.memory_path = memory_path
         self.data_sha256 = data_sha256
-        self.timeout_s = max(0.1, min(float(timeout_s), 3.0))
+        self.timeout_s = max(0.1, min(float(timeout_s), 3.0))  # per phase and, via `bounded`, wall clock
         self._metrics_lock = threading.Lock()
         self._metrics = {"calls": 0, "fallbacks": 0, "latency_s": [],
                          "input_tokens": 0, "output_tokens": 0}
@@ -160,7 +161,8 @@ class ModelAssist:
             started = time.monotonic()
             with self._metrics_lock:
                 self._metrics["calls"] += 1
-            raw = _json_object(self.complete(prompt))
+            # Provider timeouts are per HTTP phase; `bounded` is the wall-clock ceiling (<= 3 s here).
+            raw = _json_object(bounded(self.complete, self.timeout_s, prompt))
         except Exception:
             with self._metrics_lock:
                 self._metrics["fallbacks"] += 1
