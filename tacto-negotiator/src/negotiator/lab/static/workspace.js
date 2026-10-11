@@ -46,21 +46,21 @@ globalThis.HarveyWorkspace = (() => {
   }
   function activity(s,n,attention=false) {
     const a=el('a',null,'activity-row');a.href=url(s,n);
-    a.append(el('strong',s.name),el('p',`${n.case_id} · ${status(n)} · ${date(n.updated_at)}`));
+    a.append(el('strong',s.name),el('p',`${n.case_id.replace('case:','Case ')} · ${status(n)} · ${date(n.updated_at)}`));
     if(attention)a.append(el('p',n.stale?'The source runner has not uploaded for over two minutes. Check its state before taking action.':n.must_haves_ok===false?'The recorded result failed mandatory requirements.':n.timeouts>0?`${n.timeouts} recorded timeouts. Inspect the conversation and recovery evidence.`:'Inspect the original failure and any recovered outcome.'));
     return a;
   }
   function overview() {
     const d=state.data,s=d.summary,root=$('metrics');root.replaceChildren();
-    const entries=[['SIMULATED COST REDUCTION',finite(s.savings_eur)?money(s.savings_eur):'Unavailable',`${s.savings_covered} / ${s.savings_cases} latest cases with comparable valid outcomes${finite(s.savings_pct)?` · ${number(s.savings_pct)}%`:''}`],['SUPPLIERS',s.suppliers,'With saved negotiation evidence'],['SESSIONS',s.sessions,'Deduplicated recorded sessions'],['MARKED RUNNING',s.running,'Check update time before acting']];
+    const entries=[['Simulated savings',finite(s.savings_eur)?money(s.savings_eur):'Unavailable',`${s.savings_covered} of ${s.savings_cases} latest cases`],['Suppliers',s.suppliers,'With saved conversations'],['Negotiations',s.sessions,`${s.running} marked as running`]];
     for(const [title,value,foot] of entries){const card=el('article');card.append(el('span',title),el('strong',value),el('small',foot));root.append(card);}
     $('savings-basis').textContent=d.savings_basis;
     const rows=d.suppliers.flatMap(s=>s.negotiations.map(n=>({s,n}))).sort((a,b)=>b.n.updated_at.localeCompare(a.n.updated_at));
     const attention=rows.filter(({n})=>issue(n));$('attention').replaceChildren();
-    attention.slice(0,8).forEach(({s,n})=>$('attention').append(activity(s,n,true)));
-    if(!attention.length)$('attention').append(el('p','No recorded failures, overdue updates or requirement violations in this environment.','notice'));
-    if(attention.length>8)$('attention').append(el('p',`Showing 8 of ${attention.length} supplier threads needing review. Filter the directory to see all.`,'table-note'));
-    $('activity').replaceChildren();rows.slice(0,8).forEach(({s,n})=>$('activity').append(activity(s,n)));
+    attention.slice(0,3).forEach(({s,n})=>$('attention').append(activity(s,n,true)));
+    if(!attention.length)$('attention').append(el('p','Nothing needs attention.','notice'));
+    if(attention.length>3)$('attention').append(el('p',`Showing 3 of ${attention.length}. Use the Needs attention filter in Suppliers for more.`,'table-note'));
+    $('activity').replaceChildren();rows.slice(0,5).forEach(({s,n})=>$('activity').append(activity(s,n)));
     if(!rows.length)$('activity').append(el('p','No saved supplier conversations in this environment. Choose another environment or wait for a tracked run to upload.','notice'));
   }
   function directory() {
@@ -71,7 +71,7 @@ globalThis.HarveyWorkspace = (() => {
     $('supplier-count').textContent=`${suppliers.length} suppliers`;$('supplier-list').replaceChildren();
     for(const s of suppliers){
       const latest=s.negotiations[0],card=el('a',null,'supplier-card');card.href=url(s,latest);
-      card.append(badge(s.negotiations.some(issue)?'Needs attention':status(latest)),el('h2',s.name),el('p',`${s.supplier_id} · ${s.arena_url}`,'muted'),el('p',[...new Set(s.negotiations.map(n=>n.case_id))].join(' · ')));
+      card.append(badge(s.negotiations.some(issue)?'Needs attention':status(latest)),el('h2',s.name),el('p',`Last conversation ${date(latest.updated_at)}`,'muted'));
       const bottom=el('div',null,'supplier-bottom');bottom.append(el('span',`${s.negotiations.length} negotiations`),el('span','Open →'));card.append(bottom);$('supplier-list').append(card);
     }
     if(!suppliers.length)$('supplier-list').append(el('p','No matching suppliers. Try a different search, filter or environment.','notice'));
@@ -88,12 +88,10 @@ globalThis.HarveyWorkspace = (() => {
   }
   function conversation(d) {
     const layout=el('div',null,'negotiation-layout'),main=el('div'),aside=el('aside',null,'decision-aside');
-    const digest=el('section',null,'workspace-panel conversation-digest');digest.append(el('p','CONVERSATION AT A GLANCE','eyebrow'));
-    (d.digest?.summary || []).forEach(item=>digest.append(el('p',item.text)));
-    main.append(digest,HarveyConversations.render(d));
+    main.append(HarveyConversations.summary(d.digest),HarveyConversations.render(d));
     const outcome=panel('Current recorded position');outcome.append(fields({session_status:status(d.negotiation),supplier_thread:d.thread_status,selected_supplier:d.negotiation.selected,must_haves_satisfied:d.negotiation.must_haves_ok}));
     if(d.negotiation.savings)outcome.append(el('p',`${money(d.negotiation.savings.change_eur)} simulated reduction from case opening full cost.`));
-    aside.append(outcome,nextSteps(d));layout.append(main,aside);return layout;
+    aside.append(disclosure('Outcome details',outcome,'outcome'),disclosure('Follow-up suggestions',nextSteps(d),'next-steps'));layout.append(main,aside);return layout;
   }
   function offers(d) {
     const root=el('div'),sheets=d.messages.filter(m=>m.from!=='buyer').flatMap(m=>Array.isArray(m.term_sheets)?m.term_sheets:[]).filter(s=>s?.terms);
@@ -137,9 +135,9 @@ globalThis.HarveyWorkspace = (() => {
     state.detail=d;
     const s=state.data.suppliers.find(s=>s.key===d.key);
     $('supplier-name').textContent=s?.name || d.supplier_id;
-    $('supplier-meta').textContent=`${d.supplier_id} · ${d.negotiation.environment} · ${d.negotiation.arena_url}`;
+    $('supplier-meta').textContent=`${d.negotiations.length} saved negotiations`;
     $('negotiation').replaceChildren();
-    for(const n of d.negotiations){const o=el('option',`${n.case_id} · ${date(n.started_at)} · ${label(n.status)} · ${n.id.slice(-6)}`);o.value=n.id;$('negotiation').append(o);}$('negotiation').value=d.negotiation.id;
+    for(const n of d.negotiations){const o=el('option',`${n.case_id.replace('case:','Case ')} · ${date(n.started_at)} · ${n.id.slice(-4)}`);o.value=n.id;$('negotiation').append(o);}$('negotiation').value=d.negotiation.id;
     $('supplier-summary').replaceChildren(badge(status(d.negotiation)),badge(d.negotiation.case_id),badge(finite(d.negotiation.score)?`${number(d.negotiation.score*100)} / 100 · case score`:'Case score not attributed'),el('span',`Source updated ${date(d.negotiation.updated_at)} · ${d.negotiation.message_count} messages`,'muted small'));
     renderTab();
   }
@@ -158,8 +156,8 @@ globalThis.HarveyWorkspace = (() => {
     const r=route(),view=r.view==='supplier'?'supplier':r.view==='suppliers'?'suppliers':r.view==='knowledge'?'knowledge':'overview';
     for(const v of ['overview','suppliers','supplier','knowledge'])$(v+'-view').hidden=v!==view;
     $('breadcrumb').textContent=view==='overview'?'Overview':view==='knowledge'?'Shared knowledge':'Suppliers';
-    $('page-title').textContent=view==='overview'?'Your negotiation overview':view==='suppliers'?'Your suppliers':view==='knowledge'?'Supplier intelligence':'Supplier workspace';
-    $('page-subtitle').textContent=view==='overview'?'Track Harvey’s AI negotiations, review results and spot what needs attention.':view==='suppliers'?'Choose a supplier to review conversations, offers and results.':view==='knowledge'?'Choose a supplier. Read the brief. Prepare your next negotiation.':'Review the latest exchange or open Shared knowledge for the full relationship.';
+    $('page-title').textContent=view==='overview'?'Overview':view==='suppliers'?'Suppliers':view==='knowledge'?'Shared knowledge':'Supplier';
+    $('page-subtitle').textContent=view==='overview'?'Harvey negotiates with suppliers. Here’s how it’s going.':view==='suppliers'?'Choose a supplier to see their conversations.':view==='knowledge'?'What we know. What to do next.':'Conversations, offers and results.';
     for(const v of ['overview','suppliers','knowledge']){$('nav-'+v).classList.toggle('active',v===(view==='supplier'?'suppliers':view));$('nav-'+v).setAttribute('aria-current',v===(view==='supplier'?'suppliers':view)?'page':'false');}
   }
   async function refresh() {
@@ -184,7 +182,7 @@ globalThis.HarveyWorkspace = (() => {
       if(r.view==='knowledge')await HarveyKnowledge.load({host:$('knowledge-root'),api,environment:$('environment').value});
       if(r.view==='supplier' && state.tab==='knowledge' && state.detail)renderTab();
       if(request!==state.request)return;
-      $('connection').textContent=`Connected · checked ${date(new Date().toISOString())}`;
+      $('connection').textContent='Up to date';$('connection').title=`Last checked ${date(new Date().toISOString())}`;
     } catch(error) {
       if(request!==state.request)return;
       if(!state.signedIn){$('sign-in').hidden=false;$('login-error').textContent=error.message;}

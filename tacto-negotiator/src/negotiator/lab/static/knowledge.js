@@ -38,17 +38,17 @@ globalThis.HarveyKnowledge = (() => {
   function renderGraph(s,g){
     const root=s.body;root.replaceChildren();s.graph=g;
     const heading=el('div',null,'knowledge-heading');heading.append(el('div',null));heading.firstChild.append(el('h2',g.name));
-    heading.append(el('span',g.dataset==='history'?'All saved history':'Supplied data + saved conversations','scope-label'));heading.title=`Supplier ${g.supplier} · data ${g.dataset}`;root.append(heading);
+    heading.append(el('span',g.dataset==='history'?'All saved history':'Supplied data + saved conversations','scope-label'));heading.title=`Supplier ${g.supplier} · data ${g.dataset}`;
     const metrics=el('div',null,'knowledge-metrics');for(const [value,label] of [[g.coverage.source_facts,'source records'],[g.coverage.sessions,'saved negotiations'],[g.coverage.contributors,'agent configurations'],[g.coverage.shared_observations,'shared observations']]){const m=el('div');m.append(el('strong',value),el('span',label));metrics.append(m);}
-    if(g.dataset!=='history' && g.coverage.all_historical_sessions>g.coverage.sessions){const note=el('details',null,'scope-note');note.append(el('summary',`${g.coverage.all_historical_sessions-g.coverage.sessions} more conversations in other data versions`),el('p','Use Data filters → Run history across versions to review them separately.'));root.append(note);}
+    if(g.dataset!=='history' && g.coverage.all_historical_sessions>g.coverage.sessions){const note=el('details',null,'scope-note');note.append(el('summary',`${g.coverage.all_historical_sessions-g.coverage.sessions} more conversations in other data versions`),el('p','Use Data filters → Run history across versions to review them separately.'));heading.append(note);}
     const sections={brief:el('div'),graph:el('div'),history:el('div'),sources:el('div')},nav=el('nav',null,'knowledge-tabs');nav.setAttribute('aria-label','Shared knowledge sections');
     const viewButtons={};
     function alive(){return current===s && root.contains(sections.history) && root.isConnected;}
     function open(ref){s.selectedReference=ref;sections.history.replaceChildren(HarveyBrief.history(g.report,{api:s.api,alive,initial:ref,remember:r=>{s.selectedReference=r;}}));showView('history');}
     const actions={get partition(){return s.partition;},set partition(value){s.partition=value;},open,inspect:id=>{const node=g.nodes.find(n=>n.id===id);if(node){s.node=id;inspector(g,node,s.inspector,open);showView('graph');s.inspector.scrollIntoView({block:'nearest'});}}};
     function showView(view){s.view=view;Object.entries(sections).forEach(([key,host])=>{host.hidden=key!==view;viewButtons[key].setAttribute('aria-current',key===view?'page':'false');});if(view==='history'&&!sections.history.childNodes.length)sections.history.append(HarveyBrief.history(g.report,{api:s.api,alive,initial:s.selectedReference,remember:r=>{s.selectedReference=r;}}));}
-    for(const [key,name] of [['brief','Supplier brief'],['history','Conversations'],['graph','Knowledge graph'],['sources','Data sources']]){const b=el('button',name);b.dataset.knowledgeView=key;b.onclick=()=>showView(key);viewButtons[key]=b;nav.append(b);}
-    root.append(nav,...Object.values(sections));sections.graph.append(metrics);sections.brief.append(HarveyBrief.render(g.report,actions));
+    for(const [key,name] of [['brief','Summary'],['history','Conversations'],['graph','Knowledge graph'],['sources','Data sources']]){const b=el('button',name);b.dataset.knowledgeView=key;b.onclick=()=>showView(key);viewButtons[key]=b;nav.append(b);}
+    root.append(nav,...Object.values(sections));sections.sources.append(heading);sections.graph.append(metrics);sections.brief.append(HarveyBrief.render(g.report,actions));
     const layout=el('div',null,'knowledge-layout'),map=el('section',null,'graph-panel'),explorer=el('section',null,'graph-explorer');
     const mapHead=el('div',null,'section-heading');mapHead.append(el('h3','Supplier knowledge graph'),el('span',`${g.nodes.length} nodes · ${g.edges.length} connections`,'muted small'));map.append(mapHead,el('p','Grouped by evidence type. Choose a group to explore its records and sources.','muted small'));
     const canvas=el('div',null,'graph-canvas'),svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','0 0 600 440');svg.setAttribute('preserveAspectRatio','none');svg.setAttribute('aria-hidden','true');canvas.append(svg);
@@ -92,8 +92,8 @@ globalThis.HarveyKnowledge = (() => {
       host.replaceChildren();const controls=el('div',null,'knowledge-controls');s.status=el('p',null,'table-note');s.status.setAttribute('role','status');s.body=el('div');
       const options=[['latest','Latest supplied dataset'],...catalog.datasets.map(d=>[d.id,`${d.label} · ${d.id.slice(0,8)}`]),['history','Run history across versions']];
       function change(){s.signature='';s.body.replaceChildren();s.node=null;s.search='';s.limit=20;s.selectedReference=null;s.partition=null;fetchGraph(s);}
-      const extra=el('details',null,'knowledge-filter-details');extra.append(el('summary','Data filters'));extra.append(select('Evidence scope',options,s.dataset,v=>{s.dataset=v;change();}));
-      if(!supplier)controls.append(select('Supplier',catalog.suppliers.map(p=>[p.id,`${p.name} · ${p.id}`]),s.supplier,v=>{s.supplier=v;change();}));
+      const extra=el('details',null,'knowledge-filter-details');extra.append(el('summary','Data settings'));extra.append(select('Evidence scope',options,s.dataset,v=>{s.dataset=v;change();}));
+      if(!supplier)controls.append(select('Supplier',catalog.suppliers.map(p=>[p.id,p.name]),s.supplier,v=>{s.supplier=v;change();}));
       if(!arena && catalog.arenas.length>1)extra.append(select('Run source',[['','All arenas · kept separate'],...catalog.arenas.map(a=>[a,a])],'',v=>{s.arena=v || null;change();}));
       controls.append(extra);host.append(controls,s.status,s.body);
       if(!s.supplier){s.status.textContent='No supplied suppliers or saved negotiations yet. Register a supplied dataset to start.';return;}

@@ -141,3 +141,17 @@ Six report regressions cover citations, outcome attribution, latest-case account
 version/environment isolation, preserved negation and malformed optional fields. Browser
 checks cover the new report, partition selection, search, evidence navigation, retained
 graph/source concept, supplier-page integration, logout and mobile overflow.
+
+## Short default view (2026-10-11)
+
+The default summary now shows two outcome numbers, one suggested next step and two
+remembered points. The full relationship report, citations, original recaps, settings
+and methodology remain available behind disclosures. Repeated supplier headings and
+technical IDs were removed from the main reading path; data boundaries are still
+available under Data settings / Data sources. Case-specific memory retains its case.
+
+Chat history uses compact case/outcome rows, a two-change recap and shorter message
+previews. Full messages and offer details are expandable, and evidence links still open
+the exact message. Overview and supplier cards use fewer rows and shorter labels.
+Environment controls and onboarding help are tucked away; content uses larger body text.
+No API, reporting arithmetic, evidence scope or runtime negotiation behavior changed.
