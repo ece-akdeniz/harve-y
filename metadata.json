@@ -3,7 +3,7 @@
   "checkpoint_id": "01M4MGHHM8HKRWZDVZ2EX0EC0T",
   "strategy": "manual-commit",
   "branch": "codex-negotiator-v2-t1-1a-2026-10-10",
-  "checkpoints_count": 32,
+  "checkpoints_count": 37,
   "files_touched": [
     "tacto-negotiator/LAB_PLAYBOOK.md",
     "tacto-negotiator/docs/21-negotiation-v2-plan-2026-10-10.md",
@@ -21,6 +21,7 @@
     "tacto-negotiator/docs/v2/hosted-semantic-validation-and-lab-failure-analysis-2026-10-11.md",
     "tacto-negotiator/docs/v2/hosted-semantic-validation-results-2026-10-11.md",
     "tacto-negotiator/docs/v2/implementation-order-addendum-2026-10-10.md",
+    "tacto-negotiator/docs/v2/inference-probe-finalization-repair-2026-10-11.md",
     "tacto-negotiator/docs/v2/intelligent-negotiation-milestone-2026-10-11.md",
     "tacto-negotiator/docs/v2/pd1-lifecycle-implementation-2026-10-11.md",
     "tacto-negotiator/docs/v2/pd1-terminal-publication-implementation-2026-10-11.md",
@@ -122,6 +123,7 @@
     "tacto-negotiator/tests/v2/integration/test_grounded_selection.py",
     "tacto-negotiator/tests/v2/integration/test_hosted_readiness.py",
     "tacto-negotiator/tests/v2/integration/test_hosted_sandbox.py",
+    "tacto-negotiator/tests/v2/integration/test_inference_probe.py",
     "tacto-negotiator/tests/v2/integration/test_lab_integration.py",
     "tacto-negotiator/tests/v2/integration/test_offline_decision.py",
     "tacto-negotiator/tests/v2/integration/test_semantic_validation_plan.py",
@@ -204,14 +206,21 @@
       "compact_transcript": "/10/transcript.jsonl",
       "content_hash": "/10/content_hash.txt",
       "prompt": "/10/prompt.txt"
+    },
+    {
+      "metadata": "/11/metadata.json",
+      "transcript": "/11/full.jsonl",
+      "compact_transcript": "/11/transcript.jsonl",
+      "content_hash": "/11/content_hash.txt",
+      "prompt": "/11/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 3829299,
+    "input_tokens": 4081537,
     "cache_creation_tokens": 0,
-    "cache_read_tokens": 134694041,
-    "output_tokens": 863441,
-    "api_call_count": 1260,
+    "cache_read_tokens": 147212953,
+    "output_tokens": 904395,
+    "api_call_count": 1376,
     "subagent_tokens_complete": true
   }
 }

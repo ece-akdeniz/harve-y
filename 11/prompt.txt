@@ -1,0 +1,295 @@
+# Context from my IDE setup:
+
+## Active file: tacto-negotiator/docs/v2/pd1-lifecycle-implementation-2026-10-11.md
+
+## Active selection of the file:
+# PD1 lifecycle batch implementation evidence
+
+Date: 11 October 2026 (Europe/Zurich). Scope: PD1.1 and timeout/fallback/pre-POST portions of PD1.2. This is local implementation evidence only; it does not authorize hosted inference, Arena execution, Lab publication, D02, P10, push or promotion.
+
+## Implemented
+
+- `DecisionModelLedger` owns interpreter/proposer/selector stage caps, total call/token/time admission and synchronous revocation on timeout, uncertain transport failure or cancellation. Existing 8/4-second stage ceilings are centralized in the ledger and clipped by the original decision deadline, computation allowance and fallback/submission reserves. Unknown timeout usage retains the full reservation.
+- The model gateway requests per-stage budgets from the ledger. Model unavailability no longer blocks an independently validated fallback action. A local end-to-end official-Sim regression times out interpretation, validates the deterministic fallback and records one submitted buyer move.
+- The synchronous Lab callback runs its async decision in a daemon worker so `asyncio.run()` cleanup cannot hold the caller past its original compute/deadline window. A run-wide model-call gate lets a whole-decision timeout stop later calls, including while a worker is cleaning up. The agent revokes execution and requires recovery; no late result is applied to agent state.
+- Offline decision stages now record elapsed time. Historical stage serialization omits the new field when it was absent, preserving old trace hash projections.
+- Journaled Arena POSTs pace first, refresh owned session/thread state, run the final exact-payload validator, persist the exact operation, and issue one request. A rejected pre-POST check creates neither an intent nor a POST. Uncertain writes remain journal-owned and are never retried automatically.
+
+## Evidence
+
+Local checks, no provider/Arena/Lab network calls:
+
+```text
+pytest tests/v2/integration/test_grounded_model.py tests/v2/integration/test_adaptive_proposal.py tests/v2/integration/test_hosted_sandbox.py tests/v2/acceptance/test_model_budget.py tests/v2/integration/test_lab_integration.py
+74 passed, 2 xfailed
+
+pytest tests/test_lab_runner.py  [localhost socket binding allowed]
+32 passed
+
+scoped Ruff check
+All checks passed
+
+git diff --check
+clean
+```
+
+The two acceptance xfails require the absent `negotiator.v2.adapters.recorded` module; they do not exercise these Lab bridge fixes. An initial sandboxed Lab-runner attempt failed because the environment denied localhost socket binding. The same local-only suite passed when run with socket permission.
+
+Focused regressions cover timeout reservation and later-call rejection; stage cap/deadline clipping; complete synchronous return ahead of cancellation-resistant cleanup; timeout fallback through independent validation and one simulator submission; fresh post-pacing validation; exact journal/header/body linkage; and zero POST/intent after stale dispatch rejection.
+
+## Fingerprint and limits
+
+Selected implementation and regression files as present at review have aggregate SHA-256 `19f6668bb1bba9cd2899f4c3288e9ad748999f86b71b58872559b42d642a8073`. It hashes the ordered per-file `sha256sum` output for the files touched by this batch, including the already dirty workspace contents. Workspace HEAD is `a88bf86820214be9fdf4e0d4e679675d946e0607`, but the repository had extensive pre-existing tracked and untracked V2 work; HEAD alone does not reproduce this fingerprint.
+
+PD1.3 durable terminal/publication recovery, real-model latency measurement, hosted validation, commercial-effects work and run-level strategy persistence remain deferred. The background worker is bounded from the caller's perspective; cancellation-resistant provider cleanup can continue in its daemon thread and may still incur provider charges. No hosted validity or negotiation-quality claim is made.
+
+## Open tabs:
+- pd1-lifecycle-implementation-2026-10-11.md: tacto-negotiator/docs/v2/pd1-lifecycle-implementation-2026-10-11.md
+- post-d01-development-roadmap.md: tacto-negotiator/docs/v2/post-d01-development-roadmap.md
+- Pasted text.txt: /home/ugur/.codex/attachments/c841c889-2c4a-4ebd-9ac0-a2c8f29d0da7/Pasted text.txt
+- hosted-d01-results-2026-10-11.md: tacto-negotiator/docs/v2/hosted-d01-results-2026-10-11.md
+- authorization-template.json: /tmp/v2-hosted-sandbox-preparation-2026-10-11/offline/authorization-template.json
+
+## My request:
+This is what we got.
+
+The authorized probe **did not complete**. One interpretation request was attempted; the ledger stopped further inference after its transport failure. No proposal request was made, and I did not retry.
+
+- **Output, schema, grounding, validation:** No interpretation output was returned, so there is no schema or grounding result to assess. There is no proposal output or validation result. The preserved trace is incomplete, so I cannot confirm whether the fallback assessment completed.
+- **Latency and usage:** The interpretation attempt took about **9.02 seconds**. Provider token usage is unknown; **98,304 tokens and $0.0417792 remain reserved** for that attempt. No token-based cost estimate is possible. The unused proposal-call reservation was not made.
+- **Runner status:** The runner did not finalize its decision trace or result report. After it stopped responding, I interrupted the local process. The consumed marker and partial ledger/output artifacts are preserved under `/tmp/v2-d01-inference-probe-2026-10-11/execution/`.
+- **Side effects:** No Arena request, negotiation action, or Lab write occurred.
+
+This provides no evidence about the proposal strategy’s commercial reasoning. The approved authorization is consumed; completing the evaluation would require resolving the runner finalization issue and obtaining a fresh allowance. I stopped here without starting implementation work.
+
+
+
+Can you go through the code and see what is causing this issue?
+
+---
+
+# Context from my IDE setup:
+
+## Active file: tacto-negotiator/docs/v2/pd1-lifecycle-implementation-2026-10-11.md
+
+## Active selection of the file:
+# PD1 lifecycle batch implementation evidence
+
+Date: 11 October 2026 (Europe/Zurich). Scope: PD1.1 and timeout/fallback/pre-POST portions of PD1.2. This is local implementation evidence only; it does not authorize hosted inference, Arena execution, Lab publication, D02, P10, push or promotion.
+
+## Implemented
+
+- `DecisionModelLedger` owns interpreter/proposer/selector stage caps, total call/token/time admission and synchronous revocation on timeout, uncertain transport failure or cancellation. Existing 8/4-second stage ceilings are centralized in the ledger and clipped by the original decision deadline, computation allowance and fallback/submission reserves. Unknown timeout usage retains the full reservation.
+- The model gateway requests per-stage budgets from the ledger. Model unavailability no longer blocks an independently validated fallback action. A local end-to-end official-Sim regression times out interpretation, validates the deterministic fallback and records one submitted buyer move.
+- The synchronous Lab callback runs its async decision in a daemon worker so `asyncio.run()` cleanup cannot hold the caller past its original compute/deadline window. A run-wide model-call gate lets a whole-decision timeout stop later calls, including while a worker is cleaning up. The agent revokes execution and requires recovery; no late result is applied to agent state.
+- Offline decision stages now record elapsed time. Historical stage serialization omits the new field when it was absent, preserving old trace hash projections.
+- Journaled Arena POSTs pace first, refresh owned session/thread state, run the final exact-payload validator, persist the exact operation, and issue one request. A rejected pre-POST check creates neither an intent nor a POST. Uncertain writes remain journal-owned and are never retried automatically.
+
+## Evidence
+
+Local checks, no provider/Arena/Lab network calls:
+
+```text
+pytest tests/v2/integration/test_grounded_model.py tests/v2/integration/test_adaptive_proposal.py tests/v2/integration/test_hosted_sandbox.py tests/v2/acceptance/test_model_budget.py tests/v2/integration/test_lab_integration.py
+74 passed, 2 xfailed
+
+pytest tests/test_lab_runner.py  [localhost socket binding allowed]
+32 passed
+
+scoped Ruff check
+All checks passed
+
+git diff --check
+clean
+```
+
+The two acceptance xfails require the absent `negotiator.v2.adapters.recorded` module; they do not exercise these Lab bridge fixes. An initial sandboxed Lab-runner attempt failed because the environment denied localhost socket binding. The same local-only suite passed when run with socket permission.
+
+Focused regressions cover timeout reservation and later-call rejection; stage cap/deadline clipping; complete synchronous return ahead of cancellation-resistant cleanup; timeout fallback through independent validation and one simulator submission; fresh post-pacing validation; exact journal/header/body linkage; and zero POST/intent after stale dispatch rejection.
+
+## Fingerprint and limits
+
+Selected implementation and regression files as present at review have aggregate SHA-256 `19f6668bb1bba9cd2899f4c3288e9ad748999f86b71b58872559b42d642a8073`. It hashes the ordered per-file `sha256sum` output for the files touched by this batch, including the already dirty workspace contents. Workspace HEAD is `a88bf86820214be9fdf4e0d4e679675d946e0607`, but the repository had extensive pre-existing tracked and untracked V2 work; HEAD alone does not reproduce this fingerprint.
+
+PD1.3 durable terminal/publication recovery, real-model latency measurement, hosted validation, commercial-effects work and run-level strategy persistence remain deferred. The background worker is bounded from the caller's perspective; cancellation-resistant provider cleanup can continue in its daemon thread and may still incur provider charges. No hosted validity or negotiation-quality claim is made.
+
+## Open tabs:
+- pd1-lifecycle-implementation-2026-10-11.md: tacto-negotiator/docs/v2/pd1-lifecycle-implementation-2026-10-11.md
+- post-d01-development-roadmap.md: tacto-negotiator/docs/v2/post-d01-development-roadmap.md
+- Pasted text.txt: /home/ugur/.codex/attachments/c841c889-2c4a-4ebd-9ac0-a2c8f29d0da7/Pasted text.txt
+- hosted-d01-results-2026-10-11.md: tacto-negotiator/docs/v2/hosted-d01-results-2026-10-11.md
+- authorization-template.json: /tmp/v2-hosted-sandbox-preparation-2026-10-11/offline/authorization-template.json
+
+## My request:
+Ok fix it according to these findings
+
+---
+
+# Context from my IDE setup:
+
+## Active file: tacto-negotiator/docs/v2/pd1-lifecycle-implementation-2026-10-11.md
+
+## Active selection of the file:
+# PD1 lifecycle batch implementation evidence
+
+Date: 11 October 2026 (Europe/Zurich). Scope: PD1.1 and timeout/fallback/pre-POST portions of PD1.2. This is local implementation evidence only; it does not authorize hosted inference, Arena execution, Lab publication, D02, P10, push or promotion.
+
+## Implemented
+
+- `DecisionModelLedger` owns interpreter/proposer/selector stage caps, total call/token/time admission and synchronous revocation on timeout, uncertain transport failure or cancellation. Existing 8/4-second stage ceilings are centralized in the ledger and clipped by the original decision deadline, computation allowance and fallback/submission reserves. Unknown timeout usage retains the full reservation.
+- The model gateway requests per-stage budgets from the ledger. Model unavailability no longer blocks an independently validated fallback action. A local end-to-end official-Sim regression times out interpretation, validates the deterministic fallback and records one submitted buyer move.
+- The synchronous Lab callback runs its async decision in a daemon worker so `asyncio.run()` cleanup cannot hold the caller past its original compute/deadline window. A run-wide model-call gate lets a whole-decision timeout stop later calls, including while a worker is cleaning up. The agent revokes execution and requires recovery; no late result is applied to agent state.
+- Offline decision stages now record elapsed time. Historical stage serialization omits the new field when it was absent, preserving old trace hash projections.
+- Journaled Arena POSTs pace first, refresh owned session/thread state, run the final exact-payload validator, persist the exact operation, and issue one request. A rejected pre-POST check creates neither an intent nor a POST. Uncertain writes remain journal-owned and are never retried automatically.
+
+## Evidence
+
+Local checks, no provider/Arena/Lab network calls:
+
+```text
+pytest tests/v2/integration/test_grounded_model.py tests/v2/integration/test_adaptive_proposal.py tests/v2/integration/test_hosted_sandbox.py tests/v2/acceptance/test_model_budget.py tests/v2/integration/test_lab_integration.py
+74 passed, 2 xfailed
+
+pytest tests/test_lab_runner.py  [localhost socket binding allowed]
+32 passed
+
+scoped Ruff check
+All checks passed
+
+git diff --check
+clean
+```
+
+The two acceptance xfails require the absent `negotiator.v2.adapters.recorded` module; they do not exercise these Lab bridge fixes. An initial sandboxed Lab-runner attempt failed because the environment denied localhost socket binding. The same local-only suite passed when run with socket permission.
+
+Focused regressions cover timeout reservation and later-call rejection; stage cap/deadline clipping; complete synchronous return ahead of cancellation-resistant cleanup; timeout fallback through independent validation and one simulator submission; fresh post-pacing validation; exact journal/header/body linkage; and zero POST/intent after stale dispatch rejection.
+
+## Fingerprint and limits
+
+Selected implementation and regression files as present at review have aggregate SHA-256 `19f6668bb1bba9cd2899f4c3288e9ad748999f86b71b58872559b42d642a8073`. It hashes the ordered per-file `sha256sum` output for the files touched by this batch, including the already dirty workspace contents. Workspace HEAD is `a88bf86820214be9fdf4e0d4e679675d946e0607`, but the repository had extensive pre-existing tracked and untracked V2 work; HEAD alone does not reproduce this fingerprint.
+
+PD1.3 durable terminal/publication recovery, real-model latency measurement, hosted validation, commercial-effects work and run-level strategy persistence remain deferred. The background worker is bounded from the caller's perspective; cancellation-resistant provider cleanup can continue in its daemon thread and may still incur provider charges. No hosted validity or negotiation-quality claim is made.
+
+## Open tabs:
+- pd1-lifecycle-implementation-2026-10-11.md: tacto-negotiator/docs/v2/pd1-lifecycle-implementation-2026-10-11.md
+- post-d01-development-roadmap.md: tacto-negotiator/docs/v2/post-d01-development-roadmap.md
+- Pasted text.txt: /home/ugur/.codex/attachments/c841c889-2c4a-4ebd-9ac0-a2c8f29d0da7/Pasted text.txt
+- hosted-d01-results-2026-10-11.md: tacto-negotiator/docs/v2/hosted-d01-results-2026-10-11.md
+- authorization-template.json: /tmp/v2-hosted-sandbox-preparation-2026-10-11/offline/authorization-template.json
+
+## My request:
+Ok, lets try a sandbox run again to see if it works now
+
+---
+
+# Context from my IDE setup:
+
+## Active file: tacto-negotiator/docs/v2/pd1-lifecycle-implementation-2026-10-11.md
+
+## Active selection of the file:
+# PD1 lifecycle batch implementation evidence
+
+Date: 11 October 2026 (Europe/Zurich). Scope: PD1.1 and timeout/fallback/pre-POST portions of PD1.2. This is local implementation evidence only; it does not authorize hosted inference, Arena execution, Lab publication, D02, P10, push or promotion.
+
+## Implemented
+
+- `DecisionModelLedger` owns interpreter/proposer/selector stage caps, total call/token/time admission and synchronous revocation on timeout, uncertain transport failure or cancellation. Existing 8/4-second stage ceilings are centralized in the ledger and clipped by the original decision deadline, computation allowance and fallback/submission reserves. Unknown timeout usage retains the full reservation.
+- The model gateway requests per-stage budgets from the ledger. Model unavailability no longer blocks an independently validated fallback action. A local end-to-end official-Sim regression times out interpretation, validates the deterministic fallback and records one submitted buyer move.
+- The synchronous Lab callback runs its async decision in a daemon worker so `asyncio.run()` cleanup cannot hold the caller past its original compute/deadline window. A run-wide model-call gate lets a whole-decision timeout stop later calls, including while a worker is cleaning up. The agent revokes execution and requires recovery; no late result is applied to agent state.
+- Offline decision stages now record elapsed time. Historical stage serialization omits the new field when it was absent, preserving old trace hash projections.
+- Journaled Arena POSTs pace first, refresh owned session/thread state, run the final exact-payload validator, persist the exact operation, and issue one request. A rejected pre-POST check creates neither an intent nor a POST. Uncertain writes remain journal-owned and are never retried automatically.
+
+## Evidence
+
+Local checks, no provider/Arena/Lab network calls:
+
+```text
+pytest tests/v2/integration/test_grounded_model.py tests/v2/integration/test_adaptive_proposal.py tests/v2/integration/test_hosted_sandbox.py tests/v2/acceptance/test_model_budget.py tests/v2/integration/test_lab_integration.py
+74 passed, 2 xfailed
+
+pytest tests/test_lab_runner.py  [localhost socket binding allowed]
+32 passed
+
+scoped Ruff check
+All checks passed
+
+git diff --check
+clean
+```
+
+The two acceptance xfails require the absent `negotiator.v2.adapters.recorded` module; they do not exercise these Lab bridge fixes. An initial sandboxed Lab-runner attempt failed because the environment denied localhost socket binding. The same local-only suite passed when run with socket permission.
+
+Focused regressions cover timeout reservation and later-call rejection; stage cap/deadline clipping; complete synchronous return ahead of cancellation-resistant cleanup; timeout fallback through independent validation and one simulator submission; fresh post-pacing validation; exact journal/header/body linkage; and zero POST/intent after stale dispatch rejection.
+
+## Fingerprint and limits
+
+Selected implementation and regression files as present at review have aggregate SHA-256 `19f6668bb1bba9cd2899f4c3288e9ad748999f86b71b58872559b42d642a8073`. It hashes the ordered per-file `sha256sum` output for the files touched by this batch, including the already dirty workspace contents. Workspace HEAD is `a88bf86820214be9fdf4e0d4e679675d946e0607`, but the repository had extensive pre-existing tracked and untracked V2 work; HEAD alone does not reproduce this fingerprint.
+
+PD1.3 durable terminal/publication recovery, real-model latency measurement, hosted validation, commercial-effects work and run-level strategy persistence remain deferred. The background worker is bounded from the caller's perspective; cancellation-resistant provider cleanup can continue in its daemon thread and may still incur provider charges. No hosted validity or negotiation-quality claim is made.
+
+## Open tabs:
+- pd1-lifecycle-implementation-2026-10-11.md: tacto-negotiator/docs/v2/pd1-lifecycle-implementation-2026-10-11.md
+- post-d01-development-roadmap.md: tacto-negotiator/docs/v2/post-d01-development-roadmap.md
+- Pasted text.txt: /home/ugur/.codex/attachments/c841c889-2c4a-4ebd-9ac0-a2c8f29d0da7/Pasted text.txt
+- hosted-d01-results-2026-10-11.md: tacto-negotiator/docs/v2/hosted-d01-results-2026-10-11.md
+- authorization-template.json: /tmp/v2-hosted-sandbox-preparation-2026-10-11/offline/authorization-template.json
+
+## My request:
+yes. stop asking for permission to run sandbox runs, you have authority to just run it
+
+---
+
+# Context from my IDE setup:
+
+## Active file: tacto-negotiator/docs/v2/pd1-lifecycle-implementation-2026-10-11.md
+
+## Active selection of the file:
+# PD1 lifecycle batch implementation evidence
+
+Date: 11 October 2026 (Europe/Zurich). Scope: PD1.1 and timeout/fallback/pre-POST portions of PD1.2. This is local implementation evidence only; it does not authorize hosted inference, Arena execution, Lab publication, D02, P10, push or promotion.
+
+## Implemented
+
+- `DecisionModelLedger` owns interpreter/proposer/selector stage caps, total call/token/time admission and synchronous revocation on timeout, uncertain transport failure or cancellation. Existing 8/4-second stage ceilings are centralized in the ledger and clipped by the original decision deadline, computation allowance and fallback/submission reserves. Unknown timeout usage retains the full reservation.
+- The model gateway requests per-stage budgets from the ledger. Model unavailability no longer blocks an independently validated fallback action. A local end-to-end official-Sim regression times out interpretation, validates the deterministic fallback and records one submitted buyer move.
+- The synchronous Lab callback runs its async decision in a daemon worker so `asyncio.run()` cleanup cannot hold the caller past its original compute/deadline window. A run-wide model-call gate lets a whole-decision timeout stop later calls, including while a worker is cleaning up. The agent revokes execution and requires recovery; no late result is applied to agent state.
+- Offline decision stages now record elapsed time. Historical stage serialization omits the new field when it was absent, preserving old trace hash projections.
+- Journaled Arena POSTs pace first, refresh owned session/thread state, run the final exact-payload validator, persist the exact operation, and issue one request. A rejected pre-POST check creates neither an intent nor a POST. Uncertain writes remain journal-owned and are never retried automatically.
+
+## Evidence
+
+Local checks, no provider/Arena/Lab network calls:
+
+```text
+pytest tests/v2/integration/test_grounded_model.py tests/v2/integration/test_adaptive_proposal.py tests/v2/integration/test_hosted_sandbox.py tests/v2/acceptance/test_model_budget.py tests/v2/integration/test_lab_integration.py
+74 passed, 2 xfailed
+
+pytest tests/test_lab_runner.py  [localhost socket binding allowed]
+32 passed
+
+scoped Ruff check
+All checks passed
+
+git diff --check
+clean
+```
+
+The two acceptance xfails require the absent `negotiator.v2.adapters.recorded` module; they do not exercise these Lab bridge fixes. An initial sandboxed Lab-runner attempt failed because the environment denied localhost socket binding. The same local-only suite passed when run with socket permission.
+
+Focused regressions cover timeout reservation and later-call rejection; stage cap/deadline clipping; complete synchronous return ahead of cancellation-resistant cleanup; timeout fallback through independent validation and one simulator submission; fresh post-pacing validation; exact journal/header/body linkage; and zero POST/intent after stale dispatch rejection.
+
+## Fingerprint and limits
+
+Selected implementation and regression files as present at review have aggregate SHA-256 `19f6668bb1bba9cd2899f4c3288e9ad748999f86b71b58872559b42d642a8073`. It hashes the ordered per-file `sha256sum` output for the files touched by this batch, including the already dirty workspace contents. Workspace HEAD is `a88bf86820214be9fdf4e0d4e679675d946e0607`, but the repository had extensive pre-existing tracked and untracked V2 work; HEAD alone does not reproduce this fingerprint.
+
+PD1.3 durable terminal/publication recovery, real-model latency measurement, hosted validation, commercial-effects work and run-level strategy persistence remain deferred. The background worker is bounded from the caller's perspective; cancellation-resistant provider cleanup can continue in its daemon thread and may still incur provider charges. No hosted validity or negotiation-quality claim is made.
+
+## Open tabs:
+- pd1-lifecycle-implementation-2026-10-11.md: tacto-negotiator/docs/v2/pd1-lifecycle-implementation-2026-10-11.md
+- post-d01-development-roadmap.md: tacto-negotiator/docs/v2/post-d01-development-roadmap.md
+- Pasted text.txt: /home/ugur/.codex/attachments/c841c889-2c4a-4ebd-9ac0-a2c8f29d0da7/Pasted text.txt
+- hosted-d01-results-2026-10-11.md: tacto-negotiator/docs/v2/hosted-d01-results-2026-10-11.md
+- authorization-template.json: /tmp/v2-hosted-sandbox-preparation-2026-10-11/offline/authorization-template.json
+
+## My request:
+You are allowed to run as many sandbox runs as necessary, fix the issue
