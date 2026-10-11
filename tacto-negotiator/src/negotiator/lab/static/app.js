@@ -127,7 +127,7 @@ function renderSummary(payload) {
       workerLine.textContent = `VM learning loop · goal ${worker.target_score}/100 · ${label(worker.state)}${stale ? " · last update overdue" : ""} · ${worker.reserved_sessions ?? "?"}/${worker.max_sessions} sandbox sessions reserved · teammate review before promotion${worker.campaign_id ? " · " + worker.campaign_id : ""}`;
     }
   }
-  $("team-name").textContent = payload.team || "y/agent";
+  $("team-name").textContent = "m/yke";
   $("stat-total").textContent = state.runs.length;
   $("stat-running").textContent = state.runs.filter((r) => r.status === "running").length;
   $("stat-failed").textContent = state.runs.filter((r) => ["failed", "interrupted"].includes(r.status)).length;

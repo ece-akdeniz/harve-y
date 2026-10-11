@@ -1328,7 +1328,7 @@ th[aria-sort="ascending"], th[aria-sort="descending"] { color: #165b47; }
 .experiment-lab h2,.experiment-lab h3{font-weight:500}
 .experiment-lab .eyebrow,.experiment-lab .nav-label,.experiment-lab .stat-label{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:1px}
 .experiment-lab a{color:var(--green)}
-.experiment-lab .brand{color:var(--ink)}
+.experiment-lab .brand{color:var(--ink);gap:0}
 .experiment-lab .brand-mark,.experiment-lab .title-dot{color:var(--orange)}
 .experiment-lab .brand-tag{border-color:#ffc9ab;color:#9c3400}
 .experiment-lab .sidebar{background:#fff;border-color:var(--line)}
@@ -1371,3 +1371,21 @@ th[aria-sort="ascending"], th[aria-sort="descending"] { color: #165b47; }
 .memory-citation { font-size: 12px; line-height: 1.6; }
 .memory-filters { display: flex; flex-wrap: wrap; align-items: end; gap: 14px; padding: 18px; }
 .memory-filters label { display: grid; gap: 6px; flex: 1; min-width: 160px; }
+
+/* Carry the orange palette through experiment results and detail views. */
+.experiment-lab th{background:#fafaf9;color:#66665f}
+.experiment-lab td{border-color:#e9e9e6;color:#55554f}
+.experiment-lab .run-meta,.experiment-lab .subline,.experiment-lab .table-note,.experiment-lab .page-footer{color:#70706a}
+.experiment-lab .owner-initial{background:#fff0e7;color:#9c3400}
+.experiment-lab .badge{background:#f1f1ee;color:#62625c}
+.experiment-lab .badge.completed,.experiment-lab .badge.promoted{background:#fff0e7;color:#9c3400}
+.experiment-lab .score,.experiment-lab .positive{color:#9c3400}
+.experiment-lab .score.partial{color:#896019}
+.experiment-lab .search-label,.experiment-lab .compare-picker label,.experiment-lab .compare-arrow{color:#696963}
+.experiment-lab .empty-icon{background:#fff0e7;border-color:#ffd4bd;color:#a23500}
+.experiment-lab .empty-state p,.experiment-lab .pagination{color:#66665f}
+.experiment-lab .case-facts,.experiment-lab .kv dt,.experiment-lab .evidence-id,.experiment-lab .attachment-note{color:#66665f}
+.experiment-lab .case-facts a,.experiment-lab .report-disclosure>summary{color:#9c3400}
+.experiment-lab .message-card{border-left-color:#cfcfca}
+.experiment-lab .offer-sheet{border-color:#e7e4df}
+.experiment-lab .neutral{color:#70706a}
