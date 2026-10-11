@@ -1,0 +1,28 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4M5B77YFPZY3YRK92XP4K81",
+  "strategy": "manual-commit",
+  "branch": "codex/fresh-wave",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "tacto-negotiator/src/negotiator/agent.py",
+    "tacto-negotiator/src/negotiator/budget.py",
+    "tacto-negotiator/src/negotiator/inference.py",
+    "tacto-negotiator/src/negotiator/model_assist.py",
+    "tacto-negotiator/src/negotiator/runner.py",
+    "tacto-negotiator/src/negotiator/state.py",
+    "tacto-negotiator/tests/test_budget.py",
+    "tacto-negotiator/tests/test_runner.py",
+    "tacto-negotiator/tests/test_wave_time_guard.py",
+    "tacto-negotiator/tools/wave_rehearsal.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": ""
+    }
+  ]
+}
