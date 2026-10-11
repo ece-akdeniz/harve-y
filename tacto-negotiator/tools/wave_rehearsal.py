@@ -12,12 +12,15 @@ on or off, and an optional injected supplier reply delay (the hosted supplier ta
 takes ~8 real minutes per wave; every (config x guard) variant runs concurrently in the same wave so a
 full rehearsal is one wall-clock wave. `--scale` compresses the clock (1 simulated s = scale real s)
 for quick checks only: agent compute is not compressed, so compressed runs overstate decision time.
+`--round-estimate S` overrides `negotiator.agent.ROUND_ESTIMATE_S` for the run (guard calibration; see
+experiments/SAFETY.md section 5a: 120 kept, 90 loses three single-supplier cases at 90 s replies).
 
 Measured (2026-10-11, kit sim, 10 hosted practice cases per wave, --delay 50, real clock, both configs):
 worst case 280 s with the guard (P01/P04, 5 rounds, slowest round 80 s), 366 s without it (P05, three
 suppliers, slowest round 85 s) where the runner's watchdog had to close at the cap; the guard fired only on
 P05 (time left 202 s < 240 s) and accepted the standing sheet at round 4. First decision per case 11-27 s
-(data package, dossiers, evidence context, ten agents starting at once), later ones < 0.4 s; no timeouts.
+before prewarm (data package, dossiers, evidence context, ten agents starting at once), <= 0.8 s with
+prewarm on; later ones < 0.4 s; no timeouts.
 """
 
 import argparse
@@ -81,8 +84,12 @@ class SimArena:
         reply = self._do(self.sim.message, session_id, supplier_id, message)
         self.replies[move_id] = reply
         if not message.get("action") and "result" not in reply and self.delay_s:
-            await self.clock.sleep(self.delay_s)
             th = self.sim.sessions[session_id]["threads"][supplier_id]
+            # The sim's 60-second rule runs on `last_at`; hosted, our 60 s start at the supplier's reply.
+            # Park the thread's clock at the reply time BEFORE sleeping, otherwise with delay > 60 s any
+            # session()/thread() poll during the sleep (multi-supplier cases) would count a timeout against us.
+            th["last_at"] = self.clock.time() + self.delay_s
+            await self.clock.sleep(self.delay_s)
             if not th["closed"]:
                 th["last_at"] = self.clock.time()  # our 60 s start at the supplier's reply
         return reply
@@ -243,7 +250,11 @@ async def main_async(args):
               if r["end_reason"] == "wave_cap" or "wave cap" in (r["close_reasons"] or [])]
     print(f"cap closes (runner watchdog 'wave cap' or arena wave_cap): {capped}")
     if args.out:
+        from negotiator import agent as agent_mod
+
         Path(args.out).write_text(json.dumps({"wave_s": WAVE_S, "delay_s": args.delay, "scale": args.scale,
+                                              "round_estimate_s": agent_mod.ROUND_ESTIMATE_S,
+                                              "time_guard_rounds": agent_mod.TIME_GUARD_ROUNDS,
                                               "rows": rows}, indent=1, default=str))
         print(f"written: {args.out}")
     return 0
@@ -258,8 +269,15 @@ def main(argv=None):
     ap.add_argument("--prewarm", choices=["on", "off", "both"], default="on",
                     help="pre-warm the package/dossiers before the wave and each case before it opens")
     ap.add_argument("--case", action="append", help="restrict to these case ids")
+    ap.add_argument("--round-estimate", type=float, default=None,
+                    help="override agent.ROUND_ESTIMATE_S (guard calibration; default: the agent's constant)")
     ap.add_argument("--out", help="JSON output path")
     args = ap.parse_args(argv)
+    if args.round_estimate is not None:
+        from negotiator import agent as agent_mod
+
+        agent_mod.ROUND_ESTIMATE_S = float(args.round_estimate)
+        print(f"ROUND_ESTIMATE_S={agent_mod.ROUND_ESTIMATE_S}", file=sys.stderr)
     return asyncio.run(main_async(args))
 
 

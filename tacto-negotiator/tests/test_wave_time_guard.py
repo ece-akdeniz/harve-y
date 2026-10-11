@@ -19,6 +19,9 @@ from negotiator.runner import CaseRunner
 from negotiator.state import Journal
 
 ROOT = Path(__file__).resolve().parents[1]
+# 1 simulated s = 10 ms: a 0.3 s agent decision is 30 simulated s, not 75 (SCALE 0.004), so the watchdog's
+# cap close no longer races a reply still in flight on a loaded machine (flaky at 0.004).
+SCALE = 0.01
 CAP_S = 480.0
 REPLY_S = 50.0  # a slow supplier: close to the ~1 min per reply the brief allows
 
@@ -77,7 +80,7 @@ async def _run(arena, clock, agent, tmp_path, cap=CAP_S, tracer=None):
 async def test_guard_accepts_acceptable_standing_sheet_before_the_cap(tmp_path, no_final):
     """S01 has no alternative (C_alt = inf): every priced sheet is acceptable. The slow schedule alone
     would still be extending at the cap; the guard closes with >= 2 rounds to spare and no wave_cap."""
-    clock, trace = ScaledClock(), Trace()
+    clock, trace = ScaledClock(SCALE), Trace()
     arena = PatientArena(clock, {"sup:70270": REPLY_S})
     result, calls, took, runner = await _run(arena, clock, _slow_agent(trace), tmp_path, tracer=trace)
     assert result["deal"] and result["ended"] and result.get("end_reason") != "wave_cap"
@@ -102,7 +105,7 @@ async def test_guard_accepts_acceptable_standing_sheet_before_the_cap(tmp_path, 
 
 async def test_without_guard_the_same_thread_walks_into_the_cap(tmp_path, no_final):
     """Control: guard off -> the watchdog's cap close is what ends the case (the thread was still open)."""
-    clock = ScaledClock()
+    clock = ScaledClock(SCALE)
     arena = PatientArena(clock, {"sup:70270": REPLY_S})
     agent = _slow_agent()
     agent.time_guard_rounds = 0
@@ -114,7 +117,7 @@ async def test_without_guard_the_same_thread_walks_into_the_cap(tmp_path, no_fin
 async def test_guard_converges_to_the_ask_when_the_standing_sheet_is_not_acceptable(tmp_path, no_final):
     """A must-have the supplier's standard terms break: its sheet can never be accepted. The guard
     offers its own price on our (valid) terms instead of walking into the cap; the sim agrees."""
-    clock, trace = ScaledClock(), Trace()
+    clock, trace = ScaledClock(SCALE), Trace()
     patch = {"must_haves": [{"field": "payment_days", "op": ">=", "value": 45}]}
     arena = PatientArena(clock, {"sup:70270": REPLY_S}, case_patch=("case:S01", patch))
     result, calls, took, runner = await _run(arena, clock, _slow_agent(trace), tmp_path, tracer=trace)
@@ -126,7 +129,7 @@ async def test_guard_converges_to_the_ask_when_the_standing_sheet_is_not_accepta
     assert offers and offers[0]["terms"]["unit_price"] == guard[0]["terms"]["unit_price"]
     assert CAP_S - took >= 90  # agreed before the watchdog's cap margin
     # control: without the guard the sheet is never acceptable and the cap ends it with no deal
-    clock2 = ScaledClock()
+    clock2 = ScaledClock(SCALE)
     arena2 = PatientArena(clock2, {"sup:70270": REPLY_S}, case_patch=("case:S01", patch))
     off = _slow_agent()
     off.time_guard_rounds = 0
@@ -149,7 +152,7 @@ def test_guard_is_inactive_without_a_cap():
 
 
 def test_runner_wires_the_clock_only_with_a_cap(tmp_path):
-    clock = ScaledClock()
+    clock = ScaledClock(SCALE)
     agent = PackageAgent()
     CaseRunner(SimArena(clock), "case:S01", agent, Journal(tmp_path / "j.jsonl"), clock=clock)._wire_agent_clock()
     assert agent.time_left_fn() is None  # practice: deadline_fn is None
