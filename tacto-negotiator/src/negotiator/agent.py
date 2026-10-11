@@ -481,6 +481,10 @@ class PackageAgent:
                 self._log(case, "package_switch", sid, prev=prev, new=n, c_prev=min(on_prev), c_new=ref_c)
         if self.policy and self.policy.rfq_supplier_payment and case["type"] == "rfq":
             n = self._supplier_payment(case, sid, events, n, std)
+        if prev is not None and eligible and self._tenor_extend(case) and not self._guarded():
+            # Under the wave guard the next move is an accept or a match at its ask on terms it has
+            # already seen; a fresh tenor extension would be a new offer to answer (one more round).
+            n = self._extend_tenor(case, sid, events, n, ref_terms, std, sup)
         n = self._free_concessions(case, n, ref_terms, std, sup, sid) if eligible else n
         identity = (case['case_id'], sid)
         if prev is None and not self._ours(events) and identity not in self._memory_seen:
@@ -744,6 +748,33 @@ class PackageAgent:
     def _longer_tenor(self, case):
         return bool(self.policy and case["type"] in self.policy.longer_tenor_types)
 
+    def _tenor_extend(self, case):
+        return bool(self.policy and case["type"] in getattr(self.policy, "tenor_extend_types", ()))
+
+    def _extend_tenor(self, case, sid, events, n, theirs, std, sup):
+        """From our second offer on: the longest contract_months option that costs us no more than
+        the current package at the supplier's price, keeps the must-haves and was not sent before.
+        Cost-neutral for the buyer (horizon-covered); a longer firm commitment for the supplier."""
+        if "contract_months" not in n or "contract_months" not in (case.get("negotiable") or []):
+            return n
+        options = (case.get("term_options") or {}).get("contract_months") or []
+        price = theirs["unit_price"]
+        base_c = total_cost(case, {**n, "unit_price": price}, std, sup)
+        sent = {
+            (s.get("terms") or {}).get("contract_months")
+            for e in events if e.get("from") == "buyer" for s in e.get("term_sheets") or []
+        }
+        for months in sorted(options, reverse=True):
+            if months <= n["contract_months"] or months in sent:
+                continue
+            trial = {**n, "contract_months": months}
+            if not must_haves_ok(case, {**trial, "unit_price": price}, std):
+                continue
+            if total_cost(case, {**trial, "unit_price": price}, std, sup) <= base_c + 1e-6:
+                self._log(case, "tenor_extend", sid, prev_months=n["contract_months"], months=months, c=base_c)
+                return trial
+        return n
+
     def _free_concessions(self, case, n, theirs, std, sup, sid=None):
         price = theirs["unit_price"]
         for f, v in theirs.items():
@@ -759,6 +790,8 @@ class PackageAgent:
                 continue
             if f == "contract_months" and self._longer_tenor(case) and v < n[f] and trial_c >= previous_c - 1e-6:
                 continue
+            if f == "contract_months" and self._tenor_extend(case) and v < n[f] and trial_c >= previous_c - 1e-6:
+                continue  # the extended commitment is not given back for free
             if f == "payment_days" and self._standard_payment(case) and n[f] == std.get("payment_days"):
                 continue
             if f == "payment_days" and self._fast_payment(case, sid, {**n, "unit_price": price}, std) == n[f]:

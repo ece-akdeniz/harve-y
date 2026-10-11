@@ -1,0 +1,65 @@
+SESSION 6da1fc329e76b695 case=case:P10 end=accepted rounds=2
+score=0.6394883642165704 c_open=1932492.18 c_deal=1546519.2 c_alt=None supplier=sup:70410
+terms={"payment_days": 30, "lead_time_days": 56, "volume_per_year": 23400, "contract_months": 36, "effective_date": "2027-01-01", "index_clause": null, "incoterm": "DAP", "tooling_eur": 0.0, "ppm_commitment": 300, "chargeback_eur_per_complaint": 0.0, "unit_price": 32.0}
+breakdown={"price": 1497600.0, "uncovered_need": 0.0, "fallback_risk": 0.0, "payment_terms": 9984.0, "freight": 0.0, "late_delivery": 33600.0, "quality": 5335.2, "tooling": 0.0, "index_clause": 0.0, "index_risk": 0.0, "relationship": 0.0}
+
+--- round 0 actor=sup:70410 status=open
+Dear Sir or Madam,
+
+Thank you for your enquiry. Please find our Angebot below.
+
+We offer a volume of 19890 pcs per year at a price of €32.20 per unit. The requested contract term is 12 months, and our Lieferzeit is 54 days. 
+
+Please note that this offer remains valid for 30 days. We look forward to proceeding according to our standard commercial procedure upon receipt of your confirmation.
+
+Mit freundlichen Grüßen
+Monika Zellner
+Segment Manager, Dichtungswerk Ravensteiner GmbH
+  SUPPLIER OFFER offer:70410-0: {"unit_price": 32.2, "lead_time_days": 54, "volume_per_year": 19890, "contract_months": 12}
+
+--- round 1 actor=buyer status=None
+Dear Ms Zellner,
+
+Thank you for your offer. You said that you prioritise customers with firm, long-term commitments. We would like to put our business with Ravensteiner on that basis rather than confirm the offered annual allocation.
+
+Our proposed term sheet provides a binding commitment of 23400 pcs per year for the full 36 months, with a delivery lead time of 56 days, at EUR 27.47 per unit. The annual quantity would be committed throughout the contract, not merely indicated as a forecast.
+
+I have attached our latest shared monthly forecast to make the planning basis transparent; see the figures below. This gives your team the demand profile alongside the firm annual commitment in our proposal.
+
+Please confirm whether you can reserve the full annual quantity on this basis and agree to the proposed price for a committed long-term customer.
+
+Kind regards,
+Hollerau Pumpenwerke GmbH, Purchasing
+
+Our shared demand forecast fc:340010@2026-09 for part:340010 shows a change of +10.1 % against the previous snapshot.
+  TS: {"unit_price": 27.47, "volume_per_year": 23400, "contract_months": 36, "lead_time_days": 56}
+  REFS: ['fc:340010@2026-09']
+
+--- round 1 actor=sup:70410 status=final_offer
+Dear Sir or Madam,
+
+We checked the volume change data you cited; it holds, but it does not change our calculation. Our price reflects our costs; our calculation stays internal. 
+
+We note your request for a 36-month commitment and the increased volume of 23,400 pieces per year. We can accommodate the requested volume and contract duration at a revised price of EUR 32.00 per unit.
+
+For our Angebot, we offer a price of €32.00 per unit, a Lieferzeit of 56 days, a volume of 23400 pcs per year, and a contract term of 36 months. 
+
+This is our final offer (letztes Angebot). Please decide. Which volume can you commit to? This offer is valid for 7 days.
+
+Mit freundlichen Grüßen
+Monika Zellner
+Segment Manager, Dichtungswerk Ravensteiner GmbH
+  SUPPLIER OFFER offer:70410-1: {"unit_price": 32.0, "lead_time_days": 56, "volume_per_year": 23400, "contract_months": 36}
+  CLAIMS: [{'index': 0, 'result': 'verified'}]
+  REASONS: ["We checked the volume change data you cited; it holds, but it does not change our calculation.", "We note your request for a 36-month commitment and the increased volume of … pieces per year.", "We can accommodate the requested volume and contract duration at a revised price of EUR … per unit.", "Our price reflects our costs; our calculation stays internal.", "Which volume can you commit to?"]
+
+--- round 1 actor=buyer status=None
+
+=== BACKOFFICE ===
+r0 Segment Manager->team: quote attached (quote-offer-70410-0.pdf)
+r1 Segment Manager->team: My call: counter.
+r1 Segment Manager->team: Read the buyer's e-mail: … term sheet and … cited fact to check; we answer with our final offer.
+r1 Segment Manager->Legal Department: The buyer asks something for Legal Department; please answer.
+r1 Segment Manager->team: quote attached (quote-offer-70410-1.pdf)
+r1 Segment Manager->Legal Department: The buyer asks something for Legal Department; please answer.
+r1 Segment Manager->team: order confirmation attached (order-confirmation-offer-70410-1.pdf)

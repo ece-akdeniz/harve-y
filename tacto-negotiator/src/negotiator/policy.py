@@ -55,6 +55,10 @@ class PolicyConfig:
     # volume as a binding commitment over the offered term, the latest shared forecast attached as
     # CSV and cited by its fc: ID (first offer; a short reminder whenever it asks again).
     fixed_volume_types: tuple[str, ...] = ()
+    # Case types whose offers after the supplier's first reply extend contract_months to the longest
+    # option that costs the buyer nothing extra (horizon-covered, must-haves kept) and was not sent
+    # before: a longer firm commitment for capacity-constrained suppliers. The first offer is unchanged.
+    tenor_extend_types: tuple[str, ...] = ()
     # Per case type number of buyer rounds over which the price schedule reaches the
     # supplier's price (faster convergence before a supplier's final offer); others use the agent's.
     rounds_by_type: dict[str, int] = field(default_factory=dict)
@@ -136,6 +140,7 @@ class PolicyConfig:
             "value_swap_types",
             "fast_payment_types",
             "fixed_volume_types",
+            "tenor_extend_types",
         ):
             v = d.get(k, [])
             if not isinstance(v, list) or any(not isinstance(x, str) or x not in TYPES for x in v):

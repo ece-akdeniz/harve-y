@@ -1,0 +1,42 @@
+P07 — Schraubenhandel Leitner & Sohn GmbH (70610), distributor, Inside Sales Franz Stadler. Bundle the fastener
+kit (4 parts: 19 x M12x40 bolt part:360010, 6 x M16x60 bolt part:360011, 21 x M12 nut part:360012, 23 x M12 washer
+part:360030) with this one distributor: 30000 kits a year, fixed; lead time 5 days fixed; negotiable: price,
+payment days, contract months. Today the parts come from several suppliers; 70610 already delivers three of the
+four parts. Its call notes (April/May 2026): "they could take additional parts at short notice; the second shift
+has been on hold since spring". Its annual review: price changes above 2 % need its pricing committee.
+
+OBSERVED MECHANIC (34 saved sessions): it opens 5.74 / 30 days / 12 months. First reply is a package answer:
+on 90 days / 24 months it goes to 5.59 (sometimes 5.52) whatever we write. It then mirrors our step size, capped
+at about 0.10 per reply, and declares a FINAL on its FIFTH reply (5.37-5.42), which we accept. It asks in every
+reply "A binding higher volume would help us ... Which volume can you commit to?" and in round 2-3 "Which figures
+is that based on? Please send us the data." Nobody ever gave it a NEW verified claim in rounds 2-4 (the saved
+sessions re-cited the same forecast and got 'duplicate'). It names PPI-C2594 and LCI-C as cost drivers; both
+rose, so there is no index claim - do NOT use index claims. 60 days or 30 days are not worth it (never give
+payment days away); 36 months bought nothing; a deep anchor (4.59) drew an early final. Never send 2-3 sheets.
+
+HYPOTHESIS: a NEW verified claim in each of rounds 2, 3 and 4 (forecast, purchase orders, scorecard) plus the same
+measured steps makes it step about 0.10 each reply instead of 0.10 / 0.07 / 0.03, so the fifth-reply final lands
+at 5.30-5.34 instead of 5.39.
+
+PLAN - always ONE sheet, package S13 (payment 90 days, 24 months). Pick the level whose price is NEAREST the
+target price for the round (the menu prices change every round; choose by price, not by level name):
+ROUND 1 - target 5.05. Answer its standing question before it asks: the sheet is a binding commitment of 30000
+kits a year for the full 24 months (60000 kits), the whole kit from one distributor, kit composition as above; refer
+to its own words that it can take additional parts at short notice and that this fills the shift on hold; ask what
+price it can offer for this committed kit volume. No claim in round 1 (its first reply is a package answer anyway).
+ROUND 2 - target 5.16. Thank it for what it accepted (24 months, 90 days). Answer "which volume": the same 30000
+kits a year, binding, 60000 kits over the term - that is the full need. Cite claim fc-latest (our shared forecast
+for part:360010, +6.0 %) as the planning basis. Do NOT send the forecast attachment (its per-piece table does not
+match kits).
+ROUND 3 - target 5.23. Cite the purchase-order claim (po-...: its own delivered price for part:360010 in our
+running orders; the claim sentence with the figure is appended by code - do NOT write that price or "per 100" in
+your own text, call it "your delivered price for the M12 bolt in our running orders"). Point out the kit moves the
+other three parts' volume to it on top of that running business.
+ROUND 4 - target 5.27. Cite the scorecard claim (sc-...: its on-time delivery 88.6 %) neutrally: we are
+consolidating on it despite that figure because of its range and short notice capacity; ask for its best price on
+this committed package.
+ROUND 5 - target 5.31, no new claim, ask for its best price. Code accepts when it agrees or goes final; never argue
+with a final offer.
+Tone: courteous, concrete, short (600-1000 characters before the claim lines). Never mention a committee, a
+deadline, our other suppliers' prices, or urgency. Do not repeat a claim already sent. Each round: one new
+element, answer every question it asked, describe exactly the one sheet you send.
