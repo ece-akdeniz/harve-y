@@ -1310,6 +1310,64 @@ th[aria-sort="ascending"], th[aria-sort="descending"] { color: #165b47; }
 .memory-card summary { cursor: pointer; color: var(--muted); }
 .memory-support { font-weight: 600; }
 .memory-conflict { border-left: 3px solid #bc7622; }
+
+/* Experiment Lab shares Harvey's warm Tacto-inspired visual language. */
+.experiment-lab {
+  --ink:#24241f;
+  --muted:#66665f;
+  --line:#dededb;
+  --paper:#f8f8f5;
+  --green:#a23500;
+  --mint:#fff0e7;
+  --orange:#ff6414;
+  --radius:6px;
+  background:var(--paper);
+  font-family:Arial,Helvetica,ui-sans-serif,sans-serif;
+}
+.experiment-lab h1{font-size:36px;font-weight:500;letter-spacing:-.045em}
+.experiment-lab h2,.experiment-lab h3{font-weight:500}
+.experiment-lab .eyebrow,.experiment-lab .nav-label,.experiment-lab .stat-label{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:1px}
+.experiment-lab a{color:var(--green)}
+.experiment-lab .brand{color:var(--ink)}
+.experiment-lab .brand-mark,.experiment-lab .title-dot{color:var(--orange)}
+.experiment-lab .brand-tag{border-color:#ffc9ab;color:#9c3400}
+.experiment-lab .sidebar{background:#fff;border-color:var(--line)}
+.experiment-lab .nav-label,.experiment-lab .sidebar-note p,.experiment-lab .sidebar-bottom span{color:#70706a}
+.experiment-lab .sidebar-note,.experiment-lab .sidebar-bottom{border-color:var(--line)}
+.experiment-lab .nav-button{color:#54544f;border-radius:4px;font-size:13px}
+.experiment-lab .nav-button.active{background:var(--mint);color:#9c3400;box-shadow:inset 3px 0 var(--orange)}
+.experiment-lab .nav-button:hover{background:#f5f5f2}
+.experiment-lab .mini-mark{color:var(--orange)}
+.experiment-lab .team-avatar{background:var(--orange);color:#171717;border-radius:4px}
+.experiment-lab .topbar{background:#fff}
+.experiment-lab .topbar strong{color:#4b4b46}
+.experiment-lab .status-dot{background:var(--orange)}
+.experiment-lab .primary{background:#181818;color:#fff}
+.experiment-lab .primary:hover{background:#343434}
+.experiment-lab .secondary:hover,.experiment-lab .icon-button:hover{background:#f1f1ef}
+.experiment-lab .button,.experiment-lab input,.experiment-lab select,.experiment-lab .search-label{border-radius:4px}
+.experiment-lab .stat:first-child{background:#fff4ec;border-color:#ffd9c3}
+.experiment-lab .stat-label,.experiment-lab .stat-foot{color:#66665f}
+.experiment-lab .count{background:#fff0e7;color:#9c3400}
+.experiment-lab .badge{border-radius:3px}
+.experiment-lab .chart-line{stroke:var(--orange)}
+.experiment-lab .chart-point{fill:var(--orange)}
+.experiment-lab .chart-point:hover,.experiment-lab .chart-point:focus{stroke:#9c3400}
+.experiment-lab .chart-grid{stroke:#e6e6e2}
+.experiment-lab .chart-label{fill:#66665f}
+.experiment-lab th[aria-sort="ascending"],.experiment-lab th[aria-sort="descending"],.experiment-lab .history-attempts summary{color:var(--green)}
+.experiment-lab .message-buyer{background:#fff4ec;border-left-color:var(--orange)}
+.experiment-lab .message-body{color:var(--ink)}
+.experiment-lab .setup-panel,.experiment-lab .supplier-thread>summary{background:#faf9f6}
+.experiment-lab .report-panel,.experiment-lab .message-timeline{background:#fcfcfa}
+.experiment-lab .cost-component meter::-webkit-meter-optimum-value{background:var(--orange)}
+.experiment-lab .cost-component meter::-moz-meter-bar{background:var(--orange)}
+.experiment-lab .login-story{background:var(--orange)}
+.experiment-lab .login-story:after{border-color:#bd4200;box-shadow:0 0 0 45px var(--orange),0 0 0 46px #d54c00,0 0 0 90px var(--orange),0 0 0 91px #d54c00}
+.experiment-lab .login-copy>p:last-child,.experiment-lab .login-footer{color:#39291e}
+.experiment-lab .login-side{background:#fff}
+.experiment-lab :is(button,a,input,select,summary):focus-visible{outline:2px solid #c24500;outline-offset:3px}
+@media(max-width:700px){.experiment-lab h1{font-size:30px}}
 .memory-citation { font-size: 12px; line-height: 1.6; }
 .memory-filters { display: flex; flex-wrap: wrap; align-items: end; gap: 14px; padding: 18px; }
 .memory-filters label { display: grid; gap: 6px; flex: 1; min-width: 160px; }
