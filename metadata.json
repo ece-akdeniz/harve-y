@@ -1,0 +1,19 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4N2TN3KY5QAH1B4W7K4GWAY",
+  "strategy": "manual-commit",
+  "branch": "codex/v6-supplier-intelligence-plan",
+  "checkpoints_count": 5,
+  "files_touched": [
+    "tacto-negotiator/experiments/LOG.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": ""
+    }
+  ]
+}
