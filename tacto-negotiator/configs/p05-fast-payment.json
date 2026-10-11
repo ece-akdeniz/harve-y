@@ -48,7 +48,7 @@
   "value_swap_holds": 1,
   "value_swap_split": 0.5,
   "fast_payment_types": [
-    "price_increase",
-    "rfq"
-  ]
+    "price_increase"
+  ],
+  "rfq_fast_payment_reanchor": true
 }

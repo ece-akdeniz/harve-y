@@ -82,6 +82,12 @@ class PolicyConfig:
     # stated/fastest legal payment term at the price where its `supplier_value` is unchanged, floored at
     # buyer-cost parity (our C never rises).
     supplier_payment_trade: bool = False
+    # RFQ only (port of archive/codex/score-push-p05 fd195f3 `_rfq_fast_payment`, the 0.8136 P05 lever):
+    # at the one-time `rfq_undercut_reanchor` counter the sheet moves to the shortest legal payment term
+    # iff the supplier itself wrote that faster payment is welcome and the re-anchored sheet on that term
+    # is C-cheaper for us than its standing sheet; reverted if the next reply is not cheaper. Never on
+    # the first counter, never for a supplier that did not ask. Independent of `fast_payment_types`.
+    rfq_fast_payment_reanchor: bool = False
 
     @classmethod
     def load(cls, path):
@@ -117,7 +123,7 @@ class PolicyConfig:
         for k in ("cost_neutral_lead_time", "cost_target_index_clause", "rfq_nonleading_hold", "rfq_final_guard",
                   "rfq_supplier_lead_time", "rfq_rival_offer", "rfq_supplier_payment", "rfq_rival_offer_history",
                   "rfq_undercut_reanchor", "rfq_data_claims", "rfq_data_claims_stack",
-                  "claim_pacing", "reciprocal_schedule", "supplier_payment_trade"):
+                  "claim_pacing", "reciprocal_schedule", "supplier_payment_trade", "rfq_fast_payment_reanchor"):
             if type(d.get(k, False)) is not bool:
                 raise ValueError(f"{k} must be boolean")
         post = d.get("cost_target_posterior", 0.0)
