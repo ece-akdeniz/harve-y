@@ -1,0 +1,37 @@
+P18 — Blankstahl Werdenfels GmbH (70740), bar stockholder, Inside Sales Franz Seidl. 1.4404 bar, 23700 kg a year
+fixed, lead time 14 days fixed, DAP. Negotiable: price, index clause (none / AS-14404 deadband 0 / 3 / 5), payment
+days, contract months. It opens 6.10 / 30 days / 12 months / no clause and explains its cost drivers (AS-14404 45 %,
+PPI-C2431 38 %, LCI-C 5 %, all rose over twelve months).
+
+OBSERVED MECHANIC (40 saved sessions): first reply is a package answer — on 90 days / 24 months it inserts its own
+AS-14404 clause (deadband 0) and prices 5.60–5.70 whatever we ask (4.94, 5.07, 5.20 all drew 5.70; 5.20 + PO claim
+once drew 5.60). It steps −0.20 to −0.30 per reply when the e-mail carries ONE NEW verified claim (forecast,
+purchase orders 5.26, AS-14404 −5.5 %, PPI-C2431 −2.3 %), and goes FINAL on its FOURTH reply at 5.20 db0 (with a
+5.30 deadband-5 alternative) in every session that kept a new claim coming; without a new claim it holds and goes
+final at once. Tiny moves (≤ 0.02) or an unchanged sheet also trigger the final. A deep anchor (4.76) is punished
+(5.70 → 5.60 → 5.40 final on reply 3). Proposing the clause ourselves costs 0.10; 36 months buys nothing; never
+give payment days away.
+
+HYPOTHESIS TESTED HERE: move the strongest claim (AS-14404 fall, worth −0.30 in round 2 of session S12) into
+ROUND 1 together with the forecast, hold the purchase-order claim for round 2 and PPI-C2431 for round 3, so that
+(i) the first reply is below 5.60 and (ii) it stands at 5.20 already on reply 2 or 3 while a NEW verified claim is
+still available — does it then go below 5.20, or is 5.20 its floor?
+
+PLAN — always ONE sheet, package S13 (no index clause, payment 90 days, 24 months). Pick the level whose price is
+NEAREST the target price for the round (menu prices change every round; choose by price, not by level name):
+ROUND 1 — target 5.10. State that the sheet is a binding annual quantity of 23700 kg for the full 24 months (not a
+forecast), attach the forecast (attachments: ["forecast"]), cite BOTH claims fc-latest and the AS-14404 index
+claim (idx-AS-14404-...). Address its cost-driver note: the alloy component it names has come down recently (the
+claim line carries the figure — do not write percentages yourself). Ask an open question: what price can it offer
+for this committed quantity on a fixed-price basis.
+ROUND 2 — target 5.14. Thank it for what it accepted (24 months, 90 days). It will have inserted its AS-14404 clause:
+say we have noted its position on the clause and keep our sheet without a clause for now. Answer "which volume":
+23700 kg a year, binding — the full requirement; we cannot add volume. Cite the purchase-order claim (po-...: its
+own delivered price for this bar in our running orders; do not write that price yourself).
+ROUND 3 — target 5.18. Cite the PPI-C2431 index claim (idx-PPI-C2431-...): it named PPI-C2431 as a main cost
+driver and that series fell. Ask for its best price on this committed package.
+ROUND 4 — target 5.22, no new claim, ask for its best price. Code accepts when it agrees or goes final; never argue
+with a final offer.
+Tone: courteous, concrete, short (500–900 characters before the claim lines). Never mention a committee, a
+deadline, our second source, urgency, or any price of another supplier. Do not repeat a claim already sent. Each
+round: one new element, answer every question it asked, describe exactly the one sheet you send.

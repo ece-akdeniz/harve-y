@@ -1,0 +1,184 @@
+SESSION d4637681f6341ea7 case=case:P07 end=accepted rounds=5
+score=0.7015303329236482 c_open=391027.4 c_deal=326636.8 c_alt=379916.0 supplier=sup:70610
+terms={"payment_days": 90, "lead_time_days": 5, "volume_per_year": 30000, "contract_months": 24, "effective_date": "2027-01-01", "index_clause": null, "incoterm": "DAP", "tooling_eur": 0.0, "ppm_commitment": 80, "chargeback_eur_per_complaint": 0.0, "unit_price": 5.48}
+breakdown={"price": 328800.0, "uncovered_need": 0.0, "fallback_risk": 0.0, "payment_terms": -2192.0, "freight": 0.0, "late_delivery": 0.0, "quality": 28.8, "tooling": 0.0, "index_clause": 0.0, "index_risk": 0.0, "relationship": 0.0}
+
+--- round 0 actor=sup:70610 status=open
+Dear customer,
+
+Thank you for your enquiry. Please find our Angebot below. 
+
+It is always a pleasure to work with you, and we are delighted to present our proposal for your component requirements. As a reliable supply partner, we pride ourselves on delivering excellent service and maintaining a comprehensive product range to keep your production running smoothly. 
+
+For the requested volume, we can offer you a price of €5.74 per unit. This quote comes with a Zahlungsziel 30 days net and a contract term of 12 months. Please note that this offer remains valid for 30 days.
+
+We trust this proposal meets your expectations and look forward to continuing our successful business relationship. Please do not hesitate to reach out if you have any questions.
+
+Mit freundlichen Grüßen
+Franz Stadler
+Inside Sales, Schraubenhandel Leitner & Sohn GmbH
+  SUPPLIER OFFER offer:70610-0: {"unit_price": 5.74, "payment_days": 30, "contract_months": 12}
+
+--- round 1 actor=buyer status=None
+Dear Mr Stadler,
+
+Thank you for your offer of €5.74 per kit. We would like to build on your existing supply relationship by placing the complete kit with Leitner & Sohn, covering both bolt types, the nuts and the washers.
+
+The enclosed term sheet proposes €5.05 per kit, payment at 90 days net and a contract term of 24 months. It includes a binding commitment of 30000 kits a year throughout the term, representing our full kit requirement. Delivery remains DAP with a lead time of 5 days.
+
+You previously indicated that you could take on additional parts and that the additional shift was on hold. Bundling the complete kit gives you a firm basis for planning that capacity, while giving us a single point of contact for the kit.
+
+What price can you offer against this committed volume and the proposed payment and contract terms?
+
+Kind regards,
+Hollerau Pumpenwerke GmbH, Purchasing
+  TS: {"unit_price": 5.05, "payment_days": 90, "contract_months": 24}
+
+--- round 1 actor=sup:70610 status=open
+Dear customer,
+
+We have reviewed your offer and can adjust our Angebot as follows. We welcome the opportunity to supply the complete fastener kit and are pleased to accept the 24-month contract term. 
+
+Our current offer is a price of €5.60 per unit, Zahlungsziel 90 days net, a contract term of 24 months. This offer stays valid for 30 days.
+
+Alternatively, we can offer a price of €5.56 per unit, Zahlungsziel 60 days net, a contract term of 24 months. Our standard Zahlungsziel is 30 days net.
+
+Please share the consumption data or firm forecasts to confirm the annual volume of 30,000 kits, allowing us to secure this pricing. Which volume can you commit to? A binding higher volume would help us and can improve the price. 
+
+For your information, our price follows our main cost drivers: PPI-C2594, LCI-C.
+
+Mit freundlichen Grüßen
+Franz Stadler
+Inside Sales, Schraubenhandel Leitner & Sohn GmbH
+  SUPPLIER OFFER offer:70610-1: {"unit_price": 5.6, "payment_days": 90, "contract_months": 24}
+  ALT offer:70610-1-a: {"unit_price": 5.56, "payment_days": 60, "contract_months": 24}
+  REASONS: ["We welcome the opportunity to supply the complete fastener kit and are pleased to accept the 24-month contract term.", "Please share the consumption data or firm forecasts to confirm the annual volume of … kits, allowing us to secure this pricing.", "Alternatively, with Zahlungsziel … days net: €… per unit.", "Which volume can you commit to?", "Our standard Zahlungsziel is … days net.", "Our price follows our main cost drivers: PPI-C2594, LCI-C.", "A binding higher volume would help us and can improve the price."]
+
+--- round 2 actor=buyer status=None
+Dear Mr Stadler,
+
+Thank you for welcoming the complete kit and agreeing to a 24-month term with payment at 90 days net. We would keep that payment arrangement rather than the shorter-payment option.
+
+The revised term sheet proposes €5.17 per kit, 90 days net and 24 months. It includes a binding commitment of 30000 kits a year throughout the term, covering our full kit requirement. We cannot commit to a higher annual volume. Delivery remains DAP with a lead time of 5 days.
+
+For the planning basis you requested, please see the shared forecast figures below for the bolt component. That component forecast supports planning; the annual kit commitment is the volume specified in the term sheet.
+
+I note your comments on cost drivers. Please also weigh the committed complete-kit business when reviewing the price. Can you agree to this revised package?
+
+Kind regards,
+Hollerau Pumpenwerke GmbH, Purchasing
+
+Our shared demand forecast fc:360010@2026-09 for part:360010 shows a change of +6.0 % against the previous snapshot.
+  TS: {"unit_price": 5.17, "payment_days": 90, "contract_months": 24}
+  REFS: ['fc:360010@2026-09']
+
+--- round 2 actor=sup:70610 status=open
+Dear customer,
+Many thanks for your e-mail, and great to hear from you; I went through it right away with our team.
+We have reviewed your offer and can adjust our Angebot as follows.
+Our terms: a price of €5.54 per unit, Zahlungsziel 90 days net, a contract term of 24 months.
+Here is the background.
+We checked the volume change data you cited; it holds and we took it into account.
+Thank you for providing the forecast data for the bolt component, which we have verified and incorporated into our planning.
+Based on this confirmed volume basis, we are pleased to adjust our price to €5.54 per kit while maintaining your preferred 90-day payment terms and 24-month contract.
+This represents a further concession on our part to support the bundled supply of the complete kit and build our relationship.
+A binding higher volume would help us and can improve the price.
+Which volume can you commit to?
+Our standard Zahlungsziel is 30 days net.
+And while we are at it: our whole range is at your disposal, so if there is anything else on your list, just send it over - we are happy to quote.
+Mit freundlichen Grüßen
+Franz Stadler
+Inside Sales, Schraubenhandel Leitner & Sohn GmbH
+  SUPPLIER OFFER offer:70610-2: {"unit_price": 5.54, "payment_days": 90, "contract_months": 24}
+  CLAIMS: [{'index': 0, 'result': 'verified'}]
+  REASONS: ["We checked the volume change data you cited; it holds and we took it into account.", "Thank you for providing the forecast data for the bolt component, which we have verified and incorporated into our planning.", "Based on this confirmed volume basis, we are pleased to adjust our price to €… per kit while maintaining your preferred 90-day payment terms and 24-month contract.", "This represents a further concession on our part to support the bundled supply of the complete kit and build our relationship.", "A binding higher volume would help us and can improve the price.", "Which volume can you commit to?", "Our standard Zahlungsziel is … days net."]
+
+--- round 3 actor=buyer status=None
+Dear Mr Stadler,
+
+Thank you for reviewing the forecast and improving your offer to €5.54 per kit while retaining payment at 90 days net and the 24-month term.
+
+The binding volume in our revised term sheet is 30000 kits a year throughout the contract. That covers our full kit requirement; we cannot commit to a higher annual volume. Thank you also for offering your wider range. For this agreement, our scope remains the complete fastener kit.
+
+Please also consider your delivered price for the bolt component in our running orders; see the purchase-order figures below. The complete-kit package brings the other components together with that established business, giving you a consolidated commitment rather than separate component enquiries.
+
+Our revised term sheet proposes €5.23 per kit, payment at 90 days net and a contract term of 24 months. Delivery remains DAP with a lead time of 5 days. Can you agree to this package on the confirmed annual volume?
+
+Kind regards,
+Hollerau Pumpenwerke GmbH, Purchasing
+
+Our purchase orders po:4500014328-10, po:4500014403-10 and po:4500014475-10 for part:360010 were placed with you at EUR 12.46 per unit.
+  TS: {"unit_price": 5.23, "payment_days": 90, "contract_months": 24}
+  REFS: ['po:4500014328-10', 'po:4500014403-10', 'po:4500014475-10']
+
+--- round 3 actor=sup:70610 status=open
+Dear customer,
+
+We have reviewed your offer and can adjust our Angebot as follows. We checked the price history data you cited; it holds, but it does not change our calculation. Furthermore, we have reviewed the purchase order history for the bolt component; while verified, it does not directly alter the cost structure of the complete bundled kit. However, we value the consolidated commitment and are pleased to reduce our price to €5.51 per kit.
+
+For our current Angebot, we present a price of €5.51 per unit, Zahlungsziel 90 days net, a contract term of 24 months. We are maintaining your requested 90-day payment terms and 24-month contract duration.
+
+Please note that a binding higher volume would help us and can improve the price. Which volume can you commit to? Our price follows our main cost drivers: PPI-C2594, LCI-C. Our general terms and conditions apply; the quote lists our standard terms. This offer stays valid for 30 days.
+
+Mit freundlichen Grüßen
+Franz Stadler
+Inside Sales, Schraubenhandel Leitner & Sohn GmbH
+  SUPPLIER OFFER offer:70610-3: {"unit_price": 5.51, "payment_days": 90, "contract_months": 24}
+  CLAIMS: [{'index': 0, 'result': 'verified'}]
+  REASONS: ["We checked the price history data you cited; it holds, but it does not change our calculation.", "We have reviewed the purchase order history for the bolt component; while verified, it does not directly alter the cost structure of the complete bundled kit.", "However, we value the consolidated commitment and are pleased to reduce our price to €… per kit.", "We are maintaining your requested 90-day payment terms and 24-month contract duration.", "A binding higher volume would help us and can improve the price.", "Which volume can you commit to?", "Our general terms and conditions apply; the quote lists our standard terms.", "Our price follows our main cost drivers: PPI-C2594, LCI-C."]
+
+--- round 4 actor=buyer status=None
+Dear Mr Stadler,
+
+Thank you for reducing your offer to €5.51 per kit and retaining the agreed payment and contract terms. I understand that the verified bolt price history does not directly change your calculation for the complete kit.
+
+Our binding commitment remains 30000 kits a year throughout the contract, covering our full kit requirement. We cannot commit to a higher annual volume.
+
+For this review, please also see your delivery scorecard figures below. We are proposing consolidation with Leitner & Sohn despite that delivery record because your range and stated capacity to take on additional parts support the complete-kit arrangement.
+
+The revised term sheet proposes €5.28 per kit, payment at 90 days net and a term of 24 months, with DAP delivery and a lead time of 5 days. Regarding your general terms, please confirm that the expressly agreed package terms take precedence over any differing standard terms.
+
+With the annual commitment confirmed, what is your best price for this complete package?
+
+Kind regards,
+Hollerau Pumpenwerke GmbH, Purchasing
+
+Your supplier-wide on-time delivery against requested dates on scorecard sc:70610@2026Q3 (2026Q3, rolling 12 months) was 88.6 %.
+  TS: {"unit_price": 5.28, "payment_days": 90, "contract_months": 24}
+  REFS: ['sc:70610@2026Q3']
+
+--- round 4 actor=sup:70610 status=final_offer
+Dear customer,
+
+Thank you for your ongoing partnership. We have reviewed the delivery scorecard data you provided; while verified, it does not impact our calculation for this complete kit package. Acknowledging your firm volume commitment of 30,000 kits, we are pleased to offer a further improved price of €5.48 per kit while maintaining the 90-day payment and 24-month contract terms.
+
+This is our final offer (letztes Angebot). Please decide. To summarize our current offer, we propose a price of €5.48 per unit, Zahlungsziel 90 days net, a contract term of 24 months. Please note that our offer stays valid for 7 days.
+
+We confirm that the expressly agreed terms in our package take precedence over our general standard terms. Our standard terms apply to everything the quote does not state; see attached. Furthermore, our price follows our main cost drivers: PPI-C2594, LCI-C. A binding higher volume would help us and can improve the price. Which volume can you commit to?
+
+Mit freundlichen Grüßen
+Franz Stadler
+Inside Sales, Schraubenhandel Leitner & Sohn GmbH
+  SUPPLIER OFFER offer:70610-4: {"unit_price": 5.48, "payment_days": 90, "contract_months": 24}
+  CLAIMS: [{'index': 0, 'result': 'verified'}]
+  REASONS: ["We have reviewed the delivery scorecard data you provided; while verified, it does not impact our calculation for this complete kit package.", "We confirm that the expressly agreed terms in our package take precedence over our general standard terms.", "Acknowledging your firm volume commitment of … kits, we are pleased to offer a further improved price of €… per kit while maintaining the 90-day payment and 24-month contract terms.", "Our price follows our main cost drivers: PPI-C2594, LCI-C.", "Our standard terms apply to everything the quote does not state; see attached.", "A binding higher volume would help us and can improve the price.", "Which volume can you commit to?"]
+
+--- round 4 actor=buyer status=None
+
+=== BACKOFFICE ===
+r0 Inside Sales->team: quote attached (quote-offer-70610-0.pdf)
+r1 Inside Sales->team: My call: counter.
+r1 Inside Sales->team: Read the buyer's e-mail: … term sheet; we answer with our offer.
+r2 Inside Sales->team: My call: counter.
+r2 Inside Sales->team: Read the buyer's e-mail: … term sheet and … cited fact to check; we answer with our offer.
+r3 Inside Sales->team: My call: counter.
+r3 Inside Sales->team: Read the buyer's e-mail: … term sheet and … cited fact to check; we answer with our offer.
+r4 Inside Sales->team: My call: counter.
+r4 Inside Sales->team: Read the buyer's e-mail: … term sheet and … cited fact to check; we answer with our final offer.
+r4 Inside Sales->Logistics: The buyer asks something for Logistics; please answer.
+r4 Inside Sales->team: quote attached (quote-offer-70610-4.pdf)
+r4 Inside Sales->team: delivery schedule attached (delivery-schedule.xlsx)
+r4 Inside Sales->Logistics: The buyer asks something for Logistics; please answer.
+r4 Inside Sales->team: order confirmation attached (order-confirmation-offer-70610-4.pdf)
+r4 Inside Sales->team: quote attached (quote-offer-70610-4.pdf)
+r4 Inside Sales->team: delivery schedule attached (delivery-schedule.xlsx)

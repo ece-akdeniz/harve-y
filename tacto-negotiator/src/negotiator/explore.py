@@ -390,6 +390,20 @@ class Explorer:
         cost, sheet, terms = min(eligible, key=lambda item: item[0])
         return sheet["term_sheet_id"], terms, cost, std
 
+    @staticmethod
+    def acceptable(case, events):
+        """(sheet_id, terms, C, std) of the supplier's FIRST sheet - the only one the arena lets us
+        accept ("offer:...-a" alternatives answer HTTP 422 "not a standing offer"; L3-S2 on P18 lost
+        its accept that way). `standing` keeps pricing our levels off the cheapest sheet."""
+        msg = latest(events)
+        std = standard_terms(events)
+        sheets = msg.get("term_sheets") or []
+        for sheet in sheets[:1]:
+            terms = sheet.get("terms") or {}
+            if sheet.get("term_sheet_id") and terms.get("unit_price") is not None:
+                return sheet["term_sheet_id"], terms, total_cost(case, terms, std), std
+        return None, {}, math.inf, std
+
     def _ours(self, events):
         return sum(1 for m in events if m.get("from") == "buyer")
 
@@ -421,7 +435,7 @@ class Explorer:
             msg = latest(ev)
             if msg.get("status") in ENDED:
                 continue
-            sheet_id, terms, c, std = self.standing(case, ev)
+            sheet_id, terms, c, std = self.acceptable(case, ev)
             if sheet_id and must_haves_ok(case, terms, std) and (best is None or c < best[0]):
                 best = (c, sid, sheet_id, terms)
         return best
@@ -433,7 +447,7 @@ class Explorer:
         for sid in live:
             msg = latest(threads[sid])
             if msg.get("status") == "agreed":
-                sheet_id, terms, c, std = self.standing(case, threads[sid])
+                sheet_id, terms, c, std = self.acceptable(case, threads[sid])
                 if sheet_id and c <= c_alt and must_haves_ok(case, terms, std):
                     return self._accept(case, sid, sheet_id, c, "agreed")
         # 2. park finals; decide whether anything is still worth talking to
@@ -669,7 +683,7 @@ class Explorer:
         if out is None:
             out, sheets, cs, claims = self._fallback(case, threads, sid, men, bank, c_stand)
         if out.get("action") == "accept":
-            sheet_id, s_terms, c, std = self.standing(case, threads[sid])
+            sheet_id, s_terms, c, std = self.acceptable(case, threads[sid])
             if sheet_id and c <= self.c_alt(case) and must_haves_ok(case, s_terms, std):
                 return self._accept(case, sid, sheet_id, c, "llm recommends; code checked vs alternative")
         body = out["body"].rstrip()
