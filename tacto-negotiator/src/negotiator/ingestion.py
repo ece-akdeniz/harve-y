@@ -3,6 +3,7 @@
 import hashlib
 import json
 import sqlite3
+import threading
 from datetime import UTC, datetime
 
 from arena_kit.data import DataPackage
@@ -15,6 +16,11 @@ def fingerprint(value):
 class VersionedPackage(DataPackage):
     def __init__(self, root, release=None):
         super().__init__(root, release)
+        # One package is shared by every agent of a run (`dossiers.load_package` caches it) and the
+        # agents decide in parallel threads: SQLite's shared connection and the lazily built citable-ID
+        # index must not be used concurrently (interleaved statements return rows of the wrong shape).
+        self._lock = threading.RLock()
+        self._documents: dict[str, str] = {}
         self.warnings = []
         base = json.loads((self.root / "facts.json").read_text())
         extra = json.loads((self.release / "facts.json").read_text()) if self.release else {}
@@ -44,7 +50,8 @@ class VersionedPackage(DataPackage):
                 self.warnings.append("no SQLite database")
             return []
         try:
-            return super().query(sql, params, limit)
+            with self._lock:
+                return super().query(sql, params, limit)
         except sqlite3.OperationalError as exc:
             if not str(exc).startswith(("no such table:", "no such column:")):
                 raise
@@ -52,11 +59,28 @@ class VersionedPackage(DataPackage):
                 self.warnings.append(str(exc))
             return []
 
+    def tables(self):
+        with self._lock:
+            return super().tables()
+
     def lookup(self, ref):
-        return None if ref in self.conflicts else super().lookup(ref)
+        if ref in self.conflicts:
+            return None
+        with self._lock:
+            return super().lookup(ref)
 
     def ids(self, prefix):
-        return [ref for ref in super().ids(prefix) if ref not in self.conflicts]
+        with self._lock:
+            return [ref for ref in super().ids(prefix) if ref not in self.conflicts]
+
+    def document(self, ref):
+        # Package documents (contracts, letters) are immutable for the run; claim checks re-read the
+        # contract behind a notice claim on every decision, so keep the text once it has been read.
+        with self._lock:
+            hit = self._documents.get(ref)
+            if hit is None:
+                hit = self._documents[ref] = super().document(ref)
+            return hit
 
 
 def context_manifest(case, package):

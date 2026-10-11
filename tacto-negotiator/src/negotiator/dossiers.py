@@ -10,6 +10,8 @@ Loading goes through `arena_kit.data.DataPackage`, so the Sunday release (ARENA_
 """
 
 import os
+import sqlite3
+import threading
 import weakref
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -32,15 +34,69 @@ CASH_SHORT_RATE = 0.15
 CRISIS_RATE = 0.20
 ASSUMED_MARGIN = 0.06  # only without any should-cost row
 _BUILT: weakref.WeakKeyDictionary = weakref.WeakKeyDictionary()  # package -> build(package)
+_BUILT_LOCK = threading.Lock()
+# Loaded packages by (root, release, facts/sqlite mtime+size): every caller of `load_package()` shares
+# one `VersionedPackage` (and so one `_BUILT` dossier set) as long as the files are unchanged. Loading
+# re-reads facts.json and hashes every package file, so ten agents starting at once used to do it ten
+# times each. The key changes with the files, so an updated package (e.g. the Sunday release dropped
+# in) is still picked up by the next call.
+_PACKAGES: dict[tuple, VersionedPackage] = {}
+_PACKAGES_LOCK = threading.Lock()
+
+
+def _file_stamp(path: Path) -> tuple:
+    try:
+        st = path.stat()
+    except OSError:
+        return (str(path), None, None)
+    return (str(path), st.st_mtime_ns, st.st_size)
+
+
+def package_key(data_dir, release) -> tuple:
+    """Cache key of the package at `data_dir` (+ `release`): paths and the facts/database stamps."""
+    root = Path(data_dir).expanduser().resolve()
+    rel = Path(release).expanduser().resolve() if release else None
+    stamps = [_file_stamp(root / "facts.json")]
+    stamps += [_file_stamp(p) for p in sorted(root.glob("*.sqlite"))]
+    if rel is not None:
+        stamps.append(_file_stamp(rel / "facts.json"))
+    else:  # DataPackage's implicit Sunday release folders
+        stamps += [_file_stamp(p / "release-sunday" / "facts.json") for p in (root, root.parent)]
+    return (str(root), str(rel) if rel else None, tuple(stamps))
+
+
+def _alive(package) -> bool:
+    """False once a caller closed the shared connection (lab commands do), so it is reloaded."""
+    db = getattr(package, "db", None)
+    if db is None:
+        return True
+    try:
+        with package._lock:
+            db.execute("SELECT 1").fetchone()
+    except sqlite3.ProgrammingError:
+        return False
+    return True
 
 
 def load_package(data_dir=None, release=None) -> DataPackage:
-    """The data package plus the Sunday release overlay (`release` or ARENA_RELEASE)."""
+    """The data package plus the Sunday release overlay (`release` or ARENA_RELEASE). Cached per
+    (package files, release): repeated calls return the same object while the files are unchanged."""
     explicit = data_dir or os.environ.get("ARENA_DATA")
     for c in ([explicit] if explicit else DATA_CANDIDATES):
         if c and (Path(c).expanduser() / "facts.json").is_file():
-            return VersionedPackage(c, release=release or os.environ.get("ARENA_RELEASE"))
+            rel = release or os.environ.get("ARENA_RELEASE")
+            key = package_key(c, rel)
+            with _PACKAGES_LOCK:
+                package = _PACKAGES.get(key)
+                if package is None or not _alive(package):
+                    package = _PACKAGES[key] = VersionedPackage(c, release=rel)
+            return package
     raise FileNotFoundError("data package not found: pass data_dir, set ARENA_DATA or run `uv run arena data`")
+
+
+def cache_sizes() -> dict:
+    """Sizes of the module caches (for the `prewarm` trace row)."""
+    return {"packages": len(_PACKAGES), "dossiers": sum(len(v) for v in _BUILT.values())}
 
 
 @dataclass
@@ -207,7 +263,10 @@ def build_one(package, supplier_id: str) -> Dossier | None:
     """One dossier (also for suppliers without `detail = 'full'`)."""
     full = _BUILT.get(package)
     if full is None:
-        full = _BUILT[package] = build(package)
+        with _BUILT_LOCK:  # ten agents at once: build the shared set once
+            full = _BUILT.get(package)
+            if full is None:
+                full = _BUILT[package] = build(package)
     if supplier_id in full:
         return full[supplier_id]
     rows = package.query("SELECT * FROM suppliers WHERE id = ?", (supplier_id,)) if package.db else []

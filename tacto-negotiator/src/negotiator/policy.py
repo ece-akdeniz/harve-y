@@ -82,6 +82,12 @@ class PolicyConfig:
     # stated/fastest legal payment term at the price where its `supplier_value` is unchanged, floored at
     # buyer-cost parity (our C never rises).
     supplier_payment_trade: bool = False
+    # Runtime (decision-neutral): load the data package, every supplier dossier, facts.json and the
+    # package file scan once at launch, before the wave-case polling starts, and build each case's
+    # evidence context / estimates / traits in parallel before its session opens (`negotiator.prewarm`).
+    # Same objects and values as the lazy first-decision loads; only the first decision gets faster.
+    # Default on: with ten cases starting at once the lazy loads cost 11-27 s of the first 60 s window.
+    prewarm: bool = True
 
     @classmethod
     def load(cls, path):
@@ -117,7 +123,7 @@ class PolicyConfig:
         for k in ("cost_neutral_lead_time", "cost_target_index_clause", "rfq_nonleading_hold", "rfq_final_guard",
                   "rfq_supplier_lead_time", "rfq_rival_offer", "rfq_supplier_payment", "rfq_rival_offer_history",
                   "rfq_undercut_reanchor", "rfq_data_claims", "rfq_data_claims_stack",
-                  "claim_pacing", "reciprocal_schedule", "supplier_payment_trade"):
+                  "claim_pacing", "reciprocal_schedule", "supplier_payment_trade", "prewarm"):
             if type(d.get(k, False)) is not bool:
                 raise ValueError(f"{k} must be boolean")
         post = d.get("cost_target_posterior", 0.0)

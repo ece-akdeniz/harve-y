@@ -5,6 +5,7 @@ import hashlib
 import json
 import re
 import sqlite3
+import threading
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
@@ -17,6 +18,59 @@ DATA_ERRORS = (OSError, ValueError, KeyError, TypeError, ZeroDivisionError, sqli
 
 def content_hash(value):
     return hashlib.sha256(json.dumps(value, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
+
+
+_SCANS: dict[tuple, tuple[dict, dict, dict]] = {}
+_SCANS_LOCK = threading.Lock()
+
+
+def _tree_stamp(base) -> tuple:
+    out = []
+    for p in sorted(Path(base).rglob("*")):
+        if p.is_file():
+            st = p.stat()
+            out.append((str(p), st.st_mtime_ns, st.st_size))
+    return tuple(out)
+
+
+def _scan(root, release) -> tuple[dict, dict, dict]:
+    files, origins, manifests = {}, {}, {}
+    for base in (root, release):
+        if base:
+            for path in sorted(Path(base).rglob("*")):
+                if path.is_file():
+                    files[str(path.resolve())] = hashlib.sha256(path.read_bytes()).hexdigest()
+                    if path.name == "datapackage.json":
+                        manifest = json.loads(path.read_text(encoding="utf-8"))
+                        snapshot = re.search(r"Data as of (\d{4}-\d{2}-\d{2})", manifest.get("description", ""))
+                        manifests[str(path.resolve())] = {
+                            "name": manifest.get("name"), "version": manifest.get("version"),
+                            "snapshot_date": snapshot.group(1) if snapshot else None,
+                        }
+                    if path.name == "facts.json":
+                        layer = "release" if base == release else "base"
+                        resolved = str(path.resolve())
+                        origins.update({ref: {"layer": layer, "path": resolved}
+                                        for ref in json.loads(path.read_text(encoding="utf-8"))})
+    return files, origins, manifests
+
+
+def package_scan(root, release) -> tuple[dict, dict, dict]:
+    """(file sha256s, fact origins, datapackage manifests) of the package tree and release: a pure
+    function of the files on disk, cached by their (path, mtime, size) stamps so that the first
+    evidence context of every case does not re-hash the whole package. Copies are returned."""
+    key = (str(root) if root else None, str(release) if release else None,
+           tuple(_tree_stamp(b) for b in (root, release) if b))
+    with _SCANS_LOCK:
+        hit = _SCANS.get(key)
+        if hit is None:
+            hit = _SCANS[key] = _scan(root, release)
+    files, origins, manifests = hit
+    return dict(files), dict(origins), {k: dict(v) for k, v in manifests.items()}
+
+
+def cache_sizes() -> dict:
+    return {"package_scans": len(_SCANS)}
 
 
 @dataclass
@@ -60,25 +114,7 @@ def build_context(case, package):
     facts = copy.deepcopy(case_facts(case, package))
     root = getattr(package, "root", None)
     release = getattr(package, "release", None)
-    files = {}
-    origins = {}
-    manifests = {}
-    for base in (root, release):
-        if base:
-            for path in sorted(Path(base).rglob("*")):
-                if path.is_file():
-                    files[str(path.resolve())] = hashlib.sha256(path.read_bytes()).hexdigest()
-                    if path.name == "datapackage.json":
-                        manifest = json.loads(path.read_text(encoding="utf-8"))
-                        snapshot = re.search(r"Data as of (\d{4}-\d{2}-\d{2})", manifest.get("description", ""))
-                        manifests[str(path.resolve())] = {
-                            "name": manifest.get("name"), "version": manifest.get("version"),
-                            "snapshot_date": snapshot.group(1) if snapshot else None,
-                        }
-                    if path.name == "facts.json":
-                        layer = "release" if base == release else "base"
-                        origins.update({ref: {"layer": layer, "path": str(path.resolve())}
-                                        for ref in json.loads(path.read_text(encoding="utf-8"))})
+    files, origins, manifests = package_scan(root, release)
     context = EvidenceContext(
         case["case_id"], tuple(case.get("suppliers") or []), tuple(case.get("parts") or []),
         {"root": str(root) if root else None, "release": str(release) if release else None,
