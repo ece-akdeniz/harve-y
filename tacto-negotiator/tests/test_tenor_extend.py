@@ -1,5 +1,6 @@
-"""`tenor_extend_types`: from our second offer on, extend contract_months to the longest cost-neutral
-option on capacity cases (P10); the first offer and other case types are unchanged."""
+"""`tenor_extend_types` (opt-in, off in score-push-v6): from our second offer on, extend contract_months to
+the longest cost-neutral option on capacity cases (P10); the first offer and other case types are unchanged.
+Hosted P10 `dedfccbdc54b873c`: 31.80 / 36 m final = the 24 m score (.6551), so the flag is kept off."""
 
 import json
 from pathlib import Path
@@ -11,6 +12,7 @@ from negotiator.policy import PolicyConfig
 
 V5 = "configs/score-push-v5.json"
 V6 = "configs/score-push-v6.json"
+TE = "configs/p10-tenor-extend.json"
 
 
 def case(cid):
@@ -26,19 +28,22 @@ def _p10_thread():
     return c, sid, opening
 
 
-def test_v6_differs_from_v5_only_in_posterior_and_tenor_extend():
+def test_v6_differs_from_v5_only_in_the_posterior():
     v5 = json.loads(Path(V5).read_text())
     v6 = json.loads(Path(V6).read_text())
-    assert {k: v6[k] for k in v6 if k not in ("cost_target_posterior", "tenor_extend_types")} == {
+    assert {k: v6[k] for k in v6 if k != "cost_target_posterior"} == {
         k: v5[k] for k in v5 if k != "cost_target_posterior"}
-    assert v6["cost_target_posterior"] == 0.1 and v6["tenor_extend_types"] == ["capacity"]
-    assert PolicyConfig.load(V6).tenor_extend_types == ("capacity",)
+    assert v6["cost_target_posterior"] == 0.1 and v5["cost_target_posterior"] == 0.15
+    assert PolicyConfig.load(V6).tenor_extend_types == ()
+    te = json.loads(Path(TE).read_text())
+    assert {k: te[k] for k in te if k != "tenor_extend_types"} == v6
+    assert PolicyConfig.load(TE).tenor_extend_types == ("capacity",)
 
 
 def test_p10_first_offer_unchanged_second_offer_extends_to_36_months():
     c, sid, opening = _p10_thread()
     a5 = PackageAgent(policy=PolicyConfig.load(V5), claims=False)
-    a6 = PackageAgent(policy=PolicyConfig.load(V6), claims=False)
+    a6 = PackageAgent(policy=PolicyConfig.load(TE), claims=False)
     first5 = a5.propose(c, {sid: [opening]}, sid)["message"]["term_sheets"][0]["terms"]
     first6 = a6.propose(c, {sid: [opening]}, sid)["message"]["term_sheets"][0]["terms"]
     assert first6 == first5 and first6["contract_months"] == 24
@@ -65,7 +70,7 @@ def test_tenor_extend_leaves_other_types_alone():
     sid = c["suppliers"][0]
     events = {sid: [msg("open", ("offer:0", {"unit_price": 5.74, "payment_days": 30, "contract_months": 12}))]}
     a5 = PackageAgent(policy=PolicyConfig.load(V5), claims=False)
-    a6 = PackageAgent(policy=PolicyConfig.load(V6), claims=False)
+    a6 = PackageAgent(policy=PolicyConfig.load(TE), claims=False)
     first = a5.propose(c, events, sid)
     assert a6.propose(c, events, sid) == first
     ours = {"from": "buyer", **first["message"]}
