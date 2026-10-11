@@ -187,8 +187,15 @@ Verification:
 
 ### Final launch command (v6)
 
+**Prerequisite:** the checkout must contain `.env` (gitignored; `ARENA_API_KEY`, `LLM_*`,
+`NEGOTIATOR_MOVE_BUDGET_S`). `Settings` loads it from the cwd; without it every arena call is HTTP 401
+(ten-case attempt #1, 06:20). Copy it from the source checkout:
+`cp /Users/sametdegirmenci/Downloads/ysamet/tacto-negotiator/.env .` — and keep the explicit `export ARENA_DATA`
+below (the `.env` value points at a stale path; the exported variable wins over dotenv).
+
 ```bash
 cd /Users/sametdegirmenci/Downloads/ysamet-release/tacto-negotiator   # or any checkout at main
+test -f .env || cp /Users/sametdegirmenci/Downloads/ysamet/tacto-negotiator/.env .
 export ARENA_DATA=/Users/sametdegirmenci/Downloads/ysamet/tacto-negotiator/data/package
 mkdir -p experiments/runs
 NEGOTIATOR_JOURNAL="$PWD/experiments/runs/final-journal.jsonl" \
@@ -196,10 +203,14 @@ caffeinate -dimsu uv run --locked negotiator run --set final --runner auto \
   --policy-config configs/score-push-v6.json --parallel 10 > experiments/runs/final.log 2>&1
 ```
 
-### Ten-case practice confirmation (v6; not run by this worker)
+### Ten-case practice confirmation (v6)
+
+Same `.env` prerequisite as the final launch (see above). Run on 2026-10-11 06:23 CEST at main `43ea205`,
+results in section 10.
 
 ```bash
 cd /Users/sametdegirmenci/Downloads/ysamet-release/tacto-negotiator
+test -f .env || cp /Users/sametdegirmenci/Downloads/ysamet/tacto-negotiator/.env .
 export ARENA_DATA=/Users/sametdegirmenci/Downloads/ysamet/tacto-negotiator/data/package
 mkdir -p experiments/runs
 caffeinate -dimsu uv run --locked negotiator lab run \
@@ -236,3 +247,36 @@ Source: `ysamet-coord/AUDIT-generalization.md` (sim-only audit of v6 on unseen-s
   (`/tmp/replay-v6-bfa23e6.json`, `/tmp/replay-v6-hardened.json`).
 - Not applied (per the audit's recommendation): #5 final counter, #6 quality value-swap re-send, #7–#9.
 - Launch and ten-case commands: unchanged from section 8 (v6).
+
+## 10. Ten-case practice confirmation of v6 at main `43ea205` (2026-10-11 06:20–06:24 CEST)
+
+Tracked `lab run` `552b2a35-5d40-4c82-9e30-c471d399d02c` (section 8 command verbatim; provenance commit
+`43ea2052…`, `dirty: false`, lock `a0ec7fe1…`, data `dfcb322f…`). Artifacts: `experiments/traces/v6-confirm-10case/`
+(`run.json`, `serial.jsonl`, `async-1-case-P05.jsonl`, `lab-run.log.txt`, plus `attempt1-401-run.json`).
+
+Attempt #1 (06:20, run `a858d4ae…`) failed before any session was created: the release worktree had no `.env`,
+so no `X-API-Key` → HTTP 401 on all ten attempts, `session_id: null`, **0 sessions consumed**. `.env` copied
+in; `GET /me` (zero-cost) confirmed `team y/agent`, practice 409 used / 341 left; attempt #2 launched 06:23:09.
+
+| case | score | expected | Δ | rounds | wall s | supplier | unit price | key terms |
+|---|---|---|---|---|---|---|---|---|
+| P01 | 0.9702 | .9702 | 0 | 5 | 4.6 | 70110 | 132.90 | eff 2027-04-01, pay 14, FCA, 12 m |
+| P02 | 0.7351 | .7351 | 0 | 2 | 3.0 | 70510 | 361.09 | CU-NOTATION 20 %/5 % deadband/base 2026-08, pay 90 |
+| P03 | 0.8998 | .8998 | 0 | 7 | 5.1 | 70530 | 433.08 | 36 m, pay 90, LT 49 |
+| P04 | 0.8604 | .8604 | 0 | 4 | 3.6 | 70620 | 4.94 | 24 m, pay 90, LT 7 |
+| P05 | 0.8136 | .8136 | 0 | 13 | 13.3 | 70210 | 28.00 | 24 m, pay 14, 4200/yr (3 threads, 0 timeouts) |
+| P07 | 0.7600 | .7600 | 0 | 5 | 4.3 | 70610 | 5.39 | 24 m, pay 90, LT 5 |
+| P08 | 0.7036 | .7036 | 0 | 5 | 4.0 | 70710 | 5.21 | AS-14404 45 %/0 %, 94 800/yr fixed, pay 90 |
+| P10 | 0.6551 | .6551 | 0 | 3 | 8.9 | 70410 | 31.80 | 24 m, pay 30, 23 400/yr |
+| P11 | 0.8771 | .8771 | 0 | 6 | 5.3 | 70140 | 44.50 | 12 m, pay 60, FCA |
+| P18 | 0.5870 | .5870 | 0 | 5 | 4.5 | 70740 | 5.20 | AS-14404 45 %/0 %, 23 700/yr fixed, pay 90 |
+
+- **Mean 0.7862** (0.78619355) = projected .7862. Every case within 5e-5 of the expected value (all deals,
+  `must_haves_ok` true on all ten). No deviation > .005, so no transcript branch to explain.
+- 0 timeouts (`timeouts: 0` on every attempt; P05 `thread_timeouts` 0/0/0). No guard, prewarm-miss or
+  fallback events in `serial.jsonl` / the P05 journal; `agent_metrics.model.calls = 0`, `fallbacks = 0` (fully
+  deterministic path, no model calls). Wall time 06:23:10 → 06:24:17 (67 s; longest case P05 13.3 s).
+- Sessions: journals show exactly **10** `POST /sessions` (9 serial + P05 async), ten distinct session ids.
+  Arena counter moved 409 → 420 (11); the extra unit is not attributable to this run (no retry, 65 intents /
+  65 done, 0 sessions in attempt #1). Practice left 330/750, resets 11:39 UTC.
+- Verdict: v6 at main `43ea205` reproduces v4/v5/v6 projections exactly on the practice set — ship candidate confirmed.
