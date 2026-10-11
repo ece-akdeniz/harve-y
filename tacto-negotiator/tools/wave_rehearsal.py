@@ -33,6 +33,7 @@ from arena_kit.sim import Fail, Sim
 
 from negotiator.agent import configured_agent
 from negotiator.client import UncertainOutcome
+from negotiator.prewarm import prewarm_async, prewarm_case_async
 from negotiator.runner import CaseRunner, Clock
 from negotiator.state import Journal
 
@@ -125,22 +126,36 @@ def facts():
         return {}
 
 
-async def play_wave(label, cfg, cases, known, *, delay_s, guard, clock, journal_dir):
+async def play_wave(label, cfg, cases, known, *, delay_s, guard, clock, journal_dir, prewarm=True):
     trace = Trace()
-    arena = SimArena(cases, known, clock, delay_s)
+    # As hosted: the listing carries `hosted`, the opened session's case does not (context cache key).
+    arena = SimArena({k: {f: v for f, v in c.items() if f != "hosted"} for k, c in cases.items()}, known, clock,
+                     delay_s)
     t0 = clock.time()
     cap = t0 + WAVE_S
 
-    async def one(case_id):
+    def make_agent():
         policy = dict(cfg["policy_config"])
         # Package advice (an LLM call) is serial-runner only; the async wave runner rejects it, and the
         # rehearsal is offline. Dropped here; everything else in the policy is live.
         policy.pop("package_advice_types", None)
+        policy["prewarm"] = bool(prewarm)
         agent = configured_agent(policy, tracer=trace, estimates=cfg.get("estimates", {}),
                                  meso=cfg.get("meso", False))
         if not guard:
             agent.time_guard_rounds = 0
-        runner = CaseRunner(arena, case_id, agent, Journal(Path(journal_dir) / f"{label}-{case_id[5:]}.jsonl"),
+        return agent
+
+    if prewarm:  # as `runner.run_waves`: once, before the wave's cases are polled/started
+        await prewarm_async(make_agent, tracer=trace)
+    wave_t0 = clock.time()
+
+    async def one(case_id):
+        agent = make_agent()
+        if prewarm:  # as `runner.play_case`: per case, in a thread, before the session opens
+            await prewarm_case_async(agent, cases[case_id], tracer=trace)
+        variant = f"{label}-g{int(guard)}-p{int(prewarm)}-{case_id[5:]}"
+        runner = CaseRunner(arena, case_id, agent, Journal(Path(journal_dir) / f"{variant}.jsonl"),
                             case=cases[case_id], deadline=lambda: cap, clock=clock, tracer=trace)
         try:
             return await runner.run()
@@ -148,6 +163,7 @@ async def play_wave(label, cfg, cases, known, *, delay_s, guard, clock, journal_
             return {"error": f"{type(exc).__name__}: {exc}", "session_id": runner.st.session_id if runner.st else None}
 
     results = dict(zip(cases, await asyncio.gather(*(one(c) for c in cases)), strict=True))
+    warm = [r for r in trace.rows if r["event"] == "prewarm"]
     rows = []
     for case_id, result in results.items():
         sid = result.get("session_id")
@@ -158,8 +174,11 @@ async def play_wave(label, cfg, cases, known, *, delay_s, guard, clock, journal_
         closes = [r for r in trace.rows if r["event"] == "close" and r.get("case") == case_id]
         rounds = [r for r in trace.rows if r["event"] == "round_time" and r.get("case") == case_id]
         end = next((r for r in trace.rows if r["event"] == "case_end" and r.get("case") == case_id), {})
+        warm_case = next((r for r in trace.rows if r["event"] == "prewarm_case" and r.get("case") == case_id), None)
+        firsts = [r["decide_s"] for r in rounds if r.get("round") == 1]
         rows.append({
-            "config": label, "guard": guard, "delay_s": delay_s, "case": case_id, "type": cases[case_id]["type"],
+            "config": label, "guard": guard, "delay_s": delay_s, "prewarm": prewarm, "case": case_id,
+            "type": cases[case_id]["type"],
             "deal": result.get("deal"), "score": result.get("score"), "error": result.get("error"),
             "end_reason": sess["end_reason"] if sess else None, "how": end.get("how"),
             "close_reasons": [c.get("reason") for c in closes],
@@ -171,6 +190,10 @@ async def play_wave(label, cfg, cases, known, *, delay_s, guard, clock, journal_
                                         "decide_s": [r["decide_s"] for r in rounds if r["supplier"] == t["supplier"]],
                                         "reply_s": [r["reply_s"] for r in rounds if r["supplier"] == t["supplier"]]}
                         for t in threads},
+            "first_decide_s": max(firsts) if firsts else None,
+            "prewarm_case_s": warm_case.get("seconds") if warm_case else None,
+            "prewarm_s": warm[0].get("seconds") if warm else None,
+            "wave_start_offset_s": round(wave_t0 - t0, 2),
             "case_s": round(max([t["total_s"] or 0 for t in threads] or [0]), 1),
             "timeouts": result.get("thread_timeouts"),
         })
@@ -178,16 +201,17 @@ async def play_wave(label, cfg, cases, known, *, delay_s, guard, clock, journal_
 
 
 def table(rows):
-    head = ("config", "guard", "delay", "case", "type", "deal", "score", "end_reason", "case_s", "rounds",
-            "slowest_round_s", "guard_fired", "guard_actions")
+    head = ("config", "guard", "prewarm", "delay", "case", "type", "deal", "score", "end_reason", "case_s", "rounds",
+            "slowest_round_s", "first_decide_s", "prewarm_case_s", "guard_fired", "guard_actions")
     out = [" | ".join(head)]
     for r in rows:
         rounds = "/".join(str(t["rounds"]) for t in r["threads"].values())
         slow = max([t["slowest_round_s"] for t in r["threads"].values()] or [0])
         out.append(" | ".join(str(x) for x in (
-            r["config"], "on" if r["guard"] else "off", r["delay_s"], r["case"], r["type"], r["deal"],
+            r["config"], "on" if r["guard"] else "off", "on" if r["prewarm"] else "off", r["delay_s"], r["case"],
+            r["type"], r["deal"],
             None if r["score"] is None else round(r["score"], 3), r["end_reason"] or r["error"], r["case_s"],
-            rounds, slow, r["guard_fired"], ",".join(r["guard_actions"]))))
+            rounds, slow, r["first_decide_s"], r["prewarm_case_s"], r["guard_fired"], ",".join(r["guard_actions"]))))
     return "\n".join(out)
 
 
@@ -200,13 +224,18 @@ async def main_async(args):
     for path in args.config:
         cfg, label = load_config(path), Path(path).stem
         for guard in {"on": [True], "off": [False], "both": [True, False]}[args.guard]:
-            # One wave at a time: a wave's cases run in parallel (as hosted), variants do not share CPU.
-            rows += await play_wave(label, cfg, cases, known, delay_s=args.delay, guard=guard,
-                                    clock=ScaledClock(args.scale), journal_dir=journal_dir)
-            print(f"wave done: {label} guard={'on' if guard else 'off'}", file=sys.stderr, flush=True)
+            for prewarm in {"on": [True], "off": [False], "both": [True, False]}[args.prewarm]:
+                # One wave at a time: a wave's cases run in parallel (as hosted), variants do not share CPU.
+                rows += await play_wave(label, cfg, cases, known, delay_s=args.delay, guard=guard,
+                                        clock=ScaledClock(args.scale), journal_dir=journal_dir, prewarm=prewarm)
+                print(f"wave done: {label} guard={'on' if guard else 'off'} prewarm={'on' if prewarm else 'off'}",
+                      file=sys.stderr, flush=True)
     print(table(rows))
     slowest_decide = max(t["slowest_decide_s"] for r in rows for t in r["threads"].values())
     print(f"\nagent decision time: slowest {slowest_decide} s")
+    first = max((r["first_decide_s"] or 0) for r in rows)
+    warm = [r["prewarm_s"] for r in rows if r["prewarm_s"] is not None]
+    print(f"first decision per case: slowest {first} s; package prewarm {warm[0] if warm else None} s")
     worst = max(rows, key=lambda r: r["case_s"] or 0)
     print(f"\nworst-case thread/case duration: {worst['case_s']} s ({worst['config']} guard="
           f"{'on' if worst['guard'] else 'off'} {worst['case']}); wave cap {WAVE_S:.0f} s")
@@ -226,6 +255,8 @@ def main(argv=None):
     ap.add_argument("--delay", type=float, default=0.0, help="injected supplier reply delay, seconds")
     ap.add_argument("--scale", type=float, default=1.0, help="clock compression (1 = real wall clock)")
     ap.add_argument("--guard", choices=["on", "off", "both"], default="on", help="agent wave time guard")
+    ap.add_argument("--prewarm", choices=["on", "off", "both"], default="on",
+                    help="pre-warm the package/dossiers before the wave and each case before it opens")
     ap.add_argument("--case", action="append", help="restrict to these case ids")
     ap.add_argument("--out", help="JSON output path")
     args = ap.parse_args(argv)

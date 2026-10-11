@@ -742,6 +742,9 @@ class CaseRunner:
 
 
 async def play_case(arena, case_id: str, agent, journal: Journal, **kw) -> dict:
+    from .prewarm import prewarm_case_async
+
+    await prewarm_case_async(agent, kw.get("case"), tracer=kw.get("tracer"))  # before the session opens
     return await CaseRunner(arena, case_id, agent, journal, **kw).run()
 
 
@@ -827,6 +830,9 @@ async def run_waves(
                 log.exception("%s failed", case["case_id"])
                 return e
 
+    from .prewarm import prewarm_async
+
+    await prewarm_async(new_agent, tracer=kw.get("tracer"))  # package, dossiers, facts: before the first poll
     while len(closed) < waves or not all(f.done() for f in started.values()):
         try:
             try:
