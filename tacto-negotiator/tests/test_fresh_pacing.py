@@ -1,4 +1,4 @@
-"""Opt-in `claim_pacing`: one verified claim per message, deeper bank, nothing on finals."""
+"""Opt-in `claim_pacing`: one verified claim per kind per message, deeper bank after a deferral, nothing on finals."""
 
 import json
 from pathlib import Path
@@ -152,16 +152,58 @@ def test_pacing_never_decorates_after_final_offer_and_skips_history_at_or_above_
     assert not any(r.startswith("po:") for r in refs)
 
 
-def test_p08_hedged_supplier_gets_history_not_index_claims(package):
+def test_p08_hedged_supplier_without_deferral_is_unchanged_by_pacing(package):
+    """P08's hedged supplier gets no index window under v3 (empty preferred bank); pacing never deferred
+    anything in that thread, so the deeper bank stays closed and the messages equal the flag-off ones."""
     case, sid = CASES["case:P08"], "sup:70710"
-    ev = _policy(package, pacing=True)
+    ev, base = _policy(package, pacing=True), _policy(package, pacing=False)
     events = [_supplier(6.05)]
-    kinds = []
     for _ in range(4):
         out = ev.enrich(case, {sid: events}, sid, _move())
-        refs = out["message"].get("refs") or []
-        kinds += sorted({r.split(":")[0] for r in refs})
+        assert out == base.enrich(case, {sid: events}, sid, _move()) == _move()
         events = [*events, {"from": "buyer", **out["message"]}, _supplier(6.0)]
-    # order history and the scorecard, never an index window (hedged) and never the supplier's own
-    # quote:7300008 (not a case ref: the arena rated it `irrelevant` in run 9a4fbb93)
-    assert "idx" not in kinds and "quote" not in kinds and "po" in kinds
+
+
+def test_pacing_keeps_mixed_kind_bundles_together_and_defers_only_same_kind():
+    """The decision rule behind v4: every bundle v3 sends in one message (P01 notice+index+scorecard,
+    P11 scorecard+index) stays in that message; only a second claim of a kind already carried waits."""
+    def claim(kind, *ids):
+        return Claim(kind, ids, 1.0, "%", "s", supplier_id="sup:A", subject=ids[0])
+
+    notice, idx_a, idx_b, sc = claim("notice", "doc:1", "ctr:1"), claim("index_change", "idx:A"), \
+        claim("index_change", "idx:B"), claim("scorecard_otd", "sc:1")
+    kept, deferred = EvidencePolicy.pace([notice, idx_a, sc])
+    assert (kept, deferred) == ([notice, idx_a, sc], [])
+    kept, deferred = EvidencePolicy.pace([idx_a, idx_b])
+    assert (kept, deferred) == ([idx_a], [idx_b])
+    kept, deferred = EvidencePolicy.pace([sc, idx_a, idx_b])
+    assert (kept, deferred) == ([sc, idx_a], [idx_b])
+    # the deeper bank opens only once two claims of one kind were sent in the thread
+    bank = [notice, idx_a, idx_b, sc]
+    one_each = [{"from": "buyer", "refs": ["doc:1", "ctr:1", "idx:A", "sc:1"]}]
+    assert not EvidencePolicy.paced_before(bank, one_each)
+    spread = [{"from": "buyer", "refs": ["idx:A"]}, {"from": "supplier"}, {"from": "buyer", "refs": ["idx:B"]}]
+    assert EvidencePolicy.paced_before(bank, spread)
+    assert not EvidencePolicy.paced_before(bank, [])
+
+
+def test_pacing_first_message_of_p01_and_p11_equals_v3(package):
+    """Round 1 of the validated runs: P01 (.9602/.9702) notice + PPI-D351 + scorecard, P11 (.8771)
+    scorecard + PPI-D351 - identical with and without `claim_pacing`; P18 defers PPI-C2431 to message 2."""
+    for cid, sid, price in (("case:P01", "sup:70110", 140.0), ("case:P11", "sup:70140", 46.0)):
+        case = CASES[cid]
+        events = [{**_supplier(price), "status": "open"}]
+        move = {**_move(price), "supplier_id": sid}
+        on = _policy(package, pacing=True).enrich(case, {sid: events}, sid, move)
+        off = _policy(package, pacing=False).enrich(case, {sid: events}, sid, move)
+        assert on == off and len(on["message"]["refs"]) >= 2, cid
+    case, sid = CASES["case:P18"], "sup:70740"
+    ev = _policy(package, pacing=True)
+    first = ev.enrich(case, {sid: [_supplier(6.10)]}, sid, _move())
+    assert first["message"]["refs"] == ["idx:AS-14404@2026-06", "idx:AS-14404@2026-09"]
+    events = [_supplier(6.10), {"from": "buyer", **first["message"]}, _supplier(5.40)]
+    second = ev.enrich(case, {sid: events}, sid, _move(5.39))
+    assert second["message"]["refs"] == ["idx:PPI-C2431@2026-06", "idx:PPI-C2431@2026-08"]
+    events = [*events, {"from": "buyer", **second["message"]}, _supplier(5.30)]
+    third = ev.enrich(case, {sid: events}, sid, _move(5.40))
+    assert third["message"]["refs"] == ["sc:70740@2026Q3"]  # deeper bank, as in the 0.5325 run

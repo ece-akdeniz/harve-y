@@ -40,10 +40,14 @@ class EvidencePolicy:
         # Opt-in: allow the verified buyer-favourable index window (<= 12 months, ending in the last 12)
         # for listed cost drivers whose latest 12-month change supports the supplier.
         self.index_window_types = set(index_window_types or ())
-        # Opt-in: release at most one new verified claim per message (each verified fact tends to buy
-        # one concession; two in one message buy one), and when the preferred queue is exhausted fall
-        # back to the deeper bank: latest index windows, scorecards, the supplier's own quote and our
+        # Opt-in: release at most one new verified claim PER KIND per message (two index decreases in
+        # one message buy one concession, P18: each acknowledgement names exactly one claim); a second
+        # claim of a kind the message already carries waits for the next message. Claims of different
+        # kinds still travel together, so every bundle v3 sends in one message is unchanged. Once pacing
+        # has deferred a claim in a thread and the preferred queue is exhausted, fall back to the deeper
+        # bank - one claim per message: latest index windows, scorecards, the supplier's own quote and our
         # order history with it (`claims.history_claims`). Never cherry-picked windows, never should-cost.
+        # Threads where nothing was ever deferred behave exactly as without the option.
         self.claim_pacing = bool(claim_pacing)
         # Opt-in (`cost_breakdown_request`): the supplier's own cost breakdown XLSX, once received, ranks the
         # index claims and may add one ID-free arithmetic sentence after the verified index claim.
@@ -105,6 +109,27 @@ class EvidencePolicy:
     def fallback(self, case, exc):
         if self.tracer:
             self.tracer.log("evidence_fallback", case=case["case_id"], error_type=type(exc).__name__)
+
+    @staticmethod
+    def pace(chosen):
+        """`claim_pacing` trim of one message's selection: the first claim of each kind stays, every
+        further claim of an already carried kind is deferred. Returns (kept, deferred)."""
+        kept, deferred, kinds = [], [], set()
+        for c in chosen:
+            (deferred if c.kind in kinds else kept).append(c)
+            kinds.add(c.kind)
+        return kept, deferred
+
+    @staticmethod
+    def paced_before(bank, events):
+        """True once this thread carries two or more of our sent claims of one kind - i.e. pacing has
+        already spread a bundle over messages. Rebuilt from the thread's buyer refs (restart-safe)."""
+        sent = {r for e in events if e.get("from") == "buyer" for r in e.get("refs") or []}
+        kinds = {}
+        for c in bank:
+            if c.ids and set(c.ids) <= sent:
+                kinds[c.kind] = kinds.get(c.kind, 0) + 1
+        return any(n >= 2 for n in kinds.values())
 
     def deep_bank(self, case, events, sid, usable, context):
         """Pacing fallback queue: the context bank without cherry-picked windows, plus the supplier's
@@ -195,8 +220,6 @@ class EvidencePolicy:
             budget = max(0, MAX_CHECKED - len(existing))
             if rfq:
                 budget = min(budget, rfq_claims)
-            if self.claim_pacing:
-                budget = min(budget, 1)
             case_type = "renewal_trade" if case["type"] == "renewal" else case["type"]
             chosen = pick(
                 bank, used, max_claims=budget, supplier_id=sid,
@@ -205,13 +228,19 @@ class EvidencePolicy:
                 allow_cherry_pick=recent or case["type"] in self.index_window_types,
                 skip_kinds=frozenset({"should_cost"}) if rfq else frozenset(),
             )
-            queue = "preferred"
-            if not chosen and self.claim_pacing and budget > 0:
+            queue, deferred = "preferred", []
+            if self.claim_pacing:
+                chosen, deferred = self.pace(chosen)
+                if deferred and self.tracer:
+                    self.tracer.log("claim_deferred", case=cid, supplier=sid,
+                                    deferred=[{"kind": c.kind, "ids": list(c.ids)} for c in deferred])
+            if (not chosen and self.claim_pacing and budget > 0
+                    and self.paced_before(bank, threads.get(sid, []))):
                 deep = self.deep_bank(case, threads.get(sid, []), sid, usable, context)
                 priorities, reasons = index_relevance(deep, case, self.package, threads.get(sid, []),
                                                       breakdown=breakdown)
                 chosen = pick(
-                    deep, used, max_claims=budget, supplier_id=sid, case_type=case_type,
+                    deep, used, max_claims=1, supplier_id=sid, case_type=case_type,
                     index_priorities=priorities, disclosures=DEFAULT_DISCLOSURE,
                     skip_kinds=frozenset({"should_cost"}),
                 )
